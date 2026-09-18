@@ -1,0 +1,9 @@
+# Serves the M5 CS page at the site root. No build step.
+
+[build]
+  publish = "bmw-m5-cs"
+
+[[headers]]
+  for = "/index.html"
+  [headers.values]
+    Cache-Control = "public, max-age=0, must-revalidate"
