@@ -1,0 +1,1695 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Skyline Tram — Cloudworks Line</title>
+<style>
+  :root{
+    --panel-bg: rgba(28, 22, 40, 0.55);
+    --panel-border: rgba(255, 220, 180, 0.25);
+    --warm: #ffd9a0;
+    --accent: #ffb27a;
+    --good: #8fe3b0;
+    --bad: #ff8a7a;
+  }
+  html,body{
+    margin:0; padding:0; width:100%; height:100%; overflow:hidden;
+    background:#0b0716; font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    -webkit-user-select:none; user-select:none; touch-action:none;
+  }
+  #app{ position:fixed; inset:0; }
+  canvas{ display:block; width:100%; height:100%; }
+
+  /* ---------- Top-left HUD: destination / currency / streak ---------- */
+  #hud-top-left{
+    position:fixed; top:16px; left:16px; z-index:10;
+    background:var(--panel-bg); border:1px solid var(--panel-border);
+    border-radius:14px; padding:10px 16px; color:#fff2e0;
+    backdrop-filter: blur(6px); min-width:210px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.35);
+  }
+  #hud-route{ font-size:13px; opacity:0.85; letter-spacing:0.02em; }
+  #hud-route b{ color:var(--warm); }
+  #hud-stats{ display:flex; gap:14px; margin-top:6px; font-size:13px; }
+  #hud-stats span{ display:flex; align-items:center; gap:4px; }
+  #hud-tips{ color:var(--good); font-weight:600; }
+  #hud-streak{ color:var(--accent); font-weight:600; }
+  #hud-cond{ margin-top:4px; font-size:12px; opacity:0.8; }
+  #hud-cond.crosswind{ color:var(--bad); }
+
+  /* ---------- Workshop button ---------- */
+  #btn-workshop{
+    position:fixed; top:16px; right:16px; z-index:10;
+    background:var(--panel-bg); border:1px solid var(--panel-border);
+    color:#fff2e0; padding:10px 16px; border-radius:14px; font-size:13px;
+    cursor:pointer; backdrop-filter: blur(6px);
+  }
+  #btn-workshop:active{ transform: scale(0.97); }
+
+  /* ---------- Bottom control cluster ---------- */
+  #hud-bottom{
+    position:fixed; left:0; right:0; bottom:14px; z-index:10;
+    display:flex; flex-direction:column; align-items:center; gap:8px;
+    pointer-events:none;
+  }
+  #comfort-row{
+    display:flex; align-items:center; gap:10px; width:min(560px, 92vw);
+    color:#fff2e0; font-size:12px; pointer-events:none;
+  }
+  #comfort-row .station{ min-width:74px; text-align:center; opacity:0.85; }
+  #comfort-row .station.active{ color:var(--warm); font-weight:700; opacity:1; }
+  #comfort-bar-track{
+    flex:1; height:10px; border-radius:6px; background:rgba(255,255,255,0.12);
+    overflow:hidden; position:relative; border:1px solid rgba(255,255,255,0.15);
+  }
+  #comfort-bar-fill{
+    height:100%; width:100%; border-radius:6px;
+    background:linear-gradient(90deg,#8fe3b0,#ffe08a);
+    transition: width 0.15s linear, background 0.3s;
+  }
+  #comfort-progress-fill{
+    position:absolute; top:0; left:0; height:100%; width:0%;
+    background:rgba(255,255,255,0.35); mix-blend-mode:overlay;
+  }
+
+  #control-row{
+    display:flex; align-items:flex-end; gap:18px; pointer-events:none;
+  }
+  .side-btn{
+    pointer-events:auto;
+    width:54px; height:54px; border-radius:50%;
+    background:var(--panel-bg); border:1px solid var(--panel-border);
+    color:#fff2e0; font-size:20px; display:flex; align-items:center; justify-content:center;
+    cursor:pointer; backdrop-filter: blur(6px);
+  }
+  .side-btn:active{ transform:scale(0.94); }
+
+  #speed-cluster{ display:flex; flex-direction:column; align-items:center; gap:6px; pointer-events:auto; }
+  #speed-readout{ color:#fff2e0; font-size:22px; font-weight:700; letter-spacing:0.02em; text-shadow:0 2px 6px rgba(0,0,0,0.5); }
+  #speed-readout small{ font-size:12px; font-weight:400; opacity:0.7; margin-left:3px; }
+  #speed-bar-track{
+    width:min(320px, 60vw); height:10px; border-radius:6px;
+    background:rgba(255,255,255,0.12); border:1px solid rgba(255,255,255,0.15); overflow:hidden;
+  }
+  #speed-bar-fill{ height:100%; width:0%; background:linear-gradient(90deg,#ffd9a0,#ff8a7a); }
+  #pedal-row{ display:flex; gap:14px; margin-top:4px; }
+  .pedal{
+    pointer-events:auto;
+    width:96px; height:56px; border-radius:16px;
+    display:flex; align-items:center; justify-content:center;
+    font-weight:700; font-size:15px; letter-spacing:0.03em;
+    border:1px solid var(--panel-border); backdrop-filter: blur(6px);
+    cursor:pointer; color:#fff2e0;
+  }
+  #btn-power{ background:linear-gradient(160deg, rgba(143,227,176,0.35), rgba(28,22,40,0.55)); }
+  #btn-power.active{ background:linear-gradient(160deg, rgba(143,227,176,0.75), rgba(28,22,40,0.55)); }
+  #btn-brake{ background:linear-gradient(160deg, rgba(255,138,122,0.35), rgba(28,22,40,0.55)); }
+  #btn-brake.active{ background:linear-gradient(160deg, rgba(255,138,122,0.75), rgba(28,22,40,0.55)); }
+  #passenger-readout{ color:#fff2e0; font-size:12px; opacity:0.85; }
+
+  /* ---------- Subtitles & toasts ---------- */
+  #subtitle{
+    position:fixed; left:50%; bottom:180px; transform:translateX(-50%);
+    z-index:10; color:#fff2e0; font-size:16px; text-align:center;
+    background:rgba(20,14,30,0.5); padding:6px 16px; border-radius:10px;
+    opacity:0; transition:opacity 0.4s; pointer-events:none; max-width:80vw;
+  }
+  #subtitle.show{ opacity:1; }
+  #toast{
+    position:fixed; left:50%; top:38%; transform:translateX(-50%) translateY(0);
+    z-index:10; font-size:28px; font-weight:800; color:var(--good);
+    text-shadow:0 3px 10px rgba(0,0,0,0.5); opacity:0; pointer-events:none;
+    transition: opacity 0.5s, transform 0.8s;
+  }
+  #toast.show{ opacity:1; transform:translateX(-50%) translateY(-30px); }
+  #toast.bad{ color:var(--bad); font-size:16px; font-weight:600; max-width:70vw; text-align:center; }
+
+  /* ---------- Workshop overlay ---------- */
+  #workshop-panel{
+    /* Anchored to the left so the isometric workshop scene (and the tram on display
+       there) stays visible to the right, instead of being hidden behind the panel. */
+    position:fixed; z-index:20; left:20px; top:50%; transform:translateY(-50%);
+    width:min(380px,80vw); background:rgba(22,16,32,0.85); border:1px solid var(--panel-border);
+    border-radius:18px; padding:20px 22px; color:#fff2e0; backdrop-filter: blur(10px);
+    box-shadow:0 20px 60px rgba(0,0,0,0.5); display:none; flex-direction:column; gap:12px;
+    max-height:88vh; overflow:auto;
+  }
+  #workshop-panel.show{ display:flex; }
+  #workshop-panel h2{ margin:0; font-size:19px; color:var(--warm); }
+  #workshop-panel .sub{ font-size:12px; opacity:0.75; margin-top:-8px; }
+  .part-card{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08);
+    border-radius:12px; padding:10px 12px;
+  }
+  .part-card .info{ font-size:13px; }
+  .part-card .info b{ display:block; font-size:14px; color:var(--warm); }
+  .part-card button{
+    border:none; border-radius:10px; padding:8px 12px; font-size:12px; font-weight:700;
+    cursor:pointer; background:linear-gradient(160deg,#8fe3b0,#5fb98a); color:#0b3320;
+  }
+  .part-card button.on{ background:linear-gradient(160deg,#ffb27a,#e8895a); color:#3a1a08; }
+  #workshop-progress-wrap{ display:none; flex-direction:column; gap:6px; align-items:center; }
+  #workshop-progress-wrap.show{ display:flex; }
+  #workshop-progress-track{ width:100%; height:8px; border-radius:6px; background:rgba(255,255,255,0.12); overflow:hidden; }
+  #workshop-progress-fill{ height:100%; width:0%; background:linear-gradient(90deg,#8fe3b0,#ffe08a); }
+  #workshop-progress-label{ font-size:12px; opacity:0.85; font-style:italic; }
+  #btn-leave-workshop{
+    align-self:center; margin-top:4px; background:none; border:1px solid var(--panel-border);
+    color:#fff2e0; padding:8px 18px; border-radius:10px; cursor:pointer; font-size:13px;
+  }
+
+  #tap-hint{
+    position:fixed; left:50%; top:16px; transform:translateX(-50%); z-index:9;
+    color:#fff2e0; font-size:12px; opacity:0.65; pointer-events:none;
+    background:rgba(0,0,0,0.3); padding:4px 10px; border-radius:8px;
+  }
+
+  @media (max-width:640px){
+    #hud-top-left{ min-width:160px; padding:8px 12px; }
+    #hud-route{ font-size:11px; }
+    .pedal{ width:78px; height:50px; font-size:13px; }
+    #speed-bar-track{ width:52vw; }
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- HUD: top-left destination / currency / streak -->
+  <div id="hud-top-left">
+    <div id="hud-route">Now serving <b id="hud-station-name">Saltlight Terminus</b></div>
+    <div id="hud-stats">
+      <span id="hud-tips">☀ 0 tips</span>
+      <span id="hud-streak">✦ streak 0</span>
+    </div>
+    <div id="hud-cond">Track: <span id="hud-cond-text">Steady</span></div>
+  </div>
+
+  <div id="btn-workshop">🛠 Cloudworks</div>
+  <div id="tap-hint">W / S to drive · ◀ ▶ to change view</div>
+
+  <!-- Subtitles & toasts -->
+  <div id="subtitle"></div>
+  <div id="toast"></div>
+
+  <!-- Bottom cluster -->
+  <div id="hud-bottom">
+    <div id="comfort-row">
+      <div class="station" id="station-a-label">Saltlight Terminus</div>
+      <div id="comfort-bar-track">
+        <div id="comfort-bar-fill"></div>
+        <div id="comfort-progress-fill"></div>
+      </div>
+      <div class="station" id="station-b-label">Mango Tide</div>
+    </div>
+    <div id="control-row">
+      <div class="side-btn" id="btn-view-left">◀</div>
+      <div id="speed-cluster">
+        <div id="speed-readout">0<small>km/h</small></div>
+        <div id="speed-bar-track"><div id="speed-bar-fill"></div></div>
+        <div id="pedal-row">
+          <div class="pedal" id="btn-power">POWER</div>
+          <div class="pedal" id="btn-brake">BRAKE</div>
+        </div>
+        <div id="passenger-readout">8 / 16 aboard</div>
+      </div>
+      <div class="side-btn" id="btn-view-right">▶</div>
+    </div>
+  </div>
+
+  <!-- Workshop overlay -->
+  <div id="workshop-panel">
+    <h2>Cloudworks — Oliver's Workshop</h2>
+    <div class="sub">Swap parts on the tram. Watch it come together on the rail outside.</div>
+
+    <div class="part-card">
+      <div class="info"><b>Luggage Rack</b>Extra roof baskets for market-day loads.</div>
+      <button data-part="luggageRack">Little Companion</button>
+    </div>
+    <div class="part-card">
+      <div class="info"><b>Lanterns</b>Warm little lights for the evening run.</div>
+      <button data-part="lanterns">Little Companion</button>
+    </div>
+    <div class="part-card">
+      <div class="info"><b>Vine Garland</b>Green trim along the awning.</div>
+      <button data-part="vines">Little Companion</button>
+    </div>
+
+    <div id="workshop-progress-wrap">
+      <div id="workshop-progress-track"><div id="workshop-progress-fill"></div></div>
+      <div id="workshop-progress-label">Sit back and watch the workshop.</div>
+    </div>
+
+    <button id="btn-leave-workshop">Roll it out ▸</button>
+  </div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from "three";
+
+/* =========================================================================
+   SKYLINE TRAM — a small self-contained Three.js rail game.
+   Everything (scene, track, tram, UI wiring, physics) lives in this file.
+   ========================================================================= */
+
+/* ---------------------------- Global config ---------------------------- */
+const CONFIG = {
+  maxSpeedKmh: 92,
+  powerAccel: 26,      // km/h per second while holding Power
+  brakeDecel: 46,      // km/h per second while holding Brake
+  dragCoef: 0.22,      // natural speed bleed, proportional to speed
+  gradeFactor: 34,      // how much uphill/downhill slope affects accel
+  pedalRampRate: 42,    // km/h/s^2 -- how fast the pedals "spool up" (acceleration inertia)
+  capacity: 16,
+  harshBrakeDrop: -18,   // dSpeed/s beyond this counts as "hard braking"
+  harshAccelRise: 28,    // dSpeed/s beyond this counts as "sudden acceleration"
+  comfortRegen: 2.2,     // comfort regained per second while smooth
+  stationApproachU: 0.028, // zone (in track-fraction) before a station where the auto-limiter kicks in
+  stationDockU: 0.003,    // how close (in track-fraction) counts as "docked"
+  stationDockSpeed: 6,     // must be under this km/h to dock
+};
+
+/* ------------------------------ Renderer -------------------------------- */
+const canvasHost = document.getElementById("app");
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+// Keep the pre-r155 light intensity scale (simple 0-1-ish values instead of
+// physical candela units) so a stylised scene like this stays readably lit.
+renderer.useLegacyLights = true;
+canvasHost.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x2b1f45, 0.0027);
+
+const camera = new THREE.PerspectiveCamera(58, window.innerWidth / window.innerHeight, 0.5, 4000);
+// Big background pieces (sky, ocean, clouds, islands, track) live on WORLD_LAYER so the
+// workshop's isometric camera — which only looks at the default layer — never picks up
+// scenery that happens to be huge or far away (the ocean plane, for one, is enormous).
+const WORLD_LAYER = 2;
+camera.layers.enable(WORLD_LAYER);
+
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  resizeIsoCamera();
+});
+
+/* ------------------------------- Lighting -------------------------------- */
+// Warm dusk hemisphere light + a cool "moon" directional light for the Ghibli-ish glow.
+const hemi = new THREE.HemisphereLight(0x8a7ad6, 0x4a3624, 1.15);
+scene.add(hemi);
+
+const moonLight = new THREE.DirectionalLight(0xcfe0ff, 1.3);
+moonLight.position.set(-160, 230, 40);
+moonLight.target.position.set(-20, 55, -130); // aimed at the middle of the loop, between both islands
+moonLight.castShadow = true;
+moonLight.shadow.mapSize.set(2048, 2048);
+moonLight.shadow.camera.left = -300;
+moonLight.shadow.camera.right = 300;
+moonLight.shadow.camera.top = 300;
+moonLight.shadow.camera.bottom = -300;
+moonLight.shadow.camera.far = 700;
+moonLight.shadow.bias = -0.0015;
+scene.add(moonLight);
+scene.add(moonLight.target);
+
+const warmFill = new THREE.PointLight(0xffb27a, 0.6, 300, 2);
+warmFill.position.set(40, 50, 40);
+scene.add(warmFill);
+
+// A soft light that always travels with the tram, so the vehicle reads clearly
+// in chase view no matter which way it's facing relative to the moon.
+const tramFill = new THREE.PointLight(0xfff2d8, 0.55, 14, 2);
+tramFill.position.set(0, 3, -3);
+
+/* ================================ SKY ==================================== */
+function buildSky() {
+  const geo = new THREE.SphereGeometry(1800, 32, 24);
+  const colorsTop = new THREE.Color(0x120a26);    // deep night-purple
+  const colorsMid = new THREE.Color(0x3c2a63);    // dusk violet
+  const colorsHorizon = new THREE.Color(0xd98a5e); // warm sunset band
+  const pos = geo.attributes.position;
+  const colors = new Float32Array(pos.count * 3);
+  const tmp = new THREE.Vector3();
+  for (let i = 0; i < pos.count; i++) {
+    tmp.fromBufferAttribute(pos, i);
+    const h = THREE.MathUtils.clamp((tmp.y / 1800 + 1) / 2, 0, 1); // 0 bottom -> 1 top
+    const c = new THREE.Color();
+    if (h > 0.55) {
+      c.copy(colorsMid).lerp(colorsTop, (h - 0.55) / 0.45);
+    } else {
+      c.copy(colorsHorizon).lerp(colorsMid, h / 0.55);
+    }
+    colors[i * 3] = c.r; colors[i * 3 + 1] = c.g; colors[i * 3 + 2] = c.b;
+  }
+  geo.setAttribute("color", new THREE.BufferAttribute(colors, 3));
+  const mat = new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false });
+  const sky = new THREE.Mesh(geo, mat);
+  sky.layers.set(WORLD_LAYER);
+  scene.add(sky);
+
+  // Stars
+  const starCount = 1400;
+  const starGeo = new THREE.BufferGeometry();
+  const starPos = new Float32Array(starCount * 3);
+  for (let i = 0; i < starCount; i++) {
+    const r = 1500 + Math.random() * 200;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.random() * Math.PI * 0.55; // keep mostly upper hemisphere
+    starPos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
+    starPos[i * 3 + 1] = r * Math.cos(phi) * 0.9 + 200;
+    starPos[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+  }
+  starGeo.setAttribute("position", new THREE.BufferAttribute(starPos, 3));
+  const starMat = new THREE.PointsMaterial({ color: 0xfff4e0, size: 2.2, sizeAttenuation: false, transparent: true, opacity: 0.85, fog: false });
+  const stars = new THREE.Points(starGeo, starMat);
+  stars.layers.set(WORLD_LAYER);
+  scene.add(stars);
+
+  // Moon disc
+  const moonGeo = new THREE.SphereGeometry(14, 20, 20);
+  const moonMat = new THREE.MeshBasicMaterial({ color: 0xf3ecff, fog: false });
+  const moon = new THREE.Mesh(moonGeo, moonMat);
+  moon.position.set(-260, 260, -300);
+  moon.layers.set(WORLD_LAYER);
+  scene.add(moon);
+
+  return { stars };
+}
+const skyRefs = buildSky();
+
+/* =============================== OCEAN ==================================== */
+const OCEAN_Y = -34;
+function buildOcean() {
+  const size = 3200;
+  const seg = 60;
+  const geo = new THREE.PlaneGeometry(size, size, seg, seg);
+  geo.rotateX(-Math.PI / 2);
+  const mat = new THREE.MeshStandardMaterial({
+    color: 0x1c3a63, roughness: 0.35, metalness: 0.15,
+    emissive: 0x0b1f3a, emissiveIntensity: 0.25,
+  });
+  const ocean = new THREE.Mesh(geo, mat);
+  ocean.position.y = OCEAN_Y;
+  ocean.receiveShadow = true;
+  ocean.layers.set(WORLD_LAYER);
+  scene.add(ocean);
+  return ocean;
+}
+const ocean = buildOcean();
+const oceanBasePos = ocean.geometry.attributes.position.array.slice();
+
+/* ================================ CLOUDS =================================== */
+// A "sea of clouds" layer drifting beneath the islands & track.
+function buildCloudPuff(scale) {
+  const group = new THREE.Group();
+  const mat = new THREE.MeshStandardMaterial({ color: 0xf3e9f6, roughness: 1, flatShading: true, emissive: 0x2a1f3a, emissiveIntensity: 0.08 });
+  const blobs = 3 + Math.floor(Math.random() * 3);
+  for (let i = 0; i < blobs; i++) {
+    const r = (0.7 + Math.random() * 0.9) * scale;
+    const geo = new THREE.IcosahedronGeometry(r, 0);
+    const m = new THREE.Mesh(geo, mat);
+    m.position.set((Math.random() - 0.5) * 2.2 * scale, (Math.random() - 0.5) * 0.4 * scale, (Math.random() - 0.5) * 2.2 * scale);
+    m.scale.y = 0.55;
+    group.add(m);
+  }
+  return group;
+}
+function buildCloudField() {
+  const field = new THREE.Group();
+  const count = 90;
+  for (let i = 0; i < count; i++) {
+    const puff = buildCloudPuff(4 + Math.random() * 7);
+    const r = 60 + Math.random() * 620;
+    const a = Math.random() * Math.PI * 2;
+    puff.position.set(Math.cos(a) * r, -6 + Math.random() * 10, Math.sin(a) * r - 90);
+    puff.rotation.y = Math.random() * Math.PI;
+    puff.userData.driftSpeed = 0.4 + Math.random() * 0.6;
+    puff.userData.baseX = puff.position.x;
+    puff.userData.baseZ = puff.position.z;
+    puff.userData.phase = Math.random() * Math.PI * 2;
+    field.add(puff);
+  }
+  field.traverse((o) => o.layers.set(WORLD_LAYER));
+  scene.add(field);
+  return field;
+}
+const cloudField = buildCloudField();
+
+/* ============================== ISLANDS ==================================== */
+// Reusable low-poly builders for the Ghibli-seaside-town look.
+const palettes = {
+  roofRed: 0xb5493a,
+  roofRed2: 0x9c3d31,
+  wall: 0xe8d9b8,
+  wall2: 0xd9c49c,
+  rock: 0x4a4258,
+  rockTop: 0x6f9a5f,
+  wood: 0x6b4a34,
+  window: 0xffdf94,
+};
+
+function makeHouse(w, h, d, roofColor) {
+  const g = new THREE.Group();
+  const wallMat = new THREE.MeshStandardMaterial({ color: Math.random() > 0.5 ? palettes.wall : palettes.wall2, roughness: 0.9, flatShading: true });
+  const wall = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), wallMat);
+  wall.position.y = h / 2;
+  wall.castShadow = wall.receiveShadow = true;
+  g.add(wall);
+
+  const roofMat = new THREE.MeshStandardMaterial({ color: roofColor, roughness: 0.8, flatShading: true });
+  const roof = new THREE.Mesh(new THREE.ConeGeometry(Math.max(w, d) * 0.78, h * 0.6, 4), roofMat);
+  roof.rotation.y = Math.PI / 4;
+  roof.position.y = h + (h * 0.3);
+  roof.castShadow = true;
+  g.add(roof);
+
+  // glowing window
+  if (Math.random() > 0.25) {
+    const win = new THREE.Mesh(new THREE.PlaneGeometry(w * 0.22, h * 0.3), new THREE.MeshStandardMaterial({ color: palettes.window, emissive: palettes.window, emissiveIntensity: 1.4 }));
+    win.position.set(0, h * 0.55, d / 2 + 0.02);
+    g.add(win);
+  }
+  return g;
+}
+
+function makeTree() {
+  const g = new THREE.Group();
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.22, 1.4, 6), new THREE.MeshStandardMaterial({ color: palettes.wood, flatShading: true }));
+  trunk.position.y = 0.7;
+  trunk.castShadow = true;
+  g.add(trunk);
+  const leaves = new THREE.Mesh(new THREE.IcosahedronGeometry(1.05, 0), new THREE.MeshStandardMaterial({ color: 0x4f8a4a, flatShading: true }));
+  leaves.position.y = 1.9;
+  leaves.scale.y = 1.1;
+  leaves.castShadow = true;
+  g.add(leaves);
+  return g;
+}
+
+function makeStreetlight() {
+  const g = new THREE.Group();
+  const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.07, 2.2, 6), new THREE.MeshStandardMaterial({ color: 0x2b2b2b }));
+  pole.position.y = 1.1;
+  g.add(pole);
+  const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.16, 8, 8), new THREE.MeshStandardMaterial({ color: palettes.window, emissive: palettes.window, emissiveIntensity: 1.8 }));
+  lamp.position.y = 2.25;
+  g.add(lamp);
+  const pl = new THREE.PointLight(0xffcf8a, 0.6, 8, 2);
+  pl.position.y = 2.25;
+  g.add(pl);
+  return g;
+}
+
+function makeLighthouse() {
+  const g = new THREE.Group();
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(1.4, 1.8, 8, 10), new THREE.MeshStandardMaterial({ color: 0xf1e6cf, flatShading: true }));
+  base.position.y = 4;
+  base.castShadow = true;
+  g.add(base);
+  const stripe = new THREE.Mesh(new THREE.CylinderGeometry(1.42, 1.6, 2, 10), new THREE.MeshStandardMaterial({ color: palettes.roofRed, flatShading: true }));
+  stripe.position.y = 6.2;
+  g.add(stripe);
+  const cap = new THREE.Mesh(new THREE.ConeGeometry(1.6, 1.8, 10), new THREE.MeshStandardMaterial({ color: 0x2b2b2b }));
+  cap.position.y = 8.9;
+  g.add(cap);
+  const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.6, 10, 10), new THREE.MeshStandardMaterial({ color: 0xfff2c0, emissive: 0xfff2c0, emissiveIntensity: 2.2 }));
+  lamp.position.y = 8.1;
+  g.add(lamp);
+  const beam = new THREE.PointLight(0xfff0c0, 1.2, 40, 2);
+  beam.position.y = 8.1;
+  g.add(beam);
+  return g;
+}
+
+function makeDock(length) {
+  const g = new THREE.Group();
+  const plankMat = new THREE.MeshStandardMaterial({ color: palettes.wood, flatShading: true });
+  const deck = new THREE.Mesh(new THREE.BoxGeometry(3, 0.3, length), plankMat);
+  deck.position.y = 0.15;
+  deck.receiveShadow = true;
+  g.add(deck);
+  const postCount = Math.max(2, Math.floor(length / 3));
+  for (let i = 0; i < postCount; i++) {
+    for (const side of [-1, 1]) {
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 3, 6), plankMat);
+      post.position.set(side * 1.3, -1.3, -length / 2 + (i + 0.5) * (length / postCount));
+      g.add(post);
+    }
+  }
+  return g;
+}
+
+function makeIslandBase(radius, height) {
+  const geo = new THREE.CylinderGeometry(radius * 0.55, radius, height, 8, 1);
+  // jitter radial verts for a rough rock look
+  const pos = geo.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const x = pos.getX(i), y = pos.getY(i), z = pos.getZ(i);
+    const jitter = 1 + (Math.random() - 0.5) * 0.12;
+    pos.setXYZ(i, x * jitter, y, z * jitter);
+  }
+  geo.computeVertexNormals();
+  const mat = new THREE.MeshStandardMaterial({ color: palettes.rock, flatShading: true, roughness: 1 });
+  const rock = new THREE.Mesh(geo, mat);
+  rock.castShadow = rock.receiveShadow = true;
+
+  const topGeo = new THREE.CylinderGeometry(radius * 0.58, radius * 0.55, height * 0.18, 8);
+  const topMat = new THREE.MeshStandardMaterial({ color: palettes.rockTop, flatShading: true, roughness: 1 });
+  const top = new THREE.Mesh(topGeo, topMat);
+  top.position.y = height / 2;
+  top.receiveShadow = true;
+
+  const g = new THREE.Group();
+  g.add(rock, top);
+  return g;
+}
+
+// Builds a floating island populated with houses/trees/lights, optionally a lighthouse & dock.
+function buildIsland({ position, radius, height, withLighthouse, withDock, houseCount, ring }) {
+  const g = new THREE.Group();
+  g.position.copy(position);
+
+  const base = makeIslandBase(radius, height);
+  g.add(base);
+
+  const topY = height / 2 + 0.05;
+  for (let i = 0; i < houseCount; i++) {
+    const a = (i / houseCount) * Math.PI * 2 + Math.random() * 0.4;
+    const r = radius * (0.25 + Math.random() * 0.5);
+    const h = makeHouse(1.6 + Math.random() * 0.8, 1.4 + Math.random() * 0.9, 1.6 + Math.random() * 0.8, Math.random() > 0.5 ? palettes.roofRed : palettes.roofRed2);
+    h.position.set(Math.cos(a) * r, topY, Math.sin(a) * r);
+    h.rotation.y = Math.random() * Math.PI * 2;
+    g.add(h);
+    if (Math.random() > 0.5) {
+      const t = makeTree();
+      t.position.set(Math.cos(a) * (r + 1.4), topY, Math.sin(a) * (r + 1.4));
+      g.add(t);
+    }
+    if (Math.random() > 0.65) {
+      const sl = makeStreetlight();
+      sl.position.set(Math.cos(a) * (r - 1.1), topY, Math.sin(a) * (r - 1.1));
+      g.add(sl);
+    }
+  }
+  // fringe trees
+  for (let i = 0; i < 6; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const r = radius * (0.75 + Math.random() * 0.2);
+    const t = makeTree();
+    t.position.set(Math.cos(a) * r, topY, Math.sin(a) * r);
+    g.add(t);
+  }
+
+  if (withLighthouse) {
+    const lh = makeLighthouse();
+    lh.position.set(radius * 0.55, topY, -radius * 0.4);
+    g.add(lh);
+  }
+  if (withDock) {
+    const dock = makeDock(radius * 0.9);
+    dock.rotation.y = Math.PI / 2;
+    dock.position.set(radius * 0.9, topY - height * 0.12, radius * 0.15);
+    g.add(dock);
+  }
+  if (ring) {
+    const ringGeo = new THREE.TorusGeometry(radius * 1.6, 0.25, 8, 48);
+    const ringMat = new THREE.MeshStandardMaterial({ color: 0xbfa8ff, emissive: 0x4a3a8a, emissiveIntensity: 0.4, roughness: 0.6 });
+    const ringMesh = new THREE.Mesh(ringGeo, ringMat);
+    ringMesh.rotation.x = Math.PI / 2.4;
+    g.userData.ring = ringMesh;
+    g.add(ringMesh);
+  }
+
+  g.traverse((o) => o.layers.set(WORLD_LAYER));
+  scene.add(g);
+  return g;
+}
+
+// Distant background islands for depth (with a couple of slow-orbiting rings, per the prompt's "circling orbits").
+function buildDistantIslands() {
+  const group = new THREE.Group();
+  for (let i = 0; i < 7; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const r = 420 + Math.random() * 520;
+    const pos = new THREE.Vector3(Math.cos(a) * r, 10 + Math.random() * 140, Math.sin(a) * r - 120);
+    const isl = buildIsland({
+      position: pos, radius: 6 + Math.random() * 10, height: 6 + Math.random() * 5,
+      withLighthouse: false, withDock: false, houseCount: 2 + Math.floor(Math.random() * 3),
+      ring: Math.random() > 0.6,
+    });
+    isl.scale.setScalar(1);
+    group.add(isl);
+  }
+  return group;
+}
+const distantIslands = buildDistantIslands();
+
+/* ================================ TRACK ==================================== */
+// Control points forming a closed loop: two stations connected by an outbound path
+// (straight -> descent -> curve -> long bridge -> rise into the second island) and a
+// different, higher return path (elevated curve) so the loop never retraces itself.
+const trackPoints = [
+  new THREE.Vector3(0, 60, 22),     // 0  Saltlight platform
+  new THREE.Vector3(0, 58, -18),    // 1  straight run-out
+  new THREE.Vector3(26, 50, -66),   // 2  curve right, descending
+  new THREE.Vector3(58, 32, -128),  // 3  onto the bridge approach
+  new THREE.Vector3(34, 22, -188),  // 4  long bridge, low over the sea
+  new THREE.Vector3(4, 24, -238),   // 5  bridge exit, gentle rise
+  new THREE.Vector3(0, 40, -268),   // 6  Mango Tide platform
+  new THREE.Vector3(-40, 52, -244), // 7  climb away from Mango Tide
+  new THREE.Vector3(-84, 78, -172), // 8  elevated curve, uphill
+  new THREE.Vector3(-78, 96, -92),  // 9  high point of the elevated loop
+  new THREE.Vector3(-42, 86, -28),  // 10 descending curve back
+  new THREE.Vector3(-10, 70, 10),   // 11 final approach into Saltlight
+];
+const curve = new THREE.CatmullRomCurve3(trackPoints, true, "catmullrom", 0.45);
+const TRACK_LENGTH = curve.getLength();
+
+// Find the arc-length parameter `u` on the closed curve nearest to a world point.
+function findClosestU(point, samples = 2000) {
+  let bestU = 0, bestD = Infinity;
+  for (let i = 0; i < samples; i++) {
+    const u = i / samples;
+    const p = curve.getPointAt(u);
+    const d = p.distanceToSquared(point);
+    if (d < bestD) { bestD = d; bestU = u; }
+  }
+  return bestU;
+}
+
+// A stable-ish local frame (tangent / right / up) at parameter u, using world-up as reference.
+function frameAt(u) {
+  const tangent = curve.getTangentAt(u).normalize();
+  let up = new THREE.Vector3(0, 1, 0);
+  let right = new THREE.Vector3().crossVectors(tangent, up);
+  if (right.lengthSq() < 1e-6) right.set(1, 0, 0); else right.normalize();
+  up = new THREE.Vector3().crossVectors(right, tangent).normalize();
+  return { tangent, right, up };
+}
+
+// Approximate signed curvature (how sharply the track turns) at u, used for banking & comfort.
+// `u` is a fraction of the whole loop, but getTangentAt is arc-length parametrized, so the
+// sampling step must be converted to real distance (d * TRACK_LENGTH) — not left as a raw
+// fraction — or the resulting curvature comes out inflated by roughly TRACK_LENGTH times.
+function estimateCurvature(u) {
+  const d = 0.0015;
+  const arcStep = d * TRACK_LENGTH;
+  const t0 = curve.getTangentAt((u - d + 1) % 1);
+  const t1 = curve.getTangentAt((u + d) % 1);
+  return t1.clone().sub(t0).length() / (2 * arcStep);
+}
+function signedTurn(u) {
+  const d = 0.0015;
+  const arcStep = d * TRACK_LENGTH;
+  const t0 = curve.getTangentAt((u - d + 1) % 1);
+  const t1 = curve.getTangentAt((u + d) % 1);
+  const cross = new THREE.Vector3().crossVectors(t0, t1);
+  return cross.y / arcStep; // + turning one way, - the other
+}
+
+function buildTrackMesh() {
+  const group = new THREE.Group();
+  const segments = 800;
+  const railOffset = 0.9;
+  const railMat = new THREE.MeshStandardMaterial({ color: 0x8a8f9a, metalness: 0.7, roughness: 0.35 });
+  const tieMat = new THREE.MeshStandardMaterial({ color: palettes.wood, roughness: 0.9, flatShading: true });
+  const pylonMat = new THREE.MeshStandardMaterial({ color: 0x5a5468, roughness: 0.85, flatShading: true });
+
+  const leftPts = [], rightPts = [];
+  for (let i = 0; i <= segments; i++) {
+    const u = (i / segments) % 1;
+    const p = curve.getPointAt(u);
+    const { right } = frameAt(u);
+    leftPts.push(p.clone().addScaledVector(right, -railOffset));
+    rightPts.push(p.clone().addScaledVector(right, railOffset));
+  }
+  const leftCurve = new THREE.CatmullRomCurve3(leftPts, true);
+  const rightCurve = new THREE.CatmullRomCurve3(rightPts, true);
+  const leftTube = new THREE.Mesh(new THREE.TubeGeometry(leftCurve, segments, 0.13, 6, true), railMat);
+  const rightTube = new THREE.Mesh(new THREE.TubeGeometry(rightCurve, segments, 0.13, 6, true), railMat);
+  leftTube.castShadow = rightTube.castShadow = true;
+  group.add(leftTube, rightTube);
+
+  // Railway ties (sleepers) via InstancedMesh
+  const tieCount = 260;
+  const tieGeo = new THREE.BoxGeometry(railOffset * 2 + 0.4, 0.14, 0.5);
+  const ties = new THREE.InstancedMesh(tieGeo, tieMat, tieCount);
+  ties.castShadow = true;
+  const m4 = new THREE.Matrix4();
+  for (let i = 0; i < tieCount; i++) {
+    const u = i / tieCount;
+    const p = curve.getPointAt(u);
+    const { tangent, up } = frameAt(u);
+    const quat = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().lookAt(new THREE.Vector3(), tangent, up));
+    m4.compose(p, quat, new THREE.Vector3(1, 1, 1));
+    ties.setMatrixAt(i, m4);
+  }
+  group.add(ties);
+
+  // Support pylons wherever the track rides high above the cloud sea (bridge + elevated curve).
+  const pylonSamples = 90;
+  for (let i = 0; i < pylonSamples; i++) {
+    const u = i / pylonSamples;
+    const p = curve.getPointAt(u);
+    if (p.y > 4 && p.y < 46) { // only the low bridge crossing gets visible supports; the high loop floats
+      const groundY = -2;
+      const pylonHeight = p.y - groundY;
+      const pylon = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.9, pylonHeight, 6), pylonMat);
+      pylon.position.set(p.x, groundY + pylonHeight / 2, p.z);
+      pylon.castShadow = true;
+      group.add(pylon);
+    }
+  }
+
+  group.traverse((o) => o.layers.set(WORLD_LAYER));
+  scene.add(group);
+  return group;
+}
+buildTrackMesh();
+
+/* ============================== STATIONS ==================================== */
+const stationAnchorA = trackPoints[0];
+const stationAnchorB = trackPoints[6];
+const stations = [
+  { name: "Saltlight Terminus", u: findClosestU(stationAnchorA), anchor: stationAnchorA },
+  { name: "Mango Tide", u: findClosestU(stationAnchorB), anchor: stationAnchorB },
+];
+document.getElementById("station-a-label").textContent = stations[0].name;
+document.getElementById("station-b-label").textContent = stations[1].name;
+
+function buildStationPlatform(stationDef, facingIslandCenter) {
+  const g = new THREE.Group();
+  const { tangent, right, up } = frameAt(stationDef.u);
+  const base = curve.getPointAt(stationDef.u);
+  g.position.copy(base).addScaledVector(up, -0.6).addScaledVector(right, 2.4);
+
+  const deckMat = new THREE.MeshStandardMaterial({ color: 0xd9c49c, roughness: 0.9, flatShading: true });
+  const deck = new THREE.Mesh(new THREE.BoxGeometry(4.2, 0.5, 10), deckMat);
+  g.add(deck);
+
+  const roofPostMat = new THREE.MeshStandardMaterial({ color: palettes.wood, flatShading: true });
+  const roofMat = new THREE.MeshStandardMaterial({ color: 0x3a6b4f, flatShading: true, roughness: 0.8 });
+  for (const side of [-1, 1]) {
+    for (const along of [-3.6, 3.6]) {
+      const post = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 3, 6), roofPostMat);
+      post.position.set(side * 1.8, 1.75, along);
+      g.add(post);
+    }
+  }
+  const roof = new THREE.Mesh(new THREE.BoxGeometry(4.6, 0.25, 9), roofMat);
+  roof.position.y = 3.3;
+  roof.castShadow = true;
+  g.add(roof);
+
+  // lanterns hanging under the roof
+  for (const along of [-2.8, 0, 2.8]) {
+    const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 8), new THREE.MeshStandardMaterial({ color: palettes.window, emissive: palettes.window, emissiveIntensity: 1.6 }));
+    lamp.position.set(0, 3.05, along);
+    g.add(lamp);
+    const pl = new THREE.PointLight(0xffcf8a, 0.5, 10, 2);
+    pl.position.copy(lamp.position);
+    g.add(pl);
+  }
+
+  // sign
+  const signMat = new THREE.MeshStandardMaterial({ color: 0xfff2e0, emissive: 0xfff2e0, emissiveIntensity: 0.3 });
+  const sign = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 0.6), signMat);
+  sign.position.set(0, 3.7, -4.6);
+  g.add(sign);
+
+  // simple townsfolk figures queuing on the platform
+  const folk = [];
+  for (let i = 0; i < 4; i++) {
+    const person = makePersonMesh(0.4 + Math.random() * 0.15);
+    person.position.set(1.4, 0.55, -3 + i * 1.4);
+    g.add(person);
+    folk.push(person);
+  }
+
+  g.userData.folk = folk;
+  g.traverse((o) => o.layers.set(WORLD_LAYER));
+  scene.add(g);
+  return g;
+}
+
+function makePersonMesh(scale = 0.45) {
+  const g = new THREE.Group();
+  const colors = [0x5a7a9a, 0xb5493a, 0x8a6a4a, 0x6a5a8a, 0x4a8a6a];
+  const c = colors[Math.floor(Math.random() * colors.length)];
+  const body = new THREE.Mesh(new THREE.CapsuleGeometry(0.16, 0.42, 4, 8), new THREE.MeshStandardMaterial({ color: c, flatShading: true }));
+  body.position.y = 0.45;
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 8), new THREE.MeshStandardMaterial({ color: 0xe8c39e }));
+  head.position.y = 0.82;
+  g.add(body, head);
+  g.scale.setScalar(scale / 0.45);
+  return g;
+}
+
+const stationMeshA = buildStationPlatform(stations[0]);
+const stationMeshB = buildStationPlatform(stations[1]);
+
+/* Build the two islands around the stations, plus decorate. */
+buildIsland({ position: new THREE.Vector3(0, 51, 0), radius: 26, height: 16, withLighthouse: true, withDock: true, houseCount: 9 });
+buildIsland({ position: new THREE.Vector3(0, 31, -290), radius: 24, height: 15, withLighthouse: false, withDock: true, houseCount: 8 });
+
+/* ================================ TRAM ==================================== */
+// tramConfig controls which optional decorative parts are visible — toggled from the workshop.
+const tramConfig = { luggageRack: false, lanterns: false, vines: false };
+let tram, tramParts = {};
+
+function buildTram() {
+  const g = new THREE.Group();
+
+  const bodyMat = new THREE.MeshStandardMaterial({ color: 0x2c5a44, roughness: 0.55, metalness: 0.15 });
+  const chassisMat = new THREE.MeshStandardMaterial({ color: palettes.wood, roughness: 0.8, flatShading: true });
+  const glassMat = new THREE.MeshPhysicalMaterial({ color: 0xbfe3ff, transparent: true, opacity: 0.55, roughness: 0.1, metalness: 0, transmission: 0.3 });
+  const trimMat = new THREE.MeshStandardMaterial({ color: 0xf1e6cf, roughness: 0.6 });
+  const awningMat = new THREE.MeshStandardMaterial({ color: 0x3f7a52, roughness: 0.7, side: THREE.DoubleSide });
+
+  // Chassis (wood-colored undercarriage)
+  const chassis = new THREE.Mesh(new THREE.BoxGeometry(2.6, 0.45, 6.4), chassisMat);
+  chassis.position.y = 0.55;
+  chassis.castShadow = true;
+  g.add(chassis);
+
+  // Main body — slightly rounded via a scaled box + cylinder roof
+  const body = new THREE.Mesh(new THREE.BoxGeometry(2.4, 1.5, 6), bodyMat);
+  body.position.y = 1.55;
+  body.castShadow = true;
+  g.add(body);
+
+  const roofMat = new THREE.MeshStandardMaterial({ color: 0x24463a, roughness: 0.6 });
+  const roof = new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 6.1, 12, 1, false, 0, Math.PI), roofMat);
+  roof.rotation.z = Math.PI / 2;
+  roof.rotation.y = Math.PI / 2;
+  roof.scale.set(1, 0.55, 1);
+  roof.position.y = 2.28;
+  roof.castShadow = true;
+  g.add(roof);
+
+  // curved glass windows along both sides
+  for (const side of [-1, 1]) {
+    const winGroup = new THREE.Group();
+    for (let i = -1; i <= 1; i++) {
+      const win = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.75, 1.5), glassMat);
+      win.position.set(side * 1.22, 1.65, i * 1.9);
+      winGroup.add(win);
+    }
+    g.add(winGroup);
+  }
+  // front & rear curved windshields
+  for (const zSide of [-1, 1]) {
+    const ws = new THREE.Mesh(new THREE.BoxGeometry(2.1, 0.9, 0.06), glassMat);
+    ws.position.set(0, 1.75, zSide * 3.02);
+    g.add(ws);
+  }
+
+  // trim strip
+  const trim = new THREE.Mesh(new THREE.BoxGeometry(2.46, 0.12, 6.05), trimMat);
+  trim.position.y = 0.95;
+  g.add(trim);
+
+  // green awning along the roofline
+  const awning = new THREE.Mesh(new THREE.BoxGeometry(2.7, 0.06, 6.3), awningMat);
+  awning.position.y = 2.85;
+  g.add(awning);
+
+  // doors (front-left & front-right), pivoted for open/close animation
+  const doorMat = new THREE.MeshStandardMaterial({ color: 0x2c5a44, roughness: 0.55 });
+  const doorPivotL = new THREE.Group();
+  doorPivotL.position.set(-1.2, 1.35, 1.2);
+  const doorL = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.3, 1.1), doorMat);
+  doorL.position.set(-0.04, 0, 0.55);
+  doorPivotL.add(doorL);
+  g.add(doorPivotL);
+
+  const doorPivotR = new THREE.Group();
+  doorPivotR.position.set(1.2, 1.35, 1.2);
+  const doorR = new THREE.Mesh(new THREE.BoxGeometry(0.08, 1.3, 1.1), doorMat);
+  doorR.position.set(0.04, 0, 0.55);
+  doorPivotR.add(doorR);
+  g.add(doorPivotR);
+
+  // headlight
+  // Note: tram is a plain Group, and THREE.Object3D#lookAt (unlike Camera#lookAt) faces
+  // objects with local +Z toward the look target, so +Z is "forward" here.
+  const headlight = new THREE.Mesh(new THREE.SphereGeometry(0.14, 8, 8), new THREE.MeshStandardMaterial({ color: 0xfff6d8, emissive: 0xfff6d8, emissiveIntensity: 1.5 }));
+  headlight.position.set(0, 1.15, 3.05);
+  g.add(headlight);
+  const headSpot = new THREE.SpotLight(0xfff0c8, 1.2, 60, Math.PI / 6, 0.4, 1.4);
+  headSpot.position.set(0, 1.15, 3.05);
+  headSpot.target.position.set(0, 0.5, 12);
+  g.add(headSpot, headSpot.target);
+  g.add(tramFill);
+
+  // bogies / wheels
+  const wheelMat = new THREE.MeshStandardMaterial({ color: 0x222222, metalness: 0.4, roughness: 0.5 });
+  const wheels = [];
+  for (const zSide of [-1, 1]) {
+    for (const xSide of [-1, 1]) {
+      const wheel = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.22, 10), wheelMat);
+      wheel.rotation.z = Math.PI / 2;
+      wheel.position.set(xSide * 0.95, 0.32, zSide * 2.3);
+      g.add(wheel);
+      wheels.push(wheel);
+    }
+  }
+
+  // passengers visible through the windows
+  const seatedFolk = [];
+  for (let i = -1; i <= 1; i++) {
+    for (const side of [-0.55, 0.55]) {
+      if (Math.random() > 0.3) {
+        const p = makePersonMesh(0.32);
+        p.rotation.y = Math.PI / 2;
+        p.position.set(side, 1.05, i * 1.8);
+        g.add(p);
+        seatedFolk.push(p);
+      }
+    }
+  }
+
+  /* ---- Optional decorative parts, toggled from the workshop ---- */
+  const luggageRack = new THREE.Group();
+  const rackMat = new THREE.MeshStandardMaterial({ color: 0x3a2f22, roughness: 0.9 });
+  const rackBase = new THREE.Mesh(new THREE.BoxGeometry(1.6, 0.06, 3.2), rackMat);
+  rackBase.position.y = 2.7;
+  luggageRack.add(rackBase);
+  for (let i = 0; i < 3; i++) {
+    const suitcase = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.35, 0.35), new THREE.MeshStandardMaterial({ color: [0x9c5b3c, 0x5b7a9c, 0x8a8a5b][i], flatShading: true }));
+    suitcase.position.set((i - 1) * 0.55, 2.9, 0.4);
+    luggageRack.add(suitcase);
+  }
+  luggageRack.visible = tramConfig.luggageRack;
+  g.add(luggageRack);
+
+  const lanterns = new THREE.Group();
+  for (const zSide of [-1, 1]) {
+    const lampGeo = new THREE.SphereGeometry(0.12, 8, 8);
+    const lampMat = new THREE.MeshStandardMaterial({ color: 0xffd98a, emissive: 0xffb24a, emissiveIntensity: 1.6 });
+    const lamp = new THREE.Mesh(lampGeo, lampMat);
+    lamp.position.set(1.35, 2.55, zSide * 2.8);
+    const pl = new THREE.PointLight(0xffb24a, 0.7, 6, 2);
+    pl.position.copy(lamp.position);
+    lanterns.add(lamp, pl);
+    const lamp2 = lamp.clone(); lamp2.position.x = -1.35;
+    const pl2 = new THREE.PointLight(0xffb24a, 0.7, 6, 2); pl2.position.copy(lamp2.position);
+    lanterns.add(lamp2, pl2);
+  }
+  lanterns.visible = tramConfig.lanterns;
+  g.add(lanterns);
+
+  const vines = new THREE.Group();
+  const vineMat = new THREE.MeshStandardMaterial({ color: 0x3f7a3a, flatShading: true });
+  for (let i = -2; i <= 2; i++) {
+    const vine = new THREE.Mesh(new THREE.TorusGeometry(0.16, 0.05, 6, 10), vineMat);
+    vine.position.set(1.36, 2.5, i * 1.15);
+    vine.rotation.x = Math.PI / 2;
+    vines.add(vine);
+    const vine2 = vine.clone(); vine2.position.x = -1.36;
+    vines.add(vine2);
+  }
+  vines.visible = tramConfig.vines;
+  g.add(vines);
+
+  scene.add(g);
+  tramParts = { doorPivotL, doorPivotR, wheels, luggageRack, lanterns, vines, headSpot };
+  return g;
+}
+tram = buildTram();
+
+function applyTramConfig() {
+  tramParts.luggageRack.visible = tramConfig.luggageRack;
+  tramParts.lanterns.visible = tramConfig.lanterns;
+  tramParts.vines.visible = tramConfig.vines;
+}
+
+/* =============================== GAME STATE ==================================== */
+const state = {
+  u: stations[0].u + 0.03, // start just clear of the Saltlight platform structure
+  speedKmh: 0,
+  driveAccel: 0, // ramped power/brake force currently being applied (see pedalRampRate)
+  throttle: false,
+  braking: false,
+  comfort: 100,
+  tips: 0,
+  streak: 0,
+  passengers: 8,
+  capacity: CONFIG.capacity,
+  nextStationIndex: 1, // heading from station 0 toward station 1
+  atStation: false,
+  stationPhase: "", // "dock" | "doors" | "depart"
+  stationTimer: 0,
+  doorAmount: 0, // 0 closed -> 1 open
+  roll: 0,
+  bobPhase: 0,
+  viewMode: 0, // 0 chase, 1 cab, 2 scenic
+  roadCondition: "Steady",
+  windTimer: 2 + Math.random() * 4,
+  windActive: false,
+};
+
+const VIEW_NAMES = ["Chase View", "Driver's Cab", "Scenic View"];
+
+/* -------------------------------- Input --------------------------------- */
+function setThrottle(v) {
+  state.throttle = v;
+  document.getElementById("btn-power").classList.toggle("active", v);
+  ensureAudio();
+}
+function setBraking(v) {
+  state.braking = v;
+  document.getElementById("btn-brake").classList.toggle("active", v);
+  ensureAudio();
+}
+function cycleView(dir) {
+  state.viewMode = (state.viewMode + dir + 3) % 3;
+  flashSubtitle(VIEW_NAMES[state.viewMode], 1200);
+}
+
+window.addEventListener("keydown", (e) => {
+  if (e.repeat) return;
+  switch (e.code) {
+    case "KeyW": case "ArrowUp": setThrottle(true); break;
+    case "KeyS": case "ArrowDown": setBraking(true); break;
+    case "ArrowLeft": case "KeyA": cycleView(-1); break;
+    case "ArrowRight": case "KeyD": cycleView(1); break;
+  }
+});
+window.addEventListener("keyup", (e) => {
+  switch (e.code) {
+    case "KeyW": case "ArrowUp": setThrottle(false); break;
+    case "KeyS": case "ArrowDown": setBraking(false); break;
+  }
+});
+
+function bindHold(el, onDown, onUp) {
+  const down = (e) => { e.preventDefault(); onDown(); };
+  const up = (e) => { e.preventDefault(); onUp(); };
+  el.addEventListener("pointerdown", down);
+  el.addEventListener("pointerup", up);
+  el.addEventListener("pointerleave", up);
+  el.addEventListener("pointercancel", up);
+}
+bindHold(document.getElementById("btn-power"), () => setThrottle(true), () => setThrottle(false));
+bindHold(document.getElementById("btn-brake"), () => setBraking(true), () => setBraking(false));
+document.getElementById("btn-view-left").addEventListener("pointerdown", (e) => { e.preventDefault(); cycleView(-1); });
+document.getElementById("btn-view-right").addEventListener("pointerdown", (e) => { e.preventDefault(); cycleView(1); });
+
+/* --------------------------------- Audio --------------------------------- */
+let audioCtx = null;
+function ensureAudio() {
+  if (audioCtx) return;
+  try {
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  } catch (e) { /* audio unavailable — visuals still convey feedback */ }
+}
+function playClack(volume = 0.06) {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = "square";
+  osc.frequency.value = 120 + Math.random() * 20;
+  gain.gain.setValueAtTime(volume, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t + 0.08);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start(t);
+  osc.stop(t + 0.09);
+}
+function playChime() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  [660, 880, 990].forEach((f, i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = f;
+    gain.gain.setValueAtTime(0.0001, t + i * 0.12);
+    gain.gain.linearRampToValueAtTime(0.09, t + i * 0.12 + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.001, t + i * 0.12 + 0.5);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(t + i * 0.12);
+    osc.stop(t + i * 0.12 + 0.55);
+  });
+}
+let distanceSinceClack = 0;
+
+/* ------------------------------ UI helpers -------------------------------- */
+let subtitleTimer = null;
+function flashSubtitle(text, ms = 2200) {
+  const el = document.getElementById("subtitle");
+  el.textContent = text;
+  el.classList.add("show");
+  clearTimeout(subtitleTimer);
+  subtitleTimer = setTimeout(() => el.classList.remove("show"), ms);
+}
+let toastTimer = null;
+function flashToast(text, bad = false, ms = 1600) {
+  const el = document.getElementById("toast");
+  el.textContent = text;
+  el.classList.toggle("bad", bad);
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), ms);
+}
+
+function breakStreak(reason) {
+  if (state.streak > 0) {
+    flashToast("Streak broken. Find your balance to rebuild your tips.", true, 2600);
+  }
+  state.streak = 0;
+}
+
+function applyComfortHit(amount) {
+  if (amount <= 0) return;
+  state.comfort = THREE.MathUtils.clamp(state.comfort - amount, 0, 100);
+  if (state.comfort < 35) breakStreak();
+}
+
+/* ------------------------------ Physics update -------------------------------- */
+function isWindZone(u) {
+  // Crosswinds on the long bridge stretch (roughly the low-altitude section between the islands).
+  return (u > 0.27 && u < 0.46);
+}
+
+function updatePhysics(dt) {
+  const st = state;
+
+  if (st.atStation) {
+    updateStationSequence(dt);
+    return;
+  }
+
+  const { tangent } = frameAt(st.u);
+  const grade = THREE.MathUtils.clamp(tangent.y, -1, 1);
+
+  // Pedal inertia: the drive/brake force ramps toward its target instead of snapping there,
+  // so a steady press of Power never reads as a "sudden" jolt — only an abrupt slam does.
+  let targetDriveAccel = 0;
+  if (st.throttle) targetDriveAccel += CONFIG.powerAccel;
+  if (st.braking) targetDriveAccel -= CONFIG.brakeDecel;
+  const rampStep = CONFIG.pedalRampRate * dt;
+  st.driveAccel += THREE.MathUtils.clamp(targetDriveAccel - st.driveAccel, -rampStep, rampStep);
+
+  let accel = st.driveAccel;
+  accel -= st.speedKmh * CONFIG.dragCoef;
+  accel -= grade * CONFIG.gradeFactor;
+
+  // Soft automatic limiter in the station approach zone keeps the tram from blowing through a stop,
+  // but a player who doesn't brake still eats a hard, comfort-costing correction right at the end.
+  // The zone is measured as a signed circular distance (not "still ahead" only) and stays engaged
+  // for a short stretch past the exact platform point too, so a tram that hasn't yet dropped under
+  // the dock speed right as it crosses the point keeps getting braked instead of the limiter simply
+  // switching off and letting it accelerate away uncaught.
+  const nextStation = stations[st.nextStationIndex];
+  let signedDuToStation = nextStation.u - st.u;
+  if (signedDuToStation > 0.5) signedDuToStation -= 1;
+  if (signedDuToStation < -0.5) signedDuToStation += 1;
+  const distToStation = Math.abs(signedDuToStation);
+  const overshoot = signedDuToStation < 0; // already at/just past the platform
+  const inApproach = overshoot ? distToStation < CONFIG.stationApproachU * 0.15 : distToStation < CONFIG.stationApproachU;
+  if (inApproach) {
+    const t = overshoot ? 0 : distToStation / CONFIG.stationApproachU; // 1 far -> 0 at/after the platform
+    const speedCap = THREE.MathUtils.lerp(3, 55, t);
+    if (st.speedKmh > speedCap) {
+      // Overrides (rather than just adding to) the driver's own accel: a proportional term
+      // added on top of full held Power only ever fights it to a standstill equilibrium above
+      // the cap, never actually reaching it. Overriding guarantees the tram sheds speed and
+      // docks even if the player never touches the brake.
+      accel = Math.min(accel, -(st.speedKmh - speedCap) * 4 - 2);
+    }
+  }
+
+  const prevSpeed = st.speedKmh;
+  st.speedKmh = THREE.MathUtils.clamp(st.speedKmh + accel * dt, 0, CONFIG.maxSpeedKmh);
+  const dSpeed = st.speedKmh - prevSpeed;
+  const dSpeedPerSec = dt > 0 ? dSpeed / dt : 0;
+
+  // Comfort penalties scale with dt (a rate, not a flat per-frame hit) so a few seconds of
+  // harsh input costs a meaningful but survivable chunk of comfort, not an instant wipeout.
+  const brakeExcess = Math.max(0, -dSpeedPerSec - Math.abs(CONFIG.harshBrakeDrop));
+  if (brakeExcess > 0) applyComfortHit(brakeExcess * 0.55 * dt);
+  const accelExcess = Math.max(0, dSpeedPerSec - CONFIG.harshAccelRise);
+  if (accelExcess > 0) applyComfortHit(accelExcess * 0.45 * dt);
+
+  // cornering comfort: lateral "g" from curvature * speed^2
+  const curvature = estimateCurvature(st.u);
+  const speedMs = st.speedKmh / 3.6;
+  const lateralG = curvature * speedMs * speedMs;
+  if (lateralG > 5.5) applyComfortHit((lateralG - 5.5) * 1.6 * dt * 8);
+
+  // crosswinds
+  if (isWindZone(st.u)) {
+    st.roadCondition = "Crosswind";
+    if (!st.windActive) applyComfortHit(2);
+    st.windActive = true;
+    applyComfortHit(dt * 3.5);
+  } else {
+    st.roadCondition = "Steady";
+    st.windActive = false;
+  }
+
+  // gentle regen when driving smoothly
+  if (Math.abs(dSpeedPerSec) < 6 && lateralG < 4 && !st.windActive) {
+    st.comfort = Math.min(100, st.comfort + CONFIG.comfortRegen * dt);
+  }
+
+  // advance along the loop
+  const distThisFrame = speedMs * dt;
+  st.u = (st.u + distThisFrame / TRACK_LENGTH) % 1;
+
+  // track-clack audio cue tied to distance travelled
+  distanceSinceClack += distThisFrame;
+  if (distanceSinceClack > 3.2) {
+    distanceSinceClack = 0;
+    if (st.speedKmh > 2) playClack(Math.min(0.1, 0.03 + st.speedKmh / 1400));
+  }
+
+  // Docking uses the same shortest-circular-distance measure as the limiter above, so a slow
+  // rollover of the exact station point still counts instead of silently skipping the stop.
+  if (distToStation < CONFIG.stationDockU && st.speedKmh < CONFIG.stationDockSpeed) {
+    beginStationStop();
+  }
+}
+
+function beginStationStop() {
+  const st = state;
+  st.atStation = true;
+  st.stationPhase = "dock";
+  st.stationTimer = 0;
+  st.speedKmh = 0;
+  st.driveAccel = 0;
+  st.u = stations[st.nextStationIndex].u;
+  const name = stations[st.nextStationIndex].name;
+  flashSubtitle(`Doors opening — ${name}`, 2200);
+}
+
+function updateStationSequence(dt) {
+  const st = state;
+  st.stationTimer += dt;
+  const stationName = stations[st.nextStationIndex].name;
+
+  if (st.stationPhase === "dock") {
+    st.doorAmount = Math.min(1, st.doorAmount + dt * 2.2);
+    if (st.stationTimer > 0.4 && st.stationTimer < 0.42) flashSubtitle("Please wait…", 1800);
+    if (st.doorAmount >= 1 && st.stationTimer > 1.6) {
+      // passengers exchange
+      const alighting = Math.min(st.passengers, Math.floor(Math.random() * 4));
+      st.passengers -= alighting;
+      const boarding = Math.min(st.capacity - st.passengers, Math.floor(1 + Math.random() * 5));
+      st.passengers += boarding;
+
+      // score the leg that just finished
+      let bonus = 10;
+      if (st.comfort >= 80) bonus = 75;
+      else if (st.comfort >= 60) bonus = 45;
+      else if (st.comfort >= 40) bonus = 20;
+      st.tips += bonus;
+      if (st.comfort >= 60) {
+        st.streak += 1;
+        flashToast(`+${bonus}`, false, 1700);
+      } else {
+        flashToast(`+${bonus}`, false, 1700);
+        breakStreak();
+      }
+      playChime();
+      st.comfort = Math.min(100, st.comfort + 20); // fresh start for the next leg
+
+      st.stationPhase = "doors_closing";
+      st.stationTimer = 0;
+    }
+  } else if (st.stationPhase === "doors_closing") {
+    st.doorAmount = Math.max(0, st.doorAmount - dt * 2.2);
+    if (st.doorAmount <= 0 && st.stationTimer > 0.5) {
+      st.stationPhase = "depart";
+      st.stationTimer = 0;
+      const other = stations[(st.nextStationIndex + 1) % stations.length];
+      flashSubtitle("All aboard.", 1400);
+      setTimeout(() => flashSubtitle(`Next stop: ${other.name}`, 2200), 1500);
+    }
+  } else if (st.stationPhase === "depart") {
+    if (st.stationTimer > 1.7) {
+      st.atStation = false;
+      st.stationPhase = "";
+      st.nextStationIndex = (st.nextStationIndex + 1) % stations.length;
+    }
+  }
+}
+
+/* ---------------------------- Tram transform / camera -------------------------------- */
+const _tmpPos = new THREE.Vector3();
+const _tmpLook = new THREE.Vector3();
+const _upV = new THREE.Vector3(0, 1, 0);
+
+function updateTramTransform(dt) {
+  const st = state;
+  const { tangent, right, up } = frameAt(st.u);
+  const pos = curve.getPointAt(st.u);
+
+  st.bobPhase += dt * (2 + st.speedKmh * 0.06);
+  const bob = Math.sin(st.bobPhase) * 0.015 * (0.3 + st.speedKmh / CONFIG.maxSpeedKmh);
+
+  tram.position.copy(pos).addScaledVector(up, 0.05 + bob);
+
+  const lookTarget = _tmpLook.copy(pos).addScaledVector(tangent, 4);
+  tram.up.copy(up);
+  tram.lookAt(lookTarget);
+
+  // body roll on corners
+  const turn = signedTurn(st.u);
+  const targetRoll = THREE.MathUtils.clamp(-turn * (st.speedKmh * 0.9), -0.22, 0.22);
+  st.roll = THREE.MathUtils.lerp(st.roll, targetRoll, Math.min(1, dt * 4));
+  tram.rotateZ(st.roll);
+  tram.rotateZ(Math.sin(st.bobPhase * 0.7) * 0.01);
+
+  // door animation
+  const doorAngle = st.doorAmount * (Math.PI * 0.42);
+  tramParts.doorPivotL.rotation.y = doorAngle;
+  tramParts.doorPivotR.rotation.y = -doorAngle;
+
+  // spinning wheels
+  const wheelSpin = (st.speedKmh / 3.6) * dt / 0.32;
+  tramParts.wheels.forEach((w) => (w.rotation.x -= wheelSpin));
+}
+
+const cameraRig = { pos: new THREE.Vector3(), look: new THREE.Vector3() };
+function updateCamera(dt) {
+  const st = state;
+  const worldOffset = new THREE.Vector3();
+  const lookOffset = new THREE.Vector3();
+
+  if (st.viewMode === 0) { // chase (trails behind, -Z; looks ahead, +Z)
+    worldOffset.set(0, 2.6, -8.5);
+    lookOffset.set(0, 1.4, 4);
+  } else if (st.viewMode === 1) { // cab / front -- clear of the windshield glass (z=3.02) entirely,
+    // since sitting right at that translucent plane makes the near clip cut through it messily.
+    worldOffset.set(0, 2.0, 4.6);
+    lookOffset.set(0, 1.6, 20);
+  } else { // scenic side, trailing slightly
+    worldOffset.set(6.5, 3.2, -2.5);
+    lookOffset.set(0, 1.2, 0);
+  }
+
+  const desiredPos = tram.localToWorld(worldOffset.clone());
+  const desiredLook = tram.localToWorld(lookOffset.clone());
+
+  const lerpAmt = 1 - Math.pow(0.0015, dt);
+  cameraRig.pos.lerp(desiredPos, lerpAmt);
+  cameraRig.look.lerp(desiredLook, lerpAmt);
+
+  camera.position.copy(cameraRig.pos);
+  camera.up.set(0, 1, 0);
+  camera.lookAt(cameraRig.look);
+}
+
+/* ------------------------------- Ambient motion -------------------------------- */
+function updateClouds(dt, elapsed) {
+  cloudField.children.forEach((puff) => {
+    const d = puff.userData;
+    puff.position.x = d.baseX + Math.sin(elapsed * 0.05 * d.driftSpeed + d.phase) * 4;
+    puff.position.z = d.baseZ + Math.cos(elapsed * 0.04 * d.driftSpeed + d.phase) * 4;
+    puff.rotation.y += dt * 0.01 * d.driftSpeed;
+  });
+}
+function updateOcean(elapsed) {
+  const pos = ocean.geometry.attributes.position;
+  for (let i = 0; i < pos.count; i++) {
+    const x = oceanBasePos[i * 3];
+    const z = oceanBasePos[i * 3 + 2];
+    const y = Math.sin(x * 0.02 + elapsed * 0.6) * 0.8 + Math.cos(z * 0.025 + elapsed * 0.5) * 0.8;
+    pos.setY(i, y);
+  }
+  pos.needsUpdate = true;
+}
+function updateDistantRings(dt) {
+  distantIslands.children.forEach((isl) => {
+    if (isl.userData.ring) isl.userData.ring.rotation.z += dt * 0.15;
+  });
+}
+
+/* --------------------------------- HUD update -------------------------------- */
+function updateUI() {
+  const st = state;
+  document.getElementById("hud-station-name").textContent = st.atStation
+    ? stations[st.nextStationIndex].name
+    : `→ ${stations[st.nextStationIndex].name}`;
+  document.getElementById("hud-tips").textContent = `☀ ${st.tips} tips`;
+  document.getElementById("hud-streak").textContent = `✦ streak ${st.streak}`;
+  const condEl = document.getElementById("hud-cond-text");
+  condEl.textContent = st.roadCondition;
+  document.getElementById("hud-cond").classList.toggle("crosswind", st.roadCondition === "Crosswind");
+
+  document.getElementById("speed-readout").innerHTML = `${Math.round(st.speedKmh)}<small>km/h</small>`;
+  document.getElementById("speed-bar-fill").style.width = `${(st.speedKmh / CONFIG.maxSpeedKmh) * 100}%`;
+
+  document.getElementById("comfort-bar-fill").style.width = `${st.comfort}%`;
+  const comfortFill = document.getElementById("comfort-bar-fill");
+  comfortFill.style.background = st.comfort > 60
+    ? "linear-gradient(90deg,#8fe3b0,#ffe08a)"
+    : (st.comfort > 30 ? "linear-gradient(90deg,#ffe08a,#ff8a7a)" : "linear-gradient(90deg,#ff8a7a,#c0392b)");
+
+  // progress-along-leg overlay on the comfort bar track
+  const stFrom = stations[(st.nextStationIndex + stations.length - 1) % stations.length];
+  const stTo = stations[st.nextStationIndex];
+  let legLen = stTo.u - stFrom.u; if (legLen <= 0) legLen += 1;
+  let progressed = st.u - stFrom.u; if (progressed < 0) progressed += 1;
+  const legProgress = THREE.MathUtils.clamp(progressed / legLen, 0, 1);
+  document.getElementById("comfort-progress-fill").style.width = `${legProgress * 100}%`;
+
+  document.getElementById("station-a-label").classList.toggle("active", st.nextStationIndex === 1);
+  document.getElementById("station-b-label").classList.toggle("active", st.nextStationIndex === 0);
+
+  document.getElementById("passenger-readout").textContent = `${st.passengers} / ${st.capacity} aboard`;
+}
+
+/* ================================ WORKSHOP MODE ==================================== */
+// The workshop reuses the main renderer/scene: the camera swaps to an isometric ortho view
+// over a small "Cloudworks" set, and the real tram tweens over to sit on display there.
+let mode = "drive"; // "drive" | "workshop-enter" | "workshop" | "workshop-exit"
+let workshopT = 0;
+// Tucked well outside the radius the cloud field and distant-island scatter ever reach
+// (both stay under ~1060 units from the origin), but still inside the sky sphere (r=1800),
+// so the workshop's isometric view never picks up stray background scenery.
+const WORKSHOP_ANCHOR = new THREE.Vector3(1100, 45, 1100);
+let savedTramU = null;
+
+function buildWorkshopSet() {
+  const g = new THREE.Group();
+  g.position.copy(WORKSHOP_ANCHOR);
+
+  const floor = new THREE.Mesh(new THREE.BoxGeometry(16, 0.6, 16), new THREE.MeshStandardMaterial({ color: palettes.wood, roughness: 0.9 }));
+  floor.position.y = -0.3;
+  floor.receiveShadow = true;
+  g.add(floor);
+
+  const wallMat = new THREE.MeshStandardMaterial({ color: 0x4a3a52, roughness: 0.9, flatShading: true });
+  const backWall = new THREE.Mesh(new THREE.BoxGeometry(16, 8, 0.4), wallMat);
+  backWall.position.set(0, 4, -8);
+  g.add(backWall);
+  const sideWall = new THREE.Mesh(new THREE.BoxGeometry(0.4, 8, 16), wallMat);
+  sideWall.position.set(-8, 4, 0);
+  g.add(sideWall);
+
+  const bench = new THREE.Mesh(new THREE.BoxGeometry(4, 1, 1.6), new THREE.MeshStandardMaterial({ color: palettes.wood, roughness: 0.85 }));
+  bench.position.set(-5.5, 0.5, 4);
+  g.add(bench);
+
+  const shelfMat = new THREE.MeshStandardMaterial({ color: 0x6b4a34, roughness: 0.85 });
+  for (let i = 0; i < 3; i++) {
+    const shelf = new THREE.Mesh(new THREE.BoxGeometry(3.6, 0.15, 1), shelfMat);
+    shelf.position.set(-7.5, 1.5 + i * 1.6, -4);
+    g.add(shelf);
+    for (let j = 0; j < 3; j++) {
+      const part = new THREE.Mesh(new THREE.IcosahedronGeometry(0.28, 0), new THREE.MeshStandardMaterial({ color: [0xffb27a, 0x8fe3b0, 0xbfa8ff][(i + j) % 3], flatShading: true }));
+      part.position.set(-8.6 + j * 1.1, 1.5 + i * 1.6 + 0.3, -4);
+      g.add(part);
+    }
+  }
+
+  // a short rail stub for the tram to sit on inside the workshop
+  const stub = new THREE.Mesh(new THREE.BoxGeometry(2.2, 0.15, 8), new THREE.MeshStandardMaterial({ color: 0x8a8f9a, metalness: 0.6, roughness: 0.4 }));
+  stub.position.set(2, 0.05, 0);
+  g.add(stub);
+
+  const lamp = new THREE.PointLight(0xffe6b0, 1.1, 30, 2);
+  lamp.position.set(0, 6, 2);
+  g.add(lamp);
+
+  scene.add(g);
+  return g;
+}
+buildWorkshopSet();
+
+// The tram parks a little off-anchor (see workshop-enter tween below); the camera targets
+// that same spot, offset from center, so the vehicle lands in the screen space to the right
+// of the (left-anchored) workshop panel instead of directly behind it.
+const WORKSHOP_FOCUS = WORKSHOP_ANCHOR.clone().add(new THREE.Vector3(3, 0.6, 1.5));
+const isoCamera = new THREE.OrthographicCamera(-14, 14, 9, -9, 0.1, 200);
+function positionIsoCamera() {
+  const offset = new THREE.Vector3(12, 14, 12);
+  isoCamera.position.copy(WORKSHOP_FOCUS).add(offset);
+  isoCamera.lookAt(WORKSHOP_FOCUS.x, WORKSHOP_FOCUS.y, WORKSHOP_FOCUS.z);
+}
+function resizeIsoCamera() {
+  const halfH = 10;
+  const halfW = halfH * (window.innerWidth / window.innerHeight);
+  isoCamera.left = -halfW; isoCamera.right = halfW;
+  isoCamera.top = halfH; isoCamera.bottom = -halfH;
+  isoCamera.updateProjectionMatrix();
+}
+positionIsoCamera();
+resizeIsoCamera();
+
+const workshopPanel = document.getElementById("workshop-panel");
+const btnWorkshop = document.getElementById("btn-workshop");
+const btnLeaveWorkshop = document.getElementById("btn-leave-workshop");
+const progressWrap = document.getElementById("workshop-progress-wrap");
+const progressFill = document.getElementById("workshop-progress-fill");
+const progressLabel = document.getElementById("workshop-progress-label");
+
+let workshopBusy = false;
+function refreshPartButtons() {
+  document.querySelectorAll(".part-card button").forEach((btn) => {
+    const part = btn.dataset.part;
+    const on = tramConfig[part];
+    btn.textContent = on ? "Hearth Leaves" : "Little Companion";
+    btn.classList.toggle("on", on);
+    btn.disabled = workshopBusy;
+  });
+}
+refreshPartButtons();
+
+document.querySelectorAll(".part-card button").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    if (workshopBusy) return;
+    const part = btn.dataset.part;
+    workshopBusy = true;
+    progressWrap.classList.add("show");
+    progressLabel.textContent = "Sit back and watch the workshop.";
+    let t = 0;
+    const duration = 1.7;
+    function tick() {
+      t += 1 / 60;
+      const pct = Math.min(1, t / duration);
+      progressFill.style.width = `${pct * 100}%`;
+      if (pct < 1) {
+        requestAnimationFrame(tick);
+      } else {
+        tramConfig[part] = !tramConfig[part];
+        applyTramConfig();
+        workshopBusy = false;
+        progressWrap.classList.remove("show");
+        progressFill.style.width = "0%";
+        refreshPartButtons();
+      }
+    }
+    requestAnimationFrame(tick);
+  });
+});
+
+btnWorkshop.addEventListener("click", () => {
+  if (mode !== "drive") return;
+  ensureAudio();
+  mode = "workshop-enter";
+  workshopT = 0;
+  savedTramU = state.u;
+  setThrottle(false); setBraking(false);
+  workshopPanel.classList.add("show");
+});
+
+btnLeaveWorkshop.addEventListener("click", () => {
+  if (mode !== "workshop") return;
+  mode = "workshop-exit";
+  workshopT = 0;
+  workshopPanel.classList.remove("show");
+});
+
+// Tween helpers between "on the track" and "on display in the workshop".
+const tweenFrom = new THREE.Vector3();
+const tweenFromQuat = new THREE.Quaternion();
+function updateWorkshopTransition(dt) {
+  workshopT += dt / 1.1;
+  const t = THREE.MathUtils.clamp(workshopT, 0, 1);
+  const ease = t * t * (3 - 2 * t);
+
+  if (mode === "workshop-enter") {
+    if (workshopT <= dt * 1.5) { tweenFrom.copy(tram.position); tweenFromQuat.copy(tram.quaternion); }
+    const dest = WORKSHOP_FOCUS.clone().add(new THREE.Vector3(0, 0.3, 0));
+    tram.position.lerpVectors(tweenFrom, dest, ease);
+    const destQuat = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, Math.PI * 0.15, 0));
+    tram.quaternion.slerpQuaternions(tweenFromQuat, destQuat, ease);
+    if (t >= 1) { mode = "workshop"; flashSubtitle("Sit back and watch the workshop.", 2000); }
+  } else if (mode === "workshop-exit") {
+    if (workshopT <= dt * 1.5) { tweenFrom.copy(tram.position); tweenFromQuat.copy(tram.quaternion); }
+    const { tangent, up } = frameAt(savedTramU);
+    const destPos = curve.getPointAt(savedTramU).addScaledVector(up, 0.05);
+    const destLookTarget = destPos.clone().addScaledVector(tangent, 4);
+    // Matrix4.lookAt(eye, target) puts eye→target along local -Z (camera convention), but the
+    // tram uses Object3D#lookAt's +Z-forward convention (see updateTramTransform), so eye/target
+    // are swapped here to match.
+    const lookMatrix = new THREE.Matrix4().lookAt(destLookTarget, destPos, up);
+    const destQuat = new THREE.Quaternion().setFromRotationMatrix(lookMatrix);
+    tram.position.lerpVectors(tweenFrom, destPos, ease);
+    tram.quaternion.slerpQuaternions(tweenFromQuat, destQuat, ease);
+    if (t >= 1) {
+      mode = "drive";
+      state.u = savedTramU;
+      flashSubtitle("All aboard.", 1300);
+      setTimeout(() => flashSubtitle("Next stop: the Coastal Line.", 2200), 1400);
+    }
+  }
+}
+
+/* ================================== MAIN LOOP ==================================== */
+let lastTime = performance.now();
+let elapsed = 0;
+
+function animate(now) {
+  requestAnimationFrame(animate);
+  const dt = Math.min(0.05, Math.max(0, (now - lastTime) / 1000));
+  lastTime = now;
+  elapsed += dt;
+
+  updateClouds(dt, elapsed);
+  updateOcean(elapsed);
+  updateDistantRings(dt);
+  skyRefs.stars.rotation.y += dt * 0.002;
+
+  if (mode === "drive") {
+    updatePhysics(dt);
+    updateTramTransform(dt);
+    updateCamera(dt);
+    updateUI();
+    renderer.render(scene, camera);
+  } else if (mode === "workshop-enter" || mode === "workshop-exit") {
+    updateWorkshopTransition(dt);
+    renderer.render(scene, isoCamera);
+  } else if (mode === "workshop") {
+    tram.rotation.y += dt * 0.15; // slow turntable so the new part is visible
+    renderer.render(scene, isoCamera);
+  }
+}
+requestAnimationFrame(animate);
+
+/* Kick things off with a friendly first subtitle. */
+setTimeout(() => flashSubtitle("Welcome aboard — next stop: Mango Tide.", 2600), 600);
+</script>
+</body>
+</html>
