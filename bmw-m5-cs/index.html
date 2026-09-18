@@ -32,7 +32,12 @@
     text-transform: uppercase;
   }
 
-  .title { font-size: 11px; opacity: 0.55; line-height: 1.7; }
+  .title {
+    font-size: 11px;
+    opacity: 0.62;
+    line-height: 1.7;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75);
+  }
   .title b { display: block; font-size: 15px; letter-spacing: 0.3em; opacity: 1; font-weight: 600; }
 
   .dock {
@@ -86,7 +91,15 @@
     background-clip: padding-box;
   }
 
-  .hint { grid-row: 2; align-self: end; justify-self: center; font-size: 10px; opacity: 0.32; padding-bottom: 12px; }
+  .hint {
+    grid-row: 2;
+    align-self: end;
+    justify-self: center;
+    font-size: 10px;
+    opacity: 0.45;
+    padding-bottom: 12px;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.75);
+  }
 
   .fail {
     position: fixed;
@@ -355,10 +368,11 @@ function studioTexture(bright) {
     grad.addColorStop(0.53, '#101216');
     grad.addColorStop(1.00, '#050608');
   } else {
-    grad.addColorStop(0.00, '#101318');
-    grad.addColorStop(0.46, '#181c22');
-    grad.addColorStop(0.54, '#0a0b0e');
-    grad.addColorStop(1.00, '#050607');
+    grad.addColorStop(0.00, '#2b323c');
+    grad.addColorStop(0.40, '#4d5663');
+    grad.addColorStop(0.50, '#616b78');
+    grad.addColorStop(0.56, '#252a31');
+    grad.addColorStop(1.00, '#0e1013');
   }
   g.fillStyle = grad;
   g.fillRect(0, 0, 1024, 512);
@@ -374,7 +388,9 @@ function studioTexture(bright) {
     g.fillStyle = 'rgba(255,255,255,0.10)';
     g.fillRect(0, 246, 1024, 6);
   } else {
-    softBlob(g, 512, 150, 420, 150, 0.10);
+    softBlob(g, 512, 150, 460, 170, 0.28);
+    softBlob(g, 190, 200, 300, 110, 0.14);
+    softBlob(g, 840, 200, 300, 110, 0.14);
   }
 
   const t = new THREE.CanvasTexture(c);
@@ -385,7 +401,7 @@ function studioTexture(bright) {
 
 scene.environment = studioTexture(true);
 scene.background = studioTexture(false);
-scene.environmentIntensity = 1.0;
+scene.environmentIntensity = 1.18;
 
 /* ---- lights ---- */
 const key = new THREE.DirectionalLight(0xffffff, 2.6);
@@ -406,7 +422,17 @@ const fill = new THREE.DirectionalLight(0xffe6c8, 0.7);
 fill.position.set(-2.0, 1.6, 5.5);
 scene.add(fill);
 
-scene.add(new THREE.HemisphereLight(0x8fa6c4, 0x0a0a0c, 0.45));
+// Low and level with the bumpers, so the fascias are not silhouettes when the
+// camera drops to eye height.
+const bounce = new THREE.DirectionalLight(0xdbe6ff, 0.55);
+bounce.position.set(7.0, 1.4, 2.2);
+scene.add(bounce);
+
+const bounceRear = new THREE.DirectionalLight(0xdbe6ff, 0.40);
+bounceRear.position.set(-7.0, 1.4, -2.2);
+scene.add(bounceRear);
+
+scene.add(new THREE.HemisphereLight(0x9db4d2, 0x2a2d33, 0.85));
 
 /* ------------------------------------------------------------------ *
  * Materials
@@ -1317,7 +1343,7 @@ for (const [axle, treadHalf] of [[FRONT_AXLE, 0.138], [REAR_AXLE, 0.1425]]) {
  * ------------------------------------------------------------------ */
 const ground = new THREE.Mesh(
   new THREE.CircleGeometry(22, 72),
-  new THREE.MeshStandardMaterial({ color: 0x0a0b0d, metalness: 0.25, roughness: 0.42 }));
+  new THREE.MeshStandardMaterial({ color: 0x1e2229, metalness: 0.30, roughness: 0.38 }));
 ground.rotation.x = -Math.PI / 2;
 ground.receiveShadow = true;
 scene.add(ground);
