@@ -19,6 +19,14 @@ A procedural BMW M5 CS model rendered in a studio lighting setup.
 
 **▶ [View it](https://badboyvee.github.io/BlackHoleeee/bmw-m5-cs/)** · [source](bmw-m5-cs/)
 
+### 💎 [Gem Arena](brawl-arena/)
+
+A top-down 3D arena brawler in the spirit of Brawl Stars' Gem Grab — fight three AI bots over
+gems spilling from a glowing mine. Built around a tuned shadow rig, three live-switchable
+day/sunset/night lighting presets, flicker-lit torches, and bloom on every glowing surface.
+
+**▶ [Play it](https://badboyvee.github.io/BlackHoleeee/brawl-arena/)** · [source](brawl-arena/)
+
 ## Hosting
 
 `netlify.toml` publishes `bmw-m5-cs/` as the Netlify site root. GitHub Pages serves the whole
