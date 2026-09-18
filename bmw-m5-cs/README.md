@@ -50,6 +50,19 @@ Real F90 CS figures, at 1 world unit = 1 metre: 4965 long, 1903 wide, 1466 tall,
 on a 2982 wheelbase with 885 mm of front overhang and 1098 mm of rear. Wheels are
 20-inch, 275-section front and 285 rear.
 
+## The prompt
+
+Built with [Claude Code](https://claude.com/claude-code). The whole thing started
+from one line:
+
+> Build a 3d model of BMW M5 CS using three js
+
+followed by a single note once it was running:
+
+> Add more lighting to the background, too dark
+
+Copy the file, copy the prompt, do your own — both are here for the taking.
+
 ## Notes
 
 three.js r160 loads from a CDN via import map, with a mirror as fallback. Badging
