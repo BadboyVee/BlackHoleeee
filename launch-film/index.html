@@ -69,11 +69,13 @@
   <div class="bar">
     <button id="play" title="Play / pause (space)">Pause</button>
     <div class="scrub" id="scrub"><div class="track"></div><div class="fill" id="fill"></div><div class="knob" id="knob"></div></div>
-    <span class="time" id="time">0.0 / 8.0</span>
+    <span class="time" id="time">0.0 / 18.0</span>
     <button id="loop" class="on" title="Loop (l)">Loop</button>
     <button id="full" title="Fullscreen (f)">Full</button>
   </div>
-  <p class="meta"><b>Every egg is drawn, not photographed.</b> Shell, mottling, speckles and ink outline are generated from a seeded PRNG into an offscreen canvas — no images, no video, no libraries. Playback is quantised to 24fps to keep the stop-motion cadence.</p>
+  <p class="meta"><b>Every egg and every bird is drawn, not photographed.</b> Shells, plumage, speckles and ink
+  outlines are generated from a seeded PRNG into offscreen canvases — no images, no video, no libraries. The first
+  8 seconds follow the original clip frame for frame; the hatch and the flight are an extension in the same hand.</p>
 </div>
 <script>
 (function(){
@@ -84,7 +86,13 @@ var ctx = cv.getContext('2d', { alpha: false });
 
 /* 4:5, the format of the original */
 var W = 1080, H = 1350, TAU = Math.PI * 2;
-var FPS = 24, DUR = 8.0, CUT = 5.0;
+var FPS = 24;
+/* the opening 8 seconds are the measured original; everything past HATCH0 is
+   an extension in the same hand, not a reconstruction of anything. */
+var CUT = 5.0;            /* the numeral is finished and holds */
+var HATCH0 = 5.0, HATCH_STEP = 0.075;
+var FLY0 = 9.6, FLY_STEP = 0.05;
+var WORD = 13.5, DUR = 18.0;
 
 var SERIF = 'Georgia,"Iowan Old Style","Palatino Linotype",Palatino,"Times New Roman",serif';
 var WORDMARK = '"Times New Roman",Times,Georgia,"Liberation Serif",serif';
@@ -92,6 +100,7 @@ var PAPER = [204, 186, 156];
 
 function clamp(x, a, b){ return x < a ? a : x > b ? b : x; }
 function lerp(a, b, t){ return a + (b - a) * t; }
+function ss(a, b, x){ var t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); }
 function mulberry32(a){
   return function(){
     a |= 0; a = a + 0x6D2B79F5 | 0;
@@ -255,6 +264,240 @@ function makeEgg(sp){
 }
 
 /* ---------------------------------------------------------------------------
+   THE BIRD
+   What the eggs turn into. Same engine as the shells: a body drawn as a
+   teardrop with a pale belly, a wing of layered coverts clipped to it,
+   primaries reaching past the rear, a tail fan, a neck wedge that vanishes
+   under the head, beak, eye and legs — then the plate's ink line.
+   pose: 'perch' | 'up' | 'down'  (the two flight poses are one wingbeat apart)
+--------------------------------------------------------------------------- */
+function drawBird(g, S, sp, pose){
+  var r = sp.rnd(), i;
+  var L = S, H = S * sp.depth;
+  var ink = 'rgba(44,35,23,0.8)';
+  var flying = pose !== 'perch';
+  var rearX = -L * 0.45, rearY = -H * 0.05;
+
+  function bodyPath(){
+    g.beginPath();
+    g.moveTo(rearX, rearY);
+    g.bezierCurveTo(-L*0.30, -H*0.80, -L*0.02, -H*0.92, L*0.24, -H*0.74);
+    g.bezierCurveTo(L*0.46, -H*0.55, L*0.50, -H*0.05, L*0.42, H*0.26);
+    g.bezierCurveTo(L*0.24, H*0.62, -L*0.14, H*0.60, rearX, rearY);
+    g.closePath();
+  }
+
+  function wingPath(tip, spread){
+    g.beginPath();
+    g.moveTo(L * 0.14 * spread, H * 0.06);
+    g.bezierCurveTo(L * 0.38 * spread, tip * 0.42, L * 0.12 * spread, tip * 0.84, -L * 0.3 * spread, tip);
+    g.bezierCurveTo(-L * 0.34 * spread, tip * 0.62, -L * 0.36 * spread, tip * 0.22, -L * 0.28 * spread, -H * 0.06);
+    g.closePath();
+  }
+
+  if (!flying){
+    g.strokeStyle = ink; g.lineWidth = S * 0.014; g.lineCap = 'round';
+    var legs = [L * 0.12, -L * 0.02];
+    for (i = 0; i < 2; i++){
+      var lx = legs[i], ly = H * 0.42, foot = ly + S * sp.leg;
+      g.beginPath(); g.moveTo(lx, ly); g.lineTo(lx + S * 0.012, foot); g.stroke();
+      g.beginPath();
+      g.moveTo(lx + S*0.012, foot); g.lineTo(lx + S*0.055, foot + S*0.022);
+      g.moveTo(lx + S*0.012, foot); g.lineTo(lx - S*0.035, foot + S*0.022);
+      g.stroke();
+    }
+  }
+
+  /* the far wing, behind the body, when flying */
+  if (flying){
+    var ud0 = pose === 'up' ? -1 : 1;
+    g.save();
+    g.translate(L * 0.02, -H * 0.36);
+    g.rotate(ud0 * 0.12);
+    g.fillStyle = rgba(jitterCol(sp.wing, sp.rnd, 12), 0.55);
+    wingPath(ud0 * H * (pose === 'up' ? 1.06 : 0.8), 0.66);
+    g.fill();
+    g.strokeStyle = 'rgba(44,35,23,0.2)'; g.lineWidth = S * 0.005; g.stroke();
+    g.restore();
+  }
+
+  /* tail fan */
+  g.save();
+  g.translate(rearX + L * 0.04, rearY + H * 0.05);
+  g.rotate(flying ? sp.tailUp * 0.4 : sp.tailUp);
+  for (i = 0; i < sp.tailN; i++){
+    var a2 = (i / Math.max(1, sp.tailN - 1) - 0.5) * (flying ? 0.5 : 0.3);
+    g.save(); g.rotate(a2);
+    g.fillStyle = rgba(jitterCol(sp.tailCol, sp.rnd, 20), 0.95);
+    g.beginPath();
+    g.moveTo(0, -H * 0.16);
+    g.quadraticCurveTo(-L*sp.tail*0.55, -H*0.2, -L*sp.tail, -H*0.02);
+    g.quadraticCurveTo(-L*sp.tail*0.55, H*0.1, 0, H*0.12);
+    g.closePath(); g.fill();
+    g.strokeStyle = 'rgba(44,35,23,0.3)'; g.lineWidth = S*0.005; g.stroke();
+    g.restore();
+  }
+  g.restore();
+
+  /* body: ground colour, pale belly, fine speckling, wing coverts */
+  g.save();
+  bodyPath(); g.clip();
+  g.fillStyle = rgba(sp.back, 1);
+  g.fillRect(-L, -H * 1.2, L * 2, H * 2.6);
+  var belly = g.createLinearGradient(0, -H * 0.9, 0, H * 0.7);
+  belly.addColorStop(0, rgba(sp.back, 0));
+  belly.addColorStop(0.5, rgba(sp.belly, 0.7));
+  belly.addColorStop(1, rgba(sp.belly, 1));
+  g.fillStyle = belly;
+  g.fillRect(-L, -H * 1.2, L * 2, H * 2.6);
+  for (i = 0; i < sp.nSpeck; i++){
+    var sx = (sp.rnd() * 2 - 1) * L * 0.5, sy = (sp.rnd() * 2 - 1) * H * 0.8;
+    g.fillStyle = rgba(jitterCol(sp.mark, sp.rnd, 22), 0.2 + 0.45 * sp.rnd());
+    g.beginPath();
+    g.ellipse(sx, sy, S * (0.003 + 0.007 * sp.rnd()), S * (0.003 + 0.006 * sp.rnd()), sp.rnd() * TAU, 0, TAU);
+    g.fill();
+  }
+  if (!flying){
+    for (i = 0; i < 3; i++){
+      var k = i / 2;
+      g.fillStyle = rgba(jitterCol(sp.wing, sp.rnd, 16), 0.9 - k * 0.12);
+      g.beginPath();
+      g.moveTo(L*0.20 - k*L*0.03, -H*0.42 + k*H*0.14);
+      g.bezierCurveTo(L*0.02, -H*0.5 + k*H*0.16, -L*0.2, -H*0.26 + k*H*0.18, -L*0.34, H*0.02 + k*H*0.1);
+      g.bezierCurveTo(-L*0.14, H*0.08 + k*H*0.1, L*0.06, -H*0.06 + k*H*0.1, L*0.20 - k*L*0.03, -H*0.42 + k*H*0.14);
+      g.closePath(); g.fill();
+      g.strokeStyle = 'rgba(44,35,23,0.24)'; g.lineWidth = S * 0.004; g.stroke();
+    }
+  }
+  g.restore();
+
+  /* primaries past the rear when perched */
+  if (!flying){
+    for (i = 0; i < 3; i++){
+      g.save();
+      g.rotate(-0.06 + i * 0.05);
+      g.fillStyle = rgba(jitterCol(sp.wing, sp.rnd, 14), 0.88);
+      g.beginPath();
+      g.moveTo(-L*0.2, -H*0.1 + i*H*0.08);
+      g.quadraticCurveTo(-L*0.42, -H*0.02 + i*H*0.07, -L*0.56 - i*L*0.02, H*0.06 + i*H*0.05);
+      g.quadraticCurveTo(-L*0.4, H*0.1 + i*H*0.06, -L*0.2, H*0.02 + i*H*0.07);
+      g.closePath(); g.fill();
+      g.strokeStyle = 'rgba(44,35,23,0.26)'; g.lineWidth = S * 0.004; g.stroke();
+      g.restore();
+    }
+  }
+
+  bodyPath();
+  g.strokeStyle = ink; g.lineWidth = S * 0.01; g.stroke();
+
+  /* the near wing, over the body, when flying */
+  if (flying){
+    var ud = pose === 'up' ? -1 : 1;
+    var tip = ud * H * (pose === 'up' ? 1.32 : 0.98);
+    g.save();
+    g.translate(L * 0.18, -H * 0.42);
+    g.rotate(ud * -0.08);
+    var wg = g.createLinearGradient(0, 0, -L * 0.2, tip);
+    wg.addColorStop(0, rgba(sp.wing, 0.98));
+    wg.addColorStop(1, rgba(jitterCol(sp.wing, sp.rnd, 26), 0.92));
+    g.fillStyle = wg;
+    wingPath(tip, 0.74);
+    g.fill();
+    g.strokeStyle = 'rgba(44,35,23,0.42)'; g.lineWidth = S * 0.006; g.stroke();
+    /* primary separations, fanning toward the tip */
+    g.save();
+    wingPath(tip, 0.74); g.clip();
+    for (i = 1; i < 5; i++){
+      var f = i / 5;
+      g.strokeStyle = 'rgba(44,35,23,0.16)'; g.lineWidth = S * 0.004;
+      g.beginPath();
+      g.moveTo(L * 0.06, H * 0.04);
+      g.quadraticCurveTo(L * 0.22 * (1 - f), tip * 0.5, -L * 0.34 * f, tip * (1 - 0.06 * i));
+      g.stroke();
+    }
+    g.restore();
+    g.restore();
+  }
+
+  var rh = H * 0.44;
+  var hx = L * 0.34 + S * sp.neck * 0.25, hy = -H * 0.72 - S * sp.neck;
+
+  g.beginPath();
+  g.moveTo(hx - rh*0.85, hy + rh*0.2);
+  g.quadraticCurveTo(L*0.16, -H*0.6, L*0.1, -H*0.78);
+  g.lineTo(L*0.34, -H*0.55);
+  g.quadraticCurveTo(hx + rh*0.4, hy + rh*0.7, hx - rh*0.85, hy + rh*0.2);
+  g.closePath();
+  g.fillStyle = rgba(sp.head, 1); g.fill();
+
+  g.save();
+  g.beginPath(); g.ellipse(hx, hy, rh * 1.04, rh, 0, 0, TAU); g.clip();
+  g.fillStyle = rgba(sp.head, 1);
+  g.fillRect(hx - rh*2, hy - rh*2, rh*4, rh*4);
+  if (sp.cap){
+    g.fillStyle = rgba(sp.mark, 0.8);
+    g.beginPath(); g.ellipse(hx - rh*0.1, hy - rh*0.55, rh*1.15, rh*0.8, 0, 0, TAU); g.fill();
+  }
+  g.restore();
+  g.beginPath(); g.ellipse(hx, hy, rh * 1.04, rh, 0, 0, TAU);
+  g.strokeStyle = ink; g.lineWidth = S * 0.008; g.stroke();
+
+  g.fillStyle = rgba(sp.beak, 1);
+  g.beginPath();
+  g.moveTo(hx + rh*0.85, hy - rh*0.16);
+  g.lineTo(hx + rh*0.85 + S*sp.beakL, hy + S*sp.beakDrop + rh*0.05);
+  g.lineTo(hx + rh*0.8, hy + rh*0.3);
+  g.closePath(); g.fill();
+  g.strokeStyle = ink; g.lineWidth = S * 0.005; g.stroke();
+
+  g.fillStyle = 'rgba(28,22,14,0.95)';
+  g.beginPath(); g.arc(hx + rh*0.34, hy - rh*0.18, rh*0.14, 0, TAU); g.fill();
+
+}
+
+function makeBird(sp, S, pose){
+  var w = Math.ceil(S * 2.1), h = Math.ceil(S * (pose === 'perch' ? 1.9 : 2.5));
+  var c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  var g = c.getContext('2d');
+  g.translate(w * 0.5, h * (pose === 'perch' ? 0.45 : 0.55));
+  sp.rnd = mulberry32(sp.seed);          /* same bird every time it is drawn */
+  drawBird(g, S, sp, pose);
+  return { canvas: c, ox: w * 0.5, oy: h * (pose === 'perch' ? 0.45 : 0.55) };
+}
+
+/* plumage taken from the egg it came out of */
+function birdSpec(shell, seed){
+  var r = mulberry32(seed);
+  var dark = function(c, f){ return [c[0] * f, c[1] * f, c[2] * f]; };
+  var light = function(c, f){ return [lerp(c[0], 245, f), lerp(c[1], 240, f), lerp(c[2], 224, f)]; };
+  var back = jitterCol(dark(shell, 0.82), r, 20);
+  return {
+    seed: seed, rnd: r,
+    depth: 0.52 + 0.2 * r(),
+    neck: r() < 0.3 ? 0.1 * r() : 0,
+    beakL: 0.05 + 0.2 * Math.pow(r(), 2.2),
+    beakDrop: (r() - 0.3) * 0.03,
+    leg: 0.07 + 0.26 * Math.pow(r(), 2),
+    tail: 0.3 + 0.28 * r(),
+    tailN: 3 + ((r() * 4) | 0),
+    tailUp: (r() - 0.5) * 0.5,
+    nSpeck: 90 + ((r() * 240) | 0),
+    cap: r() < 0.45,
+    back: back,
+    belly: light(shell, 0.55 + 0.3 * r()),
+    wing: jitterCol(dark(shell, 0.62), r, 18),
+    head: r() < 0.4 ? jitterCol([46, 38, 28], r, 20) : back,
+    beak: [58, 48, 32],
+    tailCol: jitterCol(dark(shell, 0.66), r, 20),
+    mark: [52, 42, 28],
+    flip: r() < 0.45,
+    driftX: (r() - 0.5) * 2,
+    flapPhase: r() * TAU
+  };
+}
+
+/* ---------------------------------------------------------------------------
    THE COMPOSITION
    The numeral is sampled as a mask, then eggs are packed into it largest
    first — the same way you would lay real ones out on a table.
@@ -327,6 +570,7 @@ function buildComp(){
             : (style === 'pepper' ? 240 + ((er() * 300) | 0) : 120 + ((er() * 220) | 0))
     };
     e.rot = (er() * 2 - 1) * 1.45;
+    e.shell = spec.base;
     e.sprite = makeEgg(spec);
   }
 
@@ -338,8 +582,27 @@ function buildComp(){
            (eggs[q].y + (mulberry32(q * 977 + 5)() - 0.5) * 210);
   });
 
-  COMP = { eggs: eggs, order: order, step: (2.84 - 0.08) / Math.max(1, eggs.length) };
+  /* every egg gets the bird that comes out of it, wearing its shell's colours */
+  for (i = 0; i < eggs.length; i++) eggs[i].bird = birdSpec(eggs[i].shell, (r() * 1e9) | 0);
+
+  /* they hatch in one order and leave in another */
+  var hatchOrder = [], flyOrder = [];
+  for (i = 0; i < eggs.length; i++){ hatchOrder.push(i); flyOrder.push(i); }
+  hatchOrder.sort(function(p, q){ return mulberry32(p * 31 + 7)() - mulberry32(q * 31 + 7)(); });
+  flyOrder.sort(function(p, q){ return (eggs[p].y - eggs[q].y) + (mulberry32(p * 53 + 3)() - mulberry32(q * 53 + 3)()) * 260; });
+  var hatchRank = [], flyRank = [];
+  for (i = 0; i < eggs.length; i++){ hatchRank[hatchOrder[i]] = i; flyRank[flyOrder[i]] = i; }
+
+  COMP = { eggs: eggs, order: order, hatchRank: hatchRank, flyRank: flyRank,
+           step: (2.84 - 0.08) / Math.max(1, eggs.length) };
   return COMP;
+}
+
+/* sprites are built the first time they are needed and then kept */
+function sprite(e, pose){
+  if (!e.sprites) e.sprites = {};
+  if (!e.sprites[pose]) e.sprites[pose] = makeBird(e.bird, e.a * 1.5, pose);
+  return e.sprites[pose];
 }
 
 /* ---------------------------------------------------------------------------
@@ -406,11 +669,47 @@ function render(raw){
 
   ctx.drawImage(paperSheet, 0, 0);
 
-  if (t < CUT){
+  if (t < WORD){
     for (var i = 0; i < C.order.length; i++){
-      var e = C.eggs[C.order[i]];
+      var idx = C.order[i], e = C.eggs[idx];
       var ti = 0.08 + i * C.step;
       if (t < ti) break;
+      var tf = FLY0 + C.flyRank[idx] * FLY_STEP;
+      var th = HATCH0 + C.hatchRank[idx] * HATCH_STEP;
+
+      if (t >= tf){
+        /* away: a rising arc, a wingbeat, and gone */
+        var fa = t - tf;
+        var alpha = 1 - ss(1.1, 1.75, fa);
+        if (alpha <= 0.01) continue;
+        var rise = fa * fa * 300 + fa * 100;
+        var drift = e.bird.driftX * fa * 78 + Math.sin(fa * 6 + e.bird.flapPhase) * 9;
+        var pose = (Math.floor(fa * 7 + e.bird.flapPhase) % 2) ? 'up' : 'down';
+        var sp2 = sprite(e, pose);
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.translate(e.x + drift, e.y - rise);
+        ctx.rotate(e.bird.driftX * 0.14 + Math.sin(fa * 7 + e.bird.flapPhase) * 0.05);
+        var fs = 1 + fa * 0.1;
+        ctx.scale(e.bird.flip ? -fs : fs, fs);
+        ctx.drawImage(sp2.canvas, -sp2.ox, -sp2.oy);
+        ctx.restore();
+        continue;
+      }
+
+      if (t >= th){
+        /* out of the shell, on the same spot */
+        var ha = Math.round((t - th) * FPS);
+        var hs = ha <= 0 ? 0.86 : (ha === 1 ? 1.06 : 1);
+        var sp1 = sprite(e, 'perch');
+        ctx.save();
+        ctx.translate(e.x, e.y + e.a * 0.12);
+        ctx.scale(e.bird.flip ? -hs : hs, hs);
+        ctx.drawImage(sp1.canvas, -sp1.ox, -sp1.oy);
+        ctx.restore();
+        continue;
+      }
+
       var age = Math.round((t - ti) * FPS);
       var sc = age <= 0 ? 0.88 : (age === 1 ? 1.05 : 1);
       ctx.save();

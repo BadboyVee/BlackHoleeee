@@ -7,10 +7,10 @@ project is an `index.html` you can open directly.
 
 ### 🥚 [Opus 5 — the launch film, in code](launch-film/)
 
-A code-only recreation of the eight-second Claude Opus 5 launch clip: speckled birds' eggs
-arrive one at a time on tan paper until they form a **5**, then a cut to the wordmark. The eggs
-are generated — ovoid geometry, shell mottling, three layers of markings and an ink outline —
-so there are no images, no video and no libraries. A longer 66-second film ships alongside it.
+Eighteen seconds on tan paper: speckled eggs arrive until they form a **5**, hatch into birds on
+the same spots, and the flock lifts off, leaving the wordmark. Eggs and birds are both generated —
+ovoid geometry, shell markings, plumage, wingbeats — so there are no images, no video and no
+libraries. The first 8 seconds recreate the launch clip; the rest is an extension.
 
 **▶ [Watch it](https://badboyvee.github.io/BlackHoleeee/launch-film/)** · [source](launch-film/)
 

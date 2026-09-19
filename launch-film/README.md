@@ -1,7 +1,11 @@
 # Opus 5 — the launch film, in code
 
-A code-only recreation of the eight-second Claude Opus 5 launch clip: speckled birds' eggs
-arriving one at a time on tan paper until they form a **5**, then a cut to the wordmark.
+Eighteen seconds on tan paper: speckled birds' eggs arrive one at a time until they form a **5**,
+the eggs hatch into birds on the same spots, the flock lifts off, and the wordmark is left behind.
+
+The first eight seconds are a recreation of the Claude Opus 5 launch clip, measured frame by
+frame. **Everything from the hatch onward is an extension of my own** — the source clip I was
+given ends on the wordmark at 8.09s, so the birds are not a reconstruction of anything.
 
 Everything is drawn at runtime in canvas 2D. **No images, no video, no fonts to download and no
 libraries** — the eggs are generated, not photographed, and the whole film is one `index.html`
@@ -15,7 +19,7 @@ that works offline.
 | --- | --- |
 | `space` or click the frame | Play / pause |
 | `←` `→` | Seek |
-| Scrubber | Drag anywhere in the 8 seconds |
+| Scrubber | Drag anywhere in the 18 seconds |
 | `l` | Loop on/off |
 | `f` | Fullscreen |
 
@@ -26,6 +30,17 @@ sampled at `rgb(204,186,156)`. Counting changed pixels frame by frame gives the 
 eggs pop in from t≈0 to t≈2.9 with no tweening between them, the finished numeral holds until
 t=5.0, then a hard cut to `Opus 5` centred, held to the end. This build reproduces that timing,
 and quantises playback to 24fps so the stop-motion cadence survives on a 60Hz screen.
+
+## The cut
+
+| Time | Beat |
+| --- | --- |
+| 0 → 2.9s | Eggs arrive one at a time, no tweening between them |
+| 2.9 → 5.0s | The finished numeral holds |
+| 5.0 → 7.7s | Each egg hatches: a bird takes its place, on the same 24fps beat |
+| 7.7 → 9.6s | A 5 made of birds |
+| 9.6 → 13.1s | The flock lifts off, top of the frame first, wingbeats and all |
+| 13.5 → 18s | `Opus 5` on bare paper |
 
 ## Drawing an egg with arithmetic
 
@@ -42,6 +57,24 @@ and quantises playback to 24fps so the stop-motion cadence survives on a 60Hz sc
   stroked over the top.
 - Each egg is painted once into its own offscreen canvas and then reused every frame, so 36 eggs
   cost 36 `drawImage` calls.
+
+## And a bird
+
+The bird uses the same engine one level up. A teardrop body with a pale belly gradient and fine
+speckling; a wing of three layered coverts clipped to the body, with primaries reaching past the
+rear; a short tail fan; a neck wedge drawn before the head so the join disappears under it; beak,
+eye and legs; then the plate's ink line — stroked *before* the head, or it draws a line straight
+across the bird's face.
+
+Each bird's plumage is derived from the shell it came out of: the back is its egg's ground colour
+darkened, the belly the same colour lifted toward cream, the wing darker still. Beak length, leg
+length, head size, tail spread, speckle count and which way it faces all vary per bird from a
+seed.
+
+In flight the folded wing is replaced by a swept blade that leaves the shoulder, curves forward
+and tapers to a point, drawn twice — a dim far wing behind the body, a lit near wing in front of
+it but **behind the head**, so the bird does not disappear behind its own wing on the upstroke.
+Two poses, one wingbeat apart, alternating about seven times a second.
 
 ## Arranging them into a numeral
 
@@ -61,6 +94,6 @@ Web Audio score.
 
 ## Note
 
-Unofficial. The original clip is Anthropic's; this is a from-scratch reconstruction of its
-choreography and look in code, and none of its artwork is reused — every egg here was generated
-by the program you can read in `index.html`.
+Unofficial. The original clip is Anthropic's; the first eight seconds here are a from-scratch
+reconstruction of its choreography and look, and none of its artwork is reused. The hatch and the
+flight are mine — if the real film goes somewhere else after the wordmark, this is not it.
