@@ -1,57 +1,66 @@
-# Claude Opus 5 — a launch film made of code
+# Opus 5 — the launch film, in code
 
-A 66-second product film that runs in a browser tab. Every frame is computed at runtime in
-canvas 2D and the score is synthesised in Web Audio, so the whole thing is one `index.html`
-with **no images, no video, no fonts to download and no libraries**.
+A code-only recreation of the eight-second Claude Opus 5 launch clip: speckled birds' eggs
+arriving one at a time on tan paper until they form a **5**, then a cut to the wordmark.
+
+Everything is drawn at runtime in canvas 2D. **No images, no video, no fonts to download and no
+libraries** — the eggs are generated, not photographed, and the whole film is one `index.html`
+that works offline.
 
 ## Watch
 
 **https://badboyvee.github.io/BlackHoleeee/launch-film/**
 
-Or download [`index.html`](index.html) and open it. It works offline — there is nothing to fetch.
-
 | Input | Action |
 | --- | --- |
 | `space` or click the frame | Play / pause |
-| `←` `→` | Seek ±5s |
-| Scrubber | Drag to any point; chapters are marked |
-| `m` | Sound on/off (the score is generated, not a file) |
+| `←` `→` | Seek |
+| Scrubber | Drag anywhere in the 8 seconds |
+| `l` | Loop on/off |
 | `f` | Fullscreen |
 
-## The cut
+## Matching the original
 
-| # | Chapter | What happens |
-| --- | --- | --- |
-| 1 | Ignition | A hairline cross, then a spark that swells into the first rays |
-| 2 | The mark | Twelve tapered rays open into the burst, with a slow counter-rotating outer set |
-| 3 | The name | The mark dissolves into 3,000 drifting particles; the name resolves in front of them |
-| 4 | It writes code | A solver is typed live into an editor card, syntax-highlighted, then the tests run green |
-| 5 | The whole loop | Five lanes — read, patch, test, fix, ship — filling and checking off from one instruction |
-| 6 | It stays | An eight-hour task drawn as a timeline, with the elapsed clock counting up |
-| 7 | Convergence | The particles fly back together and spell OPUS 5 |
-| 8 | End card | Flip to paper: the mark, the name, the line |
+The source clip was measured rather than guessed: 8.09s, 24fps, 4:5 (1728×2160), silent, paper
+sampled at `rgb(204,186,156)`. Counting changed pixels frame by frame gives the choreography —
+eggs pop in from t≈0 to t≈2.9 with no tweening between them, the finished numeral holds until
+t=5.0, then a hard cut to `Opus 5` centred, held to the end. This build reproduces that timing,
+and quantises playback to 24fps so the stop-motion cadence survives on a 60Hz screen.
 
-## How it's built
+## Drawing an egg with arithmetic
 
-- **Time is the only state.** Every frame is a pure function of one clock value, so scrubbing
-  is frame-accurate and the film never drifts. Scenes declare a duration; the renderer
-  cross-dissolves whichever ones overlap and blends their background colours by weight.
-- **The mark is geometry.** Each ray is two quadratic curves meeting at the origin, with a
-  gradient along its length. Ray count, taper, stagger and rotation are parameters, so the same
-  function draws the hero burst, the seed rays in scene 1 and the small end-card lockup.
-- **The particles are seeded.** A `mulberry32` PRNG gives 3,000 particles fixed identities, so
-  the swirl and the convergence look identical every time you scrub back over them.
-- **The wordmark is sampled, not drawn.** `OPUS 5` is rendered once to an offscreen canvas, the
-  opaque pixels are collected as points, shuffled and used as particle targets — then the pixels
-  are thrown away. Type becomes coordinates.
-- **Film grain from numbers.** A 168×168 tile of random alpha is generated once into an
-  `ImageData` and tiled as a pattern, offset per 24fps frame index so it flickers without ever
-  becoming non-deterministic.
-- **The score is four oscillators.** A drifting pad — root, octave, fifth, third — through a
-  lowpass filter whose cutoff tracks each scene's intensity, plus band-passed noise that rises
-  into every transition and a tiny square-wave click for each burst of typing.
+- **The ovoid.** An egg is a circle whose width is skewed toward the blunt end:
+  `x = b·sin t·(1 − k·cos t)`, `y = −a·cos t`, with a little low-frequency wobble on the radius so
+  the outline looks drawn rather than printed.
+- **The shell.** A base colour from a plate of fourteen olives, buffs and terracottas, then ~50
+  soft radial blooms of neighbouring hues so the ground is never flat.
+- **The markings, in three layers.** A grey-lilac underlayer first (real eggs show it beneath the
+  surface pigment), then dark blotches — irregular loops smoothed through their own midpoints —
+  then fine peppering. Every mark is placed by a sampler biased toward the blunt end, where a real
+  egg carries most of its pigment. Four styles: plain, peppered, blotched and scrawled.
+- **Volume and ink.** A highlight up-left and a shadow at the rim, then the plate's outline
+  stroked over the top.
+- Each egg is painted once into its own offscreen canvas and then reused every frame, so 36 eggs
+  cost 36 `drawImage` calls.
+
+## Arranging them into a numeral
+
+The `5` is rendered once to an offscreen mask and its ink bounding box mapped onto the frame.
+Eggs are then packed into it largest first — the radius target shrinks as attempts go on, so big
+eggs claim their space and small ones fill the gaps, with a little overlap allowed and a little
+spill past the edge. They arrive roughly top to bottom, jittered so it never looks like a queue.
+
+The paper is a seeded sheet of its own: uneven ageing, pale flecks in the pulp, and a grain tile
+offset per frame index.
+
+## Also here
+
+[`extended-cut.html`](extended-cut.html) — a longer, unrelated 66-second film in the same
+no-images spirit: a parametric burst mark, 3,000 seeded particles, a live typing scene and a
+Web Audio score.
 
 ## Note
 
-This is an unofficial, self-made recreation, not Anthropic's launch video and not a copy of one.
-The copy, the cut and the mark are all written for this piece. Claude Opus 5 wrote it.
+Unofficial. The original clip is Anthropic's; this is a from-scratch reconstruction of its
+choreography and look in code, and none of its artwork is reused — every egg here was generated
+by the program you can read in `index.html`.

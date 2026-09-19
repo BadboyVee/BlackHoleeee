@@ -3,137 +3,95 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Claude Opus 5 — a launch film made of code</title>
-<meta name="description" content="A 66-second launch film rendered live in a canvas. No images, no video, no libraries.">
+<title>Opus 5 — eggs, in code</title>
+<meta name="description" content="An 8-second launch film recreated in code: procedurally drawn birds' eggs assembling into a 5. No images, no video, no libraries.">
 <style>
   :root{
-    --ink:#0f0e0d;
-    --paper:#f0eee6;
-    --clay:#d97757;
-    --chrome:#0a0a09;
-    --line:rgba(240,238,230,.14);
-    --dim:rgba(240,238,230,.55);
+    --paper:#ccba9c;
+    --chrome:#17150f;
+    --line:rgba(236,228,210,.16);
+    --dim:rgba(236,228,210,.5);
+    --ink:#ece4d2;
   }
   *{box-sizing:border-box}
   html,body{height:100%}
   body{
-    margin:0;
-    background:var(--chrome);
-    color:var(--paper);
-    font:400 15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    margin:0;background:var(--chrome);color:var(--ink);
+    font:400 14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
     -webkit-font-smoothing:antialiased;
-    display:flex;align-items:center;justify-content:center;
-    padding:28px 20px;
+    display:flex;align-items:center;justify-content:center;padding:24px 18px;
   }
-  .app{width:min(1180px,100%)}
+  .app{display:flex;flex-direction:column;align-items:center;gap:14px;max-width:100%}
   .stage-wrap{
-    position:relative;width:100%;aspect-ratio:16/9;
-    background:#000;border-radius:10px;overflow:hidden;
-    box-shadow:0 30px 90px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.06);
-    cursor:pointer;
+    position:relative;aspect-ratio:4/5;height:min(78vh,860px);max-width:100%;
+    border-radius:8px;overflow:hidden;background:#000;cursor:pointer;
+    box-shadow:0 26px 70px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.07);
   }
-  .stage-wrap:fullscreen{border-radius:0;box-shadow:none;height:100%;width:100%;aspect-ratio:auto}
+  .stage-wrap:fullscreen{border-radius:0;height:100%;max-width:100%;box-shadow:none}
   canvas{display:block;width:100%;height:100%}
   .overlay{
     position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-    background:rgba(8,8,7,.42);opacity:0;pointer-events:none;transition:opacity .25s ease;
+    background:rgba(20,17,10,.34);opacity:0;pointer-events:none;transition:opacity .2s ease;
   }
   .overlay.show{opacity:1}
-  .overlay .glyph{
-    width:78px;height:78px;border-radius:50%;
-    border:1px solid rgba(240,238,230,.5);
+  .overlay .g{
+    width:70px;height:70px;border-radius:50%;border:1px solid rgba(236,228,210,.55);
     display:flex;align-items:center;justify-content:center;
-    backdrop-filter:blur(3px);
   }
-  .overlay .glyph::after{
+  .overlay .g::after{
     content:"";width:0;height:0;margin-left:5px;
-    border-left:20px solid rgba(240,238,230,.9);
-    border-top:13px solid transparent;border-bottom:13px solid transparent;
+    border-left:18px solid rgba(236,228,210,.9);
+    border-top:12px solid transparent;border-bottom:12px solid transparent;
   }
-  .bar{display:flex;align-items:center;gap:14px;margin-top:16px}
+  .bar{display:flex;align-items:center;gap:12px;width:min(520px,100%)}
   button{
-    appearance:none;background:transparent;color:var(--paper);
-    border:1px solid var(--line);border-radius:6px;
-    padding:7px 11px;font:500 12px/1 inherit;letter-spacing:.06em;
+    appearance:none;background:transparent;color:var(--ink);border:1px solid var(--line);
+    border-radius:5px;padding:6px 10px;font:500 11px/1 inherit;letter-spacing:.07em;
     cursor:pointer;transition:border-color .18s ease,background .18s ease,color .18s ease;
-    min-width:42px;
   }
-  button:hover{border-color:rgba(240,238,230,.4);background:rgba(240,238,230,.06)}
-  button.on{color:var(--clay);border-color:rgba(217,119,87,.55)}
-  .scrub{position:relative;flex:1;height:26px;display:flex;align-items:center;cursor:pointer;touch-action:none}
-  .chapters{position:absolute;inset:0;display:flex;align-items:center;gap:3px}
-  .chapters .ch{height:4px;border-radius:2px;background:rgba(240,238,230,.16);transition:background .2s ease,height .2s ease}
-  .chapters .ch.done{background:rgba(240,238,230,.34)}
-  .chapters .ch.now{height:7px;background:rgba(240,238,230,.3)}
-  .fill{position:absolute;left:0;height:4px;border-radius:2px;background:var(--clay);pointer-events:none}
-  .knob{position:absolute;width:11px;height:11px;border-radius:50%;background:var(--clay);
-        transform:translateX(-50%);pointer-events:none;box-shadow:0 0 0 3px rgba(217,119,87,.2)}
-  .time{font:500 12px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--dim);white-space:nowrap}
-  .meta{
-    margin-top:12px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;
-    font-size:12.5px;color:rgba(240,238,230,.42);letter-spacing:.02em;
-  }
-  .meta b{color:rgba(240,238,230,.72);font-weight:500}
-  kbd{
-    font:500 11px/1 ui-monospace,Menlo,monospace;border:1px solid var(--line);
-    border-radius:4px;padding:2px 5px;color:rgba(240,238,230,.6)
-  }
-  @media (max-width:640px){
-    .time{display:none}
-    .meta{font-size:11.5px}
-  }
+  button:hover{border-color:rgba(236,228,210,.42);background:rgba(236,228,210,.06)}
+  button.on{color:#d9a066;border-color:rgba(217,160,102,.5)}
+  .scrub{position:relative;flex:1;height:22px;display:flex;align-items:center;cursor:pointer;touch-action:none}
+  .track{position:absolute;left:0;right:0;height:3px;border-radius:2px;background:rgba(236,228,210,.18)}
+  .fill{position:absolute;left:0;height:3px;border-radius:2px;background:var(--paper);pointer-events:none}
+  .knob{position:absolute;width:9px;height:9px;border-radius:50%;background:var(--paper);transform:translateX(-50%);pointer-events:none}
+  .time{font:500 11px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--dim);white-space:nowrap}
+  .meta{font-size:12px;color:rgba(236,228,210,.4);text-align:center;max-width:560px;line-height:1.6}
+  .meta b{color:rgba(236,228,210,.66);font-weight:500}
 </style>
 </head>
 <body>
 <div class="app">
   <div class="stage-wrap" id="wrap">
     <canvas id="stage"></canvas>
-    <div class="overlay" id="overlay"><div class="glyph"></div></div>
+    <div class="overlay" id="overlay"><div class="g"></div></div>
   </div>
   <div class="bar">
     <button id="play" title="Play / pause (space)">Pause</button>
-    <div class="scrub" id="scrub">
-      <div class="chapters" id="chapters"></div>
-      <div class="fill" id="fill"></div>
-      <div class="knob" id="knob"></div>
-    </div>
-    <span class="time" id="time">0:00 / 1:06</span>
-    <button id="sound" title="Sound (m)">Sound</button>
+    <div class="scrub" id="scrub"><div class="track"></div><div class="fill" id="fill"></div><div class="knob" id="knob"></div></div>
+    <span class="time" id="time">0.0 / 8.0</span>
+    <button id="loop" class="on" title="Loop (l)">Loop</button>
     <button id="full" title="Fullscreen (f)">Full</button>
   </div>
-  <div class="meta">
-    <span><b id="chapter">Ignition</b> — every frame drawn live in canvas 2D; the score is synthesised in Web Audio</span>
-    <span><kbd>space</kbd> play <kbd>←</kbd><kbd>→</kbd> seek <kbd>m</kbd> sound <kbd>f</kbd> full</span>
-  </div>
+  <p class="meta"><b>Every egg is drawn, not photographed.</b> Shell, mottling, speckles and ink outline are generated from a seeded PRNG into an offscreen canvas — no images, no video, no libraries. Playback is quantised to 24fps to keep the stop-motion cadence.</p>
 </div>
 <script>
 (function(){
 'use strict';
 
-/* ---------------------------------------------------------------------------
-   Claude Opus 5 — launch film
-   No images, no video, no libraries. Geometry, type, grain and score are all
-   computed from the clock, so every frame is a pure function of time and the
-   film can be scrubbed frame-accurately.
---------------------------------------------------------------------------- */
-
-var cv  = document.getElementById('stage');
+var cv = document.getElementById('stage');
 var ctx = cv.getContext('2d', { alpha: false });
 
-var W = 1600, H = 900, TAU = Math.PI * 2;
+/* 4:5, the format of the original */
+var W = 1080, H = 1350, TAU = Math.PI * 2;
+var FPS = 24, DUR = 8.0, CUT = 5.0;
 
-var SERIF = '"Iowan Old Style","Palatino Linotype",Palatino,Georgia,"Times New Roman",serif';
-var SANS  = 'system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif';
-var MONO  = 'ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace';
+var SERIF = 'Georgia,"Iowan Old Style","Palatino Linotype",Palatino,"Times New Roman",serif';
+var WORDMARK = '"Times New Roman",Times,Georgia,"Liberation Serif",serif';
+var PAPER = [204, 186, 156];
 
-var INK = [15, 14, 13], PAPER = [240, 238, 230], CLAY = [217, 119, 87];
-
-/* ---- small maths ---- */
 function clamp(x, a, b){ return x < a ? a : x > b ? b : x; }
 function lerp(a, b, t){ return a + (b - a) * t; }
-function ss(a, b, x){ var t = clamp((x - a) / (b - a), 0, 1); return t * t * (3 - 2 * t); }
-function easeOut(t){ return 1 - Math.pow(1 - t, 3); }
-function easeInOut(t){ return t < 0.5 ? 4*t*t*t : 1 - Math.pow(-2*t + 2, 3) / 2; }
 function mulberry32(a){
   return function(){
     a |= 0; a = a + 0x6D2B79F5 | 0;
@@ -142,811 +100,394 @@ function mulberry32(a){
     return ((t ^ t >>> 14) >>> 0) / 4294967296;
   };
 }
-function rgba(c, a){ return 'rgba(' + c[0] + ',' + c[1] + ',' + c[2] + ',' + a + ')'; }
-function mix(c1, c2, t){
-  return [Math.round(lerp(c1[0], c2[0], t)), Math.round(lerp(c1[1], c2[1], t)), Math.round(lerp(c1[2], c2[2], t))];
+function rgba(c, a){ return 'rgba(' + (c[0] | 0) + ',' + (c[1] | 0) + ',' + (c[2] | 0) + ',' + a + ')'; }
+function jitterCol(c, r, amt){
+  return [clamp(c[0] + (r() - 0.5) * amt, 0, 255),
+          clamp(c[1] + (r() - 0.5) * amt, 0, 255),
+          clamp(c[2] + (r() - 0.5) * amt, 0, 255)];
 }
 
-/* ---- drawing helpers ---- */
-function rr(x, y, w, h, r){
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.lineTo(x + w - r, y); ctx.arcTo(x + w, y, x + w, y + r, r);
-  ctx.lineTo(x + w, y + h - r); ctx.arcTo(x + w, y + h, x + w - r, y + h, r);
-  ctx.lineTo(x + r, y + h); ctx.arcTo(x, y + h, x, y + h - r, r);
-  ctx.lineTo(x, y + r); ctx.arcTo(x, y, x + r, y, r);
-  ctx.closePath();
-}
-function text(str, x, y, o){
-  o = o || {};
-  ctx.save();
-  ctx.globalAlpha *= (o.alpha === undefined ? 1 : o.alpha);
-  ctx.font = (o.italic ? 'italic ' : '') + (o.weight || 400) + ' ' + (o.size || 40) + 'px ' + (o.family || SERIF);
-  ctx.fillStyle = o.color || '#fff';
-  ctx.textAlign = o.align || 'center';
-  ctx.textBaseline = o.base || 'alphabetic';
-  ctx.fillText(str, x, y);
-  ctx.restore();
-}
-/* letter-spaced type, measured per glyph so it works without ctx.letterSpacing */
-function tracked(str, x, y, o){
-  o = o || {};
-  var size = o.size || 15, ls = o.ls === undefined ? 5 : o.ls;
-  ctx.save();
-  ctx.globalAlpha *= (o.alpha === undefined ? 1 : o.alpha);
-  ctx.font = (o.weight || 500) + ' ' + size + 'px ' + (o.family || SANS);
-  ctx.fillStyle = o.color || '#fff';
-  ctx.textBaseline = o.base || 'alphabetic';
-  ctx.textAlign = 'left';
-  var i, total = 0;
-  for (i = 0; i < str.length; i++) total += ctx.measureText(str[i]).width + ls;
-  total -= ls;
-  var cx = o.align === 'left' ? x : (o.align === 'right' ? x - total : x - total / 2);
-  for (i = 0; i < str.length; i++){
-    ctx.fillText(str[i], cx, y);
-    cx += ctx.measureText(str[i]).width + ls;
+/* ---------------------------------------------------------------------------
+   THE EGG
+   An ovoid is a circle whose width is skewed toward the blunt end:
+     x = b sin t (1 - k cos t),  y = -a cos t
+   Everything else — shell mottling, the grey underlayer, the dark blotches,
+   the peppering and the ink outline — is painted into that clipped path.
+--------------------------------------------------------------------------- */
+function eggPath(g, cx, cy, a, b, k, wob){
+  var N = 90;
+  g.beginPath();
+  for (var i = 0; i <= N; i++){
+    var t = i / N * TAU;
+    var m = 1 + wob[0] * Math.sin(3 * t + wob[1]) + wob[2] * Math.sin(5 * t + wob[3]);
+    var x = b * Math.sin(t) * (1 - k * Math.cos(t)) * m;
+    var y = -a * Math.cos(t) * m;
+    if (i === 0) g.moveTo(cx + x, cy + y); else g.lineTo(cx + x, cy + y);
   }
-  ctx.restore();
+  g.closePath();
 }
-function hairline(cx, y, halfWidth, color, alpha){
-  if (halfWidth <= 0) return;
-  ctx.save();
-  ctx.globalAlpha *= (alpha === undefined ? 1 : alpha);
-  ctx.strokeStyle = color; ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(cx - halfWidth, y + 0.5); ctx.lineTo(cx + halfWidth, y + 0.5); ctx.stroke();
-  ctx.restore();
-}
-function glow(cx, cy, r, color, a){
-  var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
-  g.addColorStop(0, rgba(color, a));
-  g.addColorStop(0.42, rgba(color, a * 0.28));
-  g.addColorStop(1, rgba(color, 0));
-  ctx.fillStyle = g;
-  ctx.beginPath(); ctx.arc(cx, cy, r, 0, TAU); ctx.fill();
-}
-
-/* ---- the mark: a burst of tapered rays, drawn from pure geometry ---- */
-function drawBurst(cx, cy, scale, rot, growFn, alpha, rays, tint){
-  rays = rays || 12;
-  tint = tint || CLAY;
-  ctx.save();
-  ctx.globalAlpha *= alpha;
-  ctx.translate(cx, cy);
-  ctx.rotate(rot);
-  var maxG = 0;
-  for (var i = 0; i < rays; i++){
-    var g = clamp(growFn(i), 0, 1);
-    if (g > maxG) maxG = g;
-    if (g <= 0.001) continue;
-    var kind = i % 3;
-    var long = kind === 0 ? 1 : (kind === 1 ? 0.56 : 0.79);
-    var len = 190 * scale * long * easeOut(g);
-    var w   = 14 * scale * long * (0.45 + 0.55 * g);
-    ctx.save();
-    ctx.rotate(i / rays * TAU);
-    var grad = ctx.createLinearGradient(0, 0, len, 0);
-    grad.addColorStop(0, rgba(mix(tint, [255, 248, 240], 0.75), 0.95));
-    grad.addColorStop(0.4, rgba(tint, 0.9));
-    grad.addColorStop(1, rgba(tint, 0));
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.quadraticCurveTo(len * 0.28, -w, len, 0);
-    ctx.quadraticCurveTo(len * 0.28,  w, 0, 0);
-    ctx.fill();
-    ctx.restore();
+/* an irregular closed blob, smoothed through its own midpoints */
+function blobPath(g, cx, cy, r, squash, rnd, n){
+  n = n || 9;
+  var pts = [], i;
+  for (i = 0; i < n; i++){
+    var t = i / n * TAU, rr = r * (0.42 + 0.9 * rnd());
+    pts.push([cx + Math.cos(t) * rr, cy + Math.sin(t) * rr * squash]);
   }
-  ctx.fillStyle = rgba(mix(tint, [255, 250, 244], 0.85), 0.95 * maxG);
-  ctx.beginPath(); ctx.arc(0, 0, 7 * scale * maxG, 0, TAU); ctx.fill();
-  ctx.restore();
+  g.beginPath();
+  g.moveTo((pts[0][0] + pts[n - 1][0]) / 2, (pts[0][1] + pts[n - 1][1]) / 2);
+  for (i = 0; i < n; i++){
+    var p = pts[i], q = pts[(i + 1) % n];
+    g.quadraticCurveTo(p[0], p[1], (p[0] + q[0]) / 2, (p[1] + q[1]) / 2);
+  }
+  g.closePath();
 }
 
-/* ---- particles, seeded so scrubbing is deterministic ---- */
-var PN = 3000, P = [];
-(function(){
-  var r = mulberry32(20260919);
-  for (var i = 0; i < PN; i++){
-    P.push({
-      a: r() * TAU, r: r(), d: r(), s: 0.35 + r() * 0.95,
-      x: r() * W, y: r() * H, ph: r() * TAU
-    });
-  }
-})();
-
-/* ---- glyph sampling: render type offscreen, keep the points, drop the pixels ---- */
-var glyphCache = {};
-function samplePoints(str, font, step){
-  var key = str + '|' + font + '|' + step;
-  if (glyphCache[key]) return glyphCache[key];
-  var oc = document.createElement('canvas');
-  oc.width = W; oc.height = 420;
-  var o = oc.getContext('2d');
-  o.fillStyle = '#fff'; o.textAlign = 'center'; o.textBaseline = 'middle'; o.font = font;
-  o.fillText(str, W / 2, 210);
-  var data = o.getImageData(0, 0, W, 420).data, pts = [];
-  for (var y = 0; y < 420; y += step){
-    for (var x = 0; x < W; x += step){
-      if (data[(y * W + x) * 4 + 3] > 128) pts.push([x, y - 210]);
-    }
-  }
-  var rr2 = mulberry32(7);
-  for (var i = pts.length - 1; i > 0; i--){
-    var j = (rr2() * (i + 1)) | 0, t = pts[i]; pts[i] = pts[j]; pts[j] = t;
-  }
-  glyphCache[key] = pts;
-  return pts;
-}
-
-/* =====================================================================
-   SCENE 1 — IGNITION
-   ===================================================================== */
-function sIgnite(p, lt){
-  var cx = W / 2, cy = H / 2;
-  var v  = easeInOut(clamp(lt / 2.4, 0, 1));
-  var hz = ss(1.5, 3.8, lt);
-
-  ctx.strokeStyle = rgba(PAPER, 0.18); ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(cx + 0.5, cy - 320 * v); ctx.lineTo(cx + 0.5, cy + 320 * v); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(cx - 560 * hz, cy + 0.5); ctx.lineTo(cx + 560 * hz, cy + 0.5); ctx.stroke();
-
-  var born  = ss(0.7, 2.3, lt);
-  var flare = ss(4.4, 6.0, lt);
-  var beat  = 1 + 0.07 * Math.sin(lt * 3.3) + 0.04 * Math.sin(lt * 7.1);
-  var r = lerp(2.5, 17, born) * beat * (1 + 3.4 * flare * flare);
-
-  glow(cx, cy, r * 9, CLAY, 0.55 * born + 0.35 * flare);
-  glow(cx, cy, r * 2.6, [255, 244, 233], 0.9 * born);
-  ctx.fillStyle = rgba([255, 250, 243], born);
-  ctx.beginPath(); ctx.arc(cx, cy, r * 0.55, 0, TAU); ctx.fill();
-
-  /* four seed rays leaning out of the spark, just before the mark exists */
-  var seed = ss(3.4, 5.9, lt);
-  if (seed > 0){
-    drawBurst(cx, cy, 0.42 + 0.5 * seed, lt * 0.1, function(i){
-      return i % 3 === 0 ? seed : 0;
-    }, 0.7 * seed, 12);
-  }
-
-  tracked('A LAUNCH FILM WRITTEN ENTIRELY IN CODE', cx, H - 92,
-    { size: 14, ls: 6.5, family: SANS, color: rgba(PAPER, 0.5 * ss(2.9, 4.4, lt) * (1 - ss(5.2, 6, lt))) });
-}
-
-/* =====================================================================
-   SCENE 2 — THE MARK
-   ===================================================================== */
-function sBurst(p, lt){
-  var cx = W / 2, cy = H * 0.43;
-  var open = ss(0, 1.9, lt);
-  var spin = lt * 0.16 + 0.55 * easeOut(clamp(lt / 2.6, 0, 1));
-  var pulse = 1 + 0.028 * Math.sin(lt * 1.7);
-
-  glow(cx, cy, 430 * (0.5 + 0.5 * open), CLAY, 0.2 * open);
-
-  drawBurst(cx, cy, 1.55 * pulse, spin, function(i){
-    return ss(0.1 + i * 0.055, 0.85 + i * 0.055, lt);
-  }, 1, 12);
-
-  /* a second, counter-rotating set — thinner, further out */
-  ctx.save();
-  ctx.globalAlpha *= 0.4 * ss(1.6, 3.4, lt);
-  drawBurst(cx, cy, 2.45, -spin * 0.55 + 0.26, function(i){
-    return i % 2 ? 0 : ss(1.6 + i * 0.04, 3.2 + i * 0.04, lt);
-  }, 1, 12, mix(CLAY, PAPER, 0.35));
-  ctx.restore();
-
-  var ti = ss(3.3, 4.6, lt);
-  text('Introducing', cx, cy + 322 + 12 * (1 - easeOut(ti)), {
-    size: 48, family: SERIF, italic: true, color: rgba(PAPER, 0.92 * ti)
-  });
-  hairline(cx, cy + 366, 130 * easeOut(ss(4.2, 5.6, lt)), rgba(PAPER, 0.35), 1);
-}
-
-/* =====================================================================
-   SCENE 3 — THE FIELD (and the name)
-   ===================================================================== */
-function sField(p, lt){
-  var cx = W / 2, cy = H * 0.5;
-  var grow = easeOut(clamp(lt / 3.6, 0, 1));
-  var out  = 1 - ss(6.6, 8, lt);
-
-  ctx.save();
-  for (var i = 0; i < PN; i++){
-    var pt = P[i];
-    var rr0 = Math.pow(pt.r, 0.62);
-    var spin = lt * (0.42 - 0.3 * rr0) * pt.s;
-    var ang  = pt.a + spin;
-    var rad  = lerp(34, 560, rr0) * (0.3 + 0.7 * grow);
-    var wob  = 1 + 0.12 * Math.sin(lt * 0.9 + pt.ph * 2);
-    var x = cx + Math.cos(ang) * rad * 1.5 * wob;
-    var y = cy + Math.sin(ang) * rad * 0.66 * wob + Math.sin(lt * 0.7 + pt.ph) * 9;
-    var a = (0.3 + 0.7 * (1 - rr0 * 0.65)) * out * (0.62 + 0.38 * Math.sin(lt * 1.6 + pt.ph));
-    if (a <= 0.02) continue;
-    ctx.fillStyle = rgba(mix(CLAY, PAPER, 0.08 + 0.85 * pt.d), Math.min(a, 0.92));
-    var s = 1.3 + pt.d * 1.8;
-    ctx.fillRect(x, y, s, s);
-    if (pt.d > 0.965) glow(x, y, 26, mix(CLAY, PAPER, 0.5), 0.3 * a);
-  }
-  ctx.restore();
-
-  /* a soft pocket of dark so the name sits clear of the field */
-  var tin = ss(2.2, 3.6, lt);
-  var g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 540);
-  g.addColorStop(0, rgba(INK, 0.8 * tin));
-  g.addColorStop(0.5, rgba(INK, 0.55 * tin));
-  g.addColorStop(1, rgba(INK, 0));
-  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
-
-  text('Claude Opus 5', cx, cy + 22 - 10 * (1 - easeOut(tin)), {
-    size: 104, family: SERIF, color: rgba(PAPER, 0.97 * tin * out)
-  });
-  hairline(cx, cy + 72, 210 * easeOut(ss(3.6, 5, lt)), rgba(CLAY, 0.75), out);
-  tracked('A MODEL THAT KEEPS GOING', cx, cy + 126, {
-    size: 14, ls: 7, family: SANS, color: rgba(PAPER, 0.5 * ss(4.4, 5.8, lt) * out)
-  });
-}
-
-/* =====================================================================
-   SCENE 4 — IT WRITES CODE
-   ===================================================================== */
-var CODE = [
-  '# fills the grid, or proves it cannot be filled',
-  'def solve(board):',
-  '    slot = first_empty(board)',
-  '    if slot is None:',
-  '        return True',
-  '',
-  '    row, col = slot',
-  '    for value in range(1, 10):',
-  '        if allowed(board, row, col, value):',
-  '            board[row][col] = value',
-  '            if solve(board):',
-  '                return True',
-  '            board[row][col] = 0   # undo, keep looking',
-  '    return False'
+var SHELLS = [
+  [186, 176, 128], [172, 158,  98], [199, 188, 146], [206, 179, 122],
+  [154, 148,  96], [188, 158, 106], [176, 170, 120], [144, 142,  92],
+  [204, 192, 152], [186, 130,  82], [132, 132,  92], [196, 188, 150],
+  [162, 164, 134], [148, 138,  96]
 ];
-var KW = /^(def|if|is|None|return|for|in|range|True|False|not|and|or|while|else|elif|import|from|class|with|try|except)$/;
-var CODE_COL = {
-  kw: '#d97757', str: '#a8c49c', num: '#e0b37a', com: 'rgba(240,238,230,.34)',
-  fn: '#9cc0d8', id: '#e8e4da', pun: 'rgba(240,238,230,.62)'
-};
-function tokenize(line){
-  var out = [], re = /(#.*$)|("[^"]*"|'[^']*')|(\d+)|([A-Za-z_][A-Za-z0-9_]*)|(\s+)|([^\s])/g, m;
-  while ((m = re.exec(line)) !== null){
-    if (m[0] === '') { re.lastIndex++; continue; }
-    if (m[1]) out.push([m[1], 'com']);
-    else if (m[2]) out.push([m[2], 'str']);
-    else if (m[3]) out.push([m[3], 'num']);
-    else if (m[4]) out.push([m[4], KW.test(m[4]) ? 'kw' : 'id']);
-    else out.push([m[0], 'pun']);
+var MARKS  = [[59, 46, 30], [74, 58, 34], [46, 36, 24], [90, 70, 48], [34, 28, 20]];
+var UNDER  = [[138, 131, 120], [126, 122, 116], [154, 142, 128]];
+
+/* pick a point inside the ovoid, biased toward the blunt (lower) end */
+function pointInEgg(a, b, k, rnd, bias){
+  for (var i = 0; i < 24; i++){
+    var y = a * (2 * Math.pow(rnd(), bias) - 1);
+    var ct = clamp(-y / a, -1, 1), t = Math.acos(ct);
+    var wdt = b * Math.sin(t) * (1 - k * ct);
+    var x = (rnd() * 2 - 1) * wdt;
+    if (Math.abs(x) <= wdt) return [x, y];
   }
-  for (var i = 0; i < out.length - 1; i++){
-    if (out[i][1] === 'id' && out[i + 1][0] === '(') out[i][1] = 'fn';
-  }
-  return out;
+  return [0, 0];
 }
-var CODE_TOK = CODE.map(tokenize);
-var CODE_CHARS = CODE.reduce(function(n, l){ return n + l.length + 1; }, 0);
-var lastTyped = -1;
 
-function sCode(p, lt){
-  var x0 = 232, y0 = 118, cw = 1136, chh = 500;
+function makeEgg(sp){
+  var pad = 5, w = Math.ceil(sp.b * 2 + pad * 2), h = Math.ceil(sp.a * 2 + pad * 2);
+  var c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  var g = c.getContext('2d'), cx = w / 2, cy = h / 2, r = sp.rnd, i, p;
 
-  ctx.fillStyle = rgba(PAPER, 0.035); rr(x0, y0, cw, chh, 12); ctx.fill();
-  ctx.strokeStyle = rgba(PAPER, 0.13); ctx.lineWidth = 1; rr(x0 + .5, y0 + .5, cw - 1, chh - 1, 12); ctx.stroke();
-  ctx.strokeStyle = rgba(PAPER, 0.09);
-  ctx.beginPath(); ctx.moveTo(x0, y0 + 46.5); ctx.lineTo(x0 + cw, y0 + 46.5); ctx.stroke();
-  for (var d = 0; d < 3; d++){
-    ctx.fillStyle = rgba(PAPER, 0.17);
-    ctx.beginPath(); ctx.arc(x0 + 26 + d * 19, y0 + 23, 5, 0, TAU); ctx.fill();
+  g.save();
+  eggPath(g, cx, cy, sp.a, sp.b, sp.k, sp.wob);
+  g.clip();
+
+  /* shell ground */
+  g.fillStyle = rgba(sp.base, 1);
+  g.fillRect(0, 0, w, h);
+
+  /* mottling, so the ground is never flat */
+  for (i = 0; i < 52; i++){
+    var mx = cx + (r() - 0.5) * sp.b * 2.2, my = cy + (r() - 0.5) * sp.a * 2.2;
+    var mr = sp.b * (0.14 + 0.45 * r());
+    var tint = jitterCol(sp.base, r, 46);
+    var gg = g.createRadialGradient(mx, my, 0, mx, my, mr);
+    gg.addColorStop(0, rgba(tint, 0.05 + 0.13 * r()));
+    gg.addColorStop(1, rgba(tint, 0));
+    g.fillStyle = gg;
+    g.fillRect(mx - mr, my - mr, mr * 2, mr * 2);
   }
-  text('sudoku.py', x0 + cw / 2, y0 + 29, { size: 16, family: MONO, color: rgba(PAPER, 0.42) });
 
-  ctx.font = '400 23px ' + MONO;
-  var chw = ctx.measureText('M').width, lh = 31;
-  var typed = Math.floor(clamp((lt - 0.7) / 7.4, 0, 1) * CODE_CHARS);
-  if (typed !== lastTyped){ if (typed > lastTyped && typed - lastTyped < 4) audio.tick(); lastTyped = typed; }
+  /* the soft grey underlayer real eggs show beneath their markings */
+  var under = UNDER[(r() * UNDER.length) | 0];
+  for (i = 0; i < sp.nUnder; i++){
+    p = pointInEgg(sp.a, sp.b, sp.k, r, sp.bias);
+    blobPath(g, cx + p[0], cy + p[1], sp.b * (0.1 + 0.26 * r()), 0.7 + 0.5 * r(), r, 8);
+    g.fillStyle = rgba(under, 0.1 + 0.18 * r());
+    g.fill();
+  }
 
-  var seen = 0, curX = null, curY = null;
-  for (var li = 0; li < CODE.length; li++){
-    var line = CODE[li], toks = CODE_TOK[li];
-    var lineY = y0 + 92 + li * lh;
-    var left  = typed - seen;
-    if (left <= 0){ seen += line.length + 1; continue; }
-    var show = Math.min(left, line.length);
-
-    ctx.save();
-    ctx.globalAlpha *= 0.28;
-    text(String(li + 1), x0 + 62, lineY, { size: 17, family: MONO, color: rgba(PAPER, 1), align: 'right', base: 'middle' });
-    ctx.restore();
-
-    var tx = x0 + 84, used = 0;
-    for (var ti = 0; ti < toks.length && used < show; ti++){
-      var tk = toks[ti][0], n = Math.min(tk.length, show - used);
-      var frag = tk.slice(0, n);
-      ctx.save();
-      ctx.font = '400 23px ' + MONO; ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
-      ctx.fillStyle = CODE_COL[toks[ti][1]];
-      ctx.fillText(frag, tx, lineY);
-      ctx.restore();
-      tx += chw * frag.length; used += n;
+  /* the markings */
+  var mark = MARKS[(r() * MARKS.length) | 0];
+  if (sp.style === 'scrawl'){
+    g.lineCap = 'round';
+    for (i = 0; i < sp.nBlob; i++){
+      p = pointInEgg(sp.a, sp.b, sp.k, r, sp.bias);
+      var len = sp.b * (0.3 + 0.8 * r());
+      g.strokeStyle = rgba(jitterCol(mark, r, 16), 0.55 + 0.4 * r());
+      g.lineWidth = sp.b * (0.04 + 0.07 * r());
+      g.beginPath();
+      g.moveTo(cx + p[0], cy + p[1]);
+      g.quadraticCurveTo(cx + p[0] + (r() - 0.5) * len, cy + p[1] + (r() - 0.5) * len,
+                         cx + p[0] + (r() - 0.5) * len * 1.6, cy + p[1] + (r() - 0.5) * len * 1.2);
+      g.stroke();
     }
-    curX = tx; curY = lineY;
-    seen += line.length + 1;
-  }
-  if (curX !== null && lt < 8.6 && (Math.floor(lt * 2.2) % 2 === 0 || lt < 8.1)){
-    ctx.fillStyle = rgba(CLAY, 0.85);
-    ctx.fillRect(curX + 1, curY - 13, chw * 0.62, 25);
-  }
-
-  /* the run */
-  var t0 = 8.5;
-  var runTyped = Math.floor(clamp((lt - t0) / 0.7, 0, 1) * 12);
-  if (runTyped > 0){
-    var cmd = '$ pytest -q'.slice(0, runTyped);
-    text(cmd, x0 + 4, y0 + chh + 62, { size: 23, family: MONO, color: rgba(PAPER, 0.8), align: 'left', base: 'middle' });
-  }
-  var pass = ss(9.5, 10.1, lt);
-  if (pass > 0){
-    var dots = '.'.repeat(Math.floor(clamp((lt - 9.3) / 0.5, 0, 1) * 14));
-    text(dots, x0 + 4, y0 + chh + 104, { size: 23, family: MONO, color: rgba(PAPER, 0.45 * pass), align: 'left', base: 'middle' });
-    var okx = x0 + 4 + 220;
-    ctx.save();
-    ctx.globalAlpha *= pass;
-    ctx.strokeStyle = rgba(CLAY, 0.95); ctx.lineWidth = 2.6; ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(okx - 4, y0 + chh + 104);
-    ctx.lineTo(okx + 4, y0 + chh + 112);
-    ctx.lineTo(okx + 20, y0 + chh + 92);
-    ctx.stroke();
-    ctx.restore();
-    text('14 passed in 0.38s', okx + 36, y0 + chh + 104, { size: 23, family: MONO, color: rgba(mix(CLAY, PAPER, 0.4), 0.9 * pass), align: 'left', base: 'middle' });
-  }
-
-  var cap = ss(10.4, 11.4, lt);
-  text('It writes code that holds together.', W / 2, H - 46, {
-    size: 40, family: SERIF, italic: true, color: rgba(PAPER, 0.9 * cap)
-  });
-}
-
-/* =====================================================================
-   SCENE 5 — IT RUNS THE WHOLE LOOP
-   ===================================================================== */
-var LANES = [
-  ['read the repository', 0.5, 1.5],
-  ['write the patch',     1.7, 2.3],
-  ['run the tests',       3.1, 1.4],
-  ['fix what broke',      4.2, 1.9],
-  ['open the pull request', 5.8, 1.2]
-];
-function sAgents(p, lt){
-  var capA = ss(0.3, 1.3, lt);
-  text('One request. The whole loop.', W / 2, 138, {
-    size: 46, family: SERIF, color: rgba(PAPER, 0.93 * capA)
-  });
-
-  var xA = 660, xB = 1330, y;
-  for (var i = 0; i < LANES.length; i++){
-    var name = LANES[i][0], st = LANES[i][1], du = LANES[i][2];
-    y = 268 + i * 88;
-    var app  = ss(st - 0.5, st - 0.05, lt);
-    var prog = easeInOut(clamp((lt - st) / du, 0, 1));
-    var done = prog >= 1;
-    if (app <= 0.001) continue;
-
-    ctx.save();
-    ctx.globalAlpha *= app;
-
-    text(name, xA - 36, y, {
-      size: 22, family: MONO, align: 'right', base: 'middle',
-      color: rgba(PAPER, done ? 0.85 : 0.5)
-    });
-
-    ctx.fillStyle = rgba(PAPER, 0.09);
-    rr(xA, y - 7, xB - xA, 14, 7); ctx.fill();
-
-    var wdt = (xB - xA) * prog;
-    if (wdt > 2){
-      var g = ctx.createLinearGradient(xA, 0, xA + wdt, 0);
-      g.addColorStop(0, rgba(CLAY, 0.55)); g.addColorStop(1, rgba(CLAY, 1));
-      ctx.fillStyle = g;
-      rr(xA, y - 7, wdt, 14, 7); ctx.fill();
+  } else {
+    for (i = 0; i < sp.nBlob; i++){
+      p = pointInEgg(sp.a, sp.b, sp.k, r, sp.bias);
+      blobPath(g, cx + p[0], cy + p[1], sp.b * sp.blobR * (0.5 + r()), 0.6 + 0.7 * r(), r, 9);
+      g.fillStyle = rgba(jitterCol(mark, r, 14), 0.55 + 0.42 * r());
+      g.fill();
     }
-
-    if (!done && prog > 0){
-      glow(xA + wdt, y, 34, CLAY, 0.5 + 0.3 * Math.sin(lt * 7));
-    }
-    if (done){
-      ctx.strokeStyle = rgba(CLAY, 1); ctx.lineWidth = 2.6; ctx.lineCap = 'round';
-      var k = ss(st + du, st + du + 0.35, lt);
-      ctx.save();
-      ctx.beginPath();
-      ctx.moveTo(xB + 24, y);
-      ctx.lineTo(xB + 32, y + 8);
-      ctx.lineTo(xB + 48, y - 10);
-      ctx.setLineDash([60, 60]); ctx.lineDashOffset = 60 * (1 - k);
-      ctx.stroke();
-      ctx.restore();
-    }
-    ctx.restore();
+  }
+  /* peppering */
+  for (i = 0; i < sp.nDot; i++){
+    p = pointInEgg(sp.a, sp.b, sp.k, r, sp.bias);
+    var dr = 0.5 + 1.9 * r() * (sp.b / 40);
+    g.fillStyle = rgba(jitterCol(mark, r, 18), 0.35 + 0.55 * r());
+    g.beginPath();
+    g.ellipse(cx + p[0], cy + p[1], dr, dr * (0.6 + 0.7 * r()), r() * TAU, 0, TAU);
+    g.fill();
   }
 
-  var sum = ss(7.2, 8.1, lt);
-  tracked('FIVE STEPS  ·  ONE INSTRUCTION  ·  NO HAND-HOLDING', W / 2, H - 92, {
-    size: 14, ls: 6, family: SANS, color: rgba(PAPER, 0.48 * sum)
-  });
-}
+  /* volume: a soft highlight up-left, shadow at the rim */
+  g.save();
+  g.translate(cx, cy); g.scale(1, sp.a / sp.b);
+  var sg = g.createRadialGradient(-sp.b * 0.3, -sp.b * 0.34, sp.b * 0.1, 0, 0, sp.b * 1.42);
+  sg.addColorStop(0, 'rgba(255,250,236,0.17)');
+  sg.addColorStop(0.5, 'rgba(255,250,236,0)');
+  sg.addColorStop(0.82, 'rgba(46,36,22,0.10)');
+  sg.addColorStop(1, 'rgba(38,29,17,0.34)');
+  g.fillStyle = sg;
+  g.fillRect(-sp.b * 1.6, -sp.b * 1.6, sp.b * 3.2, sp.b * 3.2);
+  g.restore();
+  g.restore();
 
-/* =====================================================================
-   SCENE 6 — IT STAYS WITH THE PROBLEM
-   ===================================================================== */
-var EVENTS = [
-  [0.06, 'plan'], [0.19, 'scaffold'], [0.33, 'first green'],
-  [0.47, 'regression'], [0.60, 'root cause'], [0.74, 'refactor'], [0.90, 'ship']
-];
-function sEndure(p, lt){
-  var ax = 214, bx = 1386, ay = 596;
+  /* the plate's ink outline */
+  eggPath(g, cx, cy, sp.a, sp.b, sp.k, sp.wob);
+  g.strokeStyle = 'rgba(44,35,23,0.7)';
+  g.lineWidth = Math.max(1, sp.b * 0.028);
+  g.stroke();
 
-  text('And it stays with the problem.', W / 2, 150, {
-    size: 46, family: SERIF, color: rgba(PAPER, 0.93 * ss(0.3, 1.3, lt))
-  });
-
-  ctx.strokeStyle = rgba(PAPER, 0.16); ctx.lineWidth = 1;
-  ctx.beginPath(); ctx.moveTo(ax, ay + .5); ctx.lineTo(bx, ay + .5); ctx.stroke();
-  for (var h = 0; h <= 8; h++){
-    var hx = ax + (bx - ax) * (h / 8);
-    ctx.beginPath(); ctx.moveTo(hx + .5, ay); ctx.lineTo(hx + .5, ay + 11); ctx.stroke();
-    if (h > 0) text(h + 'h', hx, ay + 40, { size: 17, family: MONO, color: rgba(PAPER, 0.32), base: 'middle' });
-  }
-
-  var q = easeInOut(clamp((lt - 0.9) / 5.4, 0, 1));
-  var hx2 = ax + (bx - ax) * q;
-
-  ctx.save();
-  ctx.strokeStyle = rgba(CLAY, 0.95); ctx.lineWidth = 3; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(ax, ay + .5); ctx.lineTo(hx2, ay + .5); ctx.stroke();
-  ctx.restore();
-  glow(hx2, ay, 44 + 8 * Math.sin(lt * 5), CLAY, 0.55);
-
-  for (var i = 0; i < EVENTS.length; i++){
-    var f = EVENTS[i][0], label = EVENTS[i][1];
-    var a = ss(f, f + 0.03, q);
-    if (a <= 0.001) continue;
-    var ex = ax + (bx - ax) * f;
-    var stem = i % 2 === 0 ? 42 : 86;
-    ctx.save();
-    ctx.globalAlpha *= a;
-    ctx.strokeStyle = rgba(PAPER, 0.26); ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(ex + .5, ay - 6); ctx.lineTo(ex + .5, ay - stem); ctx.stroke();
-    ctx.fillStyle = rgba(CLAY, 0.95);
-    ctx.beginPath(); ctx.arc(ex, ay, 4.5, 0, TAU); ctx.fill();
-    text(label, ex, ay - stem - 16, { size: 18, family: MONO, color: rgba(PAPER, 0.62), base: 'middle' });
-    ctx.restore();
-  }
-
-  var mins = Math.floor(q * 461);
-  var hh = Math.floor(mins / 60), mm = mins % 60;
-  var clock = hh + ':' + (mm < 10 ? '0' : '') + mm;
-  tracked('ELAPSED', W / 2, 250, { size: 13, ls: 7, family: SANS, color: rgba(PAPER, 0.38) });
-  text(clock, W / 2, 336, { size: 96, family: MONO, weight: 300, color: rgba(PAPER, 0.92), base: 'middle' });
-
-  var last = ss(6.6, 7.6, lt);
-  tracked('ONE TASK, HELD FROM END TO END', W / 2, H - 82, {
-    size: 14, ls: 6.5, family: SANS, color: rgba(PAPER, 0.5 * last)
-  });
-}
-
-/* =====================================================================
-   SCENE 7 — CONVERGENCE
-   ===================================================================== */
-function sConverge(p, lt){
-  var cx = W / 2, cy = H * 0.54;
-  var pts = samplePoints('OPUS 5', '700 230px ' + SERIF, 4);
-  var scatter = 1 - ss(0.2, 2.2, lt);
-
-  for (var i = 0; i < PN; i++){
-    var pt = P[i];
-    var tgt = pts[i % pts.length];
-    var delay = pt.d * 1.1;
-    var k = easeInOut(clamp((lt - 0.35 - delay) / 2.5, 0, 1));
-    var sx = cx + Math.cos(pt.a) * (420 + pt.r * 760) * 1.25;
-    var sy = cy + Math.sin(pt.a) * (250 + pt.r * 430);
-    var jit = (1 - k) * 46;
-    var x = lerp(sx, tgt[0], k) + Math.sin(lt * 1.9 + pt.ph) * (jit + 1.1);
-    var y = lerp(sy, cy + tgt[1], k) + Math.cos(lt * 1.6 + pt.ph) * (jit + 1.1);
-    var a = clamp(0.25 + 0.75 * k, 0, 1) * (0.45 + 0.55 * pt.d);
-    ctx.fillStyle = rgba(mix(PAPER, CLAY, 0.22 + 0.5 * pt.d * scatter), a);
-    var s = 1.6 + pt.d * 1.7 * k;
-    ctx.fillRect(x, y, s, s);
-  }
-  var bloom = ss(2.0, 3.4, lt);
-  if (bloom > 0) glow(cx, cy, 560, CLAY, 0.1 * bloom);
-
-  var up = ss(3.9, 5.1, lt);
-  if (up > 0){
-    drawBurst(cx, cy - 288, 0.82, lt * 0.2, function(i){ return ss(3.9 + i * 0.03, 4.8 + i * 0.03, lt); }, up, 12);
-  }
-  var flare = ss(5.5, 6.5, lt);
-  if (flare > 0) glow(cx, cy, 900 * flare, PAPER, 0.5 * flare);
-}
-
-/* =====================================================================
-   SCENE 8 — END CARD
-   ===================================================================== */
-function sEndCard(p, lt){
-  var cx = W / 2;
-  drawBurst(cx, 292, 0.58, -0.12 + lt * 0.035, function(i){
-    return ss(0.15 + i * 0.03, 1.15 + i * 0.03, lt);
-  }, 1, 12);
-
-  var t1 = ss(1.0, 2.0, lt);
-  text('Claude Opus 5', cx, 496 + 14 * (1 - easeOut(t1)), {
-    size: 96, family: SERIF, color: rgba(INK, 0.96 * t1)
-  });
-  hairline(cx, 552, 148 * easeOut(ss(1.7, 2.7, lt)), rgba(INK, 0.28), 1);
-  text('Built for the work that takes a while.', cx, 618, {
-    size: 36, family: SERIF, italic: true, color: rgba(INK, 0.7 * ss(2.1, 3.1, lt))
-  });
-
-  tracked('AN UNOFFICIAL RECREATION  ·  CANVAS 2D + WEB AUDIO  ·  NO IMAGES, NO VIDEO, NO LIBRARIES',
-    cx, H - 96, { size: 13, ls: 5.5, family: SANS, color: rgba(INK, 0.4 * ss(3.3, 4.4, lt)) });
-}
-
-/* =====================================================================
-   TIMELINE
-   ===================================================================== */
-var XF = 0.7; /* dissolve length */
-var SCENES = [
-  { id: 'ignite',   label: 'Ignition',        dur: 6.0,  draw: sIgnite,   bg: INK,   root: 55.00, lift: 0.18 },
-  { id: 'burst',    label: 'The mark',        dur: 7.5,  draw: sBurst,    bg: INK,   root: 61.74, lift: 0.42 },
-  { id: 'field',    label: 'The name',        dur: 8.0,  draw: sField,    bg: INK,   root: 65.41, lift: 0.55 },
-  { id: 'code',     label: 'It writes code',  dur: 12.5, draw: sCode,     bg: [18, 17, 15], root: 49.00, lift: 0.34 },
-  { id: 'agents',   label: 'The whole loop',  dur: 9.0,  draw: sAgents,   bg: INK,   root: 58.27, lift: 0.5  },
-  { id: 'endure',   label: 'It stays',        dur: 8.5,  draw: sEndure,   bg: INK,   root: 43.65, lift: 0.38 },
-  { id: 'converge', label: 'Convergence',     dur: 6.5,  draw: sConverge, bg: INK,   root: 65.41, lift: 0.8  },
-  { id: 'end',      label: 'End card',        dur: 8.0,  draw: sEndCard,  bg: PAPER, root: 73.42, lift: 0.3, light: true }
-];
-(function(){
-  var t = 0;
-  for (var i = 0; i < SCENES.length; i++){ SCENES[i].t0 = t; t += SCENES[i].dur; SCENES[i].t1 = t; }
-})();
-var DUR = SCENES[SCENES.length - 1].t1;
-
-/* ---- grain, generated once as numbers, never loaded as an image ---- */
-var grainTile = (function(){
-  var c = document.createElement('canvas'); c.width = c.height = 168;
-  var g = c.getContext('2d'), img = g.createImageData(168, 168), r = mulberry32(4242);
-  for (var i = 0; i < 168 * 168; i++){
-    var v = (r() * 255) | 0;
-    img.data[i * 4] = img.data[i * 4 + 1] = img.data[i * 4 + 2] = v;
-    img.data[i * 4 + 3] = 30;
-  }
-  g.putImageData(img, 0, 0);
   return c;
-})();
-var grainPattern = null;
-
-/* =====================================================================
-   RENDER
-   ===================================================================== */
-var active = [];
-function computeActive(t){
-  active.length = 0;
-  for (var i = 0; i < SCENES.length; i++){
-    var sc = SCENES[i];
-    if (t >= sc.t0 - XF && t <= sc.t1 + 0.001){
-      var a = ss(sc.t0 - XF, sc.t0 + 0.02, t) * (1 - ss(sc.t1 - XF * 0.55, sc.t1, t));
-      if (a > 0.002) active.push({ sc: sc, a: a, lt: clamp(t - sc.t0, 0, sc.dur) });
-    }
-  }
-  if (!active.length){
-    var lastSc = t <= 0 ? SCENES[0] : SCENES[SCENES.length - 1];
-    active.push({ sc: lastSc, a: 1, lt: t <= 0 ? 0 : lastSc.dur });
-  }
 }
 
-function render(t){
+/* ---------------------------------------------------------------------------
+   THE COMPOSITION
+   The numeral is sampled as a mask, then eggs are packed into it largest
+   first — the same way you would lay real ones out on a table.
+--------------------------------------------------------------------------- */
+var COMP = null;
+function buildComp(){
+  if (COMP) return COMP;
+  var r = mulberry32(20260724), i, j;
+
+  var mw = 260, mh = 330;
+  var oc = document.createElement('canvas');
+  oc.width = mw; oc.height = mh;
+  var g = oc.getContext('2d');
+  g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = '600 300px ' + SERIF;
+  g.fillText('5', mw / 2, mh / 2);
+  var d = g.getImageData(0, 0, mw, mh).data;
+
+  var x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9, x, y;
+  for (y = 0; y < mh; y++){
+    for (x = 0; x < mw; x++){
+      if (d[(y * mw + x) * 4 + 3] > 128){
+        if (x < x0) x0 = x; if (x > x1) x1 = x;
+        if (y < y0) y0 = y; if (y > y1) y1 = y;
+      }
+    }
+  }
+  var TX = 198, TY = 188, TW = 680, TH = 972;
+  function inside(px, py){
+    var mx = Math.round(x0 + (px - TX) / TW * (x1 - x0));
+    var my = Math.round(y0 + (py - TY) / TH * (y1 - y0));
+    if (mx < 0 || my < 0 || mx >= mw || my >= mh) return false;
+    return d[(my * mw + mx) * 4 + 3] > 120;
+  }
+
+  /* pack: the radius target shrinks as attempts go on, so big eggs land first */
+  var eggs = [], ATT = 9000;
+  for (i = 0; i < ATT && eggs.length < 36; i++){
+    var a = lerp(88, 26, Math.pow(i / ATT, 0.6)) * (0.88 + 0.26 * r());
+    var px = TX + r() * TW, py = TY + r() * TH;
+    if (!inside(px, py)) continue;
+    if (!(inside(px + a * 0.45, py) && inside(px - a * 0.45, py) &&
+          inside(px, py + a * 0.45) && inside(px, py - a * 0.45))) continue;
+    var clash = false;
+    for (j = 0; j < eggs.length; j++){
+      var dx = eggs[j].x - px, dy = eggs[j].y - py;
+      if (dx * dx + dy * dy < Math.pow((eggs[j].a + a) * 0.76, 2)){ clash = true; break; }
+    }
+    if (clash) continue;
+    eggs.push({ x: px, y: py, a: a });
+  }
+
+  /* give each one a shell, a marking style and a lie of its own */
+  for (i = 0; i < eggs.length; i++){
+    var e = eggs[i];
+    var seed = (r() * 1e9) | 0, er = mulberry32(seed);
+    var roll = er(), style = roll < 0.17 ? 'plain' : roll < 0.4 ? 'pepper' : roll < 0.87 ? 'blotch' : 'scrawl';
+    var b = e.a * (0.66 + 0.12 * er());
+    var spec = {
+      a: e.a, b: b, k: 0.16 + 0.14 * er(), rnd: er,
+      wob: [0.012 * er(), er() * TAU, 0.009 * er(), er() * TAU],
+      base: jitterCol(SHELLS[(er() * SHELLS.length) | 0], er, 18),
+      bias: 0.6 + 0.5 * er(),
+      style: style,
+      blobR: 0.1 + 0.12 * er(),
+      nUnder: style === 'plain' ? 3 : 8 + ((er() * 14) | 0),
+      nBlob: style === 'plain' ? 0 : (style === 'pepper' ? 5 + ((er() * 9) | 0)
+            : (style === 'scrawl' ? 10 + ((er() * 10) | 0) : 22 + ((er() * 30) | 0))),
+      nDot: style === 'plain' ? ((er() * 30) | 0)
+            : (style === 'pepper' ? 240 + ((er() * 300) | 0) : 120 + ((er() * 220) | 0))
+    };
+    e.rot = (er() * 2 - 1) * 1.45;
+    e.sprite = makeEgg(spec);
+  }
+
+  /* they arrive roughly top to bottom, but not in a queue */
+  var order = [];
+  for (i = 0; i < eggs.length; i++) order.push(i);
+  order.sort(function(p, q){
+    return (eggs[p].y + (mulberry32(p * 977 + 5)() - 0.5) * 210) -
+           (eggs[q].y + (mulberry32(q * 977 + 5)() - 0.5) * 210);
+  });
+
+  COMP = { eggs: eggs, order: order, step: (2.84 - 0.08) / Math.max(1, eggs.length) };
+  return COMP;
+}
+
+/* ---------------------------------------------------------------------------
+   PAPER AND GRAIN
+--------------------------------------------------------------------------- */
+var paperSheet = null, grainTile = null, grainPat = null;
+function buildPaper(){
+  if (paperSheet) return;
+  var c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  var g = c.getContext('2d'), r = mulberry32(31415), i;
+  g.fillStyle = rgba(PAPER, 1);
+  g.fillRect(0, 0, W, H);
+  /* slow mottle, like stock that has aged unevenly */
+  for (i = 0; i < 90; i++){
+    var mx = r() * W, my = r() * H, mr = 140 + r() * 460;
+    var tint = jitterCol(PAPER, r, 16);
+    var gg = g.createRadialGradient(mx, my, 0, mx, my, mr);
+    gg.addColorStop(0, rgba(tint, 0.05 + 0.07 * r()));
+    gg.addColorStop(1, rgba(tint, 0));
+    g.fillStyle = gg;
+    g.fillRect(mx - mr, my - mr, mr * 2, mr * 2);
+  }
+  /* the little pale flecks in the pulp */
+  for (i = 0; i < 260; i++){
+    g.fillStyle = 'rgba(247,242,228,' + (0.12 + 0.5 * r()) + ')';
+    g.beginPath();
+    g.ellipse(r() * W, r() * H, 0.5 + r() * 1.7, 0.5 + r() * 1.2, r() * TAU, 0, TAU);
+    g.fill();
+  }
+  for (i = 0; i < 70; i++){
+    g.fillStyle = 'rgba(122,106,82,' + (0.05 + 0.13 * r()) + ')';
+    g.beginPath();
+    g.ellipse(r() * W, r() * H, 0.6 + r() * 1.5, 0.6 + r() * 1.1, r() * TAU, 0, TAU);
+    g.fill();
+  }
+  paperSheet = c;
+
+  var t = document.createElement('canvas');
+  t.width = t.height = 150;
+  var tg = t.getContext('2d'), img = tg.createImageData(150, 150), rr2 = mulberry32(2718);
+  for (i = 0; i < 150 * 150; i++){
+    var v = (rr2() * 255) | 0;
+    img.data[i * 4] = img.data[i * 4 + 1] = img.data[i * 4 + 2] = v;
+    img.data[i * 4 + 3] = 20;
+  }
+  tg.putImageData(img, 0, 0);
+  grainTile = t;
+}
+
+/* ---------------------------------------------------------------------------
+   FRAME
+--------------------------------------------------------------------------- */
+function render(raw){
+  var t = Math.floor(raw * FPS) / FPS;          /* stop-motion cadence */
+  buildPaper();
+  var C = buildComp();
+
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, cv.width, cv.height);
   var s = Math.min(cv.width / W, cv.height / H);
   ctx.setTransform(s, 0, 0, s, (cv.width - W * s) / 2, (cv.height - H * s) / 2);
 
-  computeActive(t);
+  ctx.drawImage(paperSheet, 0, 0);
 
-  /* background = the active scenes' backgrounds, blended by their weights */
-  var wsum = 0, bg = [0, 0, 0], light = 0, k;
-  for (k = 0; k < active.length; k++) wsum += active[k].a;
-  for (k = 0; k < active.length; k++){
-    var w = active[k].a / (wsum || 1);
-    bg[0] += active[k].sc.bg[0] * w; bg[1] += active[k].sc.bg[1] * w; bg[2] += active[k].sc.bg[2] * w;
-    if (active[k].sc.light) light += w;
+  if (t < CUT){
+    for (var i = 0; i < C.order.length; i++){
+      var e = C.eggs[C.order[i]];
+      var ti = 0.08 + i * C.step;
+      if (t < ti) break;
+      var age = Math.round((t - ti) * FPS);
+      var sc = age <= 0 ? 0.88 : (age === 1 ? 1.05 : 1);
+      ctx.save();
+      ctx.translate(e.x, e.y);
+      ctx.rotate(e.rot);
+      ctx.scale(sc, sc);
+      ctx.drawImage(e.sprite, -e.sprite.width / 2, -e.sprite.height / 2);
+      ctx.restore();
+    }
+  } else {
+    ctx.fillStyle = '#131009';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'alphabetic';
+    var size = 150;
+    ctx.font = '400 ' + size + 'px ' + WORDMARK;
+    size = size * (W * 0.525) / ctx.measureText('Opus 5').width;
+    ctx.font = '400 ' + size + 'px ' + WORDMARK;
+    ctx.fillText('Opus 5', W / 2, H * 0.482 + size * 0.34);
   }
-  ctx.fillStyle = 'rgb(' + (bg[0] | 0) + ',' + (bg[1] | 0) + ',' + (bg[2] | 0) + ')';
-  ctx.fillRect(0, 0, W, H);
 
-  for (k = 0; k < active.length; k++){
-    var A = active[k];
+  if (!grainPat && grainTile) grainPat = ctx.createPattern(grainTile, 'repeat');
+  if (grainPat){
+    var f = Math.round(t * FPS), rr3 = mulberry32(f * 7919 + 13);
     ctx.save();
-    ctx.globalAlpha = A.a;
-    A.sc.draw(A.lt / A.sc.dur, A.lt);
+    ctx.globalAlpha = 0.5;
+    ctx.translate(-((rr3() * 150) | 0), -((rr3() * 150) | 0));
+    ctx.fillStyle = grainPat;
+    ctx.fillRect(0, 0, W + 160, H + 160);
     ctx.restore();
-  }
-
-  /* vignette */
-  var vg = ctx.createRadialGradient(W / 2, H / 2, H * 0.28, W / 2, H / 2, H * 0.95);
-  vg.addColorStop(0, 'rgba(0,0,0,0)');
-  vg.addColorStop(1, light > 0.5 ? 'rgba(90,80,60,' + lerp(0.34, 0.1, light) + ')' : 'rgba(0,0,0,' + lerp(0.44, 0.1, light) + ')');
-  ctx.fillStyle = vg; ctx.fillRect(0, 0, W, H);
-
-  /* grain, offset by frame index so it flickers but stays deterministic */
-  if (!grainPattern) grainPattern = ctx.createPattern(grainTile, 'repeat');
-  if (grainPattern){
-    var f = Math.floor(t * 24), r1 = mulberry32(f * 2654435761 % 2147483647);
-    var ox = (r1() * 168) | 0, oy = (r1() * 168) | 0;
-    ctx.save();
-    ctx.globalAlpha = light > 0.5 ? 0.5 : 0.75;
-    ctx.translate(-ox, -oy);
-    ctx.fillStyle = grainPattern;
-    ctx.fillRect(0, 0, W + 200, H + 200);
-    ctx.restore();
-  }
-
-  /* opening and closing fade to black */
-  var blk = (1 - ss(0, 0.9, t)) + ss(DUR - 1.2, DUR, t);
-  if (blk > 0.001){
-    ctx.fillStyle = 'rgba(0,0,0,' + clamp(blk, 0, 1) + ')';
-    ctx.fillRect(0, 0, W, H);
   }
 }
 
-/* =====================================================================
-   SCORE — three drifting voices, a filter and some noise. No samples.
-   ===================================================================== */
-var audio = {
-  ac: null, nodes: null, on: false, lastTick: 0,
-  ensure: function(){
-    if (this.ac) { if (this.ac.state === 'suspended') this.ac.resume(); return; }
-    var AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return;
-    var ac = new AC();
-    var master = ac.createGain(); master.gain.value = 0; master.connect(ac.destination);
-    var lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 500; lp.Q.value = 0.6; lp.connect(master);
-
-    var mults = [1, 2, 3, 4.5], gains = [0.3, 0.17, 0.1, 0.05], voices = [];
-    for (var i = 0; i < mults.length; i++){
-      var o = ac.createOscillator(); o.type = i < 2 ? 'sawtooth' : 'triangle';
-      var g = ac.createGain(); g.gain.value = gains[i];
-      o.connect(g); g.connect(lp); o.start();
-      voices.push({ o: o, g: g, m: mults[i] });
-    }
-    var buf = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate), d = buf.getChannelData(0);
-    for (var n = 0; n < d.length; n++) d[n] = Math.random() * 2 - 1;
-    var ns = ac.createBufferSource(); ns.buffer = buf; ns.loop = true;
-    var nf = ac.createBiquadFilter(); nf.type = 'bandpass'; nf.frequency.value = 1100; nf.Q.value = 0.7;
-    var ng = ac.createGain(); ng.gain.value = 0;
-    ns.connect(nf); nf.connect(ng); ng.connect(master); ns.start();
-
-    this.ac = ac;
-    this.nodes = { master: master, lp: lp, voices: voices, ng: ng };
-  },
-  update: function(t, playing){
-    if (!this.ac || !this.nodes) return;
-    var n = this.nodes, now = this.ac.currentTime;
-    n.master.gain.setTargetAtTime(this.on && playing ? 0.34 : 0, now, 0.3);
-    if (!this.on) return;
-
-    var cur = active.length ? active[active.length - 1].sc : SCENES[0];
-    var root = cur.root, lift = cur.lift;
-    var edge = ss(cur.t1 - 1.4, cur.t1, t);
-    for (var i = 0; i < n.voices.length; i++){
-      var v = n.voices[i];
-      v.o.frequency.setTargetAtTime(root * v.m * (1 + 0.0022 * Math.sin(t * 0.6 + v.m * 2)), now, 0.45);
-    }
-    n.lp.frequency.setTargetAtTime(340 + 2100 * lift + 900 * edge, now, 0.35);
-    n.ng.gain.setTargetAtTime(0.012 + 0.05 * edge, now, 0.2);
-  },
-  tick: function(){
-    if (!this.on || !this.ac || !playing) return;
-    var now = this.ac.currentTime;
-    if (now - this.lastTick < 0.045) return;
-    this.lastTick = now;
-    var o = this.ac.createOscillator(), g = this.ac.createGain();
-    o.type = 'square';
-    o.frequency.value = 1500 + Math.random() * 700;
-    g.gain.setValueAtTime(0.02, now);
-    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.035);
-    o.connect(g); g.connect(this.ac.destination);
-    o.start(now); o.stop(now + 0.05);
-  }
-};
-
-/* =====================================================================
+/* ---------------------------------------------------------------------------
    TRANSPORT
-   ===================================================================== */
-var time = 0, playing = false, last = performance.now();
-var elPlay = document.getElementById('play'),
-    elSound = document.getElementById('sound'),
-    elFull = document.getElementById('full'),
-    elScrub = document.getElementById('scrub'),
-    elFill = document.getElementById('fill'),
-    elKnob = document.getElementById('knob'),
-    elChapters = document.getElementById('chapters'),
-    elTime = document.getElementById('time'),
-    elChapter = document.getElementById('chapter'),
-    elWrap = document.getElementById('wrap'),
+--------------------------------------------------------------------------- */
+var time = 0, playing = false, looping = true, last = performance.now();
+var elPlay = document.getElementById('play'), elLoop = document.getElementById('loop'),
+    elFull = document.getElementById('full'), elScrub = document.getElementById('scrub'),
+    elFill = document.getElementById('fill'), elKnob = document.getElementById('knob'),
+    elTime = document.getElementById('time'), elWrap = document.getElementById('wrap'),
     elOverlay = document.getElementById('overlay');
 
-for (var i = 0; i < SCENES.length; i++){
-  var d = document.createElement('div');
-  d.className = 'ch';
-  d.style.flex = SCENES[i].dur + ' 0 0';
-  d.title = SCENES[i].label;
-  elChapters.appendChild(d);
-}
-var chEls = elChapters.children;
-
-function fmt(t){
-  t = Math.max(0, Math.round(t));
-  var m = Math.floor(t / 60), s = t % 60;
-  return m + ':' + (s < 10 ? '0' : '') + s;
-}
 function resize(){
   var rect = elWrap.getBoundingClientRect();
   var dpr = Math.min(window.devicePixelRatio || 1, 2);
   cv.width = Math.max(2, Math.round(rect.width * dpr));
   cv.height = Math.max(2, Math.round(rect.height * dpr));
-  grainPattern = null;
 }
 function setPlaying(v){
   playing = v;
   elPlay.textContent = v ? 'Pause' : 'Play';
   elOverlay.classList.toggle('show', !v);
-  if (v) audio.ensure();
 }
-function seek(t){
-  time = clamp(t, 0, DUR);
-  lastTyped = -1;
-  if (time >= DUR) setPlaying(false);
-}
-function updateUI(){
-  var f = time / DUR;
-  var barW = elScrub.clientWidth;
-  elFill.style.width = (barW * f) + 'px';
-  elKnob.style.left = (barW * f) + 'px';
-  elTime.textContent = fmt(time) + ' / ' + fmt(DUR);
-  var cur = active.length ? active[active.length - 1].sc : SCENES[0];
-  if (elChapter.textContent !== cur.label) elChapter.textContent = cur.label;
-  for (var i = 0; i < SCENES.length; i++){
-    chEls[i].className = 'ch' + (SCENES[i] === cur ? ' now' : (time > SCENES[i].t1 ? ' done' : ''));
-  }
-}
+function seek(t){ time = clamp(t, 0, DUR); }
 function frame(now){
   var dt = Math.min(0.05, (now - last) / 1000);
   last = now;
   if (playing){
     time += dt;
-    if (time >= DUR){ time = DUR; setPlaying(false); }
+    if (time >= DUR){
+      if (looping) time -= DUR;
+      else { time = DUR; setPlaying(false); }
+    }
   }
   render(time);
-  audio.update(time, playing);
-  updateUI();
+  var f = time / DUR, bw = elScrub.clientWidth;
+  elFill.style.width = (bw * f) + 'px';
+  elKnob.style.left = (bw * f) + 'px';
+  elTime.textContent = time.toFixed(1) + ' / ' + DUR.toFixed(1);
   requestAnimationFrame(frame);
 }
 
-/* controls */
-elPlay.addEventListener('click', function(){
-  if (time >= DUR) seek(0);
-  setPlaying(!playing);
-});
-elWrap.addEventListener('click', function(){
-  if (time >= DUR) seek(0);
-  setPlaying(!playing);
-});
-elSound.addEventListener('click', function(){
-  audio.ensure();
-  audio.on = !audio.on;
-  elSound.classList.toggle('on', audio.on);
-  elSound.textContent = audio.on ? 'Sound on' : 'Sound';
+elPlay.addEventListener('click', function(){ if (time >= DUR) seek(0); setPlaying(!playing); });
+elWrap.addEventListener('click', function(){ if (time >= DUR) seek(0); setPlaying(!playing); });
+elLoop.addEventListener('click', function(){
+  looping = !looping;
+  elLoop.classList.toggle('on', looping);
 });
 elFull.addEventListener('click', function(){
   if (document.fullscreenElement) document.exitFullscreen();
@@ -957,25 +498,21 @@ function scrubTo(ev){
   var r = elScrub.getBoundingClientRect();
   seek((ev.clientX - r.left) / r.width * DUR);
 }
-elScrub.addEventListener('pointerdown', function(ev){
-  dragging = true; elScrub.setPointerCapture(ev.pointerId); scrubTo(ev);
-});
+elScrub.addEventListener('pointerdown', function(ev){ dragging = true; elScrub.setPointerCapture(ev.pointerId); scrubTo(ev); });
 elScrub.addEventListener('pointermove', function(ev){ if (dragging) scrubTo(ev); });
 elScrub.addEventListener('pointerup', function(){ dragging = false; });
 elScrub.addEventListener('pointercancel', function(){ dragging = false; });
-
 document.addEventListener('keydown', function(ev){
   if (ev.key === ' '){ ev.preventDefault(); if (time >= DUR) seek(0); setPlaying(!playing); }
-  else if (ev.key === 'ArrowRight') seek(time + 5);
-  else if (ev.key === 'ArrowLeft') seek(time - 5);
-  else if (ev.key === 'm' || ev.key === 'M') elSound.click();
+  else if (ev.key === 'ArrowRight') seek(time + 1 / FPS * 6);
+  else if (ev.key === 'ArrowLeft') seek(time - 1 / FPS * 6);
+  else if (ev.key === 'l' || ev.key === 'L') elLoop.click();
   else if (ev.key === 'f' || ev.key === 'F') elFull.click();
   else if (ev.key === 'Home') seek(0);
 });
-
 window.addEventListener('resize', resize);
 resize();
-setPlaying(!window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+setPlaying(true);
 requestAnimationFrame(frame);
 })();
 </script>

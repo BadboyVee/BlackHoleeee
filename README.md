@@ -5,11 +5,12 @@ project is an `index.html` you can open directly.
 
 ## Projects
 
-### 🎞️ [Claude Opus 5 — launch film](launch-film/)
+### 🥚 [Opus 5 — the launch film, in code](launch-film/)
 
-A 66-second launch film that runs in a browser tab. Every frame is computed live in canvas 2D
-and the score is synthesised in Web Audio: no images, no video, no libraries. Scrubbable by
-chapter, with the mark, the particle field and the wordmark all drawn from geometry.
+A code-only recreation of the eight-second Claude Opus 5 launch clip: speckled birds' eggs
+arrive one at a time on tan paper until they form a **5**, then a cut to the wordmark. The eggs
+are generated — ovoid geometry, shell mottling, three layers of markings and an ink outline —
+so there are no images, no video and no libraries. A longer 66-second film ships alongside it.
 
 **▶ [Watch it](https://badboyvee.github.io/BlackHoleeee/launch-film/)** · [source](launch-film/)
 
