@@ -70,6 +70,7 @@
     <button id="play" title="Play / pause (space)">Pause</button>
     <div class="scrub" id="scrub"><div class="track"></div><div class="fill" id="fill"></div><div class="knob" id="knob"></div></div>
     <span class="time" id="time">0.0 / 18.0</span>
+    <button id="sound" title="Sound (m)">Sound</button>
     <button id="loop" class="on" title="Loop (l)">Loop</button>
     <button id="full" title="Fullscreen (f)">Full</button>
   </div>
@@ -656,8 +657,10 @@ function buildPaper(){
 /* ---------------------------------------------------------------------------
    FRAME
 --------------------------------------------------------------------------- */
+var flightLoad = 0;
 function render(raw){
-  var t = Math.floor(raw * FPS) / FPS;          /* stop-motion cadence */
+  var t = Math.floor(raw * FPS) / FPS;
+  flightLoad = 0;          /* stop-motion cadence */
   buildPaper();
   var C = buildComp();
 
@@ -684,6 +687,7 @@ function render(raw){
         if (alpha <= 0.01) continue;
         var rise = fa * fa * 300 + fa * 100;
         var drift = e.bird.driftX * fa * 78 + Math.sin(fa * 6 + e.bird.flapPhase) * 9;
+        flightLoad += alpha / 9;
         var pose = (Math.floor(fa * 7 + e.bird.flapPhase) % 2) ? 'up' : 'down';
         var sp2 = sprite(e, pose);
         ctx.save();
@@ -743,6 +747,176 @@ function render(raw){
 }
 
 /* ---------------------------------------------------------------------------
+   THE SOUND
+   The source clip's audio track is digital silence — every sample is zero —
+   so there is nothing to lift. This is foley for it, synthesised: a wooden
+   tok as each egg lands, a shell crack and a two-note chirp at each hatch,
+   a wingbeat bed that swells with the number of birds in the air, a low room
+   tone under all of it, and a warm triad on the card. Everything is panned by
+   where it happens on the paper.
+--------------------------------------------------------------------------- */
+var audio = {
+  ac: null, on: false, nodes: null, nb: null,
+
+  ensure: function(){
+    if (this.ac){ if (this.ac.state === 'suspended') this.ac.resume(); return; }
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    var ac = new AC();
+    this.ac = ac;
+
+    var comp = ac.createDynamicsCompressor();
+    comp.threshold.value = -14; comp.ratio.value = 4; comp.attack.value = 0.004;
+    var master = ac.createGain();
+    master.gain.value = 0;
+    master.connect(comp); comp.connect(ac.destination);
+
+    /* two seconds of noise, reused by every burst */
+    var buf = ac.createBuffer(1, ac.sampleRate * 2, ac.sampleRate), d = buf.getChannelData(0);
+    for (var i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    this.nb = buf;
+
+    /* room tone */
+    var rn = ac.createBufferSource(); rn.buffer = buf; rn.loop = true;
+    var rf = ac.createBiquadFilter(); rf.type = 'lowpass'; rf.frequency.value = 780;
+    var rg = ac.createGain(); rg.gain.value = 0.014;
+    rn.connect(rf); rf.connect(rg); rg.connect(master); rn.start();
+
+    /* a pad that follows the phase of the film */
+    var pad = ac.createGain(); pad.gain.value = 0.05;
+    var plp = ac.createBiquadFilter(); plp.type = 'lowpass'; plp.frequency.value = 700; plp.Q.value = 0.5;
+    plp.connect(pad); pad.connect(master);
+    var voices = [], mult = [1, 1.5, 2, 3], vg = [0.3, 0.15, 0.1, 0.05];
+    for (var v = 0; v < 4; v++){
+      var o = ac.createOscillator();
+      o.type = v < 2 ? 'sawtooth' : 'triangle';
+      var g = ac.createGain(); g.gain.value = vg[v];
+      o.connect(g); g.connect(plp); o.start();
+      voices.push({ o: o, m: mult[v] });
+    }
+
+    /* the wingbeat bed: noise, gated by an LFO at the flap rate */
+    var fn = ac.createBufferSource(); fn.buffer = buf; fn.loop = true;
+    var ff = ac.createBiquadFilter(); ff.type = 'bandpass'; ff.frequency.value = 620; ff.Q.value = 0.8;
+    var fg = ac.createGain(); fg.gain.value = 0;
+    var lfo = ac.createOscillator(); lfo.type = 'sine'; lfo.frequency.value = 7;
+    var lg = ac.createGain(); lg.gain.value = 0;
+    lfo.connect(lg); lg.connect(fg.gain);
+    fn.connect(ff); ff.connect(fg); fg.connect(master);
+    fn.start(); lfo.start();
+
+    this.nodes = { master: master, pad: pad, plp: plp, voices: voices, fg: fg, lg: lg, ff: ff };
+  },
+
+  setOn: function(v){
+    this.on = v;
+    this.ensure();
+    if (this.ac && this.nodes){
+      this.nodes.master.gain.setTargetAtTime(v ? 0.85 : 0, this.ac.currentTime, 0.08);
+    }
+  },
+
+  /* generic voices ------------------------------------------------------- */
+  burst: function(o){
+    if (!this.on || !this.ac) return;
+    var ac = this.ac, now = ac.currentTime + (o.when || 0);
+    var src = ac.createBufferSource(); src.buffer = this.nb; src.loop = true;
+    var f = ac.createBiquadFilter();
+    f.type = o.type || 'bandpass';
+    f.frequency.setValueAtTime(o.freq, now);
+    if (o.freq2) f.frequency.exponentialRampToValueAtTime(o.freq2, now + o.dur);
+    f.Q.value = o.q || 1;
+    var g = ac.createGain();
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.linearRampToValueAtTime(o.gain, now + (o.attack || 0.004));
+    g.gain.exponentialRampToValueAtTime(0.0001, now + o.dur);
+    var p = ac.createStereoPanner ? ac.createStereoPanner() : null;
+    if (p) p.pan.value = clamp(o.pan || 0, -1, 1);
+    src.connect(f); f.connect(g);
+    if (p){ g.connect(p); p.connect(this.nodes.master); } else g.connect(this.nodes.master);
+    src.start(now); src.stop(now + o.dur + 0.05);
+  },
+  tone: function(o){
+    if (!this.on || !this.ac) return;
+    var ac = this.ac, now = ac.currentTime + (o.when || 0);
+    var osc = ac.createOscillator();
+    osc.type = o.type || 'sine';
+    osc.frequency.setValueAtTime(o.f0, now);
+    if (o.f1) osc.frequency.exponentialRampToValueAtTime(o.f1, now + o.dur * 0.9);
+    var g = ac.createGain();
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.exponentialRampToValueAtTime(o.gain, now + (o.attack || 0.006));
+    g.gain.exponentialRampToValueAtTime(0.0001, now + o.dur);
+    var p = ac.createStereoPanner ? ac.createStereoPanner() : null;
+    if (p) p.pan.value = clamp(o.pan || 0, -1, 1);
+    osc.connect(g);
+    if (p){ g.connect(p); p.connect(this.nodes.master); } else g.connect(this.nodes.master);
+    osc.start(now); osc.stop(now + o.dur + 0.05);
+  },
+
+  /* the film's own sounds ------------------------------------------------ */
+  tok: function(pan, size){               /* an egg settling on paper */
+    var f = lerp(196, 86, size);
+    this.tone({ f0: f, f1: f * 0.72, dur: 0.13 + size * 0.06, gain: 0.16 + size * 0.1, pan: pan });
+    this.burst({ freq: 1500 + Math.random() * 900, q: 1.2, dur: 0.05, gain: 0.07, pan: pan });
+  },
+  crack: function(pan){                   /* a shell giving way */
+    this.burst({ freq: 2800, q: 0.9, dur: 0.05, gain: 0.08, pan: pan });
+    this.burst({ freq: 5200, q: 1.6, dur: 0.035, gain: 0.05, pan: pan, when: 0.035 });
+    this.tone({ f0: 320, f1: 180, dur: 0.07, gain: 0.05, pan: pan, type: 'triangle' });
+  },
+  chirp: function(pan, seed){             /* what comes out */
+    var r = mulberry32(seed * 7919 + 11);
+    var a = 2100 + r() * 1400;
+    this.tone({ f0: a, f1: a * (1.15 + r() * 0.3), dur: 0.055, gain: 0.05, pan: pan, type: 'triangle', when: 0.08 });
+    if (r() < 0.7){
+      this.tone({ f0: a * 1.2, f1: a * 0.85, dur: 0.05, gain: 0.042, pan: pan, type: 'triangle', when: 0.16 });
+    }
+  },
+  whoosh: function(pan){                  /* one bird leaving */
+    this.burst({ freq: 420, freq2: 1400, q: 0.7, dur: 0.3, gain: 0.05, attack: 0.05, pan: pan });
+  },
+  card: function(){                       /* the wordmark */
+    var f = [110, 164.81, 220, 329.63], i;
+    for (i = 0; i < f.length; i++){
+      this.tone({ f0: f[i], dur: 3.2, gain: 0.07 - i * 0.012, attack: 0.5, type: i > 1 ? 'triangle' : 'sine' });
+    }
+  },
+
+  /* per-frame: chord colour, and how much wing is in the air -------------- */
+  update: function(t, flight){
+    if (!this.on || !this.ac || !this.nodes) return;
+    var n = this.nodes, now = this.ac.currentTime;
+    var root = t < HATCH0 ? 110 : (t < FLY0 ? 130.81 : (t < WORD ? 146.83 : 110));
+    for (var i = 0; i < n.voices.length; i++){
+      n.voices[i].o.frequency.setTargetAtTime(root * n.voices[i].m, now, 0.5);
+    }
+    n.plp.frequency.setTargetAtTime(520 + 900 * clamp(flight, 0, 1), now, 0.3);
+    n.pad.gain.setTargetAtTime(t >= WORD ? 0.015 : 0.05, now, 0.4);
+    var amt = clamp(flight, 0, 1) * 0.085;
+    n.fg.gain.setTargetAtTime(amt * 0.5, now, 0.12);
+    n.lg.gain.setTargetAtTime(amt * 0.5, now, 0.12);
+    n.ff.frequency.setTargetAtTime(560 + 260 * clamp(flight, 0, 1), now, 0.2);
+  }
+};
+
+/* fire whatever the playhead just crossed */
+function fireAudio(a, b){
+  if (!audio.on) return;
+  var C = buildComp(), i;
+  for (i = 0; i < C.order.length; i++){
+    var idx = C.order[i], e = C.eggs[idx], pan = clamp((e.x / W - 0.5) * 1.4, -1, 1);
+    var ti = 0.08 + i * C.step;
+    if (ti > a && ti <= b) audio.tok(pan, clamp((e.a - 24) / 64, 0, 1));
+    var th = HATCH0 + C.hatchRank[idx] * HATCH_STEP;
+    if (th > a && th <= b){ audio.crack(pan); audio.chirp(pan, idx); }
+    var tf = FLY0 + C.flyRank[idx] * FLY_STEP;
+    if (tf > a && tf <= b) audio.whoosh(pan);
+  }
+  if (WORD > a && WORD <= b) audio.card();
+}
+
+/* ---------------------------------------------------------------------------
    TRANSPORT
 --------------------------------------------------------------------------- */
 var time = 0, playing = false, looping = true, last = performance.now();
@@ -750,7 +924,7 @@ var elPlay = document.getElementById('play'), elLoop = document.getElementById('
     elFull = document.getElementById('full'), elScrub = document.getElementById('scrub'),
     elFill = document.getElementById('fill'), elKnob = document.getElementById('knob'),
     elTime = document.getElementById('time'), elWrap = document.getElementById('wrap'),
-    elOverlay = document.getElementById('overlay');
+    elOverlay = document.getElementById('overlay'), elSound = document.getElementById('sound');
 
 function resize(){
   var rect = elWrap.getBoundingClientRect();
@@ -767,14 +941,18 @@ function seek(t){ time = clamp(t, 0, DUR); }
 function frame(now){
   var dt = Math.min(0.05, (now - last) / 1000);
   last = now;
+  var before = time, wrapped = false;
   if (playing){
     time += dt;
     if (time >= DUR){
-      if (looping) time -= DUR;
+      if (looping){ time -= DUR; wrapped = true; }
       else { time = DUR; setPlaying(false); }
     }
+    if (wrapped){ fireAudio(before, DUR); fireAudio(-0.001, time); }
+    else if (time > before) fireAudio(before, time);
   }
   render(time);
+  audio.update(time, flightLoad);
   var f = time / DUR, bw = elScrub.clientWidth;
   elFill.style.width = (bw * f) + 'px';
   elKnob.style.left = (bw * f) + 'px';
@@ -784,6 +962,11 @@ function frame(now){
 
 elPlay.addEventListener('click', function(){ if (time >= DUR) seek(0); setPlaying(!playing); });
 elWrap.addEventListener('click', function(){ if (time >= DUR) seek(0); setPlaying(!playing); });
+elSound.addEventListener('click', function(){
+  audio.setOn(!audio.on);
+  elSound.classList.toggle('on', audio.on);
+  elSound.textContent = audio.on ? 'Sound on' : 'Sound';
+});
 elLoop.addEventListener('click', function(){
   looping = !looping;
   elLoop.classList.toggle('on', looping);
@@ -805,6 +988,7 @@ document.addEventListener('keydown', function(ev){
   if (ev.key === ' '){ ev.preventDefault(); if (time >= DUR) seek(0); setPlaying(!playing); }
   else if (ev.key === 'ArrowRight') seek(time + 1 / FPS * 6);
   else if (ev.key === 'ArrowLeft') seek(time - 1 / FPS * 6);
+  else if (ev.key === 'm' || ev.key === 'M') elSound.click();
   else if (ev.key === 'l' || ev.key === 'L') elLoop.click();
   else if (ev.key === 'f' || ev.key === 'F') elFull.click();
   else if (ev.key === 'Home') seek(0);

@@ -20,6 +20,7 @@ that works offline.
 | `space` or click the frame | Play / pause |
 | `←` `→` | Seek |
 | Scrubber | Drag anywhere in the 18 seconds |
+| `m` | Sound on/off (synthesised — see below) |
 | `l` | Loop on/off |
 | `f` | Fullscreen |
 
@@ -41,6 +42,24 @@ and quantises playback to 24fps so the stop-motion cadence survives on a 60Hz sc
 | 7.7 → 9.6s | A 5 made of birds |
 | 9.6 → 13.1s | The flock lifts off, top of the frame first, wingbeats and all |
 | 13.5 → 18s | `Opus 5` on bare paper |
+
+## The sound
+
+**The source clip carries no audio.** Its AAC track decodes to 388,096 samples of digital
+silence — peak amplitude zero, not one non-zero sample — so there is nothing to lift from it.
+What plays here is foley written for the film, synthesised in Web Audio with no samples:
+
+- a wooden **tok** as each egg lands, pitched by the egg's size — big eggs land lower
+- a shell **crack** and a two-note **chirp** at each hatch, the chirp seeded per bird
+- a **wingbeat bed**: noise through a bandpass, gated by a 7 Hz oscillator, whose level follows
+  how many birds are actually in the air on that frame
+- a short **whoosh** as each bird leaves
+- a low **room tone** under everything, a pad that changes chord with the phase of the film, and
+  a warm triad on the card
+
+Every one-shot is panned by where it happens on the paper, so eggs landing on the left of the
+numeral land in your left ear. Events fire as the playhead crosses them, so the score follows
+scrubbing and looping rather than running on its own clock.
 
 ## Drawing an egg with arithmetic
 
