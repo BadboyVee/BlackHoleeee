@@ -1,9 +1,17 @@
 # BlackHoleeee
 
-A sandbox of single-file, browser-native 3D experiments built with Three.js. No build step in
-any of them — every project is an `index.html` you can open directly.
+A sandbox of single-file, browser-native experiments. No build step in any of them — every
+project is an `index.html` you can open directly.
 
 ## Projects
+
+### 🎞️ [Claude Opus 5 — launch film](launch-film/)
+
+A 66-second launch film that runs in a browser tab. Every frame is computed live in canvas 2D
+and the score is synthesised in Web Audio: no images, no video, no libraries. Scrubbable by
+chapter, with the mark, the particle field and the wordmark all drawn from geometry.
+
+**▶ [Watch it](https://badboyvee.github.io/BlackHoleeee/launch-film/)** · [source](launch-film/)
 
 ### 🚋 [Skyline Tram](skyline-tram/)
 
