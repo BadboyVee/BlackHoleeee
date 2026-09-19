@@ -19,6 +19,14 @@ A procedural BMW M5 CS model rendered in a studio lighting setup.
 
 **▶ [View it](https://badboyvee.github.io/BlackHoleeee/bmw-m5-cs/)** · [source](bmw-m5-cs/)
 
+### 🕹️ [Claw Craze](claw-machine/)
+
+A playable arcade claw machine — transparent glass cabinet, glowing neon trim, a pile of
+simple colorful toys, and a joystick-controlled claw that grabs, carries, and drops prizes
+into the chute.
+
+**▶ [Play it](https://badboyvee.github.io/BlackHoleeee/claw-machine/)** · [source & prompt](claw-machine/)
+
 ## Hosting
 
 `netlify.toml` publishes `bmw-m5-cs/` as the Netlify site root. GitHub Pages serves the whole

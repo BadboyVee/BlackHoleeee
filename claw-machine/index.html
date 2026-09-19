@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Claw Craze — Arcade Claw Machine</title>
+<style>
+  :root{
+    --panel-bg: rgba(20, 14, 36, 0.55);
+    --panel-border: rgba(255, 120, 220, 0.35);
+    --pink: #ff5ca8;
+    --cyan: #4cd6ff;
+    --yellow: #ffd166;
+    --good: #7CFFB2;
+    --bad: #ff6b6b;
+  }
+  html,body{
+    margin:0; padding:0; width:100%; height:100%; overflow:hidden;
+    background:#0a0714; font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    -webkit-user-select:none; user-select:none; touch-action:none;
+  }
+  #app{ position:fixed; inset:0; }
+  canvas{ display:block; width:100%; height:100%; }
+
+  #hud-top-left{
+    position:fixed; top:16px; left:16px; z-index:10;
+    background:var(--panel-bg); border:1px solid var(--panel-border);
+    border-radius:14px; padding:10px 18px; color:#fff2fb;
+    backdrop-filter: blur(6px); min-width:150px;
+    box-shadow:0 6px 18px rgba(0,0,0,0.4);
+  }
+  #hud-title{ font-size:12px; letter-spacing:0.08em; opacity:0.75; text-transform:uppercase; }
+  #hud-prizes{ font-size:24px; font-weight:800; color:var(--yellow); display:flex; align-items:center; gap:8px; }
+
+  #hud-top-right{
+    position:fixed; top:16px; right:16px; z-index:10;
+    background:var(--panel-bg); border:1px solid var(--panel-border);
+    border-radius:14px; padding:10px 16px; color:#fff2fb; font-size:12.5px;
+    max-width:230px; backdrop-filter: blur(6px); line-height:1.5;
+    box-shadow:0 6px 18px rgba(0,0,0,0.4);
+    transition: opacity 0.5s;
+  }
+  #hud-top-right b{ color:var(--cyan); }
+  #hud-top-right.hide{ opacity:0; pointer-events:none; }
+
+  #toast{
+    position:fixed; left:50%; top:34%; transform:translateX(-50%) translateY(6px);
+    z-index:12; color:#fff2fb; font-size:22px; font-weight:800; text-align:center;
+    background:rgba(20,10,30,0.55); padding:10px 22px; border-radius:14px;
+    opacity:0; transition:opacity 0.35s, transform 0.35s; pointer-events:none;
+    text-shadow:0 2px 10px rgba(0,0,0,0.6); border:1px solid var(--panel-border);
+  }
+  #toast.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+  #toast.win{ color:var(--good); }
+  #toast.miss{ color:var(--bad); }
+
+  #hud-bottom{
+    position:fixed; left:0; right:0; bottom:0; z-index:10;
+    display:flex; align-items:flex-end; justify-content:space-between;
+    padding:0 22px 22px; pointer-events:none;
+  }
+
+  #joystick-wrap{ pointer-events:auto; display:flex; flex-direction:column; align-items:center; gap:6px; }
+  #joystick-label{ color:#fff2fb; font-size:11px; opacity:0.7; letter-spacing:0.05em; text-transform:uppercase; }
+  #joystick-base{
+    position:relative; width:120px; height:120px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, rgba(255,255,255,0.12), rgba(20,14,36,0.65));
+    border:2px solid var(--panel-border); box-shadow:inset 0 4px 14px rgba(0,0,0,0.5), 0 6px 18px rgba(0,0,0,0.35);
+    touch-action:none;
+  }
+  #joystick-knob{
+    position:absolute; width:52px; height:52px; border-radius:50%; left:34px; top:34px;
+    background:radial-gradient(circle at 35% 30%, #ff9bd0, var(--pink));
+    box-shadow:0 4px 10px rgba(0,0,0,0.5), 0 0 18px rgba(255,92,168,0.6);
+    transition: left 0.08s, top 0.08s;
+  }
+  #joystick-knob.dragging{ transition:none; }
+
+  #grab-wrap{ pointer-events:auto; display:flex; flex-direction:column; align-items:center; gap:6px; }
+  #grab-label{ color:#fff2fb; font-size:11px; opacity:0.7; letter-spacing:0.05em; text-transform:uppercase; }
+  #btn-grab{
+    width:92px; height:92px; border-radius:50%; cursor:pointer; border:2px solid rgba(255,255,255,0.25);
+    background:radial-gradient(circle at 35% 30%, #ffe08a, #ff5c5c);
+    box-shadow:0 6px 16px rgba(0,0,0,0.45), 0 0 22px rgba(255,92,92,0.5);
+    color:#3a0a0a; font-weight:800; font-size:15px; letter-spacing:0.03em;
+  }
+  #btn-grab:active, #btn-grab.pressed{ transform:scale(0.93); box-shadow:0 3px 8px rgba(0,0,0,0.4); }
+  #btn-grab:disabled, #btn-grab.busy{
+    background:radial-gradient(circle at 35% 30%, #6b6b7a, #3a3a48); color:#9a9aa8;
+    box-shadow:0 4px 10px rgba(0,0,0,0.4); cursor:default;
+  }
+
+  #hud-status{
+    position:fixed; left:50%; bottom:132px; transform:translateX(-50%);
+    z-index:10; color:#fff2fb; font-size:12px; opacity:0.75; letter-spacing:0.04em;
+    text-transform:uppercase; text-shadow:0 2px 6px rgba(0,0,0,0.6);
+  }
+
+  #footer-credit{
+    position:fixed; bottom:8px; left:50%; transform:translateX(-50%);
+    z-index:9; color:rgba(255,255,255,0.25); font-size:10.5px; letter-spacing:0.03em;
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<div id="hud-top-left">
+  <div id="hud-title">Claw Craze</div>
+  <div id="hud-prizes">🏆 <span id="prize-count">0</span></div>
+</div>
+
+<div id="hud-top-right">
+  Drag the <b>joystick</b> to move the claw over a toy, then hit <b>GRAB</b>.
+  It'll drop, close, and — if you centered it well — carry the toy to the chute!
+</div>
+
+<div id="toast"></div>
+<div id="hud-status"></div>
+
+<div id="hud-bottom">
+  <div id="joystick-wrap">
+    <div id="joystick-base">
+      <div id="joystick-knob"></div>
+    </div>
+    <div id="joystick-label">Move</div>
+  </div>
+  <div id="grab-wrap">
+    <button id="btn-grab">GRAB</button>
+    <div id="grab-label">Drop the claw</div>
+  </div>
+</div>
+
+<div id="footer-credit">Claw Craze — built with Three.js</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three-mirror": "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.module.min.js"
+  }
+}
+</script>
+<script type="module">
+/* =========================================================================
+   CLAW CRAZE — a small self-contained Three.js arcade claw machine.
+   Everything (scene, cabinet, toy-pile physics, claw rig, UI wiring) lives
+   in this file. No build step, no external assets — just CDN Three.js.
+   ========================================================================= */
+
+let THREE;
+try {
+  THREE = await import("three");
+} catch (e) {
+  try {
+    THREE = await import("three-mirror");
+  } catch (e2) {
+    document.body.insertAdjacentHTML("beforeend",
+      '<p style="position:fixed;inset:0;display:flex;align-items:center;justify-content:center;color:#fff2fb;font:16px sans-serif;text-align:center;padding:24px;">Could not load three.js.<br>Check the network connection and reload.</p>');
+    throw e2;
+  }
+}
+
+/* ------------------------------- Config ---------------------------------- */
+const HX = 1.3;          // pit half-width (X)
+const HZ = 1.05;         // pit half-depth (Z)
+const FLOOR_Y = 0;
+const CEIL_Y = 2.45;      // rail height
+const HOVER_Y = 2.12;     // hub resting (idle) height
+const GRAB_Y = 0.34;      // hub height when fully descended
+const MARGIN = 0.24;      // how close the trolley may get to the walls
+const MOVE_SPEED = 1.35;  // units/sec at full joystick deflection
+
+const CHUTE_X = 0;
+const CHUTE_Z = HZ - 0.32;
+const CHUTE_HALF_X = 0.42;
+const CHUTE_Z_MIN = 0.32;
+
+const DESCEND_TIME = 0.85;
+const CLOSE_TIME = 0.35;
+const ASCEND_TIME = 0.85;
+const TRAVEL_TIME = 1.05;
+
+const GRAB_RADIUS = 0.34;
+const HELD_DROP_OFFSET = 0.36;
+const SLIP_CHANCE_PER_SEC = 0.05; // chance/sec of a grabbed toy slipping free mid-air
+
+const GRAVITY = -6.4;
+const TOY_COUNT = 16;
+const TRAY_CAP = 14;
+
+const PALETTE = [0xff5c8a, 0xffb703, 0x4cd6ff, 0x7CFFB2, 0xc77dff, 0xff9f68, 0xffe08a, 0x8ee3ff, 0xf72585, 0x9bf6ff];
+
+const STATE = { IDLE:"idle", DESCEND:"descend", CLOSE:"close", ASCEND:"ascend", TRAVEL:"travel", OPEN:"open", RETURN:"return" };
+
+function lerp(a,b,t){ return a+(b-a)*t; }
+function clamp(v,lo,hi){ return Math.max(lo, Math.min(hi, v)); }
+function easeInOut(t){ return t<0.5 ? 2*t*t : 1-Math.pow(-2*t+2,2)/2; }
+function pick(arr){ return arr[(Math.random()*arr.length)|0]; }
+
+/* ------------------------------ Renderer ---------------------------------- */
+const canvasHost = document.getElementById("app");
+const renderer = new THREE.WebGLRenderer({ antialias:true, powerPreference:"high-performance" });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.08;
+renderer.useLegacyLights = true;
+canvasHost.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.fog = new THREE.FogExp2(0x120a24, 0.024);
+
+const camera = new THREE.PerspectiveCamera(50, window.innerWidth/window.innerHeight, 0.1, 100);
+const CAM_BASE = new THREE.Vector3(0, 1.65, 6.7);
+const CAM_LOOK = new THREE.Vector3(0, 0.95, -0.05);
+camera.position.copy(CAM_BASE);
+camera.lookAt(CAM_LOOK);
+
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+/* -------------------------- Background & floor ----------------------------- */
+(function background(){
+  const c = document.createElement("canvas");
+  c.width = c.height = 512;
+  const g = c.getContext("2d");
+  const rg = g.createRadialGradient(256, 200, 40, 256, 300, 420);
+  rg.addColorStop(0, "#2a1a4a");
+  rg.addColorStop(0.55, "#160f2c");
+  rg.addColorStop(1, "#07050f");
+  g.fillStyle = rg;
+  g.fillRect(0,0,512,512);
+  scene.background = new THREE.CanvasTexture(c);
+})();
+
+const roomFloor = new THREE.Mesh(
+  new THREE.CircleGeometry(14, 48),
+  new THREE.MeshStandardMaterial({ color:0x1a1128, roughness:0.65, metalness:0.15 }));
+roomFloor.rotation.x = -Math.PI/2;
+roomFloor.position.y = -1.35; // flush with the cabinet's base housing, so the machine stands on top of it
+roomFloor.receiveShadow = true;
+scene.add(roomFloor);
+
+// A few soft background bokeh glows for arcade-room ambience.
+(function bokeh(){
+  const c = document.createElement("canvas");
+  c.width = c.height = 128;
+  const g = c.getContext("2d");
+  const rg = g.createRadialGradient(64,64,0,64,64,64);
+  rg.addColorStop(0, "rgba(255,255,255,0.9)");
+  rg.addColorStop(1, "rgba(255,255,255,0)");
+  g.fillStyle = rg;
+  g.fillRect(0,0,128,128);
+  const tex = new THREE.CanvasTexture(c);
+  const colors = [0xff5ca8, 0x4cd6ff, 0xffd166, 0xc77dff];
+  for(let i=0;i<10;i++){
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map:tex, color:pick(colors), transparent:true, opacity:0.35, depthWrite:false, blending:THREE.AdditiveBlending }));
+    const a = Math.random()*Math.PI*2, r = 5+Math.random()*7;
+    s.position.set(Math.cos(a)*r, 0.6+Math.random()*3.2, Math.sin(a)*r - 2);
+    const sc = 1.4+Math.random()*2.4;
+    s.scale.set(sc,sc,1);
+    scene.add(s);
+  }
+})();
+
+/* ------------------------------- Lighting ---------------------------------- */
+const hemi = new THREE.HemisphereLight(0x8a7ad6, 0x3a2a52, 1.05);
+scene.add(hemi);
+
+const key = new THREE.DirectionalLight(0xfff4e0, 0.85);
+key.position.set(2.2, 5.5, 4.5);
+key.castShadow = true;
+key.shadow.mapSize.set(1024,1024);
+key.shadow.camera.left = -3; key.shadow.camera.right = 3;
+key.shadow.camera.top = 3; key.shadow.camera.bottom = -3;
+key.shadow.camera.near = 1; key.shadow.camera.far = 12;
+scene.add(key);
+
+// Fill light aimed low at the base housing / control panel / prize tray, which the
+// top-mounted cabinet lights and the high key light otherwise leave underlit.
+const baseFill = new THREE.PointLight(0xffb0e0, 0.7, 7, 1.7);
+baseFill.position.set(0.3, 1.0, 4.2);
+scene.add(baseFill);
+const trayLight = new THREE.PointLight(0x8ee3ff, 0.6, 3.5, 2);
+trayLight.position.set(0, 0.1, 2.7);
+scene.add(trayLight);
+
+function glowSprite(color, size, opacity){
+  const c = document.createElement("canvas");
+  c.width = c.height = 128;
+  const g = c.getContext("2d");
+  const rg = g.createRadialGradient(64,64,0,64,64,64);
+  rg.addColorStop(0, "rgba(255,255,255,1)");
+  rg.addColorStop(1, "rgba(255,255,255,0)");
+  g.fillStyle = rg;
+  g.fillRect(0,0,128,128);
+  const tex = new THREE.CanvasTexture(c);
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({ map:tex, color, transparent:true, opacity, depthWrite:false, blending:THREE.AdditiveBlending }));
+  s.scale.set(size,size,1);
+  return s;
+}
+
+const cabinetLights = [];
+[[-HX+0.15, CEIL_Y+0.15, -HZ+0.15, 0xff5ca8], [HX-0.15, CEIL_Y+0.15, -HZ+0.15, 0x4cd6ff],
+ [-HX+0.15, CEIL_Y+0.15, HZ-0.15, 0xc77dff], [HX-0.15, CEIL_Y+0.15, HZ-0.15, 0xffd166]].forEach(([x,y,z,color]) => {
+  const pl = new THREE.PointLight(color, 0.55, 4.5, 2);
+  pl.position.set(x,y,z);
+  scene.add(pl);
+  const glow = glowSprite(color, 0.5, 0.85);
+  glow.position.set(x,y,z);
+  scene.add(glow);
+  cabinetLights.push({ light: pl, glow, color, phase: Math.random()*Math.PI*2 });
+});
+
+/* ------------------------------- Cabinet ------------------------------------ */
+const cabinet = new THREE.Group();
+scene.add(cabinet);
+
+const glassMat = new THREE.MeshPhysicalMaterial({
+  color: 0xbfeeff, transparent:true, opacity:0.16, roughness:0.08, metalness:0,
+  side:THREE.DoubleSide, depthWrite:false,
+});
+const trimMatA = new THREE.MeshStandardMaterial({ color:0xff2fa0, emissive:0xff2fa0, emissiveIntensity:0.9, roughness:0.4 });
+const trimMatB = new THREE.MeshStandardMaterial({ color:0x22c8ff, emissive:0x22c8ff, emissiveIntensity:0.9, roughness:0.4 });
+const bodyMat = new THREE.MeshStandardMaterial({ color:0x3a2c5e, roughness:0.5, metalness:0.25 });
+const bodyAccentMat = new THREE.MeshStandardMaterial({ color:0x52407e, roughness:0.45, metalness:0.3 });
+
+// Playfield floor (inside the glass box).
+const pitFloor = new THREE.Mesh(
+  new THREE.BoxGeometry(HX*2, 0.08, HZ*2),
+  new THREE.MeshStandardMaterial({ color:0x2c1f4d, roughness:0.7 }));
+pitFloor.position.y = FLOOR_Y - 0.04;
+pitFloor.receiveShadow = true;
+cabinet.add(pitFloor);
+
+// Chute opening marker (dark inset) + funnel down into the base + ramp out to the tray.
+const chuteHole = new THREE.Mesh(
+  new THREE.CircleGeometry(0.4, 24),
+  new THREE.MeshBasicMaterial({ color:0x05030a }));
+chuteHole.rotation.x = -Math.PI/2;
+chuteHole.position.set(CHUTE_X, FLOOR_Y+0.001, CHUTE_Z);
+cabinet.add(chuteHole);
+
+const funnel = new THREE.Mesh(
+  new THREE.CylinderGeometry(0.4, 0.12, 0.5, 16, 1, true),
+  new THREE.MeshStandardMaterial({ color:0x120a1f, roughness:0.8, side:THREE.DoubleSide }));
+funnel.position.set(CHUTE_X, FLOOR_Y-0.25, CHUTE_Z);
+cabinet.add(funnel);
+
+const ramp = new THREE.Mesh(
+  new THREE.BoxGeometry(0.5, 0.06, 0.9),
+  new THREE.MeshStandardMaterial({ color:0x120a1f, roughness:0.8 }));
+ramp.position.set(CHUTE_X, FLOOR_Y-0.62, HZ+0.35);
+ramp.rotation.x = -0.55;
+cabinet.add(ramp);
+
+// Glass walls (front is a slightly darker glass so the play area reads clearly).
+function makeWall(w,h,x,y,z,ry){
+  const wall = new THREE.Mesh(new THREE.PlaneGeometry(w,h), glassMat);
+  wall.position.set(x,y,z);
+  wall.rotation.y = ry;
+  cabinet.add(wall);
+  return wall;
+}
+makeWall(HX*2, CEIL_Y, 0, CEIL_Y/2, -HZ, 0);           // back
+makeWall(HZ*2, CEIL_Y, -HX, CEIL_Y/2, 0, Math.PI/2);   // left
+makeWall(HZ*2, CEIL_Y, HX, CEIL_Y/2, 0, -Math.PI/2);   // right
+makeWall(HX*2, CEIL_Y, 0, CEIL_Y/2, HZ, Math.PI);      // front
+
+// Neon edge trim around the top and the four vertical corners.
+function trimBar(len, axis, x, y, z, mat){
+  const geo = axis === "x" ? new THREE.BoxGeometry(len, 0.06, 0.06)
+            : axis === "y" ? new THREE.BoxGeometry(0.06, len, 0.06)
+            : new THREE.BoxGeometry(0.06, 0.06, len);
+  const bar = new THREE.Mesh(geo, mat);
+  bar.position.set(x,y,z);
+  cabinet.add(bar);
+  return bar;
+}
+const trimBars = [];
+trimBars.push(trimBar(HX*2+0.06, "x", 0, CEIL_Y, -HZ, trimMatA));
+trimBars.push(trimBar(HX*2+0.06, "x", 0, CEIL_Y, HZ, trimMatB));
+trimBars.push(trimBar(HZ*2+0.06, "z", -HX, CEIL_Y, 0, trimMatB));
+trimBars.push(trimBar(HZ*2+0.06, "z", HX, CEIL_Y, 0, trimMatA));
+[[-HX,-HZ,trimMatA],[HX,-HZ,trimMatB],[-HX,HZ,trimMatB],[HX,HZ,trimMatA]].forEach(([x,z,m]) => {
+  trimBars.push(trimBar(CEIL_Y, "y", x, CEIL_Y/2, z, m));
+});
+
+// Marquee canopy up top with a glowing sign.
+const canopy = new THREE.Mesh(new THREE.BoxGeometry(HX*2+0.3, 0.55, HZ*2+0.3), bodyMat);
+canopy.position.set(0, CEIL_Y+0.3, 0);
+canopy.castShadow = true;
+cabinet.add(canopy);
+
+function signTexture(){
+  const c = document.createElement("canvas");
+  c.width = 512; c.height = 128;
+  const g = c.getContext("2d");
+  g.fillStyle = "#1a1030";
+  g.fillRect(0,0,512,128);
+  g.font = "800 62px 'Segoe UI', Arial";
+  g.textAlign = "center"; g.textBaseline = "middle";
+  g.shadowColor = "#ff2fa0"; g.shadowBlur = 26;
+  g.fillStyle = "#ffe3f4";
+  g.fillText("CLAW CRAZE", 256, 58);
+  g.shadowColor = "#22c8ff"; g.shadowBlur = 18;
+  g.font = "700 22px 'Segoe UI', Arial";
+  g.fillStyle = "#bff2ff";
+  g.fillText("WIN A PRIZE!", 256, 100);
+  return new THREE.CanvasTexture(c);
+}
+const sign = new THREE.Mesh(
+  new THREE.PlaneGeometry(HX*2+0.05, 0.55),
+  new THREE.MeshBasicMaterial({ map:signTexture(), transparent:true }));
+sign.position.set(0, CEIL_Y+0.3, HZ+0.155+0.001);
+cabinet.add(sign);
+
+// Marquee chase bulbs.
+const bulbs = [];
+const bulbGeo = new THREE.SphereGeometry(0.028, 8, 6);
+const bulbPerim = [];
+const bulbCount = 24;
+for(let i=0;i<bulbCount;i++){
+  const t = i/bulbCount;
+  const w = HX*2+0.3, d = HZ*2+0.3;
+  const perim = 2*(w+d);
+  let dist = t*perim, x, z;
+  if(dist < w){ x = -w/2+dist; z = -d/2; }
+  else if(dist < w+d){ dist -= w; x = w/2; z = -d/2+dist; }
+  else if(dist < 2*w+d){ dist -= (w+d); x = w/2-dist; z = d/2; }
+  else { dist -= (2*w+d); x = -w/2; z = d/2-dist; }
+  bulbPerim.push([x,z]);
+}
+bulbPerim.forEach(([x,z], i) => {
+  const mat = new THREE.MeshBasicMaterial({ color: i%2===0 ? 0xff2fa0 : 0x22c8ff });
+  const b = new THREE.Mesh(bulbGeo, mat);
+  b.position.set(x, CEIL_Y+0.58, z);
+  cabinet.add(b);
+  bulbs.push({ mesh:b, phase: i*0.35 });
+});
+
+// Base housing (opaque colorful cabinet body) below the playfield.
+const BASE_H = 1.35;
+const base = new THREE.Mesh(new THREE.BoxGeometry(HX*2+0.24, BASE_H, HZ*2+0.24), bodyMat);
+base.position.set(0, -BASE_H/2, 0);
+base.castShadow = true; base.receiveShadow = true;
+cabinet.add(base);
+
+const baseStripe = new THREE.Mesh(new THREE.BoxGeometry(HX*2+0.26, 0.12, HZ*2+0.26), trimMatA.clone());
+baseStripe.material.emissiveIntensity = 0.55;
+baseStripe.position.set(0, -0.18, 0);
+cabinet.add(baseStripe);
+
+// Control panel (angled) with a decorative 3D joystick + grab button that mirror the HUD.
+const panel = new THREE.Mesh(
+  new THREE.BoxGeometry(0.9, 0.06, 0.55),
+  bodyAccentMat);
+panel.position.set(0, -0.55, HZ+0.45);
+panel.rotation.x = -0.5;
+cabinet.add(panel);
+
+const propJoyBase = new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.1,0.05,16), new THREE.MeshStandardMaterial({ color:0x111018, roughness:0.5 }));
+propJoyBase.position.set(-0.24, -0.42, HZ+0.33);
+cabinet.add(propJoyBase);
+const propJoyGroup = new THREE.Group();
+propJoyGroup.position.copy(propJoyBase.position);
+propJoyGroup.position.y += 0.025;
+cabinet.add(propJoyGroup);
+const propJoyStick = new THREE.Mesh(new THREE.CylinderGeometry(0.014,0.018,0.18,10), new THREE.MeshStandardMaterial({ color:0x333, metalness:0.6, roughness:0.3 }));
+propJoyStick.position.y = 0.09;
+propJoyGroup.add(propJoyStick);
+const propJoyBall = new THREE.Mesh(new THREE.SphereGeometry(0.045,12,10), new THREE.MeshStandardMaterial({ color:0xff2fa0, emissive:0xff2fa0, emissiveIntensity:0.4, roughness:0.35 }));
+propJoyBall.position.y = 0.18;
+propJoyGroup.add(propJoyBall);
+
+const propBtn = new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.075,0.05,16), new THREE.MeshStandardMaterial({ color:0xff4444, emissive:0x661010, emissiveIntensity:0.5, roughness:0.35 }));
+propBtn.position.set(0.26, -0.395, HZ+0.30);
+propBtn.rotation.x = -0.5;
+cabinet.add(propBtn);
+
+// External prize tray out front, below the control panel.
+const trayGroup = new THREE.Group();
+trayGroup.position.set(0, -0.98, HZ+0.72);
+cabinet.add(trayGroup);
+const trayBox = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.16, 0.55), bodyAccentMat);
+trayGroup.add(trayBox);
+const trayFloor = new THREE.Mesh(new THREE.BoxGeometry(0.75, 0.03, 0.45), new THREE.MeshStandardMaterial({ color:0x1a1030, roughness:0.7 }));
+trayFloor.position.y = 0.075;
+trayGroup.add(trayFloor);
+const trayGlass = new THREE.Mesh(new THREE.BoxGeometry(0.85, 0.4, 0.02), glassMat);
+trayGlass.position.set(0, 0.28, 0.265);
+trayGroup.add(trayGlass);
+const trayTrimTop = trimBar(0.85, "x", 0, 0.48, 0, trimMatB.clone());
+trayGroup.add(trayTrimTop);
+const trayItems = new THREE.Group();
+trayGroup.add(trayItems);
+
+// Rails, bridge & trolley (visual gantry — repositioned each frame to match the claw).
+const railMat = new THREE.MeshStandardMaterial({ color:0x4a3a70, metalness:0.5, roughness:0.35 });
+function makeRail(x){
+  const r = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, HZ*2+0.1), railMat);
+  r.position.set(x, CEIL_Y-0.03, 0);
+  cabinet.add(r);
+}
+makeRail(-HX+0.1); makeRail(HX-0.1);
+
+const bridge = new THREE.Mesh(new THREE.BoxGeometry(HX*2-0.1, 0.08, 0.12), railMat);
+bridge.position.y = CEIL_Y-0.06;
+cabinet.add(bridge);
+
+const trolley = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.1, 0.16), new THREE.MeshStandardMaterial({ color:0x2a2040, metalness:0.4, roughness:0.4 }));
+trolley.position.y = CEIL_Y-0.06;
+cabinet.add(trolley);
+
+/* --------------------------------- Claw ------------------------------------ */
+const HUB_RADIUS = 0.14;
+const OPEN_Z = -0.9, CLOSE_Z = -0.02;
+
+const cable = new THREE.Mesh(new THREE.CylinderGeometry(0.014,0.014,1,8), new THREE.MeshStandardMaterial({ color:0x999, metalness:0.6, roughness:0.3 }));
+cable.geometry.translate(0, -0.5, 0); // top of geometry at local origin
+cabinet.add(cable);
+
+const clawHub = new THREE.Group();
+cabinet.add(clawHub);
+const hubMesh = new THREE.Mesh(new THREE.CylinderGeometry(HUB_RADIUS, HUB_RADIUS*0.85, 0.12, 16), new THREE.MeshStandardMaterial({ color:0x3a2a63, metalness:0.5, roughness:0.35 }));
+hubMesh.castShadow = true;
+clawHub.add(hubMesh);
+const hubGlow = glowSprite(0xffd166, 0.32, 0.5);
+hubGlow.position.y = 0.02;
+clawHub.add(hubGlow);
+
+const fingerHinges = [];
+for(let i=0;i<3;i++){
+  const angle = (i/3) * Math.PI*2;
+  const pivot = new THREE.Group();
+  pivot.position.set(Math.cos(angle)*HUB_RADIUS, -0.02, Math.sin(angle)*HUB_RADIUS);
+  pivot.rotation.y = -angle;
+  clawHub.add(pivot);
+
+  const hinge = new THREE.Group();
+  hinge.rotation.z = OPEN_Z;
+  pivot.add(hinge);
+
+  const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.026,0.3,8), new THREE.MeshStandardMaterial({ color:0xd6d6de, metalness:0.7, roughness:0.25 }));
+  arm.position.y = -0.15;
+  arm.castShadow = true;
+  hinge.add(arm);
+
+  const hook = new THREE.Mesh(new THREE.ConeGeometry(0.032,0.11,8), new THREE.MeshStandardMaterial({ color:0xffd166, metalness:0.6, roughness:0.3 }));
+  hook.position.y = -0.305;
+  hook.rotation.z = -1.0;
+  hook.castShadow = true;
+  hinge.add(hook);
+
+  fingerHinges.push(hinge);
+}
+
+/* --------------------------------- Toys ------------------------------------- */
+const toys = [];
+
+function makeToy(kind, color){
+  const g = new THREE.Group();
+  const mat = new THREE.MeshStandardMaterial({ color, roughness:0.55, metalness:0.05 });
+  const accentMat = new THREE.MeshStandardMaterial({ color:0xfff6fb, roughness:0.5 });
+  const darkMat = new THREE.MeshStandardMaterial({ color:0x2b2320, roughness:0.4 });
+  let radius = 0.19;
+
+  if(kind === "bear"){
+    radius = 0.20;
+    const body = new THREE.Mesh(new THREE.SphereGeometry(radius,16,12), mat);
+    body.scale.set(1,0.92,1);
+    g.add(body);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(radius*0.6,14,10), mat);
+    head.position.y = radius*0.95;
+    g.add(head);
+    [-1,1].forEach(s => {
+      const ear = new THREE.Mesh(new THREE.SphereGeometry(radius*0.22,10,8), mat);
+      ear.position.set(s*radius*0.42, radius*1.32, 0);
+      g.add(ear);
+    });
+    const snout = new THREE.Mesh(new THREE.SphereGeometry(radius*0.24,10,8), accentMat);
+    snout.position.set(0, radius*0.86, radius*0.5);
+    g.add(snout);
+    const nose = new THREE.Mesh(new THREE.SphereGeometry(radius*0.075,8,6), darkMat);
+    nose.position.set(0, radius*0.9, radius*0.72);
+    g.add(nose);
+  } else if(kind === "bunny"){
+    radius = 0.18;
+    const body = new THREE.Mesh(new THREE.SphereGeometry(radius,16,12), mat);
+    body.scale.set(1,0.95,1);
+    g.add(body);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(radius*0.58,14,10), mat);
+    head.position.y = radius*0.9;
+    g.add(head);
+    [-1,1].forEach(s => {
+      const ear = new THREE.Mesh(new THREE.CapsuleGeometry(radius*0.14, radius*0.6, 4, 8), mat);
+      ear.position.set(s*radius*0.28, radius*1.55, 0);
+      ear.rotation.z = s*0.18;
+      g.add(ear);
+    });
+    const muzzle = new THREE.Mesh(new THREE.SphereGeometry(radius*0.22,10,8), accentMat);
+    muzzle.position.set(0, radius*0.8, radius*0.46);
+    g.add(muzzle);
+  } else if(kind === "cat"){
+    radius = 0.185;
+    const body = new THREE.Mesh(new THREE.SphereGeometry(radius,16,12), mat);
+    body.scale.set(1,0.9,1.05);
+    g.add(body);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(radius*0.56,14,10), mat);
+    head.position.set(0, radius*0.85, radius*0.35);
+    g.add(head);
+    [-1,1].forEach(s => {
+      const ear = new THREE.Mesh(new THREE.ConeGeometry(radius*0.2, radius*0.32, 8), mat);
+      ear.position.set(s*radius*0.32, radius*1.28, radius*0.35);
+      g.add(ear);
+    });
+    const tail = new THREE.Mesh(new THREE.CapsuleGeometry(radius*0.08, radius*0.7, 4, 6), mat);
+    tail.position.set(0, radius*0.2, -radius*0.9);
+    tail.rotation.x = 1.0;
+    g.add(tail);
+  } else { // ball
+    radius = 0.19;
+    const body = new THREE.Mesh(new THREE.SphereGeometry(radius,18,14), mat);
+    g.add(body);
+    const stripe = new THREE.Mesh(new THREE.TorusGeometry(radius*0.97, radius*0.16, 8, 20), accentMat);
+    stripe.rotation.x = Math.PI/2;
+    g.add(stripe);
+    const stripe2 = new THREE.Mesh(new THREE.TorusGeometry(radius*0.97, radius*0.16, 8, 20), accentMat);
+    stripe2.rotation.y = Math.PI/2;
+    g.add(stripe2);
+  }
+
+  g.traverse(o => { if(o.isMesh){ o.castShadow = true; o.receiveShadow = true; } });
+  return { group:g, radius };
+}
+
+const TOY_KINDS = ["bear","bunny","cat","ball"];
+
+function spawnToy(x, y, z){
+  const kind = pick(TOY_KINDS);
+  const color = pick(PALETTE);
+  const { group, radius } = makeToy(kind, color);
+  group.position.set(x, y, z);
+  cabinet.add(group);
+  const toy = {
+    mesh: group, radius,
+    vel: new THREE.Vector3((Math.random()-0.5)*0.4, 0, (Math.random()-0.5)*0.4),
+    state: "pile", // pile | held | chuteFalling
+    heavy: Math.random() < 0.3,
+    justDropped: false,
+    chuteT: 0, chuteStart: new THREE.Vector3(), chuteTarget: new THREE.Vector3(),
+    spinAxis: new THREE.Vector3(Math.random(), Math.random(), Math.random()).normalize(),
+  };
+  toys.push(toy);
+  return toy;
+}
+
+for(let i=0;i<TOY_COUNT;i++){
+  const x = (Math.random()*2-1) * (HX-0.35);
+  const z = (Math.random()*2-1) * (HZ-0.35);
+  const y = FLOOR_Y + 0.5 + Math.random()*1.6 + i*0.08;
+  spawnToy(x,y,z);
+}
+
+function withinChute(x,z){
+  return Math.abs(x) < CHUTE_HALF_X && z > CHUTE_Z_MIN && z < HZ + 0.05;
+}
+
+function trayLandingSpot(){
+  return new THREE.Vector3((Math.random()*2-1)*0.28, 0.12, (Math.random()*2-1)*0.15);
+}
+
+function winPrize(toy){
+  const idx = toys.indexOf(toy);
+  if(idx >= 0) toys.splice(idx,1);
+  cabinet.remove(toy.mesh); // will be re-added under trayGroup with a local position
+
+  trayItems.add(toy.mesh);
+  const spot = trayLandingSpot();
+  toy.mesh.position.set(spot.x, spot.y, spot.z);
+  toy.mesh.rotation.set(Math.random()*Math.PI, Math.random()*Math.PI, Math.random()*Math.PI);
+  toy.mesh.scale.setScalar(0.78);
+
+  while(trayItems.children.length > TRAY_CAP){
+    trayItems.remove(trayItems.children[0]);
+  }
+
+  prizeCount++;
+  document.getElementById("prize-count").textContent = prizeCount;
+  ensureAudio(); playChime();
+  showToast("🎉 PRIZE!", "win");
+
+  setTimeout(() => {
+    const x = (Math.random()*2-1) * (HX-0.35);
+    const z = (Math.random()*2-1) * (HZ-0.5);
+    spawnToy(x, FLOOR_Y + 1.4, z);
+  }, 700);
+}
+
+/* ------------------------------- Physics ------------------------------------ */
+function stepPhysics(dt){
+  for(const toy of toys){
+    if(toy.state === "held") continue;
+
+    if(toy.state === "chuteFalling"){
+      toy.chuteT = Math.min(1, toy.chuteT + dt/0.55);
+      const t = toy.chuteT;
+      // simple quadratic-bezier dip through the funnel toward the tray.
+      const p0 = toy.chuteStart, p2 = toy.chuteTarget;
+      const p1x = p0.x, p1y = FLOOR_Y-0.5, p1z = (p0.z+p2.z)/2;
+      const it = 1-t;
+      toy.mesh.position.set(
+        it*it*p0.x + 2*it*t*p1x + t*t*p2.x,
+        it*it*p0.y + 2*it*t*p1y + t*t*p2.y,
+        it*it*p0.z + 2*it*t*p1z + t*t*p2.z);
+      toy.mesh.rotateOnAxis(toy.spinAxis, dt*10);
+      if(t >= 1) winPrize(toy);
+      continue;
+    }
+
+    // pile toy: gravity + integrate.
+    toy.vel.y += GRAVITY*dt;
+    toy.mesh.position.addScaledVector(toy.vel, dt);
+    toy.mesh.rotateOnAxis(toy.spinAxis, toy.vel.length()*dt*1.5);
+
+    const p = toy.mesh.position;
+    if(p.y - toy.radius < FLOOR_Y){
+      if(toy.justDropped && withinChute(p.x, p.z) && toy.vel.y < -0.02){
+        toy.state = "chuteFalling";
+        toy.chuteT = 0;
+        toy.chuteStart.copy(p);
+        toy.chuteTarget.copy(trayGroup.position).add(trayLandingSpot());
+        continue;
+      }
+      p.y = FLOOR_Y + toy.radius;
+      toy.vel.y *= -0.38;
+      toy.vel.x *= 0.86; toy.vel.z *= 0.86;
+      if(Math.abs(toy.vel.y) < 0.05) toy.vel.y = 0;
+      toy.justDropped = false;
+    }
+    const maxX = HX - toy.radius, maxZ = HZ - toy.radius;
+    if(p.x < -maxX){ p.x = -maxX; toy.vel.x *= -0.5; }
+    if(p.x > maxX){ p.x = maxX; toy.vel.x *= -0.5; }
+    if(p.z < -maxZ){ p.z = -maxZ; toy.vel.z *= -0.5; }
+    if(p.z > maxZ){ p.z = maxZ; toy.vel.z *= -0.5; }
+
+    toy.vel.multiplyScalar(0.992);
+  }
+
+  // pairwise toy-toy collision (cheap O(n^2), pile is small).
+  for(let i=0;i<toys.length;i++){
+    const a = toys[i];
+    if(a.state !== "pile") continue;
+    for(let j=i+1;j<toys.length;j++){
+      const b = toys[j];
+      if(b.state !== "pile") continue;
+      const pa = a.mesh.position, pb = b.mesh.position;
+      const dx = pb.x-pa.x, dy = pb.y-pa.y, dz = pb.z-pa.z;
+      const dist = Math.sqrt(dx*dx+dy*dy+dz*dz) || 0.0001;
+      const minDist = a.radius+b.radius;
+      if(dist < minDist){
+        const nx = dx/dist, ny = dy/dist, nz = dz/dist;
+        const overlap = (minDist-dist)*0.5;
+        pa.x -= nx*overlap; pa.y -= ny*overlap; pa.z -= nz*overlap;
+        pb.x += nx*overlap; pb.y += ny*overlap; pb.z += nz*overlap;
+        const rvx = b.vel.x-a.vel.x, rvy = b.vel.y-a.vel.y, rvz = b.vel.z-a.vel.z;
+        const relAlongNormal = rvx*nx+rvy*ny+rvz*nz;
+        if(relAlongNormal < 0){
+          const impulse = -relAlongNormal*0.55;
+          a.vel.x -= nx*impulse; a.vel.y -= ny*impulse; a.vel.z -= nz*impulse;
+          b.vel.x += nx*impulse; b.vel.y += ny*impulse; b.vel.z += nz*impulse;
+        }
+      }
+    }
+  }
+}
+
+/* --------------------------------- Claw state machine ------------------------ */
+let clawState = STATE.IDLE;
+let stateT = 0;
+let hubDepthT = 0;
+let fingerT = 0;
+let trolleyX = 0, bridgeZ = -0.1;
+let travelStartX = 0, travelStartZ = 0;
+let returnTargetX = 0, returnTargetZ = 0;
+let heldToy = null;
+const hubWorldPos = new THREE.Vector3();
+let busy = false;
+
+function nearestGrabbableToy(){
+  let best = null, bestDist = Infinity;
+  for(const toy of toys){
+    if(toy.state !== "pile") continue;
+    const dx = toy.mesh.position.x - hubWorldPos.x;
+    const dz = toy.mesh.position.z - hubWorldPos.z;
+    const d = Math.sqrt(dx*dx+dz*dz);
+    if(d < GRAB_RADIUS && d < bestDist){ best = toy; bestDist = d; }
+  }
+  return { toy:best, dist:bestDist };
+}
+
+function attemptGrab(){
+  const { toy, dist } = nearestGrabbableToy();
+  if(!toy){ showToast("So close...", "miss"); playThud(); return; }
+  const centering = clamp(1 - dist/GRAB_RADIUS, 0, 1);
+  const chance = (toy.heavy ? 0.5 : 0.88) * (0.35 + 0.65*centering);
+  if(Math.random() < chance){
+    toy.state = "held";
+    toy.vel.set(0,0,0);
+    heldToy = toy;
+    playBeep(520);
+  } else {
+    showToast("So close...", "miss");
+    playThud();
+  }
+}
+
+function maybeSlip(dt){
+  if(!heldToy) return;
+  const chance = SLIP_CHANCE_PER_SEC * (heldToy.heavy ? 1.8 : 1) * dt;
+  if(Math.random() < chance){
+    heldToy.state = "pile";
+    heldToy.justDropped = false;
+    heldToy.vel.set((Math.random()-0.5)*0.6, 0, (Math.random()-0.5)*0.6);
+    showToast("It slipped!", "miss");
+    playThud();
+    heldToy = null;
+  }
+}
+
+function releaseToy(){
+  if(!heldToy) return;
+  heldToy.state = "pile";
+  heldToy.justDropped = true;
+  heldToy.vel.set(0, -0.1, 0);
+  heldToy = null;
+}
+
+function startGrabCycle(){
+  if(clawState !== STATE.IDLE) return;
+  returnTargetX = trolleyX; returnTargetZ = bridgeZ;
+  clawState = STATE.DESCEND; stateT = 0;
+  busy = true;
+  updateGrabButton();
+  ensureAudio(); playBeep(300);
+}
+
+function updateClaw(dt, joy){
+  hubWorldPos.set(trolleyX, lerp(HOVER_Y, GRAB_Y, hubDepthT), bridgeZ);
+
+  switch(clawState){
+    case STATE.IDLE: {
+      trolleyX = clamp(trolleyX + joy.x*MOVE_SPEED*dt, -HX+MARGIN, HX-MARGIN);
+      bridgeZ = clamp(bridgeZ + joy.y*MOVE_SPEED*dt, -HZ+MARGIN, HZ-MARGIN);
+      hubDepthT = lerp(hubDepthT, 0, Math.min(1, dt*8));
+      fingerT = lerp(fingerT, 0, Math.min(1, dt*8));
+      break;
+    }
+    case STATE.DESCEND: {
+      hubDepthT = Math.min(1, hubDepthT + dt/DESCEND_TIME);
+      if(hubDepthT >= 1){ clawState = STATE.CLOSE; stateT = 0; }
+      break;
+    }
+    case STATE.CLOSE: {
+      stateT += dt;
+      fingerT = Math.min(1, fingerT + dt/CLOSE_TIME);
+      if(fingerT >= 1 && stateT >= CLOSE_TIME*0.9){
+        attemptGrab();
+        clawState = STATE.ASCEND; stateT = 0;
+      }
+      break;
+    }
+    case STATE.ASCEND: {
+      hubDepthT = Math.max(0, hubDepthT - dt/ASCEND_TIME);
+      maybeSlip(dt);
+      if(hubDepthT <= 0){ clawState = STATE.TRAVEL; stateT = 0; travelStartX = trolleyX; travelStartZ = bridgeZ; }
+      break;
+    }
+    case STATE.TRAVEL: {
+      stateT += dt;
+      const t = easeInOut(clamp(stateT/TRAVEL_TIME, 0, 1));
+      trolleyX = lerp(travelStartX, CHUTE_X, t);
+      bridgeZ = lerp(travelStartZ, CHUTE_Z, t);
+      maybeSlip(dt);
+      if(stateT >= TRAVEL_TIME){ clawState = STATE.OPEN; stateT = 0; }
+      break;
+    }
+    case STATE.OPEN: {
+      stateT += dt;
+      fingerT = Math.max(0, fingerT - dt/CLOSE_TIME);
+      if(fingerT <= 0 && stateT > CLOSE_TIME*0.5){
+        releaseToy();
+        clawState = STATE.RETURN; stateT = 0; travelStartX = trolleyX; travelStartZ = bridgeZ;
+      }
+      break;
+    }
+    case STATE.RETURN: {
+      stateT += dt;
+      const t = easeInOut(clamp(stateT/TRAVEL_TIME, 0, 1));
+      trolleyX = lerp(travelStartX, returnTargetX, t);
+      bridgeZ = lerp(travelStartZ, returnTargetZ, t);
+      if(stateT >= TRAVEL_TIME){
+        clawState = STATE.IDLE; stateT = 0; busy = false; updateGrabButton();
+      }
+      break;
+    }
+  }
+
+  hubWorldPos.set(trolleyX, lerp(HOVER_Y, GRAB_Y, hubDepthT), bridgeZ);
+
+  if(heldToy){
+    heldToy.mesh.position.set(hubWorldPos.x, hubWorldPos.y - HELD_DROP_OFFSET, hubWorldPos.z);
+    heldToy.mesh.rotation.y += dt*0.8;
+  }
+
+  // ---- apply to visuals ----
+  clawHub.position.copy(hubWorldPos);
+  fingerHinges.forEach(h => { h.rotation.z = lerp(OPEN_Z, CLOSE_Z, fingerT); });
+
+  const cableLen = CEIL_Y - hubWorldPos.y;
+  cable.position.set(trolleyX, CEIL_Y, bridgeZ);
+  cable.scale.y = cableLen;
+
+  bridge.position.z = bridgeZ;
+  trolley.position.set(trolleyX, CEIL_Y-0.06, bridgeZ);
+
+  // decorative control-panel joystick prop mirrors the on-screen joystick.
+  propJoyGroup.rotation.z = -joy.x*0.45;
+  propJoyGroup.rotation.x = joy.y*0.45;
+}
+
+/* ------------------------------ Input: joystick ------------------------------ */
+const joy = { x:0, y:0 };
+const joyBase = document.getElementById("joystick-base");
+const joyKnob = document.getElementById("joystick-knob");
+let joyActive = false;
+let joyPointerId = null;
+const JOY_RADIUS = 34;
+
+function setJoyFromEvent(e){
+  const rect = joyBase.getBoundingClientRect();
+  const cx = rect.left+rect.width/2, cy = rect.top+rect.height/2;
+  let dx = e.clientX-cx, dy = e.clientY-cy;
+  const dist = Math.sqrt(dx*dx+dy*dy);
+  if(dist > JOY_RADIUS){ dx = dx/dist*JOY_RADIUS; dy = dy/dist*JOY_RADIUS; }
+  joyKnob.style.left = (34+dx)+"px";
+  joyKnob.style.top = (34+dy)+"px";
+  joy.x = dx/JOY_RADIUS;
+  joy.y = dy/JOY_RADIUS; // screen-down (positive) => toward the player (+Z)
+}
+function resetJoy(){
+  joy.x = 0; joy.y = 0;
+  joyKnob.style.left = "34px"; joyKnob.style.top = "34px";
+  joyKnob.classList.remove("dragging");
+}
+joyBase.addEventListener("pointerdown", (e) => {
+  e.preventDefault();
+  joyActive = true; joyPointerId = e.pointerId;
+  joyKnob.classList.add("dragging");
+  joyBase.setPointerCapture(e.pointerId);
+  setJoyFromEvent(e);
+  ensureAudio();
+  hideInstructions();
+});
+joyBase.addEventListener("pointermove", (e) => { if(joyActive && e.pointerId === joyPointerId) setJoyFromEvent(e); });
+function endJoy(e){ if(joyActive && (!e || e.pointerId === joyPointerId)){ joyActive = false; resetJoy(); } }
+joyBase.addEventListener("pointerup", endJoy);
+joyBase.addEventListener("pointercancel", endJoy);
+
+// Keyboard alternative: arrow keys / WASD.
+const keyState = { up:false, down:false, left:false, right:false };
+window.addEventListener("keydown", (e) => {
+  if(["ArrowUp","w","W"].includes(e.key)) keyState.up = true;
+  if(["ArrowDown","s","S"].includes(e.key)) keyState.down = true;
+  if(["ArrowLeft","a","A"].includes(e.key)) keyState.left = true;
+  if(["ArrowRight","d","D"].includes(e.key)) keyState.right = true;
+  if(e.key === " " || e.key === "Enter"){ e.preventDefault(); startGrabCycle(); }
+  hideInstructions();
+});
+window.addEventListener("keyup", (e) => {
+  if(["ArrowUp","w","W"].includes(e.key)) keyState.up = false;
+  if(["ArrowDown","s","S"].includes(e.key)) keyState.down = false;
+  if(["ArrowLeft","a","A"].includes(e.key)) keyState.left = false;
+  if(["ArrowRight","d","D"].includes(e.key)) keyState.right = false;
+});
+
+function effectiveJoy(){
+  if(joyActive) return joy;
+  let x = 0, y = 0;
+  if(keyState.left) x -= 1;
+  if(keyState.right) x += 1;
+  if(keyState.up) y -= 1;
+  if(keyState.down) y += 1;
+  if(x||y){ const len = Math.sqrt(x*x+y*y); x/=len; y/=len; }
+  return { x, y };
+}
+
+/* -------------------------------- Grab button --------------------------------- */
+const grabBtn = document.getElementById("btn-grab");
+function updateGrabButton(){
+  grabBtn.disabled = busy;
+  grabBtn.classList.toggle("busy", busy);
+  propBtn.material.emissiveIntensity = busy ? 0.15 : 0.55;
+}
+grabBtn.addEventListener("pointerdown", (e) => {
+  e.preventDefault();
+  ensureAudio();
+  hideInstructions();
+  startGrabCycle();
+});
+
+/* ---------------------------------- Toasts ------------------------------------ */
+let toastTimer = null;
+function showToast(text, kind){
+  const el = document.getElementById("toast");
+  el.textContent = text;
+  el.className = "show " + (kind||"");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { el.className = kind||""; }, 1400);
+}
+function hideInstructions(){
+  document.getElementById("hud-top-right").classList.add("hide");
+}
+
+/* ---------------------------------- Audio -------------------------------------- */
+let audioCtx = null;
+function ensureAudio(){
+  if(audioCtx) return;
+  try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+  catch(e) { /* audio unavailable — visuals still convey feedback */ }
+}
+function playBeep(freq=440, dur=0.09, volume=0.07){
+  if(!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = "square";
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(volume, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t+dur);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start(t); osc.stop(t+dur+0.02);
+}
+function playThud(){
+  if(!audioCtx) return;
+  const t = audioCtx.currentTime;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(160, t);
+  osc.frequency.exponentialRampToValueAtTime(60, t+0.18);
+  gain.gain.setValueAtTime(0.12, t);
+  gain.gain.exponentialRampToValueAtTime(0.001, t+0.2);
+  osc.connect(gain).connect(audioCtx.destination);
+  osc.start(t); osc.stop(t+0.22);
+}
+function playChime(){
+  if(!audioCtx) return;
+  const t = audioCtx.currentTime;
+  [660,880,1100,1320].forEach((f,i) => {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = f;
+    gain.gain.setValueAtTime(0.0001, t+i*0.09);
+    gain.gain.linearRampToValueAtTime(0.09, t+i*0.09+0.02);
+    gain.gain.exponentialRampToValueAtTime(0.001, t+i*0.09+0.4);
+    osc.connect(gain).connect(audioCtx.destination);
+    osc.start(t+i*0.09); osc.stop(t+i*0.09+0.45);
+  });
+}
+
+/* ------------------------------------ HUD -------------------------------------- */
+let prizeCount = 0;
+const statusEl = document.getElementById("hud-status");
+const STATUS_LABEL = {
+  idle: "", descend:"Lowering...", close:"Grabbing...", ascend:"Lifting...",
+  travel:"Carrying to chute...", open:"Dropping...", ["return"]:"Resetting...",
+};
+
+/* ------------------------------------ Loop -------------------------------------- */
+const clock = new THREE.Clock();
+function animate(){
+  requestAnimationFrame(animate);
+  const dt = Math.min(0.033, clock.getDelta());
+  const t = clock.elapsedTime;
+
+  stepPhysics(dt);
+  updateClaw(dt, effectiveJoy());
+  statusEl.textContent = STATUS_LABEL[clawState] || "";
+
+  cabinetLights.forEach((cl, i) => {
+    const pulse = 0.45 + 0.35*Math.sin(t*1.6 + cl.phase);
+    cl.light.intensity = pulse;
+    cl.glow.material.opacity = 0.55 + 0.35*pulse;
+  });
+  bulbs.forEach((b, i) => {
+    const on = Math.sin(t*3.2 - i*0.55) > 0.15;
+    b.mesh.material.color.setHex(on ? (i%2===0?0xff2fa0:0x22c8ff) : 0x2a1a3a);
+  });
+  trimBars.forEach((bar, i) => {
+    bar.material.emissiveIntensity = 0.75 + 0.25*Math.sin(t*2 + i*0.7);
+  });
+
+  // Subtle camera parallax for a lived-in arcade feel.
+  camera.position.x = CAM_BASE.x + Math.sin(t*0.18)*0.08;
+  camera.position.y = CAM_BASE.y + Math.sin(t*0.13)*0.03;
+  camera.lookAt(CAM_LOOK);
+
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>
