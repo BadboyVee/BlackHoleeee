@@ -14,6 +14,14 @@ so there are no images, no video and no libraries. A longer 66-second film ships
 
 **▶ [Watch it](https://badboyvee.github.io/BlackHoleeee/launch-film/)** · [source](launch-film/)
 
+### 🪺 [Opus 5 — the launch film in 3D](launch-film-3d/)
+
+The same eight seconds in Three.js: the eggs become lathed solids of revolution wearing shell
+textures painted at startup, lit and casting soft shadows onto paper, with a camera you can drag.
+Still no images and no models — just geometry and canvases.
+
+**▶ [Watch it](https://badboyvee.github.io/BlackHoleeee/launch-film-3d/)** · [source](launch-film-3d/)
+
 ### 🚋 [Skyline Tram](skyline-tram/)
 
 Drive a retro aerial tram along a rail loop between two islands floating above a sea of clouds.

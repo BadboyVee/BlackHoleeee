@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Opus 5 — eggs in three dimensions</title>
+<meta name="description" content="The Opus 5 launch film rebuilt in Three.js: lathed eggs, procedural shell textures, soft shadows. No images, no models.">
+<style>
+  :root{ --chrome:#17150f; --ink:#ece4d2; --line:rgba(236,228,210,.16); --dim:rgba(236,228,210,.5); --paper:#ccba9c; }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0;background:var(--chrome);color:var(--ink);
+    font:400 14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    display:flex;align-items:center;justify-content:center;padding:24px 18px;
+  }
+  .app{display:flex;flex-direction:column;align-items:center;gap:14px;max-width:100%}
+  .stage-wrap{
+    position:relative;aspect-ratio:4/5;height:min(78vh,860px);max-width:100%;
+    border-radius:8px;overflow:hidden;background:#0b0a07;cursor:grab;
+    box-shadow:0 26px 70px rgba(0,0,0,.55),0 0 0 1px rgba(255,255,255,.07);
+  }
+  .stage-wrap:active{cursor:grabbing}
+  .stage-wrap:fullscreen{border-radius:0;height:100%;max-width:100%;box-shadow:none}
+  canvas{display:block;width:100%;height:100%}
+  .vignette{
+    position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(ellipse at 50% 46%,rgba(0,0,0,0) 46%,rgba(24,17,7,.3) 100%);
+  }
+  .overlay{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    background:rgba(20,17,10,.34);opacity:0;pointer-events:none;transition:opacity .2s ease;
+  }
+  .overlay.show{opacity:1}
+  .overlay .g{width:70px;height:70px;border-radius:50%;border:1px solid rgba(236,228,210,.55);display:flex;align-items:center;justify-content:center}
+  .overlay .g::after{content:"";width:0;height:0;margin-left:5px;border-left:18px solid rgba(236,228,210,.9);border-top:12px solid transparent;border-bottom:12px solid transparent}
+  .loading,.fail{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    text-align:center;padding:30px;color:var(--dim);font-size:13px;line-height:1.6;
+  }
+  .fail{color:#e0a184}
+  .bar{display:flex;align-items:center;gap:12px;width:min(560px,100%)}
+  button{
+    appearance:none;background:transparent;color:var(--ink);border:1px solid var(--line);
+    border-radius:5px;padding:6px 10px;font:500 11px/1 inherit;letter-spacing:.07em;cursor:pointer;
+    transition:border-color .18s ease,background .18s ease,color .18s ease;
+  }
+  button:hover{border-color:rgba(236,228,210,.42);background:rgba(236,228,210,.06)}
+  button.on{color:#d9a066;border-color:rgba(217,160,102,.5)}
+  .scrub{position:relative;flex:1;height:22px;display:flex;align-items:center;cursor:pointer;touch-action:none}
+  .track{position:absolute;left:0;right:0;height:3px;border-radius:2px;background:rgba(236,228,210,.18)}
+  .fill{position:absolute;left:0;height:3px;border-radius:2px;background:var(--paper);pointer-events:none}
+  .knob{position:absolute;width:9px;height:9px;border-radius:50%;background:var(--paper);transform:translateX(-50%);pointer-events:none}
+  .time{font:500 11px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--dim);white-space:nowrap}
+  .meta{font-size:12px;color:rgba(236,228,210,.4);text-align:center;max-width:580px;line-height:1.6}
+  .meta b{color:rgba(236,228,210,.66);font-weight:500}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="stage-wrap" id="wrap">
+    <div class="loading" id="loading">building eggs…</div>
+    <div class="vignette"></div>
+    <div class="overlay" id="overlay"><div class="g"></div></div>
+  </div>
+  <div class="bar">
+    <button id="play" title="Play / pause (space)">Pause</button>
+    <div class="scrub" id="scrub"><div class="track"></div><div class="fill" id="fill"></div><div class="knob" id="knob"></div></div>
+    <span class="time" id="time">0.0 / 8.0</span>
+    <button id="loop" class="on" title="Loop (l)">Loop</button>
+    <button id="full" title="Fullscreen (f)">Full</button>
+  </div>
+  <p class="meta"><b>Drag the frame to look around.</b> Each egg is a lathed solid of revolution wearing a
+  shell texture painted at runtime — no images, no models, no scans. Three.js loads from a CDN; everything else is generated.</p>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three-mirror": "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.module.min.js"
+  }
+}
+</script>
+<script type="module">
+let THREE;
+try {
+  THREE = await import('three');
+} catch (e) {
+  try {
+    THREE = await import('three-mirror');
+  } catch (e2) {
+    document.getElementById('loading').outerHTML =
+      '<p class="fail">Could not load three.js.<br>Check the network connection and reload.</p>';
+    throw e2;
+  }
+}
+
+/* ===========================================================================
+   Opus 5 — the launch film in three dimensions.
+   Same choreography as the 2-D cut (measured off the original: 8.09s, 24fps,
+   4:5, eggs in by t≈2.9, hard cut at t=5.0), but the eggs are now real
+   geometry: an ovoid profile revolved into a solid, wearing a shell texture
+   painted into a canvas at startup, lit and casting soft shadows onto paper.
+   =========================================================================== */
+
+const DUR = 8.0, CUT = 5.0, FPS = 24, TAU = Math.PI * 2;
+const SERIF = 'Georgia,"Iowan Old Style","Palatino Linotype",Palatino,"Times New Roman",serif';
+const WORDMARK_FONT = '"Times New Roman",Times,Georgia,"Liberation Serif",serif';
+
+/* world: a 30 x 37.5 sheet of paper, 4:5 */
+const PW = 30, PH = 37.5;
+const TW = 18.9, TH = 27;          /* the numeral's box */
+
+const clamp = (x, a, b) => x < a ? a : x > b ? b : x;
+const lerp = (a, b, t) => a + (b - a) * t;
+function mulberry32(a){
+  return function(){
+    a |= 0; a = a + 0x6D2B79F5 | 0;
+    let t = Math.imul(a ^ a >>> 15, 1 | a);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+const rgba = (c, a) => `rgba(${c[0]|0},${c[1]|0},${c[2]|0},${a})`;
+function jitterCol(c, r, amt){
+  return [clamp(c[0] + (r() - 0.5) * amt, 0, 255),
+          clamp(c[1] + (r() - 0.5) * amt, 0, 255),
+          clamp(c[2] + (r() - 0.5) * amt, 0, 255)];
+}
+
+const PAPER  = [204, 186, 156];
+const SHELLS = [
+  [186, 176, 128], [172, 158,  98], [199, 188, 146], [206, 179, 122],
+  [154, 148,  96], [188, 158, 106], [176, 170, 120], [144, 142,  92],
+  [204, 192, 152], [186, 130,  82], [132, 132,  92], [196, 188, 150],
+  [162, 164, 134], [148, 138,  96]
+];
+const MARKS = [[59, 46, 30], [74, 58, 34], [46, 36, 24], [90, 70, 48], [34, 28, 20]];
+const UNDER = [[138, 131, 120], [126, 122, 116], [154, 142, 128]];
+
+/* ---------------------------------------------------------------------------
+   The ovoid: width skewed toward the blunt end. Revolved, it is an egg.
+   Points run blunt-end-up so the winding faces outward; v runs pointed -> blunt.
+--------------------------------------------------------------------------- */
+function eggProfile(a, b, k, segs = 64){
+  const pts = [];
+  for (let i = 0; i <= segs; i++){
+    const t = i / segs * Math.PI;
+    pts.push(new THREE.Vector2(
+      Math.max(1e-4, b * Math.sin(t) * (1 - k * Math.cos(t))),
+      -a * Math.cos(t)
+    ));
+  }
+  return pts;
+}
+
+/* an irregular closed blob, smoothed through its own midpoints */
+function blobPath(g, cx, cy, r, squash, rnd, n = 9){
+  const pts = [];
+  for (let i = 0; i < n; i++){
+    const t = i / n * TAU, rr = r * (0.42 + 0.9 * rnd());
+    pts.push([cx + Math.cos(t) * rr, cy + Math.sin(t) * rr * squash]);
+  }
+  g.beginPath();
+  g.moveTo((pts[0][0] + pts[n-1][0]) / 2, (pts[0][1] + pts[n-1][1]) / 2);
+  for (let i = 0; i < n; i++){
+    const p = pts[i], q = pts[(i + 1) % n];
+    g.quadraticCurveTo(p[0], p[1], (p[0] + q[0]) / 2, (p[1] + q[1]) / 2);
+  }
+  g.closePath();
+}
+
+/* ---------------------------------------------------------------------------
+   The shell texture. u wraps around the egg, so every mark is painted three
+   times — left of the seam, on it, and right of it — and the wrap is invisible.
+   v runs pointed pole to blunt pole, and pigment is biased toward the blunt end
+   the way it is on a real egg.
+--------------------------------------------------------------------------- */
+function shellTexture(sp, TWx, THy){
+  const c = document.createElement('canvas');
+  c.width = TWx; c.height = THy;
+  const g = c.getContext('2d'), r = sp.rnd;
+  const wrapped = (fn) => { for (const dx of [-TWx, 0, TWx]){ g.save(); g.translate(dx, 0); fn(); g.restore(); } };
+
+  g.fillStyle = rgba(sp.base, 1);
+  g.fillRect(0, 0, TWx, THy);
+
+  /* mottled ground */
+  for (let i = 0; i < 70; i++){
+    const mx = r() * TWx, my = r() * THy, mr = TWx * (0.03 + 0.1 * r());
+    const tint = jitterCol(sp.base, r, 46);
+    wrapped(() => {
+      const gg = g.createRadialGradient(mx, my, 0, mx, my, mr);
+      gg.addColorStop(0, rgba(tint, 0.05 + 0.13 * r()));
+      gg.addColorStop(1, rgba(tint, 0));
+      g.fillStyle = gg;
+      g.fillRect(mx - mr, my - mr, mr * 2, mr * 2);
+    });
+  }
+
+  /* pigment sits toward the blunt pole (v -> 1) */
+  const vPick = () => THy * Math.pow(r(), 1 / (1 + sp.bias));
+  const under = UNDER[(r() * UNDER.length) | 0];
+  for (let i = 0; i < sp.nUnder; i++){
+    const x = r() * TWx, y = vPick(), rad = TWx * (0.012 + 0.03 * r());
+    wrapped(() => { blobPath(g, x, y, rad, 0.7 + 0.5 * r(), r, 8); g.fillStyle = rgba(under, 0.1 + 0.18 * r()); g.fill(); });
+  }
+
+  const mark = MARKS[(r() * MARKS.length) | 0];
+  if (sp.style === 'scrawl'){
+    g.lineCap = 'round';
+    for (let i = 0; i < sp.nBlob; i++){
+      const x = r() * TWx, y = vPick(), len = TWx * (0.03 + 0.07 * r());
+      const col = rgba(jitterCol(mark, r, 16), 0.55 + 0.4 * r()), lw = TWx * (0.0035 + 0.008 * r());
+      const d1 = (r() - 0.5) * len, d2 = (r() - 0.5) * len, d3 = (r() - 0.5) * len * 1.7, d4 = (r() - 0.5) * len * 1.3;
+      wrapped(() => {
+        g.strokeStyle = col; g.lineWidth = lw;
+        g.beginPath(); g.moveTo(x, y);
+        g.quadraticCurveTo(x + d1, y + d2, x + d3, y + d4);
+        g.stroke();
+      });
+    }
+  } else {
+    for (let i = 0; i < sp.nBlob; i++){
+      const x = r() * TWx, y = vPick(), rad = TWx * sp.blobR * (0.5 + r());
+      const col = rgba(jitterCol(mark, r, 14), 0.55 + 0.42 * r()), sq = 0.6 + 0.7 * r();
+      wrapped(() => { blobPath(g, x, y, rad, sq, r, 9); g.fillStyle = col; g.fill(); });
+    }
+  }
+  for (let i = 0; i < sp.nDot; i++){
+    const x = r() * TWx, y = vPick(), dr = TWx * (0.0015 + 0.0042 * r());
+    const col = rgba(jitterCol(mark, r, 18), 0.35 + 0.55 * r()), rot = r() * TAU, sq = 0.6 + 0.7 * r();
+    wrapped(() => { g.fillStyle = col; g.beginPath(); g.ellipse(x, y, dr, dr * sq, rot, 0, TAU); g.fill(); });
+  }
+
+  const tex = new THREE.CanvasTexture(c);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  tex.wrapS = THREE.RepeatWrapping;
+  tex.anisotropy = 8;
+
+  /* the same painting, desaturated, doubles as relief for the shell */
+  const bc = document.createElement('canvas');
+  bc.width = TWx; bc.height = THy;
+  const bg = bc.getContext('2d');
+  bg.drawImage(c, 0, 0);
+  const img = bg.getImageData(0, 0, TWx, THy), d = img.data;
+  for (let i = 0; i < d.length; i += 4){
+    const v = (d[i] * 0.3 + d[i+1] * 0.59 + d[i+2] * 0.11);
+    const n = 236 - (255 - v) * 0.5 + (r() - 0.5) * 26;
+    d[i] = d[i+1] = d[i+2] = clamp(n, 0, 255);
+  }
+  bg.putImageData(img, 0, 0);
+  const bump = new THREE.CanvasTexture(bc);
+  bump.wrapS = THREE.RepeatWrapping;
+
+  return { map: tex, bump };
+}
+
+/* paper: uneven ageing and pale flecks in the pulp */
+function paperTexture(){
+  const S = 1400, c = document.createElement('canvas');
+  c.width = Math.round(S * 0.8); c.height = S;
+  const g = c.getContext('2d'), r = mulberry32(31415);
+  g.fillStyle = rgba(PAPER, 1);
+  g.fillRect(0, 0, c.width, c.height);
+  for (let i = 0; i < 110; i++){
+    const mx = r() * c.width, my = r() * c.height, mr = 90 + r() * 420;
+    const tint = jitterCol(PAPER, r, 16);
+    const gg = g.createRadialGradient(mx, my, 0, mx, my, mr);
+    gg.addColorStop(0, rgba(tint, 0.05 + 0.08 * r()));
+    gg.addColorStop(1, rgba(tint, 0));
+    g.fillStyle = gg;
+    g.fillRect(mx - mr, my - mr, mr * 2, mr * 2);
+  }
+  for (let i = 0; i < 420; i++){
+    g.fillStyle = `rgba(247,242,228,${0.12 + 0.5 * r()})`;
+    g.beginPath(); g.ellipse(r() * c.width, r() * c.height, 0.6 + r() * 2, 0.6 + r() * 1.5, r() * TAU, 0, TAU); g.fill();
+  }
+  for (let i = 0; i < 150; i++){
+    g.fillStyle = `rgba(122,106,82,${0.05 + 0.13 * r()})`;
+    g.beginPath(); g.ellipse(r() * c.width, r() * c.height, 0.7 + r() * 1.8, 0.7 + r() * 1.3, r() * TAU, 0, TAU); g.fill();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
+  return t;
+}
+
+/* the end card, drawn to a transparent canvas */
+function wordmarkTexture(){
+  const w = 2048, h = 1024, c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const g = c.getContext('2d');
+  g.textAlign = 'center'; g.textBaseline = 'middle';
+  let size = 300;
+  g.font = `400 ${size}px ${WORDMARK_FONT}`;
+  size = size * (w * 0.92) / g.measureText('Opus 5').width;
+  g.font = `400 ${size}px ${WORDMARK_FONT}`;
+  g.fillStyle = '#131009';
+  g.fillText('Opus 5', w / 2, h / 2);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.anisotropy = 8;
+  return t;
+}
+
+/* ---------------------------------------------------------------------------
+   The composition: pack eggs into the numeral, largest first.
+--------------------------------------------------------------------------- */
+function buildComposition(){
+  const r = mulberry32(20260724);
+
+  const mw = 260, mh = 330;
+  const oc = document.createElement('canvas');
+  oc.width = mw; oc.height = mh;
+  const g = oc.getContext('2d');
+  g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.font = `600 300px ${SERIF}`;
+  g.fillText('5', mw / 2, mh / 2);
+  const d = g.getImageData(0, 0, mw, mh).data;
+
+  let x0 = 1e9, y0 = 1e9, x1 = -1e9, y1 = -1e9;
+  for (let y = 0; y < mh; y++){
+    for (let x = 0; x < mw; x++){
+      if (d[(y * mw + x) * 4 + 3] > 128){
+        if (x < x0) x0 = x; if (x > x1) x1 = x;
+        if (y < y0) y0 = y; if (y > y1) y1 = y;
+      }
+    }
+  }
+  /* u,v in [0,1] over the numeral's box */
+  const inside = (u, v) => {
+    const mx = Math.round(x0 + u * (x1 - x0)), my = Math.round(y0 + v * (y1 - y0));
+    if (mx < 0 || my < 0 || mx >= mw || my >= mh) return false;
+    return d[(my * mw + mx) * 4 + 3] > 120;
+  };
+
+  const eggs = [], ATT = 9000;
+  for (let i = 0; i < ATT && eggs.length < 36; i++){
+    const a = lerp(2.44, 0.72, Math.pow(i / ATT, 0.6)) * (0.88 + 0.26 * r());
+    const u = r(), v = r();
+    if (!inside(u, v)) continue;
+    const du = a * 0.45 / TW, dv = a * 0.45 / TH;
+    if (!(inside(u + du, v) && inside(u - du, v) && inside(u, v + dv) && inside(u, v - dv))) continue;
+    const x = (u - 0.5) * TW, y = (0.5 - v) * TH;
+    let clash = false;
+    for (const e of eggs){
+      const dx = e.x - x, dy = e.y - y;
+      if (dx * dx + dy * dy < Math.pow((e.a + a) * 0.76, 2)){ clash = true; break; }
+    }
+    if (clash) continue;
+    eggs.push({ x, y, a });
+  }
+
+  for (const e of eggs){
+    const seed = (r() * 1e9) | 0, er = mulberry32(seed);
+    const roll = er();
+    e.style = roll < 0.17 ? 'plain' : roll < 0.4 ? 'pepper' : roll < 0.87 ? 'blotch' : 'scrawl';
+    e.b = e.a * (0.66 + 0.12 * er());
+    e.k = 0.16 + 0.14 * er();
+    e.rnd = er;
+    e.base = jitterCol(SHELLS[(er() * SHELLS.length) | 0], er, 18);
+    e.bias = 0.6 + 0.5 * er();
+    e.blobR = 0.022 + 0.026 * er();
+    e.nUnder = e.style === 'plain' ? 3 : 8 + ((er() * 14) | 0);
+    e.nBlob = e.style === 'plain' ? 0 : (e.style === 'pepper' ? 8 + ((er() * 14) | 0)
+            : (e.style === 'scrawl' ? 16 + ((er() * 16) | 0) : 38 + ((er() * 46) | 0)));
+    e.nDot = e.style === 'plain' ? ((er() * 44) | 0)
+            : (e.style === 'pepper' ? 420 + ((er() * 460) | 0) : 220 + ((er() * 340) | 0));
+    e.spin = er() * TAU;
+    e.inPlane = (er() * 2 - 1) * 1.45;
+    e.tilt = (er() * 2 - 1) * 0.16;
+  }
+
+  const order = eggs.map((_, i) => i).sort((p, q) =>
+    (-eggs[p].y + (mulberry32(p * 977 + 5)() - 0.5) * 7.3) -
+    (-eggs[q].y + (mulberry32(q * 977 + 5)() - 0.5) * 7.3));
+
+  return { eggs, order, step: (2.84 - 0.08) / Math.max(1, eggs.length) };
+}
+
+/* ---------------------------------------------------------------------------
+   Scene
+--------------------------------------------------------------------------- */
+const wrap = document.getElementById('wrap');
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.toneMapping = THREE.NoToneMapping;
+wrap.insertBefore(renderer.domElement, wrap.firstChild);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0x0b0a07);
+
+const FOV = 34;
+const DIST = (PH / 2) / Math.tan(FOV * Math.PI / 360) * 1.02;
+const camera = new THREE.PerspectiveCamera(FOV, 0.8, 1, 400);
+camera.position.set(0, 0, DIST);
+
+scene.add(new THREE.HemisphereLight(0xfff3e0, 0x9d8a68, 0.6));
+const key = new THREE.DirectionalLight(0xfff0d8, 1.8);
+key.position.set(-9, 14, 32);
+key.castShadow = true;
+key.shadow.mapSize.set(2048, 2048);
+key.shadow.camera.left = -22; key.shadow.camera.right = 22;
+key.shadow.camera.top = 26; key.shadow.camera.bottom = -26;
+key.shadow.camera.near = 1; key.shadow.camera.far = 90;
+key.shadow.bias = -0.0006;
+key.shadow.radius = 4;
+scene.add(key);
+const fill = new THREE.DirectionalLight(0xd9c8ac, 0.34);
+fill.position.set(18, -12, 20);
+scene.add(fill);
+
+const paper = new THREE.Mesh(
+  new THREE.PlaneGeometry(PW * 1.9, PH * 1.9),
+  new THREE.MeshLambertMaterial({ map: paperTexture() })
+);
+paper.receiveShadow = true;
+scene.add(paper);
+
+const COMP = buildComposition();
+const eggGroup = new THREE.Group();
+scene.add(eggGroup);
+const meshes = [];
+
+for (const e of COMP.eggs){
+  const big = e.a > 1.7, tw = big ? 640 : 384, th = Math.round(tw * 0.7);
+  const { map, bump } = shellTexture(e, tw, th);
+  const geo = new THREE.LatheGeometry(eggProfile(e.a, e.b, e.k, 56), 48);
+  const mat = new THREE.MeshLambertMaterial({ map, bumpMap: bump, bumpScale: 0.022 });
+  const m = new THREE.Mesh(geo, mat);
+  m.castShadow = true;
+  m.receiveShadow = true;
+  m.userData = e;
+  eggGroup.add(m);
+  meshes.push(m);
+}
+
+const wordmark = new THREE.Mesh(
+  new THREE.PlaneGeometry(17.1, 8.55),
+  new THREE.MeshLambertMaterial({ map: wordmarkTexture(), transparent: true })
+);
+wordmark.position.set(0, 0.68, 0.06);
+wordmark.visible = false;
+scene.add(wordmark);
+
+/* place an egg for a given moment in its arrival */
+function placeEgg(m, e, age){
+  const settle = clamp(age / 0.3, 0, 1);
+  const ease = 1 - Math.pow(1 - settle, 3);
+  const drop = (1 - ease) * 2.6;
+  const s = settle < 1 ? lerp(0.62, 1.04, ease) + (1 - Math.cos(settle * Math.PI * 2)) * 0.02 : 1;
+  m.scale.setScalar(clamp(s, 0.01, 1.06));
+  m.position.set(e.x, e.y, e.b + 0.02 + drop);
+  m.rotation.set(0, e.spin, 0);
+  m.rotateOnWorldAxis(new THREE.Vector3(0, 0, 1), e.inPlane);
+  m.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), e.tilt * ease);
+}
+
+/* ---------------------------------------------------------------------------
+   Transport
+--------------------------------------------------------------------------- */
+let time = 0, playing = true, looping = true, last = performance.now();
+let dragYaw = 0, dragPitch = 0, dragging = false, px = 0, py = 0;
+
+const elPlay = document.getElementById('play'), elLoop = document.getElementById('loop'),
+      elFull = document.getElementById('full'), elScrub = document.getElementById('scrub'),
+      elFill = document.getElementById('fill'), elKnob = document.getElementById('knob'),
+      elTime = document.getElementById('time'), elOverlay = document.getElementById('overlay');
+
+function resize(){
+  const rect = wrap.getBoundingClientRect();
+  renderer.setSize(rect.width, rect.height, false);
+  camera.aspect = rect.width / rect.height;
+  camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(wrap);
+resize();
+
+function setPlaying(v){
+  playing = v;
+  elPlay.textContent = v ? 'Pause' : 'Play';
+  elOverlay.classList.toggle('show', !v);
+}
+const seek = (t) => { time = clamp(t, 0, DUR); };
+
+function update(t){
+  const q = Math.floor(t * FPS) / FPS;      /* the arrivals keep the 24fps beat */
+  const showEggs = q < CUT;
+  eggGroup.visible = showEggs;
+  wordmark.visible = !showEggs;
+
+  if (showEggs){
+    for (let i = 0; i < COMP.order.length; i++){
+      const m = meshes[COMP.order[i]], e = m.userData;
+      const ti = 0.08 + i * COMP.step;
+      if (q < ti){ m.visible = false; continue; }
+      m.visible = true;
+      placeEgg(m, e, q - ti);
+    }
+  }
+
+  /* a slow drift, plus whatever the viewer has dragged */
+  const yaw = Math.sin(t * 0.16) * 0.035 + dragYaw;
+  const pitch = Math.cos(t * 0.12) * 0.022 + dragPitch;
+  camera.position.set(
+    Math.sin(yaw) * Math.cos(pitch) * DIST,
+    Math.sin(pitch) * DIST,
+    Math.cos(yaw) * Math.cos(pitch) * DIST
+  );
+  camera.lookAt(0, 0, 0);
+}
+
+function frame(now){
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+  if (playing){
+    time += dt;
+    if (time >= DUR){
+      if (looping) time -= DUR; else { time = DUR; setPlaying(false); }
+    }
+  }
+  update(time);
+  renderer.render(scene, camera);
+  const f = time / DUR, bw = elScrub.clientWidth;
+  elFill.style.width = `${bw * f}px`;
+  elKnob.style.left = `${bw * f}px`;
+  elTime.textContent = `${time.toFixed(1)} / ${DUR.toFixed(1)}`;
+  requestAnimationFrame(frame);
+}
+
+elPlay.addEventListener('click', () => { if (time >= DUR) seek(0); setPlaying(!playing); });
+elLoop.addEventListener('click', () => { looping = !looping; elLoop.classList.toggle('on', looping); });
+elFull.addEventListener('click', () => {
+  if (document.fullscreenElement) document.exitFullscreen();
+  else if (wrap.requestFullscreen) wrap.requestFullscreen();
+});
+
+/* drag to look around; a click that does not travel is play/pause */
+let travelled = 0;
+wrap.addEventListener('pointerdown', (ev) => {
+  dragging = true; travelled = 0; px = ev.clientX; py = ev.clientY;
+  wrap.setPointerCapture(ev.pointerId);
+});
+wrap.addEventListener('pointermove', (ev) => {
+  if (!dragging) return;
+  const dx = ev.clientX - px, dy = ev.clientY - py;
+  px = ev.clientX; py = ev.clientY;
+  travelled += Math.abs(dx) + Math.abs(dy);
+  dragYaw = clamp(dragYaw + dx * 0.0022, -0.34, 0.34);
+  dragPitch = clamp(dragPitch - dy * 0.0022, -0.26, 0.26);
+});
+function endDrag(){
+  if (dragging && travelled < 6){ if (time >= DUR) seek(0); setPlaying(!playing); }
+  dragging = false;
+}
+wrap.addEventListener('pointerup', endDrag);
+wrap.addEventListener('pointercancel', () => { dragging = false; });
+
+let scrubbing = false;
+const scrubTo = (ev) => {
+  const r = elScrub.getBoundingClientRect();
+  seek((ev.clientX - r.left) / r.width * DUR);
+};
+elScrub.addEventListener('pointerdown', (ev) => { scrubbing = true; elScrub.setPointerCapture(ev.pointerId); scrubTo(ev); });
+elScrub.addEventListener('pointermove', (ev) => { if (scrubbing) scrubTo(ev); });
+elScrub.addEventListener('pointerup', () => { scrubbing = false; });
+elScrub.addEventListener('pointercancel', () => { scrubbing = false; });
+
+document.addEventListener('keydown', (ev) => {
+  if (ev.key === ' '){ ev.preventDefault(); if (time >= DUR) seek(0); setPlaying(!playing); }
+  else if (ev.key === 'ArrowRight') seek(time + 0.25);
+  else if (ev.key === 'ArrowLeft') seek(time - 0.25);
+  else if (ev.key === 'l' || ev.key === 'L') elLoop.click();
+  else if (ev.key === 'f' || ev.key === 'F') elFull.click();
+  else if (ev.key === 'r' || ev.key === 'R'){ dragYaw = 0; dragPitch = 0; }
+  else if (ev.key === 'Home') seek(0);
+});
+
+document.getElementById('loading').remove();
+setPlaying(true);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
