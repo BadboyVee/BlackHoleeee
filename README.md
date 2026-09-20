@@ -7,11 +7,16 @@ any of them — every project is an `index.html` you can open directly.
 
 ### 🚙 [Waymo Jaguar I-PACE](waymo.html)
 
-A procedurally modelled Waymo robotaxi in a high-key white studio. The body is a single
-lofted surface driven by keyframed section profiles, with real wheel-arch openings, tinted
-panoramic glazing and the 5th-generation Waymo Driver: roof fairing with the spinning LiDAR
-dome and camera collar, front wing pods, mirror cameras and bumper perimeter housings.
-Orbit with the mouse; nothing else on screen.
+A procedurally modelled Waymo robotaxi you can orbit, repaint, relight, drive and take
+apart. The body is a single lofted surface driven by keyframed section profiles, with real
+wheel-arch and window openings cut into the skin, tinted glazing, a trimmed cabin and the
+5th-generation Waymo Driver: roof fairing with the spinning LiDAR dome and camera collar,
+front wing pods, mirror cameras and bumper perimeter housings.
+
+Six paint finishes, four lighting scenes (studio, noon, dusk, noir), a drive mode that spins
+the wheels and weaves the steering, and three dissection tools - ghost the skin, split the
+car into its six layers, or slice it with a live cutaway to look at the seats, the
+skateboard battery, the drive units and the cooling pack.
 
 **▶ [View it](https://badboyvee.github.io/BlackHoleeee/waymo.html)** · [source](waymo.html)
 
