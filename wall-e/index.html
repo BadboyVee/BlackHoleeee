@@ -1,0 +1,2905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#08090b">
+<title>WALL&middot;E &mdash; Articulation Rig</title>
+<style>
+  *{ margin:0; padding:0; box-sizing:border-box; }
+
+  :root{
+    --amber:      #e9a53a;
+    --amber-soft: #f3c476;
+    --amber-dim:  rgba(233,165,58,0.16);
+    --panel:      rgba(9,10,12,0.90);
+    --panel-edge: rgba(255,255,255,0.075);
+    --chip:       rgba(255,255,255,0.045);
+    --chip-hover: rgba(255,255,255,0.10);
+    --ink:        rgba(255,255,255,0.80);
+    --ink-dim:    rgba(255,255,255,0.34);
+    --ink-faint:  rgba(255,255,255,0.20);
+    --red:        #d8422f;
+    --pw:         318px;
+  }
+
+  html,body{
+    position:fixed; inset:0; width:100%; height:100%; overflow:hidden;
+    background:#07080a; color:var(--ink);
+    font:500 12px/1 ui-monospace,"SF Mono",Menlo,Consolas,"Liberation Mono",monospace;
+    -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility;
+    -webkit-user-select:none; user-select:none; -webkit-tap-highlight-color:transparent;
+  }
+  canvas{ display:block; touch-action:none; }
+
+  #ui{ position:fixed; inset:0; pointer-events:none; z-index:5; }
+  #ui.hidden{ opacity:0; pointer-events:none !important; }
+  #ui{ transition:opacity .35s ease; }
+
+  /* ───────────────────────── brand ───────────────────────── */
+  #brand{ position:absolute; top:22px; left:26px; }
+  .brand-title{
+    display:flex; align-items:center; gap:7px;
+    font:800 30px/1 "Helvetica Neue",Arial,sans-serif;
+    letter-spacing:.02em; color:#fff;
+    text-shadow:0 2px 14px rgba(0,0,0,.65);
+  }
+  .brand-title .badge{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:26px; height:26px; border-radius:6px;
+    background:var(--red); color:#fff; font-size:19px; font-weight:800;
+    box-shadow:0 2px 12px rgba(216,66,47,.42);
+  }
+  .brand-sub{
+    margin-top:9px; font-size:9.5px; letter-spacing:.20em; text-transform:uppercase;
+    color:var(--amber-soft); opacity:.82; line-height:1.75; max-width:268px;
+    text-shadow:0 1px 6px rgba(0,0,0,.7);
+  }
+  .brand-sub.dim{ color:rgba(255,255,255,.34); }
+
+  /* ───────────────────────── panel ───────────────────────── */
+  #panel{
+    position:absolute; top:0; right:0; width:var(--pw); height:100%;
+    background:var(--panel); border-left:1px solid var(--panel-edge);
+    backdrop-filter:blur(22px) saturate(1.1); -webkit-backdrop-filter:blur(22px) saturate(1.1);
+    padding:22px 20px 26px; overflow-y:auto; overscroll-behavior:contain;
+    pointer-events:auto; box-shadow:-24px 0 60px rgba(0,0,0,.45);
+    transition:transform .38s cubic-bezier(.4,0,.2,1);
+    scrollbar-width:thin; scrollbar-color:rgba(255,255,255,.14) transparent;
+  }
+  #panel::-webkit-scrollbar{ width:8px; }
+  #panel::-webkit-scrollbar-thumb{ background:rgba(255,255,255,.12); border-radius:4px; }
+  #panel::-webkit-scrollbar-track{ background:transparent; }
+
+  .sec{ margin-bottom:17px; }
+  .sec-h{
+    font-size:8.5px; letter-spacing:.24em; text-transform:uppercase;
+    color:var(--ink-faint); margin-bottom:9px; display:flex; align-items:center; gap:8px;
+  }
+  .sec-h::after{ content:""; flex:1; height:1px; background:rgba(255,255,255,.055); }
+
+  .row{ display:flex; gap:6px; }
+  .grid-5{ display:grid; grid-template-columns:repeat(5,1fr); gap:5px; }
+  .grid-4{ display:grid; grid-template-columns:repeat(4,1fr); gap:5px; }
+  .grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:5px; }
+  .grid-2{ display:grid; grid-template-columns:repeat(2,1fr); gap:6px; }
+
+  .chip{
+    appearance:none; border:1px solid rgba(255,255,255,.075);
+    background:var(--chip); color:var(--ink); border-radius:5px;
+    font:600 9px/1 inherit; letter-spacing:.11em; text-transform:uppercase;
+    padding:8px 4px; cursor:pointer; text-align:center; white-space:nowrap;
+    transition:background .14s, color .14s, border-color .14s, transform .08s;
+  }
+  .chip:hover{ background:var(--chip-hover); border-color:rgba(255,255,255,.16); }
+  .chip:active{ transform:scale(.96); }
+  .chip.on{
+    background:var(--amber); border-color:var(--amber); color:#14100a;
+    box-shadow:0 0 18px rgba(233,165,58,.24);
+  }
+
+  /* toggle rows */
+  .tog{
+    display:flex; align-items:center; justify-content:space-between; gap:8px;
+    background:var(--chip); border:1px solid rgba(255,255,255,.07); border-radius:5px;
+    padding:7px 9px; cursor:pointer; transition:background .14s, border-color .14s;
+  }
+  .tog:hover{ background:var(--chip-hover); }
+  .tog span{ font-size:9px; letter-spacing:.11em; text-transform:uppercase; color:var(--ink); }
+  .sw{
+    width:26px; height:14px; border-radius:8px; background:rgba(255,255,255,.13);
+    position:relative; flex:none; transition:background .2s;
+  }
+  .sw::after{
+    content:""; position:absolute; top:2px; left:2px; width:10px; height:10px;
+    border-radius:50%; background:#fff; transition:transform .2s cubic-bezier(.4,0,.2,1);
+  }
+  .tog.on .sw{ background:var(--amber); }
+  .tog.on .sw::after{ transform:translateX(12px); }
+
+  /* behaviour buttons */
+  .beh{
+    display:flex; flex-direction:column; align-items:center; gap:5px;
+    padding:9px 2px 8px; border-radius:5px;
+    background:var(--chip); border:1px solid rgba(255,255,255,.07);
+    cursor:pointer; transition:background .14s, border-color .14s, transform .08s;
+  }
+  .beh:hover{ background:var(--chip-hover); }
+  .beh:active{ transform:scale(.95); }
+  .beh .ic{ font-size:15px; line-height:1; filter:saturate(1.1); }
+  .beh .lb{ font-size:7.5px; letter-spacing:.09em; text-transform:uppercase; color:var(--ink-dim); }
+  .beh.on{ background:var(--amber-dim); border-color:rgba(233,165,58,.55); }
+  .beh.on .lb{ color:var(--amber-soft); }
+
+  /* sliders */
+  .sl{ margin-bottom:11px; }
+  .sl-top{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:6px; }
+  .sl-top b{ font:500 9.5px/1 inherit; letter-spacing:.06em; color:rgba(255,255,255,.62); }
+  .sl-top i{ font:600 9.5px/1 inherit; font-style:normal; color:var(--amber); letter-spacing:.04em; }
+  input[type=range]{
+    -webkit-appearance:none; appearance:none; width:100%; height:12px;
+    background:transparent; cursor:pointer; display:block;
+  }
+  input[type=range]::-webkit-slider-runnable-track{
+    height:2px; border-radius:2px;
+    background:linear-gradient(90deg,var(--amber) calc(var(--p,0)*1%),rgba(255,255,255,.11) 0);
+  }
+  input[type=range]::-webkit-slider-thumb{
+    -webkit-appearance:none; width:11px; height:11px; border-radius:50%;
+    background:var(--amber); margin-top:-4.5px; border:none;
+    box-shadow:0 0 0 3px rgba(233,165,58,.14), 0 1px 4px rgba(0,0,0,.5);
+    transition:box-shadow .15s;
+  }
+  input[type=range]:hover::-webkit-slider-thumb{ box-shadow:0 0 0 5px rgba(233,165,58,.20), 0 1px 4px rgba(0,0,0,.5); }
+  input[type=range]::-moz-range-track{ height:2px; border-radius:2px; background:rgba(255,255,255,.11); }
+  input[type=range]::-moz-range-progress{ height:2px; border-radius:2px; background:var(--amber); }
+  input[type=range]::-moz-range-thumb{
+    width:11px; height:11px; border:none; border-radius:50%; background:var(--amber);
+    box-shadow:0 0 0 3px rgba(233,165,58,.14);
+  }
+  .sl.locked .sl-top i::after{ content:" ▸"; color:var(--amber-soft); }
+
+  /* paint swatches */
+  .swatches{ display:grid; grid-template-columns:repeat(6,1fr); gap:6px; }
+  .sws{
+    aspect-ratio:1; border-radius:5px; cursor:pointer; position:relative;
+    border:1px solid rgba(255,255,255,.12); transition:transform .12s, box-shadow .15s;
+  }
+  .sws:hover{ transform:translateY(-2px); }
+  .sws.on{ box-shadow:0 0 0 2px var(--amber), 0 4px 14px rgba(0,0,0,.5); border-color:transparent; }
+
+  .btn-wide{
+    width:100%; margin-top:3px; padding:9px; border-radius:5px;
+    background:var(--chip); border:1px solid rgba(255,255,255,.08); color:var(--ink);
+    font:600 9px/1 inherit; letter-spacing:.14em; text-transform:uppercase; cursor:pointer;
+    transition:background .14s,border-color .14s;
+  }
+  .btn-wide:hover{ background:var(--chip-hover); border-color:rgba(255,255,255,.18); }
+  .btn-wide:active{ transform:scale(.985); }
+
+  /* telemetry */
+  #telem{ border-top:1px solid rgba(255,255,255,.06); padding-top:12px; }
+  .tl{ display:flex; justify-content:space-between; align-items:baseline; padding:3.5px 0; }
+  .tl b{ font:500 9px/1 inherit; letter-spacing:.14em; text-transform:uppercase; color:var(--ink-faint); }
+  .tl i{ font:600 10px/1 inherit; font-style:normal; color:rgba(255,255,255,.78); letter-spacing:.02em; }
+  .tl i.hl{ color:var(--amber); }
+
+  /* ───────────────────── bottom chrome ───────────────────── */
+  #keys{
+    position:absolute; left:26px; bottom:20px; display:flex; align-items:center;
+    gap:7px; flex-wrap:wrap; max-width:calc(100% - var(--pw) - 60px);
+  }
+  .kcap{
+    padding:4px 7px; border-radius:3px; background:rgba(255,255,255,.075);
+    border:1px solid rgba(255,255,255,.10); color:rgba(255,255,255,.72);
+    font-size:8.5px; letter-spacing:.14em; font-weight:600;
+  }
+  .klabel{ font-size:8.5px; letter-spacing:.17em; color:rgba(255,255,255,.30); text-transform:uppercase; margin-right:8px; }
+
+  #hint{
+    position:absolute; bottom:23px; right:calc(var(--pw) + 28px);
+    font-size:8.5px; letter-spacing:.17em; text-transform:uppercase;
+    color:rgba(255,255,255,.22); text-align:right;
+  }
+
+  #routine-flash{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    font:700 13px/1 inherit; letter-spacing:.42em; text-transform:uppercase;
+    color:var(--amber-soft); opacity:0; pointer-events:none;
+    text-shadow:0 2px 22px rgba(0,0,0,.9);
+  }
+  #routine-flash.show{ animation:flash 1.15s ease-out; }
+  @keyframes flash{
+    0%{ opacity:0; letter-spacing:.7em; }
+    18%{ opacity:.95; letter-spacing:.42em; }
+    70%{ opacity:.95; }
+    100%{ opacity:0; letter-spacing:.42em; }
+  }
+
+  /* panel toggle (small screens) */
+  #ptog{
+    position:absolute; top:20px; right:20px; width:38px; height:38px; border-radius:7px;
+    background:var(--panel); border:1px solid var(--panel-edge); color:var(--ink);
+    display:none; align-items:center; justify-content:center; cursor:pointer;
+    pointer-events:auto; font-size:15px; backdrop-filter:blur(14px); z-index:7;
+  }
+
+  /* loader */
+  #boot{
+    position:fixed; inset:0; z-index:50; background:#07080a;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px;
+    transition:opacity .6s ease .1s; pointer-events:auto;
+  }
+  #boot.gone{ opacity:0; pointer-events:none; }
+  #boot .bt{ font:800 26px/1 "Helvetica Neue",Arial,sans-serif; letter-spacing:.06em; color:#fff; display:flex; gap:7px; align-items:center; }
+  #boot .bs{ font-size:9px; letter-spacing:.34em; text-transform:uppercase; color:var(--ink-faint); }
+  #boot .bar{ width:190px; height:2px; background:rgba(255,255,255,.10); border-radius:2px; overflow:hidden; }
+  #boot .bar>i{ display:block; height:100%; width:0%; background:var(--amber); transition:width .25s ease; }
+
+  @media (max-width:900px){
+    :root{ --pw:290px; }
+    #panel{ transform:translateX(102%); box-shadow:none; }
+    #panel.open{ transform:none; }
+    #ptog{ display:flex; }
+    #hint{ display:none; }
+    #keys{ max-width:calc(100% - 52px); bottom:16px; left:18px; }
+    #brand{ top:16px; left:18px; }
+    .brand-title{ font-size:24px; }
+  }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<div id="ui">
+  <header id="brand">
+    <div class="brand-title">WALL<span class="badge">E</span></div>
+    <div class="brand-sub">Waste Allocation Load Lifter &middot; Earth-Class</div>
+    <div class="brand-sub dim">Real-time WebGL articulation rig</div>
+  </header>
+
+  <div id="ptog">&#9776;</div>
+
+  <aside id="panel">
+    <div class="sec">
+      <div class="sec-h">Camera</div>
+      <div class="grid-5" id="cam-views">
+        <button class="chip on" data-view="threequarter">3/4</button>
+        <button class="chip" data-view="front">Front</button>
+        <button class="chip" data-view="side">Side</button>
+        <button class="chip" data-view="top">Top</button>
+        <button class="chip" data-view="macro">Macro</button>
+      </div>
+      <div class="grid-2" style="margin-top:6px">
+        <div class="tog" data-tog="orbit"><span>Auto-orbit</span><div class="sw"></div></div>
+        <div class="tog on" data-tog="follow"><span>Follow</span><div class="sw"></div></div>
+        <div class="tog on" data-tog="eyecontact"><span>Eye contact</span><div class="sw"></div></div>
+        <div class="tog on" data-tog="bloom"><span>Bloom</span><div class="sw"></div></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-h">Environment</div>
+      <div class="grid-3" id="env-btns">
+        <button class="chip" data-env="studio">Studio</button>
+        <button class="chip on" data-env="earth">Earth</button>
+        <button class="chip" data-env="blueprint">Blueprint</button>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-h">Behaviour routine</div>
+      <div class="grid-4" id="beh-btns"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-h">Servo overrides</div>
+      <div class="sl" data-sl="neck">
+        <div class="sl-top"><b>Neck extension</b><i>0%</i></div>
+        <input type="range" min="0" max="100" value="18">
+      </div>
+      <div class="sl" data-sl="shoulder">
+        <div class="sl-top"><b>Shoulder lift</b><i>0&deg;</i></div>
+        <input type="range" min="-45" max="95" value="-18">
+      </div>
+      <div class="sl" data-sl="grip">
+        <div class="sl-top"><b>Gripper</b><i>0%</i></div>
+        <input type="range" min="0" max="100" value="30">
+      </div>
+      <div class="sl" data-sl="gear">
+        <div class="sl-top"><b>Drive gearing</b><i>1.00&times;</i></div>
+        <input type="range" min="25" max="200" value="100">
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-h">Paint &amp; finish</div>
+      <div class="swatches" id="paint-btns"></div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-h">Teardown</div>
+      <div class="sl" data-sl="explode">
+        <div class="sl-top"><b>Exploded view</b><i>0%</i></div>
+        <input type="range" min="0" max="100" value="0">
+      </div>
+      <div class="grid-2" style="margin-bottom:7px">
+        <div class="tog on" data-tog="shadows"><span>Shadows</span><div class="sw"></div></div>
+        <div class="tog" data-tog="plant"><span>Hold plant</span><div class="sw"></div></div>
+      </div>
+      <button class="btn-wide" id="btn-reset">Reset position</button>
+    </div>
+
+    <div class="sec" id="telem">
+      <div class="sec-h">Telemetry</div>
+      <div class="tl"><b>Drive</b><i id="t-drive">0.00 m/s</i></div>
+      <div class="tl"><b>Heading</b><i id="t-head">000&deg;</i></div>
+      <div class="tl"><b>Routine</b><i id="t-routine" class="hl">IDLE</i></div>
+      <div class="tl"><b>Servo load</b><i id="t-load">12%</i></div>
+      <div class="tl"><b>Solar charge</b><i id="t-solar" class="hl">100%</i></div>
+      <div class="tl"><b>Render</b><i id="t-fps">60 fps</i></div>
+    </div>
+  </aside>
+
+  <footer id="keys">
+    <span class="kcap">W A S D</span><span class="klabel">Drive</span>
+    <span class="kcap">Shift</span><span class="klabel">Boost</span>
+    <span class="kcap">Drag</span><span class="klabel">Orbit</span>
+    <span class="kcap">Scroll</span><span class="klabel">Zoom</span>
+  </footer>
+
+  <div id="hint">Press H to hide interface &middot; 1&ndash;8 routines &middot; P plant &middot; R reset</div>
+  <div id="routine-flash"></div>
+</div>
+
+<div id="boot">
+  <div class="bt">WALL<span style="display:inline-flex;align-items:center;justify-content:center;width:23px;height:23px;border-radius:5px;background:#d8422f;font-size:16px">E</span></div>
+  <div class="bar"><i id="boot-bar"></i></div>
+  <div class="bs" id="boot-msg">Initialising rig</div>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from "three";
+import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
+import { EffectComposer } from "three/addons/postprocessing/EffectComposer.js";
+import { RenderPass } from "three/addons/postprocessing/RenderPass.js";
+import { UnrealBloomPass } from "three/addons/postprocessing/UnrealBloomPass.js";
+import { OutputPass } from "three/addons/postprocessing/OutputPass.js";
+import { mergeGeometries } from "three/addons/utils/BufferGeometryUtils.js";
+
+/* ==========================================================================
+   WALL·E — interactive articulation rig
+   --------------------------------------------------------------------------
+   A single-file Three.js showcase. Nothing is loaded from disk: the robot,
+   his materials and all three environments are generated procedurally at
+   boot. Layout:
+
+     1. helpers + procedural texture lab
+     2. materials
+     3. the robot (tracks, body, neck, head, arms) + explode tagging
+     4. environments (studio / earth / blueprint)
+     5. camera rig
+     6. behaviour routines
+     7. UI wiring + frame loop
+   ========================================================================== */
+
+const boot = document.getElementById("boot");
+const bootBar = document.getElementById("boot-bar");
+const bootMsg = document.getElementById("boot-msg");
+const progress = (p, msg) => { bootBar.style.width = (p * 100) + "%"; if (msg) bootMsg.textContent = msg; };
+
+/* ───────────────────────────── 1. helpers ───────────────────────────── */
+
+const TAU = Math.PI * 2;
+const DEG = Math.PI / 180;
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+const lerp = (a, b, t) => a + (b - a) * t;
+const smoothstep = (t) => { t = clamp(t, 0, 1); return t * t * (3 - 2 * t); };
+const ease = (t) => t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
+// framerate-independent exponential smoothing
+const damp = (cur, tgt, rate, dt) => cur + (tgt - cur) * (1 - Math.exp(-rate * dt));
+
+// deterministic PRNG so every reload paints the same weathering
+function mulberry(seed) {
+  return function () {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+const rnd = mulberry(20805);
+
+function canvas2d(size) {
+  const c = document.createElement("canvas");
+  c.width = c.height = size;
+  return [c, c.getContext("2d")];
+}
+
+function makeTexture(c, repeat = 1, aniso = 8) {
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(repeat, repeat);
+  t.anisotropy = aniso;
+  t.needsUpdate = true;
+  return t;
+}
+
+/* value-noise field, tiles seamlessly because we wrap the lattice */
+function noiseField(ctx, size, cells, alpha, mode = "source-over", tint = [0, 0, 0]) {
+  const g = new Float32Array((cells + 1) * (cells + 1));
+  for (let i = 0; i < g.length; i++) g[i] = rnd();
+  for (let y = 0; y <= cells; y++) g[y * (cells + 1) + cells] = g[y * (cells + 1)];
+  for (let x = 0; x <= cells; x++) g[cells * (cells + 1) + x] = g[x];
+  const img = ctx.createImageData(size, size);
+  const step = size / cells;
+  for (let y = 0; y < size; y++) {
+    const gy = y / step, y0 = Math.floor(gy), fy = smoothstep(gy - y0);
+    for (let x = 0; x < size; x++) {
+      const gx = x / step, x0 = Math.floor(gx), fx = smoothstep(gx - x0);
+      const a = g[y0 * (cells + 1) + x0], b = g[y0 * (cells + 1) + x0 + 1];
+      const c = g[(y0 + 1) * (cells + 1) + x0], d = g[(y0 + 1) * (cells + 1) + x0 + 1];
+      const v = lerp(lerp(a, b, fx), lerp(c, d, fx), fy);
+      const i = (y * size + x) * 4;
+      img.data[i] = tint[0]; img.data[i + 1] = tint[1]; img.data[i + 2] = tint[2];
+      img.data[i + 3] = v * 255 * alpha;
+    }
+  }
+  const tmp = document.createElement("canvas");
+  tmp.width = tmp.height = size;
+  tmp.getContext("2d").putImageData(img, 0, 0);
+  ctx.globalCompositeOperation = mode;
+  ctx.drawImage(tmp, 0, 0);
+  ctx.globalCompositeOperation = "source-over";
+}
+
+/* fractal stack of the above — the basis of every surface in the scene */
+function fbm(ctx, size, octaves, baseCells, alpha, tint, mode = "source-over") {
+  for (let o = 0; o < octaves; o++) {
+    noiseField(ctx, size, baseCells * Math.pow(2, o), alpha / Math.pow(1.85, o), mode, tint);
+  }
+}
+
+/* ─────────────────── 2. procedural texture lab ─────────────────── */
+/* Paint maps are authored greyscale so a single material can be tinted to
+   any of the paint variants without regenerating a megabyte of canvas. */
+
+const TEX = {};
+
+function buildPaintMaps() {
+  const S = 1024;
+
+  // ---- albedo: chipped, sun-bleached, grime in the low spots
+  const [ca, a] = canvas2d(S);
+  a.fillStyle = "#e6e4e0"; a.fillRect(0, 0, S, S);
+  fbm(a, S, 4, 4, 0.20, [104, 86, 62]);             // dust film
+  fbm(a, S, 3, 26, 0.11, [46, 39, 30], "multiply"); // fine grain
+
+  // bleached streaks running down the panels
+  for (let i = 0; i < 150; i++) {
+    const x = rnd() * S, y = rnd() * S, h = 30 + rnd() * 240, w = 1 + rnd() * 5;
+    const grd = a.createLinearGradient(x, y, x, y + h);
+    const dark = rnd() > .45;
+    grd.addColorStop(0, dark ? "rgba(58,44,30,0.30)" : "rgba(255,248,230,0.22)");
+    grd.addColorStop(1, "rgba(0,0,0,0)");
+    a.fillStyle = grd; a.fillRect(x, y, w, h);
+  }
+  // rust blooms
+  for (let i = 0; i < 46; i++) {
+    const x = rnd() * S, y = rnd() * S, r = 8 + rnd() * 58;
+    const grd = a.createRadialGradient(x, y, 0, x, y, r);
+    grd.addColorStop(0, "rgba(124,62,28,0.30)");
+    grd.addColorStop(0.55, "rgba(140,80,40,0.13)");
+    grd.addColorStop(1, "rgba(132,74,36,0)");
+    a.fillStyle = grd; a.beginPath(); a.arc(x, y, r, 0, TAU); a.fill();
+  }
+  // paint chips down to bare metal
+  a.fillStyle = "rgba(196,192,186,0.85)";
+  for (let i = 0; i < 260; i++) {
+    const x = rnd() * S, y = rnd() * S, r = 1 + rnd() * 4.5;
+    a.beginPath();
+    for (let k = 0; k < 7; k++) {
+      const ang = k / 7 * TAU, rr = r * (0.55 + rnd() * 0.75);
+      k ? a.lineTo(x + Math.cos(ang) * rr, y + Math.sin(ang) * rr)
+        : a.moveTo(x + Math.cos(ang) * rr, y + Math.sin(ang) * rr);
+    }
+    a.closePath(); a.fill();
+  }
+  // scratches
+  a.lineCap = "round";
+  for (let i = 0; i < 190; i++) {
+    a.strokeStyle = rnd() > .5 ? "rgba(255,252,244,0.30)" : "rgba(52,40,28,0.28)";
+    a.lineWidth = rnd() * 1.4 + 0.25;
+    const x = rnd() * S, y = rnd() * S, ang = rnd() * TAU, len = 10 + rnd() * 110;
+    a.beginPath(); a.moveTo(x, y);
+    a.quadraticCurveTo(x + Math.cos(ang) * len * .5 + (rnd() - .5) * 18,
+                       y + Math.sin(ang) * len * .5 + (rnd() - .5) * 18,
+                       x + Math.cos(ang) * len, y + Math.sin(ang) * len);
+    a.stroke();
+  }
+  TEX.paint = makeTexture(ca, 1, 16);
+  TEX.paint.colorSpace = THREE.SRGBColorSpace;
+
+  // ---- roughness: grime is matte, worn edges are polished
+  const [cr, r] = canvas2d(512);
+  r.fillStyle = "#a8a8a8"; r.fillRect(0, 0, 512, 512);
+  fbm(r, 512, 4, 5, 0.55, [255, 255, 255]);
+  fbm(r, 512, 3, 24, 0.30, [30, 30, 30], "multiply");
+  for (let i = 0; i < 120; i++) {
+    const x = rnd() * 512, y = rnd() * 512, rr = 4 + rnd() * 30;
+    const grd = r.createRadialGradient(x, y, 0, x, y, rr);
+    grd.addColorStop(0, "rgba(40,40,40,0.55)"); grd.addColorStop(1, "rgba(40,40,40,0)");
+    r.fillStyle = grd; r.beginPath(); r.arc(x, y, rr, 0, TAU); r.fill();
+  }
+  TEX.paintRough = makeTexture(cr, 1, 8);
+
+  // ---- bump: dents, panel pitting, weld ripple
+  const [cb, b] = canvas2d(512);
+  b.fillStyle = "#808080"; b.fillRect(0, 0, 512, 512);
+  fbm(b, 512, 4, 8, 0.35, [255, 255, 255]);
+  fbm(b, 512, 3, 40, 0.22, [0, 0, 0], "multiply");
+  for (let i = 0; i < 60; i++) {   // dents
+    const x = rnd() * 512, y = rnd() * 512, rr = 6 + rnd() * 26;
+    const grd = b.createRadialGradient(x - rr * .3, y - rr * .3, 0, x, y, rr);
+    grd.addColorStop(0, "rgba(0,0,0,0.5)"); grd.addColorStop(.75, "rgba(255,255,255,0.22)");
+    grd.addColorStop(1, "rgba(128,128,128,0)");
+    b.fillStyle = grd; b.beginPath(); b.arc(x, y, rr, 0, TAU); b.fill();
+  }
+  TEX.paintBump = makeTexture(cb, 1, 4);
+}
+
+function buildMetalMaps() {
+  const S = 512;
+  const [c, x] = canvas2d(S);
+  x.fillStyle = "#8d8d8d"; x.fillRect(0, 0, S, S);
+  fbm(x, S, 4, 6, 0.42, [30, 26, 22]);
+  // brushed grain
+  for (let i = 0; i < 900; i++) {
+    x.strokeStyle = rnd() > .5 ? "rgba(255,255,255,0.05)" : "rgba(0,0,0,0.07)";
+    x.lineWidth = rnd() * 1.6;
+    const y = rnd() * S;
+    x.beginPath(); x.moveTo(0, y); x.lineTo(S, y + (rnd() - .5) * 6); x.stroke();
+  }
+  for (let i = 0; i < 40; i++) {
+    const px = rnd() * S, py = rnd() * S, r = 10 + rnd() * 44;
+    const g = x.createRadialGradient(px, py, 0, px, py, r);
+    g.addColorStop(0, "rgba(104,54,24,0.42)"); g.addColorStop(1, "rgba(104,54,24,0)");
+    x.fillStyle = g; x.beginPath(); x.arc(px, py, r, 0, TAU); x.fill();
+  }
+  TEX.metal = makeTexture(c, 1, 8);
+  TEX.metal.colorSpace = THREE.SRGBColorSpace;
+
+  const [cr2, r2] = canvas2d(256);
+  r2.fillStyle = "#6e6e6e"; r2.fillRect(0, 0, 256, 256);
+  fbm(r2, 256, 4, 5, 0.6, [255, 255, 255]);
+  TEX.metalRough = makeTexture(cr2, 1, 4);
+}
+
+function buildRubberMap() {
+  const S = 512;
+  const [c, x] = canvas2d(S);
+  x.fillStyle = "#2a2724"; x.fillRect(0, 0, S, S);
+  fbm(x, S, 4, 10, 0.5, [120, 110, 98]);
+  fbm(x, S, 3, 34, 0.35, [0, 0, 0], "multiply");
+  for (let i = 0; i < 300; i++) {  // caked dust in the tread
+    const px = rnd() * S, py = rnd() * S, r = 2 + rnd() * 16;
+    const g = x.createRadialGradient(px, py, 0, px, py, r);
+    g.addColorStop(0, "rgba(150,126,92,0.35)"); g.addColorStop(1, "rgba(150,126,92,0)");
+    x.fillStyle = g; x.beginPath(); x.arc(px, py, r, 0, TAU); x.fill();
+  }
+  TEX.rubber = makeTexture(c, 2, 8);
+  TEX.rubber.colorSpace = THREE.SRGBColorSpace;
+}
+
+function buildSolarMap() {
+  const S = 512, cells = 4, pad = 10;
+  const [c, x] = canvas2d(S);
+  x.fillStyle = "#0e1420"; x.fillRect(0, 0, S, S);
+  const cw = (S - pad * (cells + 1)) / cells;
+  for (let i = 0; i < cells; i++) for (let j = 0; j < cells; j++) {
+    const px = pad + i * (cw + pad), py = pad + j * (cw + pad);
+    const g = x.createLinearGradient(px, py, px + cw, py + cw);
+    g.addColorStop(0, "#1b3a63"); g.addColorStop(.45, "#12294a"); g.addColorStop(1, "#264b7d");
+    x.fillStyle = g; x.fillRect(px, py, cw, cw);
+    x.strokeStyle = "rgba(160,200,255,0.20)"; x.lineWidth = 1.2;
+    for (let k = 1; k < 5; k++) {
+      x.beginPath(); x.moveTo(px + cw * k / 5, py); x.lineTo(px + cw * k / 5, py + cw); x.stroke();
+    }
+    x.strokeStyle = "rgba(190,215,255,0.30)"; x.lineWidth = 2;
+    x.strokeRect(px + 1, py + 1, cw - 2, cw - 2);
+  }
+  fbm(x, S, 3, 7, 0.34, [120, 104, 74]);   // dust over the glass
+  for (let i = 0; i < 60; i++) {
+    x.strokeStyle = "rgba(220,220,220,0.14)"; x.lineWidth = rnd() * 1.2;
+    const px = rnd() * S, py = rnd() * S, ang = rnd() * TAU, len = 20 + rnd() * 90;
+    x.beginPath(); x.moveTo(px, py); x.lineTo(px + Math.cos(ang) * len, py + Math.sin(ang) * len); x.stroke();
+  }
+  TEX.solar = makeTexture(c, 1, 8);
+  TEX.solar.colorSpace = THREE.SRGBColorSpace;
+}
+
+/* hazard chevrons + stencilled service markings, used on the chest strip */
+function buildDecalMap() {
+  const W = 1024, H = 128;
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const x = c.getContext("2d");
+  x.fillStyle = "#171410"; x.fillRect(0, 0, W, H);
+  x.fillStyle = "#e0b02a";
+  const step = 56;
+  for (let i = -2; i < W / step + 2; i++) {
+    x.beginPath();
+    x.moveTo(i * step, H); x.lineTo(i * step + step * .5, 0);
+    x.lineTo(i * step + step, 0); x.lineTo(i * step + step * .5, H);
+    x.closePath(); x.fill();
+  }
+  // wear pass
+  x.globalAlpha = 0.5; fbm(x, W, 3, 12, 0.5, [40, 32, 22], "multiply"); x.globalAlpha = 1;
+  for (let i = 0; i < 90; i++) {
+    x.fillStyle = "rgba(60,52,42,0.5)";
+    x.fillRect(rnd() * W, rnd() * H, 2 + rnd() * 16, 1 + rnd() * 5);
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = THREE.RepeatWrapping; t.wrapT = THREE.ClampToEdgeWrapping;
+  t.anisotropy = 16; t.colorSpace = THREE.SRGBColorSpace;
+  TEX.hazard = t;
+}
+
+function buildPlateMap() {
+  const W = 512, H = 256;
+  const c = document.createElement("canvas"); c.width = W; c.height = H;
+  const x = c.getContext("2d");
+  x.fillStyle = "#9c2f1e"; x.fillRect(0, 0, W, H);
+  x.fillStyle = "rgba(255,244,228,0.92)";
+  x.font = "800 74px 'Helvetica Neue', Arial, sans-serif";
+  x.textAlign = "center"; x.textBaseline = "middle";
+  x.fillText("WALL", W / 2 - 26, H / 2 - 18);
+  x.fillStyle = "rgba(255,244,228,0.92)";
+  x.beginPath(); x.roundRect(W / 2 + 62, H / 2 - 52, 66, 66, 10); x.fill();
+  x.fillStyle = "#9c2f1e";
+  x.fillText("E", W / 2 + 95, H / 2 - 18);
+  x.fillStyle = "rgba(255,244,228,0.78)";
+  x.font = "600 22px ui-monospace, monospace";
+  x.fillText("UNIT 7-2-1 · BnL", W / 2, H / 2 + 52);
+  x.globalAlpha = .65; fbm(x, W, 3, 9, 0.55, [30, 20, 14], "multiply"); x.globalAlpha = 1;
+  for (let i = 0; i < 120; i++) {
+    x.fillStyle = "rgba(24,18,14,0.45)";
+    x.fillRect(rnd() * W, rnd() * H, 1 + rnd() * 9, 1 + rnd() * 4);
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.anisotropy = 16; t.colorSpace = THREE.SRGBColorSpace;
+  TEX.plate = t;
+}
+
+function buildGroundMaps() {
+  const S = 1024;
+  const [c, x] = canvas2d(S);
+  x.fillStyle = "#6b5843"; x.fillRect(0, 0, S, S);
+  fbm(x, S, 5, 3, 0.55, [42, 32, 22]);
+  fbm(x, S, 4, 18, 0.30, [120, 102, 76], "screen");
+  for (let i = 0; i < 900; i++) {   // grit
+    x.fillStyle = rnd() > .5 ? "rgba(168,148,118,0.34)" : "rgba(48,38,28,0.34)";
+    const r = .6 + rnd() * 2.6, px = rnd() * S, py = rnd() * S;
+    x.beginPath(); x.arc(px, py, r, 0, TAU); x.fill();
+  }
+  for (let i = 0; i < 40; i++) {    // dried cracks
+    x.strokeStyle = "rgba(38,29,21,0.40)"; x.lineWidth = .6 + rnd() * 1.6;
+    let px = rnd() * S, py = rnd() * S;
+    x.beginPath(); x.moveTo(px, py);
+    for (let k = 0; k < 14; k++) { px += (rnd() - .5) * 70; py += (rnd() - .5) * 70; x.lineTo(px, py); }
+    x.stroke();
+  }
+  TEX.ground = makeTexture(c, 26, 16);
+  TEX.ground.colorSpace = THREE.SRGBColorSpace;
+
+  const [cb, b] = canvas2d(512);
+  b.fillStyle = "#808080"; b.fillRect(0, 0, 512, 512);
+  fbm(b, 512, 5, 4, 0.5, [255, 255, 255]);
+  fbm(b, 512, 3, 30, 0.3, [0, 0, 0], "multiply");
+  TEX.groundBump = makeTexture(cb, 26, 8);
+}
+
+/* radial falloff used for the soft contact shadow under the chassis */
+function buildBlobTexture() {
+  const S = 256;
+  const [c, x] = canvas2d(S);
+  const g = x.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
+  g.addColorStop(0, "rgba(0,0,0,0.80)");
+  g.addColorStop(0.42, "rgba(0,0,0,0.42)");
+  g.addColorStop(0.75, "rgba(0,0,0,0.10)");
+  g.addColorStop(1, "rgba(0,0,0,0)");
+  x.fillStyle = g; x.fillRect(0, 0, S, S);
+  const t = new THREE.CanvasTexture(c);
+  t.anisotropy = 4;
+  TEX.blob = t;
+}
+
+function buildDustSprite() {
+  const S = 128;
+  const [c, x] = canvas2d(S);
+  const g = x.createRadialGradient(S / 2, S / 2, 0, S / 2, S / 2, S / 2);
+  g.addColorStop(0, "rgba(215,190,150,0.85)");
+  g.addColorStop(0.5, "rgba(190,164,124,0.30)");
+  g.addColorStop(1, "rgba(180,155,115,0)");
+  x.fillStyle = g; x.fillRect(0, 0, S, S);
+  TEX.dust = new THREE.CanvasTexture(c);
+}
+
+progress(0.08, "Weathering paint");
+buildPaintMaps();
+progress(0.20, "Machining metal");
+buildMetalMaps(); buildRubberMap();
+progress(0.30, "Printing decals");
+buildSolarMap(); buildDecalMap(); buildPlateMap();
+progress(0.38, "Scattering terrain");
+buildGroundMaps(); buildBlobTexture(); buildDustSprite();
+
+/* ───────────────────── 3. renderer / scene / post ───────────────────── */
+
+const app = document.getElementById("app");
+
+const renderer = new THREE.WebGLRenderer({
+  antialias: true, powerPreference: "high-performance", stencil: false
+});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.05;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+app.appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 0.05, 400);
+camera.position.set(3.4, 1.9, 4.2);
+
+// image-based lighting: a tiny room probe gives every metal something to reflect
+const pmrem = new THREE.PMREMGenerator(renderer);
+pmrem.compileEquirectangularShader();
+const envRT = pmrem.fromScene(new RoomEnvironment(), 0.035);
+scene.environment = envRT.texture;
+
+const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(
+  innerWidth, innerHeight,
+  { type: THREE.HalfFloatType, samples: renderer.capabilities.isWebGL2 ? 4 : 0 }
+));
+const renderPass = new RenderPass(scene, camera);
+const bloomPass = new UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), 0.34, 0.62, 0.86);
+const outputPass = new OutputPass();
+composer.addPass(renderPass);
+composer.addPass(bloomPass);
+composer.addPass(outputPass);
+
+/* ─────────────────────────── 4. materials ─────────────────────────── */
+/* PAINT_VARIANTS retint the same greyscale maps, so switching a livery is
+   instant and keeps every scratch and rust bloom in place. */
+
+const PAINT_VARIANTS = [
+  { id: "classic",  name: "Sun-bleached Yellow", body: 0xe8b13a, trim: 0x9a7420, swatch: "linear-gradient(140deg,#e7b545,#9a6f1e)" },
+  { id: "rust",     name: "Oxide Red",           body: 0x9e4626, trim: 0x63301c, swatch: "linear-gradient(140deg,#b7522c,#5d2c18)" },
+  { id: "desert",   name: "Desert Tan",          body: 0xc7a882, trim: 0x8b7454, swatch: "linear-gradient(140deg,#d9bb93,#8a7353)" },
+  { id: "charcoal", name: "Charcoal Service",    body: 0x4a4b4f, trim: 0x2c2d31, swatch: "linear-gradient(140deg,#5c5d62,#2a2b2f)" },
+  { id: "arctic",   name: "Arctic White",        body: 0xd7d4cc, trim: 0x9d9a92, swatch: "linear-gradient(140deg,#e8e5dd,#a3a099)" },
+  { id: "eve",      name: "Probe Blue",          body: 0x7fb7d8, trim: 0x3d6f92, swatch: "linear-gradient(140deg,#9ccbe8,#3c6d91)" }
+];
+
+const MAT = {
+  paint: new THREE.MeshPhysicalMaterial({
+    color: PAINT_VARIANTS[0].body, map: TEX.paint,
+    roughnessMap: TEX.paintRough, roughness: 0.62, metalness: 0.55,
+    bumpMap: TEX.paintBump, bumpScale: 0.0045,
+    clearcoat: 0.18, clearcoatRoughness: 0.72, envMapIntensity: 1.0
+  }),
+  trim: new THREE.MeshPhysicalMaterial({
+    color: PAINT_VARIANTS[0].trim, map: TEX.paint,
+    roughnessMap: TEX.paintRough, roughness: 0.72, metalness: 0.72,
+    bumpMap: TEX.paintBump, bumpScale: 0.004, envMapIntensity: 0.95
+  }),
+  steel: new THREE.MeshStandardMaterial({
+    color: 0x9aa0a6, map: TEX.metal, roughnessMap: TEX.metalRough,
+    roughness: 0.42, metalness: 0.95, envMapIntensity: 1.2
+  }),
+  darkSteel: new THREE.MeshStandardMaterial({
+    color: 0x3e4247, map: TEX.metal, roughnessMap: TEX.metalRough,
+    roughness: 0.52, metalness: 0.92, envMapIntensity: 1.0
+  }),
+  blackMetal: new THREE.MeshStandardMaterial({
+    color: 0x17181b, map: TEX.metal, roughnessMap: TEX.metalRough,
+    roughness: 0.46, metalness: 0.88, envMapIntensity: 0.9
+  }),
+  rubber: new THREE.MeshStandardMaterial({
+    color: 0x2b2926, map: TEX.rubber, roughness: 0.93, metalness: 0.05,
+    bumpMap: TEX.rubber, bumpScale: 0.012, envMapIntensity: 0.55
+  }),
+  solar: new THREE.MeshPhysicalMaterial({
+    color: 0xffffff, map: TEX.solar, roughness: 0.22, metalness: 0.35,
+    clearcoat: 0.85, clearcoatRoughness: 0.20, envMapIntensity: 1.4
+  }),
+  hazard: new THREE.MeshStandardMaterial({
+    color: 0xffffff, map: TEX.hazard, roughness: 0.7, metalness: 0.35, envMapIntensity: 0.9
+  }),
+  plate: new THREE.MeshStandardMaterial({
+    color: 0xffffff, map: TEX.plate, roughness: 0.62, metalness: 0.28, envMapIntensity: 0.9
+  }),
+  glass: new THREE.MeshPhysicalMaterial({
+    color: 0x0b0d10, roughness: 0.035, metalness: 0.0,
+    clearcoat: 1.0, clearcoatRoughness: 0.02,
+    transparent: true, opacity: 0.94, envMapIntensity: 2.4,
+    reflectivity: 0.85
+  }),
+  lensInner: new THREE.MeshStandardMaterial({
+    color: 0x05070a, roughness: 0.35, metalness: 0.5, envMapIntensity: 0.6
+  }),
+  iris: new THREE.MeshStandardMaterial({
+    color: 0x2a2f36, roughness: 0.3, metalness: 0.85,
+    emissive: 0x8ab6d8, emissiveIntensity: 0.55, envMapIntensity: 1.1
+  }),
+  pupil: new THREE.MeshStandardMaterial({ color: 0x020304, roughness: 0.18, metalness: 0.2 }),
+  lampOn: new THREE.MeshStandardMaterial({
+    color: 0x2a2317, emissive: 0xffc25a, emissiveIntensity: 2.4, roughness: 0.3, metalness: 0.1
+  }),
+  lampRed: new THREE.MeshStandardMaterial({
+    color: 0x2a1512, emissive: 0xff4a2c, emissiveIntensity: 1.6, roughness: 0.3, metalness: 0.1
+  }),
+  leaf: new THREE.MeshStandardMaterial({
+    color: 0x5f9c3a, roughness: 0.62, metalness: 0.0, side: THREE.DoubleSide, envMapIntensity: 0.9
+  }),
+  soil: new THREE.MeshStandardMaterial({ color: 0x3a2b1e, roughness: 0.95, metalness: 0.0 }),
+  boot: new THREE.MeshStandardMaterial({ color: 0x5a4636, roughness: 0.82, metalness: 0.05 }),
+  cardboard: new THREE.MeshStandardMaterial({
+    color: 0xb2a288, map: TEX.paint, roughness: 0.92, metalness: 0.0, envMapIntensity: 0.7
+  }),
+  rock: new THREE.MeshStandardMaterial({
+    color: 0x9b886d, map: TEX.ground, roughness: 0.95, metalness: 0.02, envMapIntensity: 0.75
+  })
+};
+
+// keep a snapshot so the blueprint environment can restore everything later
+const MAT_SNAPSHOT = new Map();
+
+/* ───────────────────── 5. geometry helper kit ───────────────────── */
+
+const GEO = {
+  box: (w, h, d, r = 0.012, seg = 2) => new RoundedBoxGeometry(w, h, d, seg, Math.min(r, Math.min(w, h, d) / 2.05)),
+  cyl: (rt, rb, h, s = 32, open = false) => new THREE.CylinderGeometry(rt, rb, h, s, 1, open),
+  sph: (r, s = 32) => new THREE.SphereGeometry(r, s, Math.max(8, s / 2)),
+  tor: (r, t, s = 32, ts = 16) => new THREE.TorusGeometry(r, t, ts, s)
+};
+
+function mesh(geo, mat, x = 0, y = 0, z = 0) {
+  const m = new THREE.Mesh(geo, mat);
+  m.position.set(x, y, z);
+  m.castShadow = true; m.receiveShadow = true;
+  return m;
+}
+
+/* Track outline: two pulleys of different radius joined by their external
+   tangents. Both the frame plate and the tread belt are derived from it, so
+   the links always sit exactly on the frame silhouette. */
+function beltGeometry(len, rF, rR) {
+  const half = len / 2;
+  const nx = (rR - rF) / len;                 // normal of the outer tangent
+  const ny = Math.sqrt(Math.max(0, 1 - nx * nx));
+  const A = Math.atan2(ny, nx);               // wrap angle on the front pulley
+  const straight = len * ny;
+  const arcF = rF * 2 * A, arcR = rR * (TAU - 2 * A);
+  return { half, nx, ny, A, straight, arcF, arcR, total: straight * 2 + arcF + arcR };
+}
+
+function stadiumShape(len, rF, rR) {
+  const { half, A } = beltGeometry(len, rF, rR);
+  const s = new THREE.Shape();
+  s.absarc(half, 0, rF, -A, A, false);
+  s.absarc(-half, 0, rR, A, TAU - A, false);
+  s.closePath();
+  return s;
+}
+
+/* position + tangent angle at normalised distance s along the belt */
+function beltPoint(B, s, rF, rR) {
+  const { half, nx, ny, A, straight, arcF, arcR, total } = B;
+  let d = (((s % 1) + 1) % 1) * total;
+  if (d < straight) {                                  // top run: rear → front
+    const t = d / straight;
+    const x0 = -half + rR * nx, y0 = rR * ny, x1 = half + rF * nx, y1 = rF * ny;
+    return { x: lerp(x0, x1, t), y: lerp(y0, y1, t), a: Math.atan2(y1 - y0, x1 - x0) };
+  }
+  d -= straight;
+  if (d < arcF) {                                      // around the drive sprocket
+    const ang = A - d / rF;
+    return { x: half + Math.cos(ang) * rF, y: Math.sin(ang) * rF, a: ang - Math.PI / 2 };
+  }
+  d -= arcF;
+  if (d < straight) {                                  // bottom run: front → rear
+    const t = d / straight;
+    const x0 = half + rF * nx, y0 = -rF * ny, x1 = -half + rR * nx, y1 = -rR * ny;
+    return { x: lerp(x0, x1, t), y: lerp(y0, y1, t), a: Math.atan2(y1 - y0, x1 - x0) };
+  }
+  d -= straight;
+  const ang = -A - d / rR;                             // around the idler
+  return { x: -half + Math.cos(ang) * rR, y: Math.sin(ang) * rR, a: ang - Math.PI / 2 };
+}
+
+/* extruded, bevelled plate from a 2D shape — used for wheels & track frames */
+function plate(shape, depth, bevel = 0.008) {
+  const g = new THREE.ExtrudeGeometry(shape, {
+    depth, bevelEnabled: bevel > 0, bevelThickness: bevel,
+    bevelSize: bevel, bevelSegments: 2, curveSegments: 34
+  });
+  g.translate(0, 0, -depth / 2);
+  g.computeVertexNormals();
+  return g;
+}
+
+/* ── explode bookkeeping ────────────────────────────────────────────── */
+const explodables = [];
+const leaderGeo = [];
+let leaderGroup = null;
+
+const EX_SCALE = 0.66;
+function tagExplode(obj, dx, dy, dz) {
+  obj.userData.exBase = obj.position.clone();
+  obj.userData.exDir = new THREE.Vector3(dx, dy, dz).multiplyScalar(EX_SCALE);
+  explodables.push(obj);
+  return obj;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   6. THE ROBOT
+   Forward is +Z. Ground is y = 0. Roughly 1:1 with the film (≈1.1 m tall
+   with the neck at full stretch).
+   ══════════════════════════════════════════════════════════════════════ */
+
+const DIM = {
+  trackLen: 0.60, trackRF: 0.215, trackRR: 0.172, trackW: 0.185, trackGauge: 0.455,
+  bodyW: 0.78, bodyH: 0.68, bodyD: 0.68, bodyY: 0.60
+};
+
+const walle = new THREE.Group();
+const nodes = {};              // every animated part, by name
+scene.add(walle);
+
+/* ── tracks ─────────────────────────────────────────────────────────── */
+
+function buildTrack(side) {
+  const { trackLen: L, trackRF: rF, trackRR: rR, trackW: W } = DIM;
+  const g = new THREE.Group();
+  g.rotation.y = -Math.PI / 2;                 // local +x (fore/aft) → world +z
+  g.position.set(side * DIM.trackGauge, rF, 0);
+
+  // --- structural frame: two bevelled plates with a web between them
+  const frame = new THREE.Group();
+  const framePlate = plate(stadiumShape(L, rF - 0.085, rR - 0.085), 0.020, 0.005);
+  for (const zz of [-0.042, 0.042]) frame.add(mesh(framePlate, MAT.darkSteel, 0, 0, zz));
+  frame.add(mesh(plate(stadiumShape(L * 0.80, rF - 0.135, rR - 0.135), 0.072, 0.005), MAT.darkSteel));
+  // bogie beam + suspension arms
+  frame.add(mesh(GEO.box(L + 0.10, 0.052, W - 0.05, 0.01), MAT.trim, 0, 0.006, 0));
+  for (let i = -1; i <= 1; i++) {
+    const arm = mesh(GEO.box(0.036, 0.135, 0.030, 0.008), MAT.darkSteel, i * 0.19, -0.072, 0);
+    arm.rotation.z = i * 0.13;
+    frame.add(arm);
+  }
+  g.add(frame);
+  tagExplode(frame, 0, 0.14, side * 0.06);
+
+  // --- drive sprocket (front) and idler (rear)
+  function wheel(radius, holeCount, holeR, depth, hubR) {
+    const sh = new THREE.Shape();
+    sh.absarc(0, 0, radius, 0, TAU, false);
+    for (let i = 0; i < holeCount; i++) {
+      const a = i / holeCount * TAU + 0.2;
+      const h = new THREE.Path();
+      h.absarc(Math.cos(a) * radius * 0.56, Math.sin(a) * radius * 0.56, holeR, 0, TAU, true);
+      sh.holes.push(h);
+    }
+    const hub = new THREE.Path();
+    hub.absarc(0, 0, hubR, 0, TAU, true);
+    sh.holes.push(hub);
+    return plate(sh, depth, 0.006);
+  }
+
+  const sprocket = new THREE.Group();
+  sprocket.position.set(L / 2, 0, 0);
+  sprocket.add(mesh(wheel(rF - 0.034, 6, 0.038, W - 0.048, 0.030), MAT.paint));
+  sprocket.add(mesh(wheel(rF - 0.086, 0, 0, W - 0.082, 0.026), MAT.darkSteel));
+  const shaft = mesh(GEO.cyl(0.028, 0.028, W + 0.03, 20), MAT.steel);
+  shaft.rotation.x = Math.PI / 2; sprocket.add(shaft);
+  for (const s2 of [-1, 1]) {                                     // hub caps + bolts
+    const cap = mesh(GEO.cyl(0.052, 0.058, 0.016, 22), MAT.steel, 0, 0, s2 * (W / 2 - 0.02));
+    cap.rotation.x = Math.PI / 2; sprocket.add(cap);
+    for (let i = 0; i < 5; i++) {
+      const a = i / 5 * TAU;
+      const b = mesh(GEO.cyl(0.0075, 0.0075, 0.012, 8), MAT.steel,
+        Math.cos(a) * 0.040, Math.sin(a) * 0.040, s2 * (W / 2 - 0.012));
+      b.rotation.x = Math.PI / 2; sprocket.add(b);
+    }
+  }
+  // teeth that bite into the belt
+  for (let i = 0; i < 14; i++) {
+    const a = i / 14 * TAU;
+    const t = mesh(GEO.box(0.028, 0.020, W - 0.075, 0.004), MAT.darkSteel,
+      Math.cos(a) * (rF - 0.026), Math.sin(a) * (rF - 0.026), 0);
+    t.rotation.z = a;
+    sprocket.add(t);
+  }
+  g.add(sprocket);
+  tagExplode(sprocket, 0.20, 0.06, 0);
+
+  const idler = new THREE.Group();
+  idler.position.set(-L / 2, 0, 0);
+  idler.add(mesh(wheel(rR - 0.030, 5, 0.032, W - 0.048, 0.026), MAT.paint));
+  idler.add(mesh(wheel(rR - 0.076, 0, 0, W - 0.082, 0.022), MAT.darkSteel));
+  const shaft2 = mesh(GEO.cyl(0.024, 0.024, W + 0.02, 18), MAT.steel);
+  shaft2.rotation.x = Math.PI / 2; idler.add(shaft2);
+  g.add(idler);
+  tagExplode(idler, -0.20, 0.04, 0);
+
+  // --- road wheels
+  const road = new THREE.Group();
+  for (let i = -1; i <= 1; i++) {
+    const rw = new THREE.Group();
+    rw.position.set(i * 0.19, -0.098, 0);
+    rw.add(mesh(wheel(0.066, 4, 0.018, W - 0.052, 0.015), MAT.trim));
+    const ax = mesh(GEO.cyl(0.016, 0.016, W - 0.05, 14), MAT.steel);
+    ax.rotation.x = Math.PI / 2; rw.add(ax);
+    road.add(rw);
+    nodes["road" + (side > 0 ? "R" : "L") + (i + 1)] = rw;
+  }
+  g.add(road);
+  tagExplode(road, 0, -0.16, 0);
+
+  // --- the tread belt, as one instanced mesh per side
+  const B = beltGeometry(L, rF, rR);
+  const linkLen = 0.0505;
+  const count = Math.max(24, Math.round(B.total / linkLen));
+  const pad = mergeGeometries([
+    GEO.box(linkLen * 0.94, 0.030, W, 0.006),
+    new THREE.BoxGeometry(linkLen * 0.40, 0.020, W * 0.86).toNonIndexed().translate(0, 0.024, 0),
+    new THREE.BoxGeometry(linkLen * 0.86, 0.012, W * 0.28).toNonIndexed().translate(0, -0.019, 0)
+  ], false);
+  const belt = new THREE.InstancedMesh(pad, MAT.rubber, count);
+  belt.castShadow = belt.receiveShadow = true;
+  belt.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  belt.frustumCulled = false;
+  belt.userData = { B, count, rF, rR, offset: 0 };
+  g.add(belt);
+  tagExplode(belt, 0, 0.30, side * 0.16);
+
+  nodes["belt" + (side > 0 ? "R" : "L")] = belt;
+  nodes["sprocket" + (side > 0 ? "R" : "L")] = sprocket;
+  nodes["idler" + (side > 0 ? "R" : "L")] = idler;
+  return g;
+}
+
+const _m4 = new THREE.Matrix4(), _q = new THREE.Quaternion(), _v3 = new THREE.Vector3(),
+      _s3 = new THREE.Vector3(1, 1, 1), _zAxis = new THREE.Vector3(0, 0, 1);
+function updateBelt(belt, offset) {
+  const { B, count, rF, rR } = belt.userData;
+  for (let i = 0; i < count; i++) {
+    const p = beltPoint(B, i / count + offset, rF, rR);
+    _q.setFromAxisAngle(_zAxis, p.a);
+    _v3.set(p.x, p.y, 0);
+    _m4.compose(_v3, _q, _s3);
+    belt.setMatrixAt(i, _m4);
+  }
+  belt.instanceMatrix.needsUpdate = true;
+}
+
+const chassis = new THREE.Group();
+walle.add(chassis);
+const trackL = buildTrack(-1), trackR = buildTrack(1);
+chassis.add(trackL, trackR);
+nodes.trackL = trackL; nodes.trackR = trackR;
+tagExplode(trackL, -0.42, 0, 0);
+tagExplode(trackR, 0.42, 0, 0);
+
+/* ── body ───────────────────────────────────────────────────────────── */
+
+const bodyRoot = new THREE.Group();          // lean / roll / compaction live here
+bodyRoot.position.y = DIM.bodyY;
+chassis.add(bodyRoot);
+nodes.bodyRoot = bodyRoot;
+
+const bodySquash = new THREE.Group();        // compactor squash, kept separate
+bodyRoot.add(bodySquash);
+nodes.bodySquash = bodySquash;
+
+const { bodyW: BW, bodyH: BH, bodyD: BD } = DIM;
+
+/* main shell */
+const shell = new THREE.Group();
+bodySquash.add(shell);
+shell.add(mesh(GEO.box(BW, BH, BD, 0.036, 2), MAT.paint));
+
+/* corner posts — the welded angle-iron that frames every panel */
+for (const sx of [-1, 1]) for (const sz of [-1, 1]) {
+  const post = mesh(GEO.box(0.052, BH + 0.012, 0.052, 0.012), MAT.trim,
+    sx * (BW / 2 - 0.022), 0, sz * (BD / 2 - 0.022));
+  shell.add(post);
+}
+for (const sy of [-1, 1]) for (const sz of [-1, 1]) {
+  shell.add(mesh(GEO.box(BW + 0.008, 0.038, 0.038, 0.010), MAT.trim,
+    0, sy * (BH / 2 - 0.018), sz * (BD / 2 - 0.018)));
+}
+
+/* --- front face: compactor door, grille, markings --- */
+const front = new THREE.Group();
+front.position.z = BD / 2;
+shell.add(front);
+
+const door = new THREE.Group();
+door.position.z = 0.004;
+front.add(door);
+door.add(mesh(GEO.box(BW - 0.14, BH - 0.20, 0.030, 0.014), MAT.trim, 0, 0.018, 0.006));
+door.add(mesh(GEO.box(BW - 0.20, BH - 0.30, 0.020, 0.010), MAT.darkSteel, 0, 0.018, 0.016));
+for (let i = 0; i < 8; i++) {                        // intake slats
+  const y = 0.115 - i * 0.030;
+  door.add(mesh(GEO.box(BW - 0.24, 0.016, 0.022, 0.005), MAT.trim, 0, y, 0.026));
+}
+door.add(mesh(GEO.box(BW - 0.205, 0.022, 0.026, 0.006), MAT.steel, 0, 0.155, 0.028));
+door.add(mesh(GEO.box(BW - 0.205, 0.022, 0.026, 0.006), MAT.steel, 0, -0.128, 0.028));
+tagExplode(door, 0, 0, 0.30);
+
+/* hazard strip across the lower chest */
+const hazGeo = new THREE.PlaneGeometry(BW - 0.07, 0.056);
+TEX.hazard.repeat.set(3, 1);
+const haz = mesh(hazGeo, MAT.hazard, 0, -BH / 2 + 0.072, 0.010);
+front.add(haz);
+front.add(mesh(GEO.box(BW - 0.06, 0.072, 0.014, 0.004), MAT.darkSteel, 0, -BH / 2 + 0.072, 0.002));
+
+/* identity plate + service lamps */
+const plateMesh = mesh(new THREE.PlaneGeometry(0.175, 0.088), MAT.plate, -BW / 2 + 0.135, BH / 2 - 0.115, 0.012);
+front.add(plateMesh);
+const lampA = mesh(GEO.sph(0.017, 20), MAT.lampRed, BW / 2 - 0.095, -BH / 2 + 0.185, 0.012);
+front.add(lampA); nodes.lampA = lampA;
+front.add(mesh(GEO.tor(0.020, 0.006, 18, 10), MAT.steel, BW / 2 - 0.095, -BH / 2 + 0.185, 0.010));
+const lampB = mesh(GEO.sph(0.012, 16), MAT.lampOn, BW / 2 - 0.095, -BH / 2 + 0.245, 0.012);
+front.add(lampB); nodes.lampB = lampB;
+
+/* --- sides: vents, arm rails, caution stencils --- */
+for (const sx of [-1, 1]) {
+  const side = new THREE.Group();
+  side.position.x = sx * BW / 2;
+  side.rotation.y = sx * Math.PI / 2;
+  shell.add(side);
+  const vent = new THREE.Group();
+  vent.position.set(-0.10, -0.10, 0.008);
+  for (let i = 0; i < 6; i++) {
+    const s = mesh(GEO.box(0.26, 0.016, 0.020, 0.004), MAT.darkSteel, 0, i * 0.028, 0);
+    s.rotation.x = -0.35;
+    vent.add(s);
+  }
+  vent.add(mesh(GEO.box(0.30, 0.20, 0.010, 0.006), MAT.trim, 0, 0.068, -0.010));
+  side.add(vent);
+  // the rail the shoulder rides on
+  side.add(mesh(GEO.box(0.46, 0.052, 0.022, 0.008), MAT.trim, 0.06, 0.145, 0.010));
+  side.add(mesh(GEO.box(0.46, 0.018, 0.030, 0.005), MAT.steel, 0.06, 0.145, 0.020));
+  for (let i = 0; i < 4; i++)
+    side.add(mesh(GEO.cyl(0.010, 0.010, 0.012, 10).rotateX(Math.PI / 2), MAT.steel, -0.13 + i * 0.13, -0.245, 0.012));
+}
+
+/* --- back: hatch, cooling fan, power coupling --- */
+const back = new THREE.Group();
+back.position.z = -BD / 2;
+back.rotation.y = Math.PI;
+shell.add(back);
+back.add(mesh(GEO.box(BW - 0.20, BH - 0.26, 0.022, 0.010), MAT.trim, 0, 0.02, 0.008));
+const fanRing = mesh(GEO.tor(0.088, 0.014, 26, 12), MAT.darkSteel, 0, 0.02, 0.020);
+back.add(fanRing);
+const fan = new THREE.Group();
+fan.position.set(0, 0.02, 0.016);
+const bladeGeo = GEO.box(0.078, 0.028, 0.006, 0.002);
+for (let i = 0; i < 7; i++) {
+  const a = i / 7 * TAU;
+  const b = mesh(bladeGeo, MAT.steel, Math.cos(a) * 0.042, Math.sin(a) * 0.042, 0);
+  b.rotation.z = a + 0.6;
+  fan.add(b);
+}
+back.add(fan); nodes.fan = fan;
+for (const sx of [-1, 1]) {
+  back.add(mesh(GEO.box(0.06, 0.26, 0.030, 0.008), MAT.darkSteel, sx * 0.26, -0.02, 0.012));
+  back.add(mesh(GEO.cyl(0.026, 0.026, 0.05, 16).rotateX(Math.PI / 2), MAT.steel, sx * 0.26, 0.16, 0.020));
+}
+
+/* --- top: hinged solar lid + the electronics beneath it --- */
+const guts = new THREE.Group();
+guts.position.y = BH / 2 - 0.125;
+bodySquash.add(guts);
+guts.add(mesh(GEO.box(BW - 0.20, 0.055, BD - 0.22, 0.012), MAT.darkSteel));
+const boardCols = [0x2f6b3d, 0x8a5a1e, 0x24405e];
+for (let i = 0; i < 12; i++) {
+  const bx = (rnd() - 0.5) * (BW - 0.30), bz = (rnd() - 0.5) * (BD - 0.32);
+  const c = mesh(GEO.box(0.03 + rnd() * 0.07, 0.018 + rnd() * 0.03, 0.03 + rnd() * 0.06, 0.004),
+    new THREE.MeshStandardMaterial({ color: boardCols[i % 3], roughness: 0.55, metalness: 0.35 }), bx, 0.045, bz);
+  guts.add(c);
+}
+for (let i = 0; i < 5; i++) {
+  const l = mesh(GEO.sph(0.0075, 12), i % 2 ? MAT.lampOn : MAT.lampRed,
+    -0.20 + i * 0.10, 0.052, BD / 2 - 0.22);
+  guts.add(l);
+}
+tagExplode(guts, 0, 0.22, 0);
+
+const lidHinge = new THREE.Group();
+lidHinge.position.set(0, BH / 2 + 0.014, -BD / 2 + 0.035);
+bodySquash.add(lidHinge);
+nodes.lidHinge = lidHinge;
+const lid = new THREE.Group();
+lid.position.z = (BD - 0.07) / 2;
+lidHinge.add(lid);
+lid.add(mesh(GEO.box(BW - 0.02, 0.034, BD - 0.07, 0.010), MAT.trim));
+const solarFace = mesh(new THREE.PlaneGeometry(BW - 0.12, BD - 0.17), MAT.solar, 0, 0.020, 0);
+solarFace.rotation.x = -Math.PI / 2;
+lid.add(solarFace);
+const solarUnder = mesh(new THREE.PlaneGeometry(BW - 0.12, BD - 0.17), MAT.solar, 0, -0.019, 0);
+solarUnder.rotation.x = Math.PI / 2;
+lid.add(solarUnder);
+for (const sx of [-1, 1])
+  lid.add(mesh(GEO.box(0.028, 0.042, BD - 0.06, 0.006), MAT.steel, sx * (BW - 0.05) / 2, 0.006, 0));
+lid.add(mesh(GEO.box(BW - 0.02, 0.042, 0.028, 0.006), MAT.steel, 0, 0.006, (BD - 0.06) / 2));
+tagExplode(lid, 0, 0.26, 0);
+
+/* the compactor's trash-cube chute, visible only when he ejects one */
+const cubeMat = MAT.cardboard.clone();
+const trashCube = mesh(GEO.box(0.13, 0.13, 0.13, 0.008), cubeMat, 0, -0.12, BD / 2 + 0.02);
+trashCube.visible = false;
+bodySquash.add(trashCube);
+nodes.trashCube = trashCube;
+
+/* ── neck: a three-stage telescopic mast ────────────────────────────── */
+
+const neckBase = new THREE.Group();
+neckBase.position.set(0, BH / 2 - 0.02, -BD / 2 + 0.145);
+bodySquash.add(neckBase);
+nodes.neckBase = neckBase;
+
+// mounting yoke
+for (const sx of [-1, 1])
+  neckBase.add(mesh(GEO.box(0.032, 0.11, 0.10, 0.008), MAT.trim, sx * 0.082, 0.045, 0));
+neckBase.add(mesh(GEO.box(0.22, 0.036, 0.13, 0.010), MAT.trim, 0, 0.012, 0));
+neckBase.add(mesh(GEO.cyl(0.020, 0.020, 0.20, 16).rotateZ(Math.PI / 2), MAT.steel, 0, 0.088, 0));
+
+const neckYaw = new THREE.Group();     // the mast can twist at its root
+neckYaw.position.y = 0.088;
+neckBase.add(neckYaw);
+nodes.neckYaw = neckYaw;
+
+const NECK_STAGES = [
+  { r: 0.062, h: 0.20 },
+  { r: 0.050, h: 0.19 },
+  { r: 0.040, h: 0.18 }
+];
+const neckStages = [];
+let parent = neckYaw;
+NECK_STAGES.forEach((st, i) => {
+  const g = new THREE.Group();
+  parent.add(g);
+  const tube = mesh(GEO.cyl(st.r, st.r * 1.04, st.h, 30), MAT.trim, 0, st.h / 2, 0);
+  g.add(tube);
+  // corrugation rings
+  const rings = Math.round(st.h / 0.042);
+  for (let k = 0; k < rings; k++)
+    g.add(mesh(GEO.tor(st.r * 1.01, 0.0075, 26, 8).rotateX(Math.PI / 2), MAT.darkSteel,
+      0, 0.030 + k * (st.h - 0.05) / Math.max(1, rings - 1), 0));
+  // cable loom running up the back of the mast
+  const cable = mesh(GEO.cyl(0.009, 0.009, st.h * 0.96, 10), MAT.blackMetal, 0, st.h / 2, -st.r - 0.012);
+  g.add(cable);
+  neckStages.push({ group: g, h: st.h });
+  nodes["neck" + i] = g;
+  tagExplode(g, 0, 0.10 + i * 0.05, 0);
+  parent = g;
+});
+
+/* head yoke sits on the last stage */
+const headMount = new THREE.Group();
+parent.add(headMount);
+const headYaw = new THREE.Group();
+headMount.add(headYaw);
+nodes.headYaw = headYaw;
+const headPitch = new THREE.Group();
+headYaw.add(headPitch);
+nodes.headPitch = headPitch;
+const headRoll = new THREE.Group();
+headPitch.add(headRoll);
+nodes.headRoll = headRoll;
+
+/* ── head: the binocular eye assembly ───────────────────────────────── */
+
+const EYE_R = 0.112, EYE_SEP = 0.128, EYE_LEN = 0.185;
+
+// cross bar + support struts
+headRoll.add(mesh(GEO.cyl(0.020, 0.020, EYE_SEP * 2 + 0.03, 20).rotateZ(Math.PI / 2), MAT.darkSteel, 0, 0, -0.045));
+headRoll.add(mesh(GEO.box(0.062, 0.072, 0.060, 0.012), MAT.trim, 0, -0.035, -0.070));
+for (const sx of [-1, 1]) {
+  const strut = mesh(GEO.cyl(0.011, 0.011, 0.16, 12), MAT.steel, sx * 0.055, -0.052, -0.030);
+  strut.rotation.z = -sx * 0.55; strut.rotation.x = 0.35;
+  headRoll.add(strut);
+}
+
+function buildEye(sx) {
+  const eye = new THREE.Group();
+  eye.position.set(sx * EYE_SEP, 0, 0);
+  headRoll.add(eye);
+
+  const aim = new THREE.Group();          // this is what "looks" at things
+  eye.add(aim);
+
+  // housing barrel
+  const barrel = mesh(GEO.cyl(EYE_R, EYE_R * 1.02, EYE_LEN, 44, true).rotateX(Math.PI / 2), MAT.trim);
+  aim.add(barrel);
+  aim.add(mesh(GEO.cyl(EYE_R * 1.02, EYE_R * 1.02, 0.018, 44).rotateX(Math.PI / 2), MAT.darkSteel, 0, 0, -EYE_LEN / 2));
+  // ribbed shroud
+  for (let i = 0; i < 3; i++)
+    aim.add(mesh(GEO.tor(EYE_R * 1.03, 0.010, 40, 10), MAT.darkSteel, 0, 0, -EYE_LEN / 2 + 0.030 + i * 0.038));
+  // front bezel
+  aim.add(mesh(GEO.tor(EYE_R * 0.99, 0.016, 44, 12), MAT.steel, 0, 0, EYE_LEN / 2 - 0.004));
+  // dark interior so the lens reads as deep
+  aim.add(mesh(GEO.cyl(EYE_R * 0.95, EYE_R * 0.95, EYE_LEN - 0.02, 40, true).rotateX(Math.PI / 2), MAT.lensInner));
+  aim.add(mesh(GEO.cyl(EYE_R * 0.95, EYE_R * 0.95, 0.008, 40).rotateX(Math.PI / 2), MAT.lensInner, 0, 0, -EYE_LEN / 2 + 0.014));
+
+  // iris + pupil, on their own pivot so the gaze can shift inside the lens
+  const gaze = new THREE.Group();
+  gaze.position.z = -0.010;
+  aim.add(gaze);
+  gaze.add(mesh(GEO.tor(0.058, 0.011, 40, 12), MAT.iris, 0, 0, 0.052));
+  gaze.add(mesh(GEO.tor(0.040, 0.008, 34, 10), MAT.iris, 0, 0, 0.056));
+  gaze.add(mesh(GEO.sph(0.033, 28), MAT.pupil, 0, 0, 0.046));
+  const glint = mesh(GEO.sph(0.009, 12), new THREE.MeshBasicMaterial({ color: 0xdff0ff }), -0.016, 0.017, 0.072);
+  glint.castShadow = false;
+  glint.userData.fx = true;
+  gaze.add(glint);
+
+  // lens glass — a shallow dome
+  const lensGeo = new THREE.SphereGeometry(EYE_R * 0.97, 44, 26, 0, TAU, 0, 0.62).rotateX(Math.PI / 2);
+  const lens = mesh(lensGeo, MAT.glass, 0, 0, EYE_LEN / 2 - 0.082);
+  lens.castShadow = false;
+  aim.add(lens);
+
+  // eyelids: two half-domes that meet in the middle
+  const lidGeo = (phiStart) =>
+    new THREE.SphereGeometry(EYE_R * 1.005, 40, 22, phiStart, Math.PI, 0, 0.70).rotateX(Math.PI / 2);
+  const lidUp = mesh(lidGeo(Math.PI), MAT.trim, 0, 0, EYE_LEN / 2 - 0.090);
+  const lidLo = mesh(lidGeo(0), MAT.trim, 0, 0, EYE_LEN / 2 - 0.090);
+  aim.add(lidUp, lidLo);
+
+  const key = sx > 0 ? "R" : "L";
+  nodes["eye" + key] = eye;
+  nodes["eyeAim" + key] = aim;
+  nodes["gaze" + key] = gaze;
+  nodes["lidUp" + key] = lidUp;
+  nodes["lidLo" + key] = lidLo;
+  tagExplode(eye, sx * 0.24, 0.10, 0);
+  return eye;
+}
+buildEye(-1); buildEye(1);
+tagExplode(headRoll, 0, 0.30, -0.10);
+
+/* ── arms ───────────────────────────────────────────────────────────── */
+
+function buildArm(sx) {
+  const key = sx > 0 ? "R" : "L";
+
+  const carriage = new THREE.Group();      // slides on the side rail
+  carriage.position.set(sx * (BW / 2 + 0.176), 0.205, 0.115);
+  bodySquash.add(carriage);
+  carriage.add(mesh(GEO.box(0.075, 0.098, 0.105, 0.014), MAT.trim, -sx * 0.008, 0, 0));
+  carriage.add(mesh(GEO.box(0.20, 0.052, 0.058, 0.010), MAT.trim, -sx * 0.135, 0.004, 0));
+  carriage.add(mesh(GEO.box(0.20, 0.018, 0.030, 0.005), MAT.steel, -sx * 0.135, 0.030, 0));
+  carriage.add(mesh(GEO.cyl(0.030, 0.030, 0.085, 20).rotateZ(Math.PI / 2), MAT.steel, sx * 0.016, 0, 0));
+  tagExplode(carriage, sx * 0.16, 0, 0);
+
+  const shoulder = new THREE.Group();      // pitch (fore/aft)
+  shoulder.position.x = sx * 0.040;
+  carriage.add(shoulder);
+  const shoulderRoll = new THREE.Group();  // roll (raise outward)
+  shoulder.add(shoulderRoll);
+  shoulderRoll.add(mesh(GEO.sph(0.047, 24), MAT.steel));
+
+  // upper arm: a bevelled rail with a hydraulic ram beside it
+  const upper = new THREE.Group();
+  shoulderRoll.add(upper);
+  const UL = 0.205;
+  upper.add(mesh(GEO.box(0.062, UL, 0.066, 0.014), MAT.trim, 0, -UL / 2, 0));
+  upper.add(mesh(GEO.cyl(0.017, 0.017, UL * 0.72, 16), MAT.steel, sx * 0.034, -UL * 0.42, -0.006));
+  upper.add(mesh(GEO.cyl(0.011, 0.011, UL * 0.55, 12), MAT.blackMetal, sx * 0.034, -UL * 0.78, -0.006));
+  upper.add(mesh(GEO.box(0.070, 0.032, 0.074, 0.008), MAT.darkSteel, 0, -0.030, 0));
+  tagExplode(upper, sx * 0.20, -0.06, 0);
+
+  const elbow = new THREE.Group();
+  elbow.position.y = -UL;
+  upper.add(elbow);
+  elbow.add(mesh(GEO.cyl(0.038, 0.038, 0.076, 22).rotateZ(Math.PI / 2), MAT.steel));
+  elbow.add(mesh(GEO.tor(0.040, 0.009, 22, 8).rotateY(Math.PI / 2), MAT.darkSteel));
+
+  const fore = new THREE.Group();
+  elbow.add(fore);
+  const FL = 0.185;
+  fore.add(mesh(GEO.box(0.054, FL, 0.058, 0.012), MAT.trim, 0, -FL / 2, 0));
+  fore.add(mesh(GEO.cyl(0.013, 0.013, FL * 0.8, 14), MAT.blackMetal, -sx * 0.026, -FL * 0.5, 0.004));
+  for (let i = 0; i < 3; i++)
+    fore.add(mesh(GEO.tor(0.023, 0.006, 20, 8).rotateX(Math.PI / 2), MAT.darkSteel, 0, -0.05 - i * 0.055, 0));
+  tagExplode(fore, sx * 0.22, -0.14, 0);
+
+  const wrist = new THREE.Group();
+  wrist.position.y = -FL;
+  fore.add(wrist);
+  wrist.add(mesh(GEO.cyl(0.026, 0.026, 0.048, 18).rotateZ(Math.PI / 2), MAT.steel));
+
+  // gripper: a palm block with two pincer fingers
+  const hand = new THREE.Group();
+  hand.position.y = -0.030;
+  wrist.add(hand);
+  hand.add(mesh(GEO.box(0.104, 0.055, 0.076, 0.012), MAT.trim, 0, -0.018, 0));
+  hand.add(mesh(GEO.box(0.076, 0.022, 0.056, 0.006), MAT.darkSteel, 0, -0.048, 0));
+
+  const fingers = [];
+  for (const fs of [-1, 1]) {
+    const f = new THREE.Group();
+    f.position.set(fs * 0.040, -0.054, 0);
+    hand.add(f);
+    f.add(mesh(GEO.box(0.026, 0.092, 0.062, 0.007), MAT.steel, 0, -0.046, 0));
+    f.add(mesh(GEO.box(0.036, 0.022, 0.062, 0.006), MAT.darkSteel, -fs * 0.008, -0.088, 0));
+    // grip pads
+    f.add(mesh(GEO.box(0.010, 0.060, 0.054, 0.003), MAT.rubber, -fs * 0.015, -0.054, 0));
+    fingers.push(f);
+    tagExplode(f, fs * 0.10, -0.06, 0);
+  }
+
+  tagExplode(hand, sx * 0.24, -0.22, 0);
+
+  nodes["shoulder" + key] = shoulder;
+  nodes["shoulderRoll" + key] = shoulderRoll;
+  nodes["elbow" + key] = elbow;
+  nodes["wrist" + key] = wrist;
+  nodes["hand" + key] = hand;
+  nodes["fingers" + key] = fingers;
+  nodes["carriage" + key] = carriage;
+  return carriage;
+}
+buildArm(-1); buildArm(1);
+
+/* ── the boot with the seedling ─────────────────────────────────────── */
+
+const plant = new THREE.Group();
+plant.visible = false;
+plant.scale.setScalar(0.95);
+nodes.handR.add(plant);
+plant.position.set(0, -0.135, 0.055);
+plant.rotation.x = 0.1;
+(function buildPlant() {
+  const bootBody = mesh(GEO.box(0.085, 0.10, 0.075, 0.018), MAT.boot, 0, 0.05, 0);
+  plant.add(bootBody);
+  plant.add(mesh(GEO.box(0.085, 0.030, 0.115, 0.014), MAT.boot, 0, 0.016, 0.022));
+  plant.add(mesh(GEO.box(0.090, 0.014, 0.080, 0.006), MAT.darkSteel, 0, 0.003, 0.006));
+  for (let i = 0; i < 3; i++)
+    plant.add(mesh(GEO.cyl(0.004, 0.004, 0.09, 8).rotateZ(Math.PI / 2), MAT.blackMetal, 0, 0.055 + i * 0.018, 0.034));
+  plant.add(mesh(GEO.cyl(0.033, 0.033, 0.018, 20), MAT.soil, 0, 0.100, 0));
+
+  const stem = new THREE.Group();
+  stem.position.y = 0.104;
+  plant.add(stem);
+  nodes.plantStem = stem;
+  stem.add(mesh(GEO.cyl(0.0045, 0.006, 0.085, 10), MAT.leaf, 0, 0.042, 0));
+  const leafShape = new THREE.Shape();
+  leafShape.moveTo(0, 0);
+  leafShape.bezierCurveTo(0.030, 0.014, 0.046, 0.046, 0, 0.072);
+  leafShape.bezierCurveTo(-0.046, 0.046, -0.030, 0.014, 0, 0);
+  const leafGeo = new THREE.ShapeGeometry(leafShape, 22);
+  for (let i = 0; i < 4; i++) {
+    const l = mesh(leafGeo, MAT.leaf, 0, 0.060 + (i % 2) * 0.014, 0);
+    l.rotation.y = i / 4 * TAU + 0.4;
+    l.rotation.x = -0.75 - (i % 2) * 0.18;
+    l.castShadow = true;
+    stem.add(l);
+  }
+})();
+nodes.plant = plant;
+
+/* ── contact shadow blob ────────────────────────────────────────────── */
+const blob = new THREE.Mesh(
+  new THREE.PlaneGeometry(1.9, 1.7),
+  new THREE.MeshBasicMaterial({ map: TEX.blob, transparent: true, depthWrite: false, opacity: 0.85 })
+);
+blob.rotation.x = -Math.PI / 2;
+blob.position.y = 0.004;
+blob.renderOrder = -1;
+walle.add(blob);
+nodes.blob = blob;
+
+/* ── explode leader lines ───────────────────────────────────────────── */
+(function buildLeaders() {
+  leaderGroup = new THREE.Group();
+  leaderGroup.visible = false;
+  scene.add(leaderGroup);
+  const mat = new THREE.LineBasicMaterial({ color: 0xe9a53a, transparent: true, opacity: 0.0 });
+  for (const obj of explodables) {
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(new Float32Array(6), 3));
+    const line = new THREE.Line(g, mat);
+    line.frustumCulled = false;
+    leaderGroup.add(line);
+    leaderGeo.push({ line, obj });
+  }
+  leaderGroup.userData.mat = mat;
+})();
+
+/* cache every original material so the blueprint mode can restore it */
+walle.traverse(o => { if (o.isMesh) MAT_SNAPSHOT.set(o, o.material); });
+
+progress(0.62, "Assembling chassis");
+
+/* ══════════════════════════════════════════════════════════════════════
+   7. ENVIRONMENTS
+   Three complete lighting + set dressing rigs. Only one is ever visible;
+   switching is a cross-fade of exposure plus a swap of the backdrop.
+   ══════════════════════════════════════════════════════════════════════ */
+
+const ENVS = {};
+
+/* ── shared key light: one shadow caster follows the active environment ── */
+const keyLight = new THREE.DirectionalLight(0xfff0dc, 2.6);
+keyLight.castShadow = true;
+keyLight.shadow.mapSize.set(2048, 2048);
+keyLight.shadow.camera.near = 0.5;
+keyLight.shadow.camera.far = 22;
+keyLight.shadow.camera.left = -4.2;
+keyLight.shadow.camera.right = 4.2;
+keyLight.shadow.camera.top = 4.2;
+keyLight.shadow.camera.bottom = -4.2;
+keyLight.shadow.bias = -0.0009;
+keyLight.shadow.normalBias = 0.022;
+keyLight.shadow.radius = 3.5;
+scene.add(keyLight, keyLight.target);
+
+const fillLight = new THREE.DirectionalLight(0x9ab6d8, 0.55);
+const rimLight = new THREE.DirectionalLight(0xffb066, 1.5);
+const ambient = new THREE.HemisphereLight(0xbfd4ee, 0x4a3a28, 0.55);
+scene.add(fillLight, rimLight, ambient);
+
+/* ── STUDIO ─────────────────────────────────────────────────────────── */
+(function buildStudio() {
+  const g = new THREE.Group();
+  g.visible = false;
+  scene.add(g);
+
+  // cyclorama: a polished floor that curves up into an infinite backdrop
+  const floorGeo = new THREE.CircleGeometry(5.42, 96);
+  const floorMat = new THREE.MeshPhysicalMaterial({
+    color: 0x14151a, roughness: 0.30, metalness: 0.0,
+    clearcoat: 0.6, clearcoatRoughness: 0.28, envMapIntensity: 0.9
+  });
+  const floor = new THREE.Mesh(floorGeo, floorMat);
+  floor.rotation.x = -Math.PI / 2;
+  floor.receiveShadow = true;
+  g.add(floor);
+
+  // curved wall sweeping up behind the subject
+  const wallProfile = new THREE.Shape();
+  wallProfile.moveTo(0, 0);
+  wallProfile.absarc(0, 2.2, 2.2, -Math.PI / 2, 0, false);
+  wallProfile.lineTo(2.2, 7.5);
+  wallProfile.lineTo(2.35, 7.5);
+  wallProfile.lineTo(2.35, 2.2);
+  wallProfile.absarc(0, 2.2, 2.35, 0, -Math.PI / 2, true);
+  wallProfile.closePath();
+  const wallGeo = new THREE.LatheGeometry(
+    wallProfile.getPoints(60).map(p => new THREE.Vector2(p.x + 5.3, p.y)), 128, 0, TAU);
+  const wall = new THREE.Mesh(wallGeo, new THREE.MeshStandardMaterial({
+    color: 0x1a1b21, roughness: 0.94, metalness: 0.0, side: THREE.DoubleSide
+  }));
+  wall.receiveShadow = true;
+  g.add(wall);
+
+  // subtle pool of light on the floor
+  const pool = new THREE.Mesh(new THREE.PlaneGeometry(7, 7),
+    new THREE.MeshBasicMaterial({ map: TEX.blob, transparent: true, color: 0x4a4536, blending: THREE.AdditiveBlending, depthWrite: false, opacity: 0.30 }));
+  pool.rotation.x = -Math.PI / 2; pool.position.y = 0.002;
+  g.add(pool);
+
+  ENVS.studio = {
+    group: g,
+    apply() {
+      scene.background = new THREE.Color(0x0a0b0e);
+      scene.fog = new THREE.Fog(0x0a0b0e, 9, 26);
+      renderer.toneMappingExposure = 1.12;
+      keyLight.color.set(0xfff4e6); keyLight.intensity = 3.0;
+      keyLight.position.set(3.4, 5.0, 3.2);
+      fillLight.color.set(0x9fb6d4); fillLight.intensity = 0.85;
+      fillLight.position.set(-4.0, 2.4, 2.0);
+      rimLight.color.set(0xffd2a0); rimLight.intensity = 2.2;
+      rimLight.position.set(-2.2, 2.0, -4.4);
+      ambient.color.set(0x9db1cc); ambient.groundColor.set(0x1a1b20); ambient.intensity = 0.42;
+      bloomPass.strength = 0.28; bloomPass.threshold = 0.90;
+      nodes.blob.material.opacity = 0.55;
+    }
+  };
+})();
+
+/* ── EARTH ──────────────────────────────────────────────────────────── */
+(function buildEarth() {
+  const g = new THREE.Group();
+  g.visible = false;
+  scene.add(g);
+
+  // graded sky dome — dusty amber at the horizon, soot overhead
+  const skyMat = new THREE.ShaderMaterial({
+    side: THREE.BackSide, depthWrite: false, fog: false,
+    uniforms: {
+      top: { value: new THREE.Color(0x241d14) },
+      band: { value: new THREE.Color(0xb98a45) },
+      horizon: { value: new THREE.Color(0xd8ab63) },
+      ground: { value: new THREE.Color(0x2a2118) }
+    },
+    vertexShader: `
+      varying vec3 vP;
+      void main(){ vP = position; gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0); }`,
+    fragmentShader: `
+      uniform vec3 top, band, horizon, ground;
+      varying vec3 vP;
+      void main(){
+        float h = normalize(vP).y;
+        vec3 c;
+        if (h > 0.0) {
+          float t = pow(clamp(h,0.0,1.0), 0.55);
+          c = mix(horizon, band, smoothstep(0.0, 0.34, t));
+          c = mix(c, top, smoothstep(0.22, 0.95, t));
+        } else {
+          c = mix(horizon, ground, smoothstep(0.0, 0.30, -h));
+        }
+        // faint sun bloom low in the sky
+        float s = pow(max(0.0, dot(normalize(vP), normalize(vec3(-0.52,0.18,-0.84)))), 22.0);
+        c += vec3(1.0,0.72,0.38) * s * 0.55;
+        gl_FragColor = vec4(c, 1.0);
+      }`
+  });
+  const sky = new THREE.Mesh(new THREE.SphereGeometry(160, 48, 32), skyMat);
+  g.add(sky);
+
+  // ground
+  const ground = new THREE.Mesh(
+    new THREE.PlaneGeometry(320, 320, 1, 1),
+    new THREE.MeshStandardMaterial({
+      color: 0x8a7256, map: TEX.ground, bumpMap: TEX.groundBump, bumpScale: 0.06,
+      roughness: 0.97, metalness: 0.02, envMapIntensity: 0.55
+    })
+  );
+  ground.rotation.x = -Math.PI / 2;
+  ground.receiveShadow = true;
+  g.add(ground);
+
+  // ── set dressing: rocks, loose cubes, compacted towers
+  const rockGeos = [];
+  for (let i = 0; i < 5; i++) {
+    const gg = new THREE.IcosahedronGeometry(1, 1);
+    const pos = gg.attributes.position;
+    for (let k = 0; k < pos.count; k++) {
+      const f = 0.68 + rnd() * 0.6;
+      pos.setXYZ(k, pos.getX(k) * f, pos.getY(k) * f * 0.72, pos.getZ(k) * f);
+    }
+    gg.computeVertexNormals();
+    rockGeos.push(gg);
+  }
+  const rocks = new THREE.Group(); g.add(rocks);
+  for (let i = 0; i < 150; i++) {
+    const ang = rnd() * TAU, dist = 2.2 + Math.pow(rnd(), 0.6) * 34;
+    const s = 0.035 + Math.pow(rnd(), 2.2) * 0.30;
+    const r = mesh(rockGeos[i % rockGeos.length], MAT.rock,
+      Math.cos(ang) * dist, s * 0.42, Math.sin(ang) * dist);
+    r.scale.setScalar(s);
+    r.rotation.set(rnd() * TAU, rnd() * TAU, rnd() * TAU);
+    r.receiveShadow = true; r.castShadow = i < 60;
+    rocks.add(r);
+  }
+
+  const cubeGeo = GEO.box(1, 1, 1, 0.035, 3);
+  const cubes = new THREE.Group(); g.add(cubes);
+  const cubeMats = [
+    MAT.cardboard,
+    new THREE.MeshStandardMaterial({ color: 0x8e8474, map: TEX.paint, roughness: 0.9, metalness: 0.12 }),
+    new THREE.MeshStandardMaterial({ color: 0x6d6250, map: TEX.paint, roughness: 0.85, metalness: 0.25 })
+  ];
+  function addCube(x, y, z, s, rot) {
+    const c = mesh(cubeGeo, cubeMats[Math.floor(rnd() * cubeMats.length)], x, y, z);
+    c.scale.setScalar(s);
+    c.rotation.set((rnd() - .5) * 0.10, rot, (rnd() - .5) * 0.10);
+    cubes.add(c);
+    return c;
+  }
+  // loose cubes near the robot
+  for (let i = 0; i < 34; i++) {
+    const ang = rnd() * TAU, dist = 1.6 + Math.pow(rnd(), 0.7) * 11;
+    const s = 0.16 + rnd() * 0.16;
+    addCube(Math.cos(ang) * dist, s / 2, Math.sin(ang) * dist, s, rnd() * TAU);
+  }
+  // the towers WALL·E has been stacking
+  for (let t = 0; t < 26; t++) {
+    const ang = rnd() * TAU, dist = 5 + Math.pow(rnd(), 0.5) * 42;
+    const bx = Math.cos(ang) * dist, bz = Math.sin(ang) * dist;
+    const s = 0.24 + rnd() * 0.20;
+    const n = 3 + Math.floor(rnd() * 7);
+    const rot = rnd() * TAU;
+    for (let i = 0; i < n; i++) {
+      addCube(bx + (rnd() - .5) * s * 0.30, s / 2 + i * s * 0.99, bz + (rnd() - .5) * s * 0.30,
+        s * (1 - i * 0.012), rot + (rnd() - .5) * 0.22);
+    }
+  }
+  // distant skyline of trash spires, cheap silhouettes for depth
+  const spireMat = new THREE.MeshStandardMaterial({ color: 0x3c3226, roughness: 1.0, metalness: 0.0 });
+  for (let i = 0; i < 46; i++) {
+    const ang = rnd() * TAU, dist = 64 + rnd() * 86;
+    const h = 5 + rnd() * 26, w = 1.6 + rnd() * 4.5;
+    const sp = mesh(GEO.box(w, h, w, 0.05, 2), spireMat,
+      Math.cos(ang) * dist, h / 2, Math.sin(ang) * dist);
+    sp.castShadow = false;
+    g.add(sp);
+  }
+
+  // airborne dust motes
+  const moteCount = 420;
+  const mp = new Float32Array(moteCount * 3);
+  for (let i = 0; i < moteCount; i++) {
+    mp[i * 3] = (rnd() - .5) * 26;
+    mp[i * 3 + 1] = rnd() * 5.2;
+    mp[i * 3 + 2] = (rnd() - .5) * 26;
+  }
+  const moteGeo = new THREE.BufferGeometry();
+  moteGeo.setAttribute("position", new THREE.BufferAttribute(mp, 3));
+  const motes = new THREE.Points(moteGeo, new THREE.PointsMaterial({
+    size: 0.035, map: TEX.dust, transparent: true, opacity: 0.55,
+    depthWrite: false, blending: THREE.AdditiveBlending, sizeAttenuation: true
+  }));
+  g.add(motes);
+  ENVS._motes = motes;
+
+  ENVS.earth = {
+    group: g,
+    apply() {
+      scene.background = null;
+      scene.fog = new THREE.FogExp2(0xa8804a, 0.016);
+      renderer.toneMappingExposure = 1.02;
+      keyLight.color.set(0xffe2b4); keyLight.intensity = 2.85;
+      keyLight.position.set(4.6, 5.4, 3.4);
+      fillLight.color.set(0x8fa9c8); fillLight.intensity = 0.58;
+      fillLight.position.set(-4.6, 2.6, 2.4);
+      rimLight.color.set(0xff9c42); rimLight.intensity = 2.30;
+      rimLight.position.set(-3.0, 1.9, -5.2);
+      ambient.color.set(0xe0c69a); ambient.groundColor.set(0x624c33); ambient.intensity = 1.05;
+      bloomPass.strength = 0.34; bloomPass.threshold = 0.88;
+      nodes.blob.material.opacity = 0.80;
+    }
+  };
+})();
+
+/* ── BLUEPRINT ──────────────────────────────────────────────────────── */
+(function buildBlueprint() {
+  const g = new THREE.Group();
+  g.visible = false;
+  scene.add(g);
+
+  const grid = new THREE.GridHelper(40, 80, 0x2f7fa8, 0x14364a);
+  grid.material.transparent = true;
+  grid.material.opacity = 0.42;
+  g.add(grid);
+  const grid2 = new THREE.GridHelper(40, 8, 0x58b6dd, 0x58b6dd);
+  grid2.material.transparent = true;
+  grid2.material.opacity = 0.30;
+  grid2.position.y = 0.002;
+  g.add(grid2);
+
+  // datum plane so the robot still sits on something
+  const bp = new THREE.Mesh(new THREE.PlaneGeometry(40, 40),
+    new THREE.MeshBasicMaterial({ color: 0x08141c }));
+  bp.rotation.x = -Math.PI / 2; bp.position.y = -0.004;
+  g.add(bp);
+
+  // vertical datum arcs behind the subject
+  const ringMat = new THREE.LineBasicMaterial({ color: 0x3f96c0, transparent: true, opacity: 0.30 });
+  for (let i = 1; i <= 4; i++) {
+    const pts = [];
+    for (let k = 0; k <= 64; k++) {
+      const a = k / 64 * TAU;
+      pts.push(new THREE.Vector3(Math.cos(a) * i * 0.6, 0.004, Math.sin(a) * i * 0.6));
+    }
+    g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), ringMat));
+  }
+
+  ENVS.blueprint = {
+    group: g,
+    apply() {
+      scene.background = new THREE.Color(0x061019);
+      scene.fog = new THREE.Fog(0x061019, 12, 34);
+      renderer.toneMappingExposure = 1.20;
+      keyLight.color.set(0xcfe8ff); keyLight.intensity = 1.5;
+      keyLight.position.set(2.6, 5.4, 3.6);
+      fillLight.color.set(0x6fa8d8); fillLight.intensity = 0.9;
+      fillLight.position.set(-3.6, 2.6, 2.6);
+      rimLight.color.set(0x5fd0ff); rimLight.intensity = 1.4;
+      rimLight.position.set(-2.0, 2.4, -4.0);
+      ambient.color.set(0x7fb4d8); ambient.groundColor.set(0x0d2230); ambient.intensity = 0.7;
+      bloomPass.strength = 0.50; bloomPass.threshold = 0.62;
+      nodes.blob.material.opacity = 0.0;
+    }
+  };
+})();
+
+/* blueprint look for the robot itself: matte hull + glowing wire edges */
+const BP_BODY = new THREE.MeshStandardMaterial({
+  color: 0x15374e, roughness: 0.50, metalness: 0.30,
+  transparent: true, opacity: 0.72, envMapIntensity: 0.6
+});
+const BP_LINE = new THREE.LineBasicMaterial({ color: 0x67d3ff, transparent: true, opacity: 0.85 });
+let bpEdges = null;
+
+function setBlueprintLook(on) {
+  if (on && !bpEdges) {
+    bpEdges = new THREE.Group();
+    walle.add(bpEdges);
+    walle.traverse(o => {
+      if (!o.isMesh || o.isInstancedMesh || o === nodes.blob || o.userData.fx) return;
+      if (o.geometry.attributes.position.count > 6000) return;
+      const e = new THREE.LineSegments(new THREE.EdgesGeometry(o.geometry, 18), BP_LINE);
+      e.userData.src = o;
+      e.frustumCulled = false;
+      bpEdges.add(e);
+    });
+  }
+  if (bpEdges) bpEdges.visible = on;
+  walle.traverse(o => {
+    if (!o.isMesh || o === nodes.blob || o.userData.fx) return;
+    o.material = on ? BP_BODY : (MAT_SNAPSHOT.get(o) || o.material);
+  });
+}
+
+// keep the wire overlay glued to its source mesh
+const _wm = new THREE.Matrix4();
+function syncBlueprintEdges() {
+  if (!bpEdges || !bpEdges.visible) return;
+  for (const e of bpEdges.children) {
+    const src = e.userData.src;
+    if (!src.visible) { e.visible = false; continue; }
+    e.visible = true;
+    _wm.copy(walle.matrixWorld).invert().multiply(src.matrixWorld);
+    _wm.decompose(e.position, e.quaternion, e.scale);
+  }
+}
+
+progress(0.80, "Lighting the set");
+
+/* ══════════════════════════════════════════════════════════════════════
+   8. CAMERA RIG
+   Spherical orbit with critically damped follow. Presets are just target
+   spherical coordinates; the damping does the cinematic move for free.
+   ══════════════════════════════════════════════════════════════════════ */
+
+const VIEWS = {
+  threequarter: { az: 0.74,  pol: 1.30, dist: 3.30, ty: 0.60, fov: 38 },
+  front:        { az: 0.00,  pol: 1.42, dist: 3.25, ty: 0.62, fov: 36 },
+  side:         { az: Math.PI / 2, pol: 1.44, dist: 3.30, ty: 0.58, fov: 36 },
+  top:          { az: 0.58,  pol: 0.46, dist: 3.70, ty: 0.40, fov: 40 },
+  macro:        { az: 0.26,  pol: 1.36, dist: 1.00, ty: 1.02, fov: 26 }
+};
+
+/* The control panel covers the right edge, so the projection is shifted to
+   keep the robot centred in the part of the frame you can actually see. */
+const PANEL_W = 318;
+function applyViewOffset() {
+  const w = innerWidth, h = innerHeight;
+  const p = w > 900 ? PANEL_W : 0;
+  if (p > 0) {
+    camera.aspect = (w + p) / h;
+    camera.setViewOffset(w + p, h, p, 0, w, h);
+  } else {
+    camera.aspect = w / h;
+    camera.clearViewOffset();
+  }
+  camera.updateProjectionMatrix();
+}
+
+const cam = {
+  az: VIEWS.threequarter.az, pol: VIEWS.threequarter.pol, dist: VIEWS.threequarter.dist,
+  tAz: VIEWS.threequarter.az, tPol: VIEWS.threequarter.pol, tDist: VIEWS.threequarter.dist,
+  target: new THREE.Vector3(0, 0.62, 0),
+  tTarget: new THREE.Vector3(0, 0.62, 0),
+  targetY: VIEWS.threequarter.ty,
+  fov: 38, tFov: 38,
+  view: "threequarter",
+  autoOrbit: false, follow: true,
+  shakeMag: 0, shakeT: 0
+};
+
+function setView(name, snap = false) {
+  const v = VIEWS[name];
+  if (!v) return;
+  cam.view = name;
+  cam.tAz = v.az; cam.tPol = v.pol; cam.tDist = v.dist;
+  cam.targetY = v.ty; cam.tFov = v.fov;
+  if (snap) { cam.az = v.az; cam.pol = v.pol; cam.dist = v.dist; cam.fov = v.fov; }
+  document.querySelectorAll("#cam-views .chip")
+    .forEach(b => b.classList.toggle("on", b.dataset.view === name));
+}
+
+/* --- pointer input ------------------------------------------------- */
+const el = renderer.domElement;
+const pointers = new Map();
+let dragging = false, lastX = 0, lastY = 0, pinchDist = 0;
+
+el.addEventListener("pointerdown", e => {
+  el.setPointerCapture(e.pointerId);
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pointers.size === 1) { dragging = true; lastX = e.clientX; lastY = e.clientY; }
+  if (pointers.size === 2) {
+    const [a, b] = [...pointers.values()];
+    pinchDist = Math.hypot(a.x - b.x, a.y - b.y);
+  }
+});
+el.addEventListener("pointermove", e => {
+  if (!pointers.has(e.pointerId)) return;
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pointers.size === 2) {
+    const [a, b] = [...pointers.values()];
+    const d = Math.hypot(a.x - b.x, a.y - b.y);
+    if (pinchDist > 0) cam.tDist = clamp(cam.tDist * (pinchDist / d), 0.55, 14);
+    pinchDist = d;
+    return;
+  }
+  if (!dragging) return;
+  const dx = e.clientX - lastX, dy = e.clientY - lastY;
+  lastX = e.clientX; lastY = e.clientY;
+  cam.tAz -= dx * 0.0062;
+  cam.tPol = clamp(cam.tPol - dy * 0.0055, 0.10, Math.PI - 0.14);
+  cam.autoOrbit = false;
+  syncToggle("orbit", false);
+});
+const endPointer = e => {
+  pointers.delete(e.pointerId);
+  if (pointers.size < 2) pinchDist = 0;
+  if (pointers.size === 0) dragging = false;
+};
+el.addEventListener("pointerup", endPointer);
+el.addEventListener("pointercancel", endPointer);
+el.addEventListener("pointerleave", endPointer);
+el.addEventListener("wheel", e => {
+  e.preventDefault();
+  cam.tDist = clamp(cam.tDist * (1 + Math.sign(e.deltaY) * Math.min(0.22, Math.abs(e.deltaY) * 0.0015)), 0.55, 14);
+}, { passive: false });
+el.addEventListener("contextmenu", e => e.preventDefault());
+
+function shake(mag) { cam.shakeMag = Math.max(cam.shakeMag, mag); cam.shakeT = 0; }
+
+const _camPos = new THREE.Vector3(), _headWP = new THREE.Vector3();
+function updateCamera(dt) {
+  if (cam.autoOrbit) cam.tAz += dt * 0.19;
+
+  cam.az = damp(cam.az, cam.tAz, 5.5, dt);
+  cam.pol = damp(cam.pol, cam.tPol, 5.5, dt);
+  cam.dist = damp(cam.dist, cam.tDist, 4.6, dt);
+  cam.fov = damp(cam.fov, cam.tFov, 4.0, dt);
+  if (Math.abs(camera.fov - cam.fov) > 0.01) { camera.fov = cam.fov; applyViewOffset(); }
+
+  // follow keeps the chassis framed; otherwise the rig stays at the origin
+  const fx = cam.follow ? walle.position.x : 0;
+  const fz = cam.follow ? walle.position.z : 0;
+  let ty = cam.targetY;
+  if (cam.view === "macro") ty = nodes.headRoll.getWorldPosition(_headWP).y - 0.015;
+  cam.tTarget.set(fx, ty, fz);
+  cam.target.x = damp(cam.target.x, cam.tTarget.x, 4.0, dt);
+  cam.target.y = damp(cam.target.y, cam.tTarget.y, 4.0, dt);
+  cam.target.z = damp(cam.target.z, cam.tTarget.z, 4.0, dt);
+
+  const sp = Math.sin(cam.pol), cp = Math.cos(cam.pol);
+  const dist = cam.dist * (1 + explode * 0.55);     // ease back as he comes apart
+  _camPos.set(
+    cam.target.x + dist * sp * Math.sin(cam.az),
+    cam.target.y + dist * cp + explode * 0.16,
+    cam.target.z + dist * sp * Math.cos(cam.az)
+  );
+
+  if (cam.shakeMag > 0.0005) {
+    cam.shakeT += dt;
+    const k = cam.shakeMag * Math.exp(-cam.shakeT * 7);
+    _camPos.x += Math.sin(cam.shakeT * 61) * k;
+    _camPos.y += Math.sin(cam.shakeT * 47 + 1.7) * k;
+    cam.shakeMag = k < 0.0005 ? 0 : cam.shakeMag;
+  }
+
+  camera.position.copy(_camPos);
+  camera.lookAt(cam.target);
+
+  // the key light travels with the robot so shadows stay inside the frustum
+  const off = keyLight.userData.off;
+  if (off) {
+    keyLight.position.copy(walle.position).add(off);
+    keyLight.target.position.copy(walle.position);
+    keyLight.target.updateMatrixWorld();
+  }
+}
+
+setView("threequarter", true);
+applyViewOffset();
+
+/* ══════════════════════════════════════════════════════════════════════
+   9. THE RIG
+   Every joint is a named scalar channel. Routines only ever write to
+   `tgt`; `cur` chases it with per-channel damping, which is what makes
+   servo motion read as mechanical rather than snapped.
+   ══════════════════════════════════════════════════════════════════════ */
+
+const DEFAULTS = {
+  neck: 0.18, neckYaw: 0, headYaw: 0, headPitch: 0.02, headRoll: 0,
+  lidL: 0.06, lidR: 0.06, browL: 0, browR: 0, gazeX: 0, gazeY: 0, converge: 0,
+  shL: -0.31, shR: -0.31, rollL: 0.03, rollR: 0.03, elL: 0.42, elR: 0.42,
+  wristL: 0, wristR: 0, grip: 0.30,
+  lean: 0, tilt: 0, bob: 0, solarLid: 0, squash: 0, glow: 1
+};
+const RATES = {
+  neck: 3.2, neckYaw: 4.0, headYaw: 5.0, headPitch: 5.4, headRoll: 5.6,
+  lidL: 22, lidR: 22, browL: 9, browR: 9, gazeX: 11, gazeY: 11, converge: 6,
+  shL: 5.2, shR: 5.2, rollL: 5.4, rollR: 5.4, elL: 6.0, elR: 6.0,
+  wristL: 12, wristR: 12, grip: 7.5,
+  lean: 6.5, tilt: 6.5, bob: 7, solarLid: 3.0, squash: 12, glow: 4
+};
+
+const rig = { cur: { ...DEFAULTS }, tgt: { ...DEFAULTS } };
+const overrides = { neck: null, shoulder: null, grip: null };
+
+/* ── head-mounted FX: the scanner cone and the call-out ping ────────── */
+const fx = {};
+(function buildFX() {
+  const cone = new THREE.Mesh(
+    new THREE.ConeGeometry(0.42, 2.6, 40, 1, true),
+    new THREE.MeshBasicMaterial({
+      color: 0x9fd8ff, transparent: true, opacity: 0.0,
+      blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide
+    })
+  );
+  cone.geometry.translate(0, -1.3, 0);
+  cone.rotation.x = Math.PI / 2;
+  cone.position.z = 0.10;
+  cone.castShadow = false;
+  cone.userData.fx = true;
+  nodes.headRoll.add(cone);
+  fx.cone = cone;
+
+  const spot = new THREE.SpotLight(0xa9dcff, 0, 6, 0.42, 0.65, 1.2);
+  spot.castShadow = false;
+  nodes.headRoll.add(spot);
+  spot.position.set(0, 0, 0.12);
+  spot.target.position.set(0, 0, 4);
+  nodes.headRoll.add(spot.target);
+  fx.spot = spot;
+
+  const ping = new THREE.Mesh(
+    GEO.tor(0.30, 0.016, 60, 8),
+    new THREE.MeshBasicMaterial({ color: 0xffd79a, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false })
+  );
+  ping.castShadow = false;
+  ping.userData.fx = true;
+  ping.visible = false;
+  nodes.headRoll.add(ping);
+  fx.ping = ping;
+  fx.pingT = -1;
+
+  // drive dust
+  const N = 240;
+  const pos = new Float32Array(N * 3), life = new Float32Array(N), vel = new Float32Array(N * 3);
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  const pts = new THREE.Points(geo, new THREE.PointsMaterial({
+    size: 0.11, map: TEX.dust, transparent: true, opacity: 0.55,
+    depthWrite: false, blending: THREE.NormalBlending, sizeAttenuation: true
+  }));
+  pts.frustumCulled = false;
+  scene.add(pts);
+  fx.dust = { pts, pos, life, vel, N, head: 0 };
+})();
+
+function emitDust(x, z, strength) {
+  const d = fx.dust;
+  for (let k = 0; k < 2; k++) {
+    const i = d.head = (d.head + 1) % d.N;
+    d.pos[i * 3] = x + (rnd() - .5) * 0.34;
+    d.pos[i * 3 + 1] = 0.03 + rnd() * 0.05;
+    d.pos[i * 3 + 2] = z + (rnd() - .5) * 0.34;
+    d.vel[i * 3] = (rnd() - .5) * 0.34;
+    d.vel[i * 3 + 1] = 0.12 + rnd() * 0.30;
+    d.vel[i * 3 + 2] = (rnd() - .5) * 0.34;
+    d.life[i] = 0.55 + rnd() * 0.55 * strength;
+  }
+}
+
+function updateDust(dt) {
+  const d = fx.dust;
+  let any = false;
+  for (let i = 0; i < d.N; i++) {
+    if (d.life[i] <= 0) { d.pos[i * 3 + 1] = -99; continue; }
+    d.life[i] -= dt;
+    any = true;
+    d.pos[i * 3] += d.vel[i * 3] * dt;
+    d.pos[i * 3 + 1] += d.vel[i * 3 + 1] * dt;
+    d.pos[i * 3 + 2] += d.vel[i * 3 + 2] * dt;
+    d.vel[i * 3 + 1] -= 0.30 * dt;
+    d.vel[i * 3] *= 1 - 1.4 * dt;
+    d.vel[i * 3 + 2] *= 1 - 1.4 * dt;
+  }
+  d.pts.geometry.attributes.position.needsUpdate = true;
+  d.pts.visible = any && env.current !== "blueprint";
+}
+
+/* ── driving ────────────────────────────────────────────────────────── */
+
+const drive = {
+  speed: 0, turn: 0, gear: 1.0,
+  beltL: 0, beltR: 0, dustAcc: 0
+};
+const keys = new Set();
+
+function updateDrive(dt) {
+  const fwd = (keys.has("w") ? 1 : 0) - (keys.has("s") ? 1 : 0);
+  const str = (keys.has("a") ? 1 : 0) - (keys.has("d") ? 1 : 0);
+  const boost = keys.has("shift") ? 1.85 : 1;
+  const maxV = 1.15 * drive.gear * boost;
+  const maxW = 1.85 * (0.55 + 0.45 * drive.gear);
+
+  const targetV = fwd * maxV;
+  const targetW = str * maxW * (fwd < 0 ? -1 : 1);
+  drive.speed = damp(drive.speed, targetV, fwd ? 3.4 : 5.0, dt);
+  drive.turn = damp(drive.turn, targetW, str ? 5.5 : 7.0, dt);
+  if (Math.abs(drive.speed) < 0.002) drive.speed = 0;
+  if (Math.abs(drive.turn) < 0.002) drive.turn = 0;
+
+  walle.rotation.y += drive.turn * dt;
+  walle.position.x += Math.sin(walle.rotation.y) * drive.speed * dt;
+  walle.position.z += Math.cos(walle.rotation.y) * drive.speed * dt;
+  const lim = 26;
+  walle.position.x = clamp(walle.position.x, -lim, lim);
+  walle.position.z = clamp(walle.position.z, -lim, lim);
+
+  // tread + wheel motion, per side
+  const half = DIM.trackGauge;
+  const vL = drive.speed - drive.turn * half;
+  const vR = drive.speed + drive.turn * half;
+  for (const [key, v] of [["L", vL], ["R", vR]]) {
+    const belt = nodes["belt" + key];
+    belt.userData.offset += v * dt / belt.userData.B.total;
+    updateBelt(belt, belt.userData.offset);
+    nodes["sprocket" + key].rotation.z -= v * dt / DIM.trackRF;
+    nodes["idler" + key].rotation.z -= v * dt / DIM.trackRR;
+    for (let i = 0; i < 3; i++) {
+      const rw = nodes["road" + key + i];
+      if (rw) rw.rotation.z -= v * dt / 0.062;
+    }
+  }
+
+  // suspension response: pitch under acceleration, roll into the turn
+  const accel = (drive.speed - (drive.prevSpeed ?? 0)) / Math.max(dt, 1e-4);
+  drive.prevSpeed = drive.speed;
+  drive.leanDyn = damp(drive.leanDyn ?? 0, clamp(accel * 0.045, -0.13, 0.13), 8, dt);
+  drive.rollDyn = damp(drive.rollDyn ?? 0, clamp(drive.turn * 0.055, -0.1, 0.1), 7, dt);
+
+  // dust behind the tracks
+  const sp = Math.abs(drive.speed) + Math.abs(drive.turn) * 0.4;
+  if (sp > 0.10 && env.current === "earth") {
+    drive.dustAcc += sp * dt * 9;
+    while (drive.dustAcc > 1) {
+      drive.dustAcc -= 1;
+      const side = rnd() > .5 ? 1 : -1;
+      const bx = walle.position.x - Math.sin(walle.rotation.y) * 0.42 + Math.cos(walle.rotation.y) * side * DIM.trackGauge;
+      const bz = walle.position.z - Math.cos(walle.rotation.y) * 0.42 - Math.sin(walle.rotation.y) * side * DIM.trackGauge;
+      emitDust(bx, bz, clamp(sp, 0, 1.4));
+    }
+  }
+  return sp;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   10. BEHAVIOUR ROUTINES
+   A routine is a function of its own local clock that writes joint
+   targets. Nothing here touches `cur` directly, so routines can be
+   swapped mid-motion and the servos simply re-aim.
+   ══════════════════════════════════════════════════════════════════════ */
+
+const env = { current: "earth" };
+const state = { routine: "idle", rt: 0, blinkIn: 2.4, extra: {} };
+const T = rig.tgt;
+
+function blinkTick(dt, closed = 0.06, speed = 1) {
+  state.blinkIn -= dt * speed;
+  if (state.blinkIn <= 0) {
+    state.blinkIn = 1.8 + rnd() * 4.2;
+    state.blinkPhase = 0.19;
+  }
+  if (state.blinkPhase > 0) {
+    state.blinkPhase -= dt;
+    const c = state.blinkPhase > 0.095 ? 1 : state.blinkPhase / 0.095;
+    T.lidL = Math.max(closed, c); T.lidR = Math.max(closed, c);
+  } else { T.lidL = closed; T.lidR = closed; }
+}
+
+/* small helper: wandering gaze with dwell */
+function wander(dt, range = 1, speed = 1) {
+  const e = state.extra;
+  e.gt = (e.gt ?? 0) - dt * speed;
+  if (e.gt <= 0) {
+    e.gt = 0.7 + rnd() * 1.9;
+    e.gx = (rnd() * 2 - 1) * range;
+    e.gy = (rnd() * 2 - 1) * range * 0.55;
+  }
+  T.gazeX = e.gx ?? 0; T.gazeY = e.gy ?? 0;
+}
+
+const ROUTINES = {
+  idle: {
+    label: "Idle", icon: "🔋",
+    enter() { Object.assign(T, DEFAULTS); T.neck = 0.18; },
+    update(t, dt) {
+      const b = Math.sin(t * 1.15);
+      T.neck = 0.18 + b * 0.022;
+      T.bob = b * 0.010;
+      T.headYaw = Math.sin(t * 0.37) * 0.20 + Math.sin(t * 0.13) * 0.12;
+      T.headPitch = 0.02 + Math.sin(t * 0.52 + 1.1) * 0.05;
+      T.headRoll = Math.sin(t * 0.29) * 0.05;
+      T.shL = -0.31 + Math.sin(t * 0.9) * 0.035;
+      T.shR = -0.31 + Math.sin(t * 0.9 + 0.7) * 0.035;
+      T.elL = 0.42 + Math.sin(t * 0.8 + 0.4) * 0.05;
+      T.elR = 0.42 + Math.sin(t * 0.8) * 0.05;
+      T.lean = Math.sin(t * 0.6) * 0.008;
+      T.solarLid = 0;
+      blinkTick(dt);
+      wander(dt, 0.55, 0.7);
+    }
+  },
+
+  curious: {
+    label: "Curious", icon: "🔎",
+    enter() { state.extra = {}; },
+    update(t, dt) {
+      const p = Math.sin(t * 1.5);
+      T.neck = 0.62 + Math.sin(t * 0.8) * 0.16;
+      T.headPitch = -0.34 + Math.sin(t * 1.1) * 0.10;      // leans in to look
+      T.headYaw = Math.sin(t * 0.72) * 0.42;
+      T.headRoll = Math.sin(t * 0.95 + 0.6) * 0.30;        // the quizzical tilt
+      T.lean = 0.055 + p * 0.016;
+      T.tilt = Math.sin(t * 0.7) * 0.02;
+      T.lidL = 0.0; T.lidR = 0.0;
+      T.browL = 0.10; T.browR = 0.10;
+      T.converge = 0.30 + Math.sin(t * 1.3) * 0.12;
+      // the right arm reaches out to prod whatever he found
+      T.shR = -0.95 + Math.sin(t * 1.25) * 0.18;
+      T.elR = 0.78 + Math.sin(t * 1.25 + 0.9) * 0.22;
+      T.rollR = 0.22;
+      T.grip = 0.55 + Math.sin(t * 2.5) * 0.42;
+      T.shL = -0.24; T.elL = 0.36;
+      T.bob = Math.sin(t * 2.4) * 0.008;
+      wander(dt, 1.0, 1.7);
+      blinkTick(dt, 0.0, 1.5);
+    }
+  },
+
+  wave: {
+    label: "Wave", icon: "👋",
+    enter() { state.extra = { started: 0 }; },
+    update(t, dt) {
+      const up = smoothstep(t / 0.55);
+      const w = Math.sin(t * 6.4);
+      T.shR = lerp(-0.31, -2.05, up);                      // arm comes up
+      T.rollR = lerp(0.03, 0.52, up);
+      T.elR = lerp(0.42, -0.55 + w * 0.34, up);
+      T.wristR = w * 0.55;
+      T.grip = 0.12;
+      T.shL = -0.26 + Math.sin(t * 2.1) * 0.06;
+      T.elL = 0.40;
+      T.neck = 0.42 + up * 0.10;
+      T.headYaw = lerp(0, -0.30, up) + Math.sin(t * 3.2) * 0.07;
+      T.headRoll = lerp(0, 0.22, up) + w * 0.06;
+      T.headPitch = -0.10;
+      T.lidL = 0.36 + Math.sin(t * 3.2) * 0.06;            // happy squint
+      T.lidR = 0.36 + Math.sin(t * 3.2) * 0.06;
+      T.browL = -0.14; T.browR = -0.14;
+      T.gazeX = -0.35; T.gazeY = 0.25;
+      T.tilt = Math.sin(t * 3.2) * 0.022;
+      T.bob = Math.abs(Math.sin(t * 3.2)) * 0.016;
+      T.lean = 0.02;
+    }
+  },
+
+  scan: {
+    label: "Scan", icon: "📡",
+    enter() { state.extra = {}; },
+    update(t, dt) {
+      const sweep = Math.sin(t * 0.62);
+      T.neck = 0.94;
+      T.headYaw = sweep * 1.15;                            // slow radar sweep
+      T.headPitch = -0.06 + Math.sin(t * 0.31) * 0.10;
+      T.headRoll = sweep * 0.06;
+      T.lidL = 0.40; T.lidR = 0.40;
+      T.browL = 0.06; T.browR = 0.06;
+      T.gazeX = sweep * 0.5; T.gazeY = 0;
+      T.shL = -0.18; T.shR = -0.18;
+      T.elL = 0.24; T.elR = 0.24;
+      T.rollL = -0.12; T.rollR = -0.12;
+      T.grip = 0.05;
+      T.lean = -0.03;
+      T.glow = 1 + Math.abs(sweep) * 1.8;
+      T.bob = 0;
+      state.extra.scanPulse = (Math.sin(t * 5.2) * 0.5 + 0.5);
+    }
+  },
+
+  eve: {
+    label: "EEE-VAH", icon: "💙",
+    enter() { state.extra = { next: 0.35 }; },
+    update(t, dt) {
+      const call = Math.max(0, Math.sin(t * 1.35));
+      T.neck = 0.55 + call * 0.42;                         // stretches up to call
+      T.headPitch = -0.46 - call * 0.26;
+      T.headYaw = Math.sin(t * 0.55) * 0.22;
+      T.headRoll = Math.sin(t * 1.35) * 0.09;
+      T.lidL = 0.0; T.lidR = 0.0;
+      T.browL = -0.06; T.browR = -0.06;
+      T.converge = 0.18;
+      T.gazeY = 0.35; T.gazeX = 0;
+      T.shL = -0.72 - call * 0.62; T.shR = -0.72 - call * 0.62;
+      T.rollL = 0.34 + call * 0.30; T.rollR = 0.34 + call * 0.30;
+      T.elL = 0.10; T.elR = 0.10;
+      T.grip = 0.85;
+      T.lean = -0.05 - call * 0.05;
+      T.bob = call * 0.030;
+      T.glow = 1 + call * 1.5;
+      // fire the ping ring on each call peak
+      const e = state.extra;
+      e.next -= dt;
+      if (call > 0.92 && e.next <= 0) {
+        e.next = 2.2;
+        fx.pingT = 0;
+        fx.ping.visible = true;
+        shake(0.012);
+      }
+    }
+  },
+
+  sad: {
+    label: "Sad", icon: "💧",
+    enter() { state.extra = {}; },
+    update(t, dt) {
+      const s = Math.sin(t * 0.55);
+      T.neck = 0.08 + s * 0.02;
+      T.headPitch = 0.50 + s * 0.05;                       // head hangs
+      T.headYaw = Math.sin(t * 0.33) * 0.16;
+      T.headRoll = Math.sin(t * 0.42) * 0.12;
+      T.lidL = 0.52 + s * 0.05; T.lidR = 0.52 + s * 0.05;
+      T.browL = 0.42; T.browR = 0.42;                      // outer edges droop
+      T.gazeY = -0.55; T.gazeX = Math.sin(t * 0.3) * 0.15;
+      T.converge = 0.12;
+      T.shL = 0.16 + Math.sin(t * 0.7) * 0.05;             // arms hang limp
+      T.shR = 0.16 + Math.sin(t * 0.7 + 0.5) * 0.05;
+      T.elL = 0.12; T.elR = 0.12;
+      T.rollL = -0.06; T.rollR = -0.06;
+      T.grip = 0.05;
+      T.lean = 0.085;
+      T.tilt = Math.sin(t * 0.4) * 0.015;
+      T.bob = s * 0.012;
+      T.glow = 0.45;
+      blinkTick(dt, 0.52, 0.5);
+    }
+  },
+
+  compact: {
+    label: "Compact", icon: "📦",
+    enter() { state.extra = { cycle: 0, ejected: false }; nodes.trashCube.visible = false; },
+    update(t, dt) {
+      const e = state.extra;
+      const cyc = (t % 3.2) / 3.2;                         // one crunch every 3.2 s
+      // fold everything in tight
+      T.neck = 0.02;
+      T.headPitch = 0.62;
+      T.headYaw = 0; T.headRoll = 0;
+      T.lidL = 0.62; T.lidR = 0.62;
+      T.browL = 0.18; T.browR = 0.18;
+      T.shL = -0.10; T.shR = -0.10;
+      T.rollL = -0.30; T.rollR = -0.30;                    // arms clamp to the sides
+      T.elL = 1.35; T.elR = 1.35;
+      T.grip = 0.95;
+      T.solarLid = 0;
+      T.gazeY = -0.2;
+
+      // the crunch itself
+      let sq = 0;
+      if (cyc > 0.18 && cyc < 0.46) {
+        const k = (cyc - 0.18) / 0.28;
+        sq = Math.sin(k * Math.PI) * 1.0;
+      }
+      T.squash = sq;
+      T.lean = sq * 0.05;
+      T.glow = 1 + sq * 2.2;
+      if (sq > 0.85 && !e.hit) { e.hit = true; shake(0.020); }
+      if (cyc < 0.15) e.hit = false;
+
+      // eject a finished cube on the way out of the crunch
+      const cube = nodes.trashCube;
+      if (cyc > 0.50 && !e.ejected) {
+        e.ejected = true;
+        cube.visible = true;
+        e.cubeT = 0;
+      }
+      if (cyc < 0.45) e.ejected = false;
+      if (cube.visible) {
+        e.cubeT += dt;
+        const p = e.cubeT;
+        cube.position.set(0, -0.12 - p * p * 1.5, DIM.bodyD / 2 + 0.02 + p * 0.55);
+        cube.rotation.x += dt * 2.2; cube.rotation.y += dt * 1.1;
+        cube.scale.setScalar(clamp(p * 6, 0, 1));
+        if (cube.position.y < -DIM.bodyY + 0.07) { cube.visible = false; }
+      }
+    }
+  },
+
+  sleep: {
+    label: "Sleep", icon: "😴",
+    enter() { state.extra = {}; },
+    update(t, dt) {
+      const b = Math.sin(t * 0.55);
+      T.neck = 0.05 + (b * 0.5 + 0.5) * 0.045;             // slow charging breath
+      T.headPitch = 0.46 + b * 0.05;
+      T.headYaw = -0.10;
+      T.headRoll = 0.14 + b * 0.03;
+      T.lidL = 1.0; T.lidR = 1.0;
+      T.browL = 0; T.browR = 0;
+      T.shL = -0.05; T.shR = -0.05;
+      T.elL = 0.20; T.elR = 0.20;
+      T.rollL = -0.12; T.rollR = -0.12;
+      T.grip = 0.10;
+      T.solarLid = 1;                                       // panels open to charge
+      T.lean = 0.02;
+      T.bob = b * 0.012;
+      T.glow = 0.25 + (Math.sin(t * 1.6) * 0.5 + 0.5) * 0.55;
+    }
+  }
+};
+
+const ROUTINE_ORDER = ["idle", "curious", "wave", "scan", "eve", "sad", "compact", "sleep"];
+
+function setRoutine(id, announce = true) {
+  if (!ROUTINES[id]) return;
+  state.routine = id;
+  state.rt = 0;
+  state.extra = {};
+  state.blinkIn = 1.2 + rnd() * 2;
+  state.blinkPhase = 0;
+  nodes.trashCube.visible = false;
+  fx.ping.visible = false; fx.pingT = -1;
+  // a new routine releases any servo the user had pinned — except the grip,
+  // which stays clamped for as long as he is holding the plant
+  overrides.neck = overrides.shoulder = null;
+  document.querySelectorAll(".sl").forEach(s => s.classList.remove("locked"));
+  if (nodes.plant.visible) {
+    overrides.grip = 0.92;
+    document.querySelector('.sl[data-sl="grip"]').classList.add("locked");
+  } else {
+    overrides.grip = null;
+  }
+  ROUTINES[id].enter?.();
+  document.querySelectorAll("#beh-btns .beh").forEach(b => b.classList.toggle("on", b.dataset.beh === id));
+  document.getElementById("t-routine").textContent = ROUTINES[id].label.toUpperCase();
+  if (announce) {
+    const f = document.getElementById("routine-flash");
+    f.textContent = ROUTINES[id].label;
+    f.classList.remove("show");
+    void f.offsetWidth;
+    f.classList.add("show");
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   11. APPLYING THE RIG
+   ══════════════════════════════════════════════════════════════════════ */
+
+const C = rig.cur;
+let explode = 0, explodeTarget = 0;
+let eyeContact = true, shadowsOn = true;
+
+const _look = new THREE.Vector3();
+
+function applyEyeContact() {
+  if (!eyeContact) return;
+  const parentNode = nodes.headYaw.parent;
+  _look.copy(camera.position);
+  parentNode.worldToLocal(_look);
+  const horiz = Math.hypot(_look.x, _look.z);
+  const dy = clamp(Math.atan2(_look.x, _look.z), -1.25, 1.25);
+  const dp = clamp(-Math.atan2(_look.y, horiz), -0.70, 0.62);
+  const w = state.routine === "sleep" ? 0 : state.routine === "compact" ? 0.18 : 0.72;
+  T.headYaw = lerp(T.headYaw, dy, w);
+  T.headPitch = lerp(T.headPitch, dp, w * 0.85);
+  T.gazeX = lerp(T.gazeX, clamp(dy * 0.5, -1, 1), w * 0.6);
+  T.gazeY = lerp(T.gazeY, clamp(-dp * 0.6, -1, 1), w * 0.6);
+  // he crosses his eyes a little when you get right up close
+  const d = camera.position.distanceTo(nodes.headRoll.getWorldPosition(_headWP));
+  T.converge = lerp(T.converge, clamp((1.5 - d) * 0.9, 0, 0.75), w * 0.8);
+}
+
+function applyRig(dt) {
+  // user-pinned servos win over the routine
+  if (overrides.neck !== null) T.neck = overrides.neck;
+  if (overrides.shoulder !== null) { T.shL = T.shR = overrides.shoulder; }
+  if (overrides.grip !== null) T.grip = overrides.grip;
+
+  for (const k in T) C[k] = damp(C[k], T[k], RATES[k] ?? 6, dt);
+
+  /* --- neck: telescoping stages --- */
+  const n = clamp(C.neck, 0, 1);
+  neckStages[1].group.userData.exBase.y = lerp(0.036, NECK_STAGES[0].h * 0.90, n);
+  neckStages[2].group.userData.exBase.y = lerp(0.032, NECK_STAGES[1].h * 0.90, n);
+  headMount.position.y = lerp(0.078, NECK_STAGES[2].h * 0.94, n);
+  nodes.neckYaw.rotation.y = C.neckYaw;
+
+  /* --- head --- */
+  nodes.headYaw.rotation.y = C.headYaw;
+  nodes.headPitch.rotation.x = C.headPitch;
+  nodes.headRoll.rotation.z = C.headRoll;
+
+  /* --- eyes: lids, brow tilt, gaze, convergence --- */
+  for (const k of ["L", "R"]) {
+    const sx = k === "R" ? 1 : -1;
+    const c = clamp(C["lid" + k], 0, 1);
+    nodes["lidUp" + k].rotation.x = -0.74 * (1 - c);
+    nodes["lidLo" + k].rotation.x = 0.74 * (1 - c) * 0.88;
+    nodes["eye" + k].rotation.z = sx * C["brow" + k];
+    nodes["eyeAim" + k].rotation.y = C.gazeX * 0.16 - sx * C.converge * 0.26;
+    nodes["eyeAim" + k].rotation.x = -C.gazeY * 0.13;
+    const g = nodes["gaze" + k];
+    g.position.x = C.gazeX * 0.022 - sx * C.converge * 0.014;
+    g.position.y = C.gazeY * 0.020;
+  }
+
+  /* --- arms --- */
+  for (const k of ["L", "R"]) {
+    const sx = k === "R" ? 1 : -1;
+    nodes["shoulder" + k].rotation.x = C["sh" + k];
+    nodes["shoulderRoll" + k].rotation.z = sx * C["roll" + k];
+    nodes["elbow" + k].rotation.x = C["el" + k];
+    nodes["wrist" + k].rotation.z = C["wrist" + k];
+    const fingers = nodes["fingers" + k];
+    for (let i = 0; i < fingers.length; i++) {
+      const fs = i === 0 ? -1 : 1;
+      fingers[i].rotation.z = fs * (0.30 - clamp(C.grip, 0, 1) * 0.66);
+    }
+  }
+
+  /* --- body: squash, lean, solar lid --- */
+  const sq = clamp(C.squash, 0, 1);
+  const sy = 1 - sq * 0.17;
+  nodes.bodySquash.scale.set(1 + sq * 0.055, sy, 1 + sq * 0.055);
+  bodyRoot.position.y = DIM.bodyY + C.bob - (BH / 2) * (1 - sy);
+  bodyRoot.rotation.x = C.lean + (drive.leanDyn ?? 0);
+  bodyRoot.rotation.z = C.tilt + (drive.rollDyn ?? 0);
+  nodes.lidHinge.rotation.x = -C.solarLid * 0.96;
+
+  /* --- glow: iris, service lamps, scanner --- */
+  MAT.iris.emissiveIntensity = 0.28 + C.glow * 0.52;
+  MAT.lampOn.emissiveIntensity = 1.2 + C.glow * 1.5;
+  MAT.lampRed.emissiveIntensity = 0.8 + (Math.sin(clock * 3.1) * 0.5 + 0.5) * 1.4;
+  nodes.fan.rotation.z -= dt * (1.6 + C.glow * 2.4);
+
+  /* --- routine-specific FX --- */
+  const scanning = state.routine === "scan";
+  fx.cone.material.opacity = damp(fx.cone.material.opacity,
+    scanning && env.current !== "blueprint" ? 0.10 + (state.extra.scanPulse ?? 0) * 0.07 : 0, 6, dt);
+  fx.cone.visible = fx.cone.material.opacity > 0.004;
+  fx.spot.intensity = damp(fx.spot.intensity, scanning ? 3.2 : 0, 6, dt);
+
+  if (fx.pingT >= 0) {
+    fx.pingT += dt;
+    const p = fx.pingT / 1.1;
+    if (p >= 1) { fx.pingT = -1; fx.ping.visible = false; }
+    else {
+      fx.ping.scale.setScalar(0.4 + p * 3.4);
+      fx.ping.material.opacity = (1 - p) * 0.55;
+    }
+  }
+
+  /* --- teardown --- */
+  explode = damp(explode, explodeTarget, 7, dt);
+  for (const o of explodables) {
+    o.position.copy(o.userData.exBase).addScaledVector(o.userData.exDir, explode);
+  }
+  const lm = leaderGroup.userData.mat;
+  lm.opacity = explode * 0.30;
+  leaderGroup.visible = explode > 0.01;
+
+  /* contact shadow tracks the chassis and softens as he lifts apart */
+  nodes.blob.position.y = 0.004;
+  nodes.blob.scale.setScalar(1 + explode * 0.35);
+}
+
+const _a = new THREE.Vector3(), _b = new THREE.Vector3();
+function updateLeaders() {
+  if (!leaderGroup.visible) return;
+  for (const { line, obj } of leaderGeo) {
+    _a.copy(obj.userData.exBase);
+    obj.parent.localToWorld(_a);
+    obj.getWorldPosition(_b);
+    const p = line.geometry.attributes.position;
+    p.setXYZ(0, _a.x, _a.y, _a.z);
+    p.setXYZ(1, _b.x, _b.y, _b.z);
+    p.needsUpdate = true;
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   12. UI
+   ══════════════════════════════════════════════════════════════════════ */
+
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+
+function syncToggle(name, on) {
+  const t = document.querySelector(`.tog[data-tog="${name}"]`);
+  if (t) t.classList.toggle("on", on);
+}
+
+/* --- environment switching --- */
+function applyEnv(name) {
+  if (!ENVS[name]) return;
+  env.current = name;
+  for (const k of ["studio", "earth", "blueprint"]) ENVS[k].group.visible = (k === name);
+  ENVS[name].apply();
+  keyLight.userData.off = keyLight.position.clone();
+  setBlueprintLook(name === "blueprint");
+  nodes.blob.visible = shadowsOn && name !== "blueprint";
+  bloomPass.enabled = bloomOn;
+  $$("#env-btns .chip").forEach(b => b.classList.toggle("on", b.dataset.env === name));
+}
+
+/* --- paint --- */
+let paintIndex = 0;
+function applyPaint(i) {
+  paintIndex = i;
+  const v = PAINT_VARIANTS[i];
+  MAT.paint.color.set(v.body);
+  MAT.trim.color.set(v.trim);
+  $$("#paint-btns .sws").forEach((b, k) => b.classList.toggle("on", k === i));
+}
+(function buildSwatches() {
+  const wrap = $("#paint-btns");
+  PAINT_VARIANTS.forEach((v, i) => {
+    const b = document.createElement("div");
+    b.className = "sws" + (i === 0 ? " on" : "");
+    b.style.background = v.swatch;
+    b.title = v.name;
+    b.addEventListener("click", () => applyPaint(i));
+    wrap.appendChild(b);
+  });
+})();
+
+/* --- behaviour buttons --- */
+(function buildBehaviours() {
+  const wrap = $("#beh-btns");
+  ROUTINE_ORDER.forEach(id => {
+    const r = ROUTINES[id];
+    const b = document.createElement("div");
+    b.className = "beh" + (id === "idle" ? " on" : "");
+    b.dataset.beh = id;
+    b.innerHTML = `<div class="ic">${r.icon}</div><div class="lb">${r.label}</div>`;
+    b.addEventListener("click", () => setRoutine(id));
+    wrap.appendChild(b);
+  });
+})();
+
+/* --- camera chips --- */
+$$("#cam-views .chip").forEach(b => b.addEventListener("click", () => setView(b.dataset.view)));
+$$("#env-btns .chip").forEach(b => b.addEventListener("click", () => applyEnv(b.dataset.env)));
+
+/* --- toggles --- */
+let bloomOn = true;
+const TOGGLES = {
+  orbit: v => { cam.autoOrbit = v; },
+  follow: v => { cam.follow = v; },
+  eyecontact: v => { eyeContact = v; },
+  bloom: v => { bloomOn = v; bloomPass.enabled = v; },
+  shadows: v => {
+    shadowsOn = v;
+    keyLight.castShadow = v;
+    nodes.blob.visible = v && env.current !== "blueprint";
+  },
+  plant: v => {
+    nodes.plant.visible = v;
+    if (v) { overrides.grip = 0.92; $(".sl[data-sl='grip']").classList.add("locked"); }
+    else if (overrides.grip !== null) { overrides.grip = null; $(".sl[data-sl='grip']").classList.remove("locked"); }
+  }
+};
+$$(".tog").forEach(t => t.addEventListener("click", () => {
+  const on = !t.classList.contains("on");
+  t.classList.toggle("on", on);
+  TOGGLES[t.dataset.tog]?.(on);
+}));
+
+/* --- sliders --- */
+const sliders = {};
+$$(".sl").forEach(wrap => {
+  const id = wrap.dataset.sl;
+  const input = wrap.querySelector("input");
+  const out = wrap.querySelector("i");
+  sliders[id] = { wrap, input, out };
+  const paint = () => input.style.setProperty("--p",
+    ((input.value - input.min) / (input.max - input.min) * 100).toFixed(2));
+  paint();
+  input.addEventListener("input", () => {
+    paint();
+    const v = +input.value;
+    switch (id) {
+      case "neck": overrides.neck = v / 100; wrap.classList.add("locked"); break;
+      case "shoulder": overrides.shoulder = -v * DEG; wrap.classList.add("locked"); break;
+      case "grip": overrides.grip = v / 100; wrap.classList.add("locked"); break;
+      case "gear": drive.gear = v / 100; break;
+      case "explode": explodeTarget = v / 100; break;
+    }
+    writeSliderLabel(id, v);
+  });
+});
+
+function writeSliderLabel(id, v) {
+  const o = sliders[id].out;
+  if (id === "neck") o.textContent = Math.round(v) + "%";
+  else if (id === "shoulder") o.textContent = Math.round(v) + "°";
+  else if (id === "grip") o.textContent = Math.round(v) + "%";
+  else if (id === "gear") o.textContent = (v / 100).toFixed(2) + "×";
+  else if (id === "explode") o.textContent = Math.round(v) + "%";
+}
+
+/* live servo read-out: an unpinned slider mirrors the actual joint */
+function syncSliders() {
+  const set = (id, v) => {
+    const s = sliders[id];
+    if (!s || s.wrap.classList.contains("locked")) return;
+    s.input.value = v;
+    s.input.style.setProperty("--p",
+      ((v - s.input.min) / (s.input.max - s.input.min) * 100).toFixed(2));
+    writeSliderLabel(id, v);
+  };
+  set("neck", clamp(C.neck * 100, 0, 100));
+  set("shoulder", clamp(-((C.shL + C.shR) / 2) / DEG, -45, 95));
+  set("grip", clamp(C.grip * 100, 0, 100));
+}
+["neck", "shoulder", "grip", "gear", "explode"].forEach(id =>
+  writeSliderLabel(id, +sliders[id].input.value));
+
+/* --- reset --- */
+$("#btn-reset").addEventListener("click", () => resetAll());
+function resetAll() {
+  walle.position.set(0, 0, 0);
+  walle.rotation.y = 0;
+  drive.speed = drive.turn = 0;
+  drive.leanDyn = drive.rollDyn = 0;
+  overrides.neck = overrides.shoulder = overrides.grip = null;
+  $$(".sl").forEach(s => s.classList.remove("locked"));
+  explodeTarget = 0;
+  sliders.explode.input.value = 0;
+  sliders.explode.input.style.setProperty("--p", "0");
+  writeSliderLabel("explode", 0);
+  cam.tTarget.set(0, cam.targetY, 0);
+  setView(cam.view);
+  setRoutine("idle", false);
+}
+
+/* --- keyboard --- */
+const VIEW_KEYS = { q: "threequarter", e: "front", z: "side", x: "top", c: "macro" };
+addEventListener("keydown", e => {
+  const k = e.key.toLowerCase();
+  if (e.repeat) { if ("wasd".includes(k)) keys.add(k); return; }
+  if (k === "shift") keys.add("shift");
+  if ("wasd".includes(k)) { keys.add(k); e.preventDefault(); }
+  if (k >= "1" && k <= "8") setRoutine(ROUTINE_ORDER[+k - 1]);
+  if (k === "h") $("#ui").classList.toggle("hidden");
+  if (k === "p") { const t = document.querySelector('.tog[data-tog="plant"]'); t.click(); }
+  if (k === "r") resetAll();
+  if (k === "o") { const t = document.querySelector('.tog[data-tog="orbit"]'); t.click(); }
+  if (VIEW_KEYS[k]) setView(VIEW_KEYS[k]);
+});
+addEventListener("keyup", e => {
+  const k = e.key.toLowerCase();
+  keys.delete(k);
+  if (k === "shift") keys.delete("shift");
+});
+addEventListener("blur", () => keys.clear());
+
+/* --- panel toggle (small screens) --- */
+$("#ptog").addEventListener("click", () => $("#panel").classList.toggle("open"));
+
+/* --- resize --- */
+function onResize() {
+  const w = innerWidth, h = innerHeight;
+  applyViewOffset();
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(w, h);
+  composer.setSize(w, h);
+  bloomPass.setSize(w, h);
+}
+addEventListener("resize", onResize);
+
+/* ══════════════════════════════════════════════════════════════════════
+   13. FRAME LOOP
+   ══════════════════════════════════════════════════════════════════════ */
+
+let clock = 0, lastT = performance.now(), fpsAcc = 0, fpsN = 0, telemT = 0, booted = false;
+
+function frame(now) {
+  requestAnimationFrame(frame);
+  let dt = (now - lastT) / 1000;
+  lastT = now;
+  if (dt > 0.1) dt = 0.1;
+  clock += dt;
+
+  const sp = updateDrive(dt);
+  state.rt += dt;
+  ROUTINES[state.routine].update(state.rt, dt);
+  applyEyeContact();
+  applyRig(dt);
+  updateDust(dt);
+  updateCamera(dt);
+
+  scene.updateMatrixWorld(true);
+  syncBlueprintEdges();
+  updateLeaders();
+
+  if (ENVS._motes && ENVS._motes.visible) {
+    ENVS._motes.position.x = walle.position.x;
+    ENVS._motes.position.z = walle.position.z;
+    ENVS._motes.rotation.y = clock * 0.012;
+  }
+
+  if (bloomOn) composer.render(dt);
+  else renderer.render(scene, camera);
+
+  /* telemetry + slider mirroring, a few times a second */
+  fpsAcc += dt; fpsN++;
+  telemT += dt;
+  if (telemT > 0.14) {
+    telemT = 0;
+    syncSliders();
+    $("#t-drive").textContent = Math.abs(drive.speed).toFixed(2) + " m/s";
+    let deg = (-walle.rotation.y * 180 / Math.PI) % 360;
+    if (deg < 0) deg += 360;
+    $("#t-head").textContent = String(Math.round(deg)).padStart(3, "0") + "°";
+    const load = clamp(
+      8 + sp * 26 + Math.abs(C.neck - T.neck) * 220 + Math.abs(C.shR - T.shR) * 90 +
+      (state.routine === "compact" ? C.squash * 46 : 0), 0, 99);
+    $("#t-load").textContent = Math.round(load) + "%";
+    const solar = state.routine === "sleep"
+      ? Math.min(100, 60 + (Math.sin(clock * 0.5) * 0.5 + 0.5) * 40)
+      : clamp(100 - sp * 12 - (state.routine === "scan" ? 14 : 0), 40, 100);
+    $("#t-solar").textContent = Math.round(solar) + "%";
+    if (fpsAcc > 0.4) {
+      $("#t-fps").textContent = Math.round(fpsN / fpsAcc) + " fps";
+      fpsAcc = 0; fpsN = 0;
+    }
+  }
+
+  if (!booted) {
+    booted = true;
+    progress(1, "Ready");
+    setTimeout(() => { boot.classList.add("gone"); setTimeout(() => boot.remove(), 900); }, 260);
+  }
+}
+
+/* ── go ─────────────────────────────────────────────────────────────── */
+applyEnv("earth");
+applyPaint(0);
+setRoutine("idle", false);
+updateBelt(nodes.beltL, 0);
+updateBelt(nodes.beltR, 0);
+progress(0.94, "Warming shaders");
+renderer.compile(scene, camera);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

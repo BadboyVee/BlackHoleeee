@@ -5,6 +5,15 @@ any of them — every project is an `index.html` you can open directly.
 
 ## Projects
 
+### 🤖 [WALL·E](wall-e/)
+
+A fully articulated WALL·E you can drive, pose, tear down and re-light. Procedural
+weathered-metal materials, tank tracks built from real belt geometry, eight behaviour
+routines that animate the whole rig, servo override sliders, an exploded view with leader
+lines, six liveries and three environments — studio, earth and blueprint.
+
+**▶ [Open it](https://badboyvee.github.io/BlackHoleeee/wall-e/)** · [source & prompt](wall-e/)
+
 ### 🚋 [Skyline Tram](skyline-tram/)
 
 Drive a retro aerial tram along a rail loop between two islands floating above a sea of clouds.
