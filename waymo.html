@@ -21,21 +21,23 @@
   canvas { display: block; touch-action: none; }
 
   #dock {
-    position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%);
+    /* centred by margin, so transform is free for the hide animation alone */
+    position: fixed; left: 0; right: 0; bottom: 18px; margin: 0 auto;
+    width: fit-content; max-width: min(96vw, 1240px);
     display: flex; flex-wrap: wrap; justify-content: center; gap: 6px;
-    max-width: min(96vw, 1240px); padding: 7px;
+    padding: 7px;
     border-radius: 16px; background: var(--dock); border: 1px solid var(--line);
     backdrop-filter: blur(16px) saturate(150%); -webkit-backdrop-filter: blur(16px) saturate(150%);
     box-shadow: 0 12px 44px rgba(10, 16, 26, 0.24);
     color: var(--ink); z-index: 10;
     transition: opacity .28s ease, transform .28s ease;
   }
-  #dock.off { opacity: 0; pointer-events: none; transform: translateX(-50%) translateY(16px); }
+  #dock.off { opacity: 0; pointer-events: none; transform: translateY(16px); }
 
   .grp { display: flex; flex-direction: column; gap: 6px; padding: 6px 9px; border-radius: 11px;
          background: rgba(255, 255, 255, 0.045); }
   .lbl { font-size: 8px; letter-spacing: .2em; text-transform: uppercase; opacity: .45; }
-  .row { display: flex; align-items: center; gap: 5px; }
+  .row { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; gap: 5px; }
 
   .pill {
     appearance: none; border: 1px solid var(--line); background: rgba(255, 255, 255, 0.05);
@@ -61,6 +63,9 @@
   input[type=range]::-moz-range-track { height: 3px; border-radius: 2px; background: rgba(255,255,255,.22); }
   input[type=range]::-moz-range-thumb { width: 12px; height: 12px; border: 0; border-radius: 50%; background: #fff; }
 
+  #boot { position: fixed; inset: 0; display: grid; place-items: center; padding: 24px; text-align: center;
+          color: #47505c; font-size: 12px; letter-spacing: .08em; line-height: 1.9; }
+
   #hideUi { position: fixed; top: 16px; right: 16px; z-index: 11; background: var(--dock);
             border-color: var(--line); color: var(--ink);
             backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px); }
@@ -69,6 +74,13 @@
     #dock { bottom: 10px; padding: 5px; gap: 4px; }
     .grp { padding: 5px 7px; }
     input[type=range] { width: 74px; }
+  }
+  @media (max-width: 430px) {
+    #dock { left: 8px; right: 8px; bottom: 8px; width: auto; max-width: none; }
+    .pill { padding: 5px 7px; font-size: 9px; letter-spacing: .06em; }
+    .sw { width: 19px; height: 19px; }
+    input[type=range] { width: 66px; }
+    #hideUi { top: 10px; right: 10px; }
   }
 </style>
 </head>
@@ -98,8 +110,19 @@
 }
 </script>
 <script type="module">
-import * as THREE from 'three';
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+let THREE, OrbitControls;
+try {
+  THREE = await import('three');
+  ({ OrbitControls } = await import('three/addons/controls/OrbitControls.js'));
+} catch (err) {
+  for (const id of ['dock', 'hideUi']) document.getElementById(id).remove();
+  const note = document.createElement('div');
+  note.id = 'boot';
+  note.textContent = 'Could not load three.js. Check the network connection and reload.';
+  document.body.appendChild(note);
+  throw err;
+}
 
 /* =====================================================================
    Waymo autonomous Jaguar I-PACE  --  fully procedural Three.js model
@@ -119,13 +142,13 @@ renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 1.15;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.shadowMap.autoUpdate = false;   // redrawn only when the car changes
 renderer.localClippingEnabled = true;
 document.body.appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
 
 const camera = new THREE.PerspectiveCamera(36, window.innerWidth / window.innerHeight, 0.1, 500);
-camera.position.set(5.6, 2.35, 6.2);
 
 const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
@@ -134,11 +157,22 @@ controls.rotateSpeed = 0.62;
 controls.zoomSpeed = 0.75;
 controls.panSpeed = 0.5;
 controls.minDistance = 3.4;
-controls.maxDistance = 22;
+controls.maxDistance = 42;
 controls.minPolarAngle = 0.12;
 controls.maxPolarAngle = Math.PI * 0.495;
-controls.target.set(0, 0.82, 0);
-controls.update();
+/* frame the car for whatever viewport it opens in: on a narrow screen the
+   camera pulls back and looks lower so the dock does not sit over the car */
+const VIEW_DIR = new THREE.Vector3(0.658, 0.180, 0.731).normalize();
+function frameCar() {
+  const aspect = window.innerWidth / window.innerHeight;
+  const vfov = camera.fov * Math.PI / 180;
+  const limit = Math.min(vfov, 2 * Math.atan(Math.tan(vfov / 2) * aspect));
+  const dist = Math.min(38, 2.45 / Math.sin(limit / 2) * 1.06);
+  controls.target.set(0, aspect < 0.95 ? 0.42 : 0.82, 0);
+  camera.position.copy(controls.target).addScaledVector(VIEW_DIR, dist);
+  controls.update();
+}
+frameCar();
 
 /* ------------------------------------------------- studio environment map
    A procedural light-box (ceiling softbox + four wall bounces) is rendered
@@ -938,7 +972,9 @@ function buildWheelWell(axleX, side) {
   g.computeVertexNormals();
   const liner = new THREE.Mesh(g, MAT.wellLiner);
 
-  const back = new THREE.Mesh(new THREE.CircleGeometry(0.435, 40), MAT.wellLiner);
+  // wedge, not a full disc: a full circle would reach below the road surface
+  const back = new THREE.Mesh(
+    new THREE.CircleGeometry(0.442, 48, ARCH_LO - 0.06, (ARCH_HI - ARCH_LO) + 0.12), MAT.wellLiner);
   back.rotation.y = side > 0 ? 0 : Math.PI;
   back.position.set(axleX, CAR.wheelR, side * (flankZ(axleX, CAR.wheelR + CAR.archR * 0.6) - 0.322));
 
@@ -1800,28 +1836,28 @@ for (const s of [1, -1]) {
 
   const shell = teardrop(0.255, 0.098, 0.12, MAT.plasticBlack, 28);
   shell.scale.set(1, 0.76, 1.05);
-  shell.position.set(0.012, 0.040, 0.150);
+  shell.position.set(0.012, 0.040, 0.136);
   grp.add(shell);
 
   const backPlate = new THREE.Mesh(new THREE.BoxGeometry(0.020, 0.108, 0.180), MAT.trimBlack);
-  backPlate.position.set(-0.098, 0.040, 0.150);
+  backPlate.position.set(-0.098, 0.040, 0.136);
   grp.add(backPlate);
 
   const mirror = new THREE.Mesh(new THREE.PlaneGeometry(0.168, 0.096), MAT.mirrorGlass);
-  mirror.position.set(-0.108, 0.040, 0.150);
+  mirror.position.set(-0.108, 0.040, 0.136);
   mirror.rotation.y = -Math.PI / 2;
   grp.add(mirror);
 
   // forward-looking camera in the mirror base
   const cam = cameraModule(0.062, 0.046, 0.046, 0.017);
   cam.rotation.y = Math.PI / 2 - 0.22;
-  cam.position.set(0.086, 0.008, 0.150);
+  cam.position.set(0.086, 0.008, 0.136);
   grp.add(cam);
 
   // kerb-view camera under the housing
   const down = cameraModule(0.052, 0.040, 0.038, 0.015);
   down.rotation.x = -Math.PI / 2 + 0.45;
-  down.position.set(-0.010, -0.018, 0.168);
+  down.position.set(-0.010, -0.018, 0.154);
   grp.add(down);
 
   placeOnBody(grp, 0.775, s * 0.512, 0.004);
@@ -2652,6 +2688,7 @@ function applyPaint(i) {
   MAT.paint.clearcoat = p.cc;
   MAT.paint.clearcoatRoughness = p.ccr;
   MAT.paint.needsUpdate = true;
+  touchShadow();
 }
 
 /* ------------------------------------------------------------- scene */
@@ -2719,7 +2756,10 @@ function applyScene(i) {
   renderer.toneMappingExposure = s.exposure;
   roadMat.color.setHex(i >= 2 ? 0xdde3ea : 0x5f666f);
   updateShadow();
+  touchShadow();
 }
+
+function touchShadow() { renderer.shadowMap.needsUpdate = true; }
 
 /* ------------------------------------------------- dissection state */
 
@@ -2746,6 +2786,7 @@ function setGhost(on) {
     }
     m.needsUpdate = true;
   }
+  touchShadow();
 }
 
 let cutAmount = 0;
@@ -2761,6 +2802,7 @@ function setCut(v) {
     m.clippingPlanes = on ? [clipPlane] : null;
     if (CLIP_MATS.indexOf(m) >= 0) m.side = on ? THREE.DoubleSide : m.userData.baseSide;
   }
+  touchShadow();
 }
 
 let splitAmount = 0;
@@ -2773,6 +2815,7 @@ function setSplit(v) {
   for (const L of LAYERS) L.node.position.y = L.lift * e;
   for (const w of WHEELS) w.pivot.position.z = w.baseZ * (1 + 0.62 * e);
   updateShadow();
+  touchShadow();
 }
 
 /* -------------------------------------------------- motion and road */
@@ -2857,6 +2900,7 @@ const layerRow = document.getElementById('uiLayers');
 const layerBtns = LAYERS.map(L => mkButton(layerRow, L.label, b => {
   L.node.visible = !L.node.visible;
   b.classList.toggle('dim', !L.node.visible);
+  touchShadow();
 }));
 
 const ghostBtn = document.getElementById('uiGhost');
@@ -2882,14 +2926,28 @@ hideBtn.classList.add('on');
 applyPaint(0);
 applyScene(0);
 setMotion('hold');
+touchShadow();
 
 /* --------------------------------------------------------------- loop */
 
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
+let userFramed = false;
+controls.addEventListener('start', () => { userFramed = true; });
+
+let lastW = 0, lastH = 0;
+function onViewportChange() {
+  const w = window.innerWidth, h = window.innerHeight;
+  if (w === lastW && h === lastH) return;      // also guards against observer feedback
+  lastW = w; lastH = h;
+  camera.aspect = w / h;
   camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
+  renderer.setSize(w, h);
+  // until the viewer has moved the camera themselves, keep the car framed
+  if (!userFramed) frameCar();
+}
+window.addEventListener('resize', onViewportChange);
+window.addEventListener('orientationchange', onViewportChange);
+if (window.ResizeObserver) new ResizeObserver(onViewportChange).observe(document.body);
+onViewportChange();
 
 const clock = new THREE.Clock();
 
@@ -2901,12 +2959,13 @@ function animate() {
   driveMix += ((motionMode === 'drive' ? 1 : 0) - driveMix) * Math.min(1, dt * 1.6);
   speed += ((motionMode === 'drive' ? 13.4 : 0) - speed) * Math.min(1, dt * 0.9);
 
-  for (const s of SPINNERS) s.node.rotation.y += dt * s.rate * (0.45 + 1.9 * driveMix);
+  const spinStep = dt * (0.45 + 1.9 * driveMix);
+  for (const s of SPINNERS) s.node.rotation.y = (s.node.rotation.y + spinStep * s.rate) % (Math.PI * 2);
 
   if (speed > 0.001) {
     const w = speed / CAR.wheelR * dt;
-    for (const k of WHEELS) k.wheel.rotation.z += k.spinSign * w;
-    roadTex.offset.x += speed * dt / 5.0;
+    for (const k of WHEELS) k.wheel.rotation.z = (k.wheel.rotation.z + k.spinSign * w) % (Math.PI * 2);
+    roadTex.offset.x = (roadTex.offset.x + speed * dt / 5.0) % 1;
   }
 
   const steer = Math.sin(t * 0.62) * 0.055 * driveMix;
@@ -2917,6 +2976,7 @@ function animate() {
   car.rotation.z = Math.sin(t * 5.1) * 0.0035 * driveMix;
   car.rotation.y = Math.sin(t * 0.62 + 0.4) * 0.006 * driveMix;
   roadMat.opacity = 0.62 * driveMix;
+  if (driveMix > 0.004) touchShadow();
 
   controls.update();
   renderer.render(scene, camera);
