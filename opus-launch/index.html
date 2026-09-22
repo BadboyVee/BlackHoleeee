@@ -46,20 +46,18 @@
 <script>
   // If the film hasn't drawn a frame after a while, say why instead of leaving a blank screen.
   (function () {
-    var show = function (text) { var m = document.getElementById("msg"); if (m && !window.__filmStarted) { m.textContent = text; m.hidden = false; } };
-    window.addEventListener("error", function (e) { show("The film couldn\u2019t start: " + (e.message || "a script failed to load") + ". Try reloading, or open it in Chrome or Safari."); });
-    setTimeout(function () { show("The film is taking too long to start. It needs an internet connection to load three.js \u2014 try reloading, or open the page in Chrome or Safari."); }, 12000);
+    var show = window.__filmError = function (text) { var m = document.getElementById("msg"); if (m) { m.textContent = text; m.hidden = false; } };
+    window.addEventListener("error", function (e) { show("The film couldn\u2019t start (" + (window.__stage || "loading") + "): " + (e.message || "a script failed to load")); });
+    setTimeout(function () { if (!window.__filmStarted) show("The film didn\u2019t start. It stopped while " + (window.__stage || "loading scripts") + ". Try reloading, or open the page in Chrome."); }, 8000);
   })();
 </script>
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
-  }
-}
-</script>
-<script type="module">
-import * as THREE from "three";
+<!-- three.js r159 (UMD build, vendored so the film needs no CDN) -->
+<script src="three.min.js"></script>
+<script>
+"use strict";
+(function () {
+window.__stage = "starting";
+if (!window.THREE) throw new Error("three.js did not load");
 
 THREE.ColorManagement.enabled = false; // palette hexes are used as display colours, untouched
 
@@ -121,11 +119,20 @@ try {
   renderer = new THREE.WebGLRenderer({ antialias: !MOBILE, powerPreference: "high-performance" });
 } catch (e) {
   const m = document.getElementById("msg");
-  m.textContent = "This film needs WebGL 2, which this browser or viewer doesn\u2019t provide. Open the page in Chrome, Safari or Firefox.";
+  m.textContent = "This film needs WebGL, which this browser or viewer doesn\u2019t provide. Open the page in Chrome, Safari or Firefox.";
   m.hidden = false;
   throw e;
 }
 renderer.setPixelRatio(Math.min(devicePixelRatio, MOBILE ? 1.5 : 2));
+window.__stage = "compiling shaders";
+renderer.debug.onShaderError = (gl, program, vs, fs) => {
+  const log = (gl.getShaderInfoLog(fs) || gl.getShaderInfoLog(vs) || gl.getProgramInfoLog(program) || "").trim().split("\n")[0];
+  window.__filmError("This device\u2019s graphics driver rejected a shader: " + (log || "unknown error"));
+};
+renderer.domElement.addEventListener("webglcontextlost", e => {
+  e.preventDefault();
+  window.__filmError("The graphics context was lost \u2014 the device may be low on GPU memory. Reload to try again.");
+});
 renderer.setSize(innerWidth, innerHeight);
 document.body.prepend(renderer.domElement);
 
@@ -483,7 +490,7 @@ const sphereMat = new THREE.ShaderMaterial({
         if (v > d0 && v < d1) {
           int yy = int(floor((v - d0) / cell));
           int xx = int(mod(floor(u / cell), 6.0));
-          float key = float((keyRow(yy) >> xx) & 1);
+          float key = mod(floor(float(keyRow(yy)) / exp2(float(xx))), 2.0);   // bit xx, WebGL1-safe
           col = mix(uB * (0.9 + 0.2 * fbm(pn * 5.0)), uC, key * wear);
           h = key * 0.3;
         }
@@ -1191,7 +1198,6 @@ resize();
 const still = parseFloat(new URLSearchParams(location.search).get("t"));
 
 function frame() {
-  window.__filmStarted = true;
   clock.tick();
   const T = isNaN(still) ? clock.now() : still;
   const t = ((Math.max(0, T) % END) + END) % END;
@@ -1200,6 +1206,7 @@ function frame() {
   drawText(t, info);
   $("fill").style.width = (t / END * 100).toFixed(2) + "%";
   renderer.render(scene, camera);
+  window.__filmStarted = true;
   if (recorder && recorder.state === "recording" && clock.now() >= END) recorder.stop();
   if (isNaN(still) || ++stillFrames < 3) requestAnimationFrame(frame);
 }
@@ -1209,6 +1216,8 @@ Promise.race([document.fonts.load(`400 60px "Newsreader"`), new Promise(r => set
   .catch(() => {}).then(() => requestAnimationFrame(frame));
 // Respect reduced motion: start paused on the opening frame
 if (matchMedia("(prefers-reduced-motion: reduce)").matches) togglePause();
+window.__stage = "waiting for the first frame";
+})();
 </script>
 </body>
 </html>
