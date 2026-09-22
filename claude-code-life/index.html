@@ -963,7 +963,7 @@ function update(t) {
   [bang, lesgo, goBrazy, bestOf].forEach(s => s.userData.aspect = s.userData.aspect || s.scale.x / s.scale.y);
   pop(bang, 5.25, 6.0, clawd.position.x + .1, clawd.position.y + HEAD_Y + .45, clawd.position.z, .5);
   pop(lesgo, 19.35, 22.1, clawd.position.x + .15, HEAD_Y + .75 + clawd.position.y * .5, clawd.position.z + .1, .55);
-  pop(goBrazy, 16.0, 18.4, OFFICE_X + .75, 1.95 + .05 * Math.sin(t * 20), -.75, .34);
+  pop(goBrazy, 16.0, 18.4, OFFICE_X + .75, 1.9 + .04 * Math.sin(t * 20), -.75, .2);
   pop(bestOf, 18.95, 22.3, OFFICE_X + .55, 2.42 + .05 * Math.sin(t * 6), .55, .38);
 
   // screen + its glow
@@ -993,7 +993,14 @@ function update(t) {
   }
 
   // camera — one continuous move
-  const [px, py, pz] = hermite(CAM, 1, t), [tx, ty, tz] = hermite(CAM, 2, t);
+  let [px, py, pz] = hermite(CAM, 1, t), [tx, ty, tz] = hermite(CAM, 2, t);
+  // during the walks, ease into a follow-cam that keeps Claude Code framed with room ahead
+  const follow = smooth(Math.max(pulse(t, 7.8, 11.8, .8), pulse(t, 22.8, 26.2, .8)));
+  if (follow > 0) {
+    const dir = t < 20 ? 1 : -1, c = clawd.position;
+    px = lerp(px, c.x + dir * .9, follow); py = lerp(py, 1.95, follow); pz = lerp(pz, c.z + 4.6, follow);
+    tx = lerp(tx, c.x + dir * .7, follow); ty = lerp(ty, .85, follow); tz = lerp(tz, c.z - .4, follow);
+  }
   camera.position.set(px, py, pz);
   // tiny handheld sway
   camera.position.x += Math.sin(t * 2 * Math.PI / 5) * .03; camera.position.y += Math.sin(t * 2 * Math.PI / 3) * .02;
