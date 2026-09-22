@@ -1,0 +1,1182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Opus 5.5 — Launch Film</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet" />
+<style>
+  html,body{ margin:0; height:100%; overflow:hidden; background:#0f1216; }
+  canvas{ display:block; width:100vw; height:100vh; }
+  #ui{
+    position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
+    display:flex; align-items:center; gap:10px; padding:8px 12px;
+    background:rgba(12,14,18,.55); border:1px solid rgba(255,255,255,.12); border-radius:999px;
+    backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+    font:500 13px/1 "Newsreader", Georgia, serif; color:#e9e6df;
+    transition:opacity .4s; opacity:1; z-index:5; max-width:calc(100vw - 32px); box-sizing:border-box;
+  }
+  #ui.hidden{ opacity:0; pointer-events:none; }
+  #ui button{
+    all:unset; cursor:pointer; padding:6px 10px; border-radius:999px; white-space:nowrap;
+    color:#e9e6df; font:inherit;
+  }
+  #ui button:hover{ background:rgba(255,255,255,.1); }
+  #ui button.on{ background:rgba(255,255,255,.16); }
+  #ui button.rec{ color:#ff8a70; }
+  #bar{ width:160px; min-width:60px; flex:1; height:3px; background:rgba(255,255,255,.18); border-radius:3px; overflow:hidden; }
+  #fill{ height:100%; width:0; background:#e9e6df; }
+</style>
+</head>
+<body>
+<div id="ui">
+  <button id="bPlay" title="Pause / play (Space)">Pause</button>
+  <button id="bRestart" title="Restart (R)">Restart</button>
+  <div id="bar"><div id="fill"></div></div>
+  <button id="bSound" title="Sound (M)">Sound off</button>
+  <button id="bRec" title="Record one loop to a .webm file">Record</button>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js"
+  }
+}
+</script>
+<script type="module">
+import * as THREE from "three";
+
+THREE.ColorManagement.enabled = false; // palette hexes are used as display colours, untouched
+
+/* ------------------------------------------------------------------------------------------
+   Timeline — cut points measured from the original film (20.05 s, 25 fps).
+   Every shot is the same idea: the curved rim of a sphere seen from just above its surface,
+   dressed in a different procedural material.
+   pat: sphere material, bg: backdrop, pal: sphere palette, alpha: angular radius of the sphere
+   (bigger = flatter horizon), rimY: rim height on screen [start, end] (0 = top).
+------------------------------------------------------------------------------------------- */
+const END = 20.05;
+const SHOTS = [
+  { t: 0.00, pat: 0, bg: 5, planet: true },
+  { t: 1.24, pat: 1, bg: 1, pal: ["#6e4a10","#e8bd55","#f6e7bd","#ffffff"], bgA:"#0e0f12", bgB:"#060708", alpha: 62, rimY:[.60,.57], drops:"beads", glow:[1,"#a8783a",.35] },
+  { t: 3.32, pat: 2, bg: 0, pal: ["#f7c95e","#c56a18","#3a1606"], bgA:"#050505", bgB:"#0b0705", alpha: 70, rimY:[.50,.48], glow:[1,"#ff9a3c",.45] },
+  { t: 3.76, pat: 3, bg: 0, pal: ["#8d4f22","#d49a58","#8a3a22","#f4e8dc"], bgA:"#ececee", bgB:"#dcdce0", alpha: 60, rimY:[.64,.62], disp:3, amp:.006 },
+  { t: 4.00, pat: 4, bg: 4, pal: ["#3f6f9f","#f2f5f7"], bgA:"#3a6898", bgB:"#f2f5f7", alpha: 56, rimY:[.62,.60] },
+  { t: 4.24, pat: 5, bg: 2, pal: ["#4a7426","#83a843","#cfe09a","#d8c060"], bgA:"#ede3d1", alpha: 70, rimY:[.54,.52] },
+  { t: 4.76, pat: 6, bg: 0, pal: ["#e2549a","#9e1c5c","#f590c0"], bgA:"#0b0b0b", bgB:"#060606", alpha: 64, rimY:[.62,.60], drops:"red" },
+  { t: 5.36, pat: 7, bg: 0, pal: ["#dc9c88","#eab8a4","#1c3836","#35251f"], bgA:"#171717", bgB:"#101010", alpha: 60, rimY:[.54,.53], disp:3, amp:.004 },
+  { t: 5.88, pat: 8, bg: 2, pal: ["#efe0c0","#93a24e","#4e3f22"], bgA:"#efe0c0", alpha: 62, rimY:[.80,.78] },
+  { t: 6.44, pat: 9, bg: 9, pal: ["#1a0838","#c02046","#f2d224","#34e2a4"], alpha: 66, rimY:[.62,.58] },
+  { t: 7.56, pat:10, bg: 2, pal: ["#a9c9f2","#2a5ad0"], bgA:"#a9c9f2", alpha: 60, rimY:[.58,.56] },
+  { t: 8.12, pat:11, bg: 1, pal: ["#c89a44","#4a300e"], bgA:"#0a0908", bgB:"#040303", alpha: 64, rimY:[.58,.56], disp:3, amp:.012 },
+  { t: 8.72, pat:12, bg: 0, pal: ["#e0461e","#98200e","#f58a58"], bgA:"#070707", bgB:"#040404", alpha: 70, word:"There’s", ink:"#fff" },
+  { t: 9.44, pat: 9, bg: 9, pal: ["#2ae0a8","#8af070","#c02046","#f2d224"], alpha: 68, word:"There’s", ink:"#fff" },
+  { t: 9.76, pat:14, bg: 0, pal: ["#f4f0e6","#111111"], bgA:"#060606", bgB:"#020202", alpha: 64, word:"There’s", ink:"#fff" },
+  { t:10.20, pat:15, bg: 0, pal: ["#262a33","#4a515c"], bgA:"#0a0b0d", bgB:"#060607", alpha: 70, word:"There’s", ink:"#fff", glow:[2,"#ffffff",.9] },
+  { t:10.68, pat:16, bg: 7, pal: ["#240805","#6c1c0a"], bgA:"#f07c2c", bgB:"#541004", alpha: 70, word:"more to", ink:"#fff", disp:3, amp:.010 },
+  { t:11.00, pat:17, bg: 3, pal: ["#c8402a","#7a1a12","#ec9462"], bgA:"#384c6c", bgB:"#6b7d99", alpha: 68, word:"more to", ink:"#fff", disp:3, amp:.004 },
+  { t:11.40, pat:18, bg: 6, pal: ["#f040a0","#f4e640","#40e080","#8020c0"], alpha: 64, word:"more to", ink:"#fff" },
+  { t:11.72, pat:19, bg: 0, pal: ["#090909","#f4f4ee"], bgA:"#050505", bgB:"#020202", alpha: 66, word:"more to", ink:"#fff", disp:4, amp:.010 },
+  { t:12.48, pat:20, bg: 0, pal: ["#f6e6ef","#b0408e","#3a3a1a","#d8c060"], bgA:"#9c3a8c", bgB:"#a44494", alpha: 66, word:"discover", ink:"#fff" },
+  { t:12.76, pat:10, bg: 2, pal: ["#aecbf8","#3464dc"], bgA:"#aecbf8", alpha: 62, word:"discover", ink:"#fff" },
+  { t:13.00, pat:11, bg: 1, pal: ["#caa050","#553810"], bgA:"#0a0908", bgB:"#040303", alpha: 68, word:"discover", ink:"#fff", disp:3, amp:.014 },
+  { t:13.32, pat:23, bg: 0, pal: ["#f2f2ee","#6c6c74"], bgA:"#030303", bgB:"#000000", alpha: 60, word:"discover", ink:"#fff", disp:1, amp:.07 },
+  { t:13.64, pat:24, bg: 8, pal: ["#efe8d8","#2a2016"], bgA:"#ecc944", bgB:"#c29a22", alpha: 64, word:"discover", ink:"#fff" },
+  { t:13.92, pat:25, bg: 2, pal: ["#2a50a0","#f0d030","#6a1a20","#3a8a4a"], bgA:"#f2eee4", alpha: 62, word:"discover", ink:"#111" },
+  { t:14.24, pat:26, bg: 2, pal: ["#eef2ee","#7ab8b0","#138a8a","#0a2a4a"], bgA:"#ece8e4", alpha: 62, word:"discover", ink:"#111" },
+  { t:14.48, pat:27, bg: 1, pal: ["#140606","#c03a1a","#ff6a2a"], bgA:"#070404", bgB:"#030202", alpha: 66, word:"discover", ink:"#fff" },
+  { t:14.76, pat:28, bg: 2, pal: ["#f4f0ea","#d04040","#4050c0","#40a060"], bgA:"#f4f0ea", alpha: 60, word:"discover", ink:"#111" },
+  { t:15.04, pat:29, bg: 2, pal: ["#dccca6","#2a2218"], bgA:"#dccca6", alpha: 62, word:"discover", ink:"#111" },
+  { t:15.32, pat:30, bg: 0, pal: ["#fafafa","#7a7a7a"], bgA:"#040404", bgB:"#000000", alpha: 64, word:"discover", ink:"#fff", disp:2, amp:.05 },
+  { t:15.56, pat:31, bg: 0, pal: ["#dc6432","#561208","#e8c090"], bgA:"#030303", bgB:"#000000", alpha: 66, word:"discover", ink:"#fff" },
+  { t:15.76, pat: 0, bg: 5, planet: true, finale: true },
+];
+SHOTS.forEach((s, i) => {
+  s.end = i + 1 < SHOTS.length ? SHOTS[i + 1].t : END;
+  s.seed = (i * 7.31) % 17;
+});
+
+/* ------------------------------------------------------------------------------------------
+   Renderer, camera
+------------------------------------------------------------------------------------------- */
+const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+document.body.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(36, innerWidth / innerHeight, 0.01, 100);
+const DEG = Math.PI / 180, DIST = 10;
+
+/* ------------------------------------------------------------------------------------------
+   Shared GLSL: simplex noise, fbm, cellular noise, hashes
+------------------------------------------------------------------------------------------- */
+const NOISE = /* glsl */`
+vec3 mod289(vec3 x){ return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec4 mod289(vec4 x){ return x - floor(x * (1.0 / 289.0)) * 289.0; }
+vec4 permute(vec4 x){ return mod289(((x * 34.0) + 1.0) * x); }
+vec4 taylorInvSqrt(vec4 r){ return 1.79284291400159 - 0.85373472095314 * r; }
+float snoise(vec3 v){
+  const vec2 C = vec2(1.0/6.0, 1.0/3.0);
+  const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+  vec3 i = floor(v + dot(v, C.yyy));
+  vec3 x0 = v - i + dot(i, C.xxx);
+  vec3 g = step(x0.yzx, x0.xyz);
+  vec3 l = 1.0 - g;
+  vec3 i1 = min(g.xyz, l.zxy);
+  vec3 i2 = max(g.xyz, l.zxy);
+  vec3 x1 = x0 - i1 + C.xxx;
+  vec3 x2 = x0 - i2 + C.yyy;
+  vec3 x3 = x0 - D.yyy;
+  i = mod289(i);
+  vec4 p = permute(permute(permute(i.z + vec4(0.0, i1.z, i2.z, 1.0)) + i.y + vec4(0.0, i1.y, i2.y, 1.0)) + i.x + vec4(0.0, i1.x, i2.x, 1.0));
+  float n_ = 0.142857142857;
+  vec3 ns = n_ * D.wyz - D.xzx;
+  vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+  vec4 x_ = floor(j * ns.z);
+  vec4 y_ = floor(j - 7.0 * x_);
+  vec4 x = x_ * ns.x + ns.yyyy;
+  vec4 y = y_ * ns.x + ns.yyyy;
+  vec4 h = 1.0 - abs(x) - abs(y);
+  vec4 b0 = vec4(x.xy, y.xy);
+  vec4 b1 = vec4(x.zw, y.zw);
+  vec4 s0 = floor(b0) * 2.0 + 1.0;
+  vec4 s1 = floor(b1) * 2.0 + 1.0;
+  vec4 sh = -step(h, vec4(0.0));
+  vec4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;
+  vec4 a1 = b1.xzyw + s1.xzyw * sh.zzww;
+  vec3 p0 = vec3(a0.xy, h.x);
+  vec3 p1 = vec3(a0.zw, h.y);
+  vec3 p2 = vec3(a1.xy, h.z);
+  vec3 p3 = vec3(a1.zw, h.w);
+  vec4 norm = taylorInvSqrt(vec4(dot(p0,p0), dot(p1,p1), dot(p2,p2), dot(p3,p3)));
+  p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
+  vec4 m = max(0.6 - vec4(dot(x0,x0), dot(x1,x1), dot(x2,x2), dot(x3,x3)), 0.0);
+  m = m * m;
+  return 42.0 * dot(m * m, vec4(dot(p0,x0), dot(p1,x1), dot(p2,x2), dot(p3,x3)));
+}
+float fbm(vec3 p){
+  float s = 0.0, a = 0.5;
+  for (int i = 0; i < 5; i++){ s += a * snoise(p); p = p * 2.03 + 17.1; a *= 0.5; }
+  return s;
+}
+float hash21(vec2 p){ p = fract(p * vec2(123.34, 456.21)); p += dot(p, p + 45.32); return fract(p.x * p.y); }
+vec2 hash22(vec2 p){ float n = hash21(p); return vec2(n, hash21(p + n + 1.7)); }
+// x: distance to nearest point, y: to second nearest, z: id of the nearest cell
+vec3 voronoi(vec2 x){
+  vec2 n = floor(x), f = fract(x);
+  float F1 = 8.0, F2 = 8.0, id = 0.0;
+  for (int j = -1; j <= 1; j++) for (int i = -1; i <= 1; i++){
+    vec2 g = vec2(float(i), float(j));
+    vec2 r = g + hash22(n + g) - f;
+    float d = dot(r, r);
+    if (d < F1){ F2 = F1; F1 = d; id = hash21(n + g); } else if (d < F2){ F2 = d; }
+  }
+  return vec3(sqrt(F1), sqrt(F2), id);
+}
+`;
+
+/* ------------------------------------------------------------------------------------------
+   Palette uniforms shared by every material so one shot switch recolours everything
+------------------------------------------------------------------------------------------- */
+const U = {
+  uA: { value: new THREE.Color() }, uB: { value: new THREE.Color() },
+  uC: { value: new THREE.Color() }, uD: { value: new THREE.Color() },
+  uSeed: { value: 0 }, uTime: { value: 0 },
+};
+
+/* ------------------------------------------------------------------------------------------
+   Backdrop: full-screen quad. Knows where the sphere is so it can draw rim glows and,
+   for the planet shots, the whole planet with a soft defocused edge and atmosphere.
+------------------------------------------------------------------------------------------- */
+const bgMat = new THREE.ShaderMaterial({
+  depthTest: false, depthWrite: false,
+  uniforms: {
+    ...U,
+    uBg: { value: 0 }, uBgA: { value: new THREE.Color() }, uBgB: { value: new THREE.Color() },
+    uInvProj: { value: new THREE.Matrix4() }, uCenterDir: { value: new THREE.Vector3(0, -1, 0) },
+    uAlpha: { value: 1 }, uAspect: { value: 1 },
+    uGlowMode: { value: 0 }, uGlowCol: { value: new THREE.Color() }, uGlowK: { value: 0 },
+    uOrange: { value: 1 }, uBlue: { value: 1 }, uSoft: { value: .01 },
+  },
+  vertexShader: /* glsl */`
+    varying vec2 vNdc;
+    void main(){ vNdc = position.xy; gl_Position = vec4(position.xy, 0.0, 1.0); }`,
+  fragmentShader: /* glsl */`
+    uniform vec3 uA, uB, uC, uD; uniform float uSeed, uTime;
+    uniform int uBg; uniform vec3 uBgA, uBgB;
+    uniform mat4 uInvProj; uniform vec3 uCenterDir; uniform float uAlpha, uAspect;
+    uniform int uGlowMode; uniform vec3 uGlowCol; uniform float uGlowK;
+    uniform float uOrange, uBlue, uSoft;
+    varying vec2 vNdc;
+    ${NOISE}
+    vec3 pal4(float t){
+      t = clamp(t, 0.0, 1.0) * 3.0;
+      if (t < 1.0) return mix(uA, uB, t);
+      if (t < 2.0) return mix(uB, uC, t - 1.0);
+      return mix(uC, uD, t - 2.0);
+    }
+    float sdSeg(vec2 p, vec2 a, vec2 b){
+      vec2 pa = p - a, ba = b - a;
+      float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
+      return length(pa - ba * h);
+    }
+    void main(){
+      vec4 r = uInvProj * vec4(vNdc, 1.0, 1.0);
+      vec3 dir = normalize(r.xyz / r.w);
+      float h = acos(clamp(dot(dir, uCenterDir), -1.0, 1.0)) - uAlpha;   // radians above the rim
+      vec2 sp = vec2(vNdc.x * uAspect, vNdc.y);
+      float y01 = vNdc.y * 0.5 + 0.5;
+      vec3 col;
+
+      if (uBg == 0) {                       // plain gradient
+        col = mix(uBgB, uBgA, y01);
+      } else if (uBg == 1) {                // dark with floating dust
+        col = mix(uBgB, uBgA, y01);
+        vec2 g = floor(sp * 260.0);
+        float s = hash21(g + uSeed);
+        col += step(0.9965, s) * 0.55 * hash21(g + 3.0);
+        col += vec3(0.5, 0.46, 0.4) * smoothstep(0.78, 0.95, snoise(vec3(sp * 28.0, uSeed))) * 0.12;
+      } else if (uBg == 2) {                // paper
+        col = uBgA * (0.95 + 0.05 * fbm(vec3(sp * 6.0, uSeed)));
+        col *= 0.985 + 0.015 * snoise(vec3(sp * vec2(40.0, 260.0), 3.0));
+      } else if (uBg == 3) {                // denim twill
+        float tw = sin((sp.x + sp.y) * 520.0);
+        float n = snoise(vec3(sp * vec2(220.0, 26.0), 1.0));
+        col = mix(uBgA, uBgB, clamp(0.45 + 0.2 * tw + 0.3 * n, 0.0, 1.0));
+        col += smoothstep(0.72, 0.95, snoise(vec3(sp * vec2(320.0, 40.0), 3.0))) * 0.18;
+      } else if (uBg == 4) {                // blueprint: chalk lines on blue
+        col = uBgA * (0.92 + 0.08 * fbm(vec3(sp * 3.0, uSeed)));
+        float L = 0.0;
+        for (int i = 0; i < 16; i++) {
+          float fi = float(i);
+          vec2 a = vec2((hash21(vec2(fi, 1.3)) * 2.0 - 1.0) * uAspect, hash21(vec2(fi, 7.1)) * 1.1 - 0.1);
+          float an = hash21(vec2(fi, 3.3)) * 3.1416;
+          vec2 b = a + vec2(cos(an), sin(an)) * (0.4 + hash21(vec2(fi, 9.0)) * 1.3);
+          L = max(L, 1.0 - smoothstep(0.002, 0.006, sdSeg(sp, a, b)));
+        }
+        float chalk = smoothstep(-0.3, 0.5, snoise(vec3(sp * 150.0, uSeed)));
+        col = mix(col, uBgB, L * chalk * 0.9);
+      } else if (uBg == 5) {                // planet + atmosphere
+        col = mix(vec3(0.043, 0.050, 0.060), vec3(0.070, 0.082, 0.098), y01);
+        float hp = max(h, 0.0);
+        col += vec3(0.20, 0.30, 0.38) * exp(-hp / 0.16) * 0.55 * uBlue;
+        col += vec3(0.46, 0.62, 0.72) * exp(-pow((h - 0.045) / 0.045, 2.0)) * 0.55 * uBlue;
+        col += vec3(1.00, 0.33, 0.06) * exp(-pow((h - 0.008) / 0.016, 2.0)) * 0.95 * uOrange;
+        col += vec3(1.00, 0.55, 0.18) * exp(-pow(h / 0.006, 2.0)) * 0.30 * uOrange;
+        float m = smoothstep(uSoft, -uSoft, h);
+        vec3 ground = vec3(0.028, 0.026, 0.030) + vec3(0.25, 0.08, 0.02) * exp(h / 0.02) * uOrange * 0.4;
+        col = mix(col, ground, m);
+      } else if (uBg == 6) {                // psychedelic vertical bars
+        float x = sp.x * 2.6 + 0.25 * snoise(vec3(sp * 1.5, uSeed));
+        col = pal4(fract(x));
+        col *= 0.85 + 0.15 * sin(sp.x * 90.0 + snoise(vec3(sp * 4.0, 2.0)) * 3.0);
+      } else if (uBg == 7) {                // sunset
+        col = mix(uBgB, uBgA, smoothstep(0.0, 0.32, h));
+        col *= 0.95 + 0.05 * snoise(vec3(sp * 3.0, uSeed));
+      } else if (uBg == 8) {                // plaster wall
+        col = mix(uBgA, uBgB, smoothstep(-0.2, 0.7, fbm(vec3(sp * 2.5, uSeed))));
+        col *= 0.95 + 0.05 * snoise(vec3(sp * 80.0, 2.0));
+        col *= 1.0 - 0.35 * (1.0 - smoothstep(0.0, 0.012, abs(snoise(vec3(sp * 2.0, 5.0)))));
+      } else {                              // thermal camera
+        vec3 q = vec3(sp * 1.6, uSeed);
+        float n = fbm(q + fbm(q * 1.4) * 1.3);
+        col = pal4(0.5 + 0.6 * n + 0.12 * sin(sp.y * 40.0 + n * 6.0));
+      }
+
+      if (uGlowMode == 1) col += uGlowCol * exp(-max(h, 0.0) / 0.03) * uGlowK;
+      if (uGlowMode == 2 && h > 0.0) {
+        float x = clamp(h / 0.022, 0.0, 1.0);
+        col += (0.5 + 0.5 * cos(6.2831 * (x * 0.85 + vec3(0.0, 0.33, 0.67)))) * (1.0 - x) * uGlowK;
+      }
+      gl_FragColor = vec4(col, 1.0);
+    }`,
+});
+const bg = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), bgMat);
+bg.frustumCulled = false; bg.renderOrder = -10;
+scene.add(bg);
+
+/* ------------------------------------------------------------------------------------------
+   The rim. A spherical cap whose vertices are laid out in (phi, s) and turned into a sphere in
+   the vertex shader, so every vertex is spent between the nadir and just past the horizon —
+   dense enough for fur and rock to break the silhouette.
+   Object space: +z points at the camera, the on-screen rim top is phi = PI/2.
+------------------------------------------------------------------------------------------- */
+function capGeometry(nPhi, nS, phiSpan) {
+  const pos = new Float32Array((nPhi + 1) * (nS + 1) * 3);
+  const idx = [];
+  let k = 0;
+  for (let j = 0; j <= nS; j++) for (let i = 0; i <= nPhi; i++) {
+    pos[k++] = Math.PI / 2 + (i / nPhi - 0.5) * phiSpan;
+    pos[k++] = j / nS;
+    pos[k++] = 0;
+  }
+  for (let j = 0; j < nS; j++) for (let i = 0; i < nPhi; i++) {
+    const a = j * (nPhi + 1) + i, b = a + 1, c = a + nPhi + 1, d = c + 1;
+    idx.push(a, c, b, b, c, d);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  g.setIndex(idx);
+  return g;
+}
+
+const SPHERE_COMMON = /* glsl */`
+  uniform float uThetaR, uRimR, uMargin, uSpin, uScale, uDispAmp;
+  uniform int uDisp;
+  const float HALF_PI = 1.5707963;
+  vec3 rotZ(vec3 p, float a){ float c = cos(a), s = sin(a); return vec3(c*p.x - s*p.y, s*p.x + c*p.y, p.z); }
+  // u: position along the rim, v: distance in from the rim, both in units of the rim radius
+  void rimCoords(vec3 p, out float u, out float v, out vec3 pn){
+    float th = acos(clamp(p.z, -1.0, 1.0));
+    u = atan(p.y, p.x) - HALF_PI;
+    v = (uThetaR - th) / uRimR;
+    pn = p / uRimR * uScale + uSeed;
+  }
+`;
+
+const sphereMat = new THREE.ShaderMaterial({
+  side: THREE.DoubleSide,
+  extensions: { derivatives: true },
+  uniforms: {
+    ...U,
+    uPat: { value: 1 }, uThetaR: { value: .4 }, uRimR: { value: .4 }, uMargin: { value: .12 },
+    uSpin: { value: 0 }, uScale: { value: 1 }, uDisp: { value: 0 }, uDispAmp: { value: 0 },
+  },
+  vertexShader: /* glsl */`
+    uniform vec3 uA, uB, uC, uD; uniform float uSeed, uTime;
+    ${NOISE}
+    ${SPHERE_COMMON}
+    varying vec3 vObj; varying vec3 vViewPos; varying vec3 vViewN; varying float vH;
+    float displace(vec3 p){
+      float u, v; vec3 pn; rimCoords(p, u, v, pn);
+      if (uDisp == 1) return fbm(pn * 3.0) * 0.7 + 0.35 + snoise(pn * 14.0) * 0.08;               // rock
+      if (uDisp == 2) {                                                                           // fur
+        float s = snoise(vec3(u * 190.0, v * 5.0, uSeed));
+        return pow(max(s, 0.0), 1.4) + 0.35 * max(snoise(vec3(u * 38.0, v * 2.0, uSeed + 4.0)), 0.0);
+      }
+      if (uDisp == 3) return 0.5 + snoise(pn * 22.0) * 0.35 + snoise(pn * 60.0) * 0.2;           // grain
+      if (uDisp == 4) return pow(abs(sin(u * 36.0)), 0.6) + snoise(pn * 30.0) * 0.2;             // scallops
+      return 0.0;
+    }
+    void main(){
+      float th = position.y * (uThetaR + uMargin);
+      float ph = position.x;
+      vec3 p = vec3(sin(th) * cos(ph), sin(th) * sin(ph), cos(th));
+      vec3 ps = rotZ(p, uSpin);
+      float h = uDisp > 0 ? displace(ps) : 0.0;
+      vObj = ps; vH = h;
+      vec4 mv = modelViewMatrix * vec4(p * (1.0 + h * uDispAmp), 1.0);
+      vViewPos = mv.xyz;
+      vViewN = normalize(normalMatrix * p);
+      gl_Position = projectionMatrix * mv;
+    }`,
+  fragmentShader: /* glsl */`
+    uniform vec3 uA, uB, uC, uD; uniform float uSeed, uTime;
+    uniform int uPat;
+    ${NOISE}
+    ${SPHERE_COMMON}
+    varying vec3 vObj; varying vec3 vViewPos; varying vec3 vViewN; varying float vH;
+
+    vec3 pal4(float t){
+      t = clamp(t, 0.0, 1.0) * 3.0;
+      if (t < 1.0) return mix(uA, uB, t);
+      if (t < 2.0) return mix(uB, uC, t - 1.0);
+      return mix(uC, uD, t - 2.0);
+    }
+    vec3 bumpNormal(vec3 n, vec3 pos, float h){
+      vec3 dpx = dFdx(pos), dpy = dFdy(pos);
+      vec3 r1 = cross(dpy, n), r2 = cross(n, dpx);
+      float det = dot(dpx, r1);
+      vec3 grad = sign(det) * (dFdx(h) * r1 + dFdy(h) * r2);
+      return normalize(abs(det) * n - grad);
+    }
+    // greek key: 6 wide x 5 tall, one bit per cell
+    int keyRow(int y){
+      if (y == 0) return 31; if (y == 1) return 17; if (y == 2) return 29; if (y == 3) return 1; return 63;
+    }
+
+    void main(){
+      float u, v; vec3 pn; rimCoords(vObj, u, v, pn);
+      vec3 col = uA; float h = 0.0, spec = 0.0, shade = 0.8, bumpK = 0.004;
+
+      if (uPat == 1) {                       // amber with a glassy rim
+        float n = fbm(pn * 2.0);
+        col = mix(uB, uA, clamp(smoothstep(0.05, 0.7, v) + n * 0.2, 0.0, 1.0));
+        col *= 0.9 + 0.1 * sin(v * 140.0 + n * 6.0);
+        col = mix(col, uC, (1.0 - smoothstep(0.015, 0.06, v)) * 0.6);
+        h = n * 0.3; spec = 0.5;
+      } else if (uPat == 2) {                // amber liquid with dark specks
+        float n = fbm(pn * 1.5);
+        col = mix(uA, uB, clamp(smoothstep(0.0, 0.7, v) + n * 0.2, 0.0, 1.0));
+        float sp = smoothstep(0.55, 0.75, snoise(pn * 18.0)) * smoothstep(0.2, 0.8, snoise(pn * 3.0 + 7.0));
+        col = mix(col, uC, sp);
+        col *= 0.96 + 0.04 * snoise(pn * 90.0);
+        h = sp * 0.6 + n * 0.1; spec = 0.4; shade = 0.4;
+      } else if (uPat == 3) {                // bread crust, one flake peeled back
+        float n = fbm(pn * 3.0);
+        col = mix(uA, uB, smoothstep(-0.5, 0.6, n));
+        float pr = smoothstep(0.2, 0.7, snoise(pn * 45.0));
+        col *= 1.0 - pr * 0.45;
+        float peel = snoise(pn * 1.2 + 11.0);
+        float inside = smoothstep(0.25, 0.3, peel) * smoothstep(0.08, 0.12, v);
+        col = mix(col, uC * (0.8 + 0.3 * fbm(pn * 6.0)), inside);
+        col = mix(col, uD, (1.0 - smoothstep(0.0, 0.02, abs(peel - 0.28))) * smoothstep(0.08, 0.12, v) * 0.8);
+        h = n * 0.5 - pr * 0.5 - inside * 0.5; bumpK = 0.008;
+      } else if (uPat == 4) {                // blueprint
+        col = uA * (0.9 + 0.1 * fbm(pn * 4.0));
+        float k = u * 14.0;
+        float rl = abs(fract(k + 0.15 * snoise(vec3(u * 2.0, v * 3.0, uSeed))) - 0.5) / 14.0;
+        float line = (1.0 - smoothstep(0.0015, 0.004, rl)) * step(0.04, v) * step(fract(k * 0.37 + 0.3), 0.7);
+        float al = abs(fract(v * 4.0 + 0.2) - 0.5) / 4.0;
+        float arc = 1.0 - smoothstep(0.002, 0.005, al);
+        float rimL = 1.0 - smoothstep(0.0, 0.008, abs(v - 0.006));
+        float chalk = smoothstep(-0.3, 0.5, snoise(pn * 60.0)) * (0.6 + 0.4 * snoise(pn * 8.0));
+        col = mix(col, uB, clamp(max(max(line, arc), rimL) * chalk, 0.0, 1.0) * 0.95);
+        shade = 0.2;
+      } else if (uPat == 5) {                // leaf
+        float n = fbm(pn * 2.0);
+        col = mix(uA, uB, 0.5 + 0.5 * n);
+        float vn  = 1.0 - smoothstep(0.0, 0.05, abs(snoise(pn * 3.0 + 2.0)));
+        float vn2 = 1.0 - smoothstep(0.0, 0.08, abs(snoise(pn * 14.0 + 5.0)));
+        col = mix(col, uC, vn * 0.55 + vn2 * 0.25);
+        float sp = smoothstep(0.45, 0.8, snoise(pn * 1.2 + 9.0));
+        col = mix(col, uD, sp * 0.6 * (0.6 + 0.4 * snoise(pn * 20.0)));
+        col = mix(col, uC, (1.0 - smoothstep(0.0, 0.015, v)) * 0.6);
+        col *= 0.92 + 0.08 * snoise(pn * 90.0);
+        h = vn * 0.4 + vn2 * 0.3; shade = 0.5;
+      } else if (uPat == 6) {                // pink gel
+        float n = fbm(pn * 3.0);
+        col = mix(uC, uA, smoothstep(0.0, 0.08, v));
+        col = mix(col, uB, clamp(smoothstep(0.1, 0.8, v) + n * 0.2, 0.0, 1.0));
+        col *= 0.9 + 0.1 * snoise(pn * 70.0);
+        h = n * 0.3; spec = 0.3;
+      } else if (uPat == 7) {                // terracotta with a greek-key band
+        col = uA * (0.8 + 0.3 * fbm(pn * 3.0));
+        float d0 = 0.07, d1 = 0.19, cell = (d1 - d0) / 5.0;
+        float wear = smoothstep(-0.6, 0.2, snoise(pn * 12.0));
+        if (v > d0 && v < d1) {
+          int yy = int(floor((v - d0) / cell));
+          int xx = int(mod(floor(u / cell), 6.0));
+          float key = float((keyRow(yy) >> xx) & 1);
+          col = mix(uB * (0.9 + 0.2 * fbm(pn * 5.0)), uC, key * wear);
+          h = key * 0.3;
+        }
+        float border = (1.0 - smoothstep(cell * 0.3, cell * 0.5, abs(v - d0 + cell * 0.8)))
+                     + (1.0 - smoothstep(cell * 0.3, cell * 0.5, abs(v - d1 - cell * 0.8)));
+        col = mix(col, uC, clamp(border, 0.0, 1.0) * wear);
+        float crust = 1.0 - smoothstep(0.015, 0.035, v + 0.012 * snoise(vec3(u * 40.0, 0.0, 1.0)));
+        col = mix(col, uD, crust);
+        h += fbm(pn * 6.0) * 0.2 + crust * 0.4;
+      } else if (uPat == 8) {                // parchment with a painted green ring
+        col = uA * (0.9 + 0.12 * fbm(pn * 3.0));
+        float b0 = 0.02, b1 = 0.09;
+        float band = smoothstep(0.0, 0.004, v - b0) * (1.0 - smoothstep(0.0, 0.004, v - b1));
+        col = mix(col, uB * (0.85 + 0.2 * fbm(pn * 10.0)), band);
+        float ol = (1.0 - smoothstep(0.0015, 0.004, abs(v - b0))) + (1.0 - smoothstep(0.0015, 0.004, abs(v - b1)));
+        col = mix(col, uC, clamp(ol, 0.0, 1.0) * 0.8);
+        shade = 0.1;
+      } else if (uPat == 9) {                // thermal camera
+        vec3 w = pn * 1.5;
+        float n = fbm(w + fbm(w * 1.3) * 1.2);
+        float st = sin(u * 40.0 + n * 8.0) * 0.5 + 0.5;
+        col = pal4(0.5 + 0.6 * n + 0.25 * st * step(0.1, v));
+        h = n * 0.2; shade = 0.3;
+      } else if (uPat == 10) {               // crayon strokes on blue paper
+        col = uA * (0.95 + 0.08 * fbm(pn * 8.0));
+        for (int i = 0; i < 3; i++) {
+          float fi = float(i);
+          float cd = 0.008 + fi * (0.08 + 0.04 * fi);
+          float w = abs(v - cd - 0.015 * snoise(vec3(u * 2.0, fi, uSeed)));
+          float st = (1.0 - smoothstep(0.008 + fi * 0.006, 0.022 + fi * 0.012, w))
+                   * smoothstep(-0.4, 0.4, snoise(vec3(u * 120.0, v * 40.0, fi * 3.0)));
+          col = mix(col, uB, st * 0.85);
+        }
+        shade = 0.0;
+      } else if (uPat == 11) {               // golden moss
+        float fb = snoise(vec3(u * 220.0, v * 25.0, uSeed));
+        float n = fbm(pn * 6.0);
+        col = mix(uB, uA, 0.5 + 0.5 * fb) * (0.65 + 0.5 * (0.5 + 0.5 * n));
+        col += uA * 0.4 * smoothstep(0.6, 1.0, fb);
+        h = fb * 0.5 + vH * 0.3;
+      } else if (uPat == 12) {               // tomato skin
+        float n = fbm(pn * 2.0);
+        col = mix(uB, uA, smoothstep(-0.6, 0.5, n));
+        col = mix(col, uC, smoothstep(0.2, 0.7, snoise(pn * 4.0 + 3.0)) * 0.5);
+        col = mix(col, uC, (1.0 - smoothstep(0.0, 0.03, v)) * 0.5);
+        col *= 0.9 + 0.1 * snoise(pn * 50.0);
+        spec = 0.8; h = n * 0.4;
+      } else if (uPat == 14) {               // engraving
+        float tone = 0.5 + 0.5 * fbm(pn * 2.5);
+        float hat = 0.5 + 0.5 * sin(u * 300.0 + v * 40.0 + snoise(pn * 3.0) * 3.0);
+        float ink = step(hat, (1.0 - tone) * 1.1);
+        if (v > 0.018 && v < 0.05) {
+          float blocks = step(0.45, hash21(vec2(floor(u * 110.0), floor(v * 70.0))));
+          ink = blocks * step(0.3, fract(u * 110.0));
+        }
+        float lines = 0.0;
+        lines += 1.0 - smoothstep(0.001, 0.003, abs(v - 0.016));
+        lines += 1.0 - smoothstep(0.001, 0.003, abs(v - 0.052));
+        lines += 1.0 - smoothstep(0.001, 0.003, abs(v - 0.09));
+        col = mix(uA, uB, clamp(max(ink, lines), 0.0, 1.0));
+        shade = 0.15;
+      } else if (uPat == 15) {               // slate with a prismatic rim
+        float n = fbm(pn * 1.5);
+        col = mix(uA, uB, 0.5 + 0.5 * n) * (0.7 + 0.3 * smoothstep(0.0, 0.3, v));
+        float rb = 1.0 - smoothstep(0.0, 0.03, v);
+        vec3 spc = 0.5 + 0.5 * cos(6.2831 * (v / 0.03 * 0.9 + vec3(0.0, 0.33, 0.67)));
+        col = mix(col, spc, rb * 0.75);
+        shade = 0.4;
+      } else if (uPat == 16) {               // silhouette against a sunset
+        col = uA * (0.7 + 0.4 * fbm(pn * 4.0));
+        col = mix(col, uB, (1.0 - smoothstep(0.0, 0.02, v)) * 0.6);
+        shade = 0.3;
+      } else if (uPat == 17) {               // printed floral fabric
+        vec3 w = pn * 2.0;
+        float f = fbm(w + vec3(fbm(w * 1.5), fbm(w * 1.5 + 4.0), 0.0) * 1.3);
+        float leaf = smoothstep(0.0, 0.08, f);
+        col = mix(uB, uA, leaf);
+        col = mix(col, uC, (1.0 - smoothstep(0.0, 0.015, abs(f - 0.25))) * 0.7);
+        col *= 0.86 + 0.14 * sin(u * 520.0) * sin(v * 520.0 + u * 200.0);
+        h = leaf * 0.3; shade = 0.5;
+      } else if (uPat == 18) {               // psychedelic concentric bands
+        float t = v * 6.0 + fbm(pn * 1.5) * 0.6 + sin(u * 10.0) * 0.05;
+        col = pal4(fract(t));
+        shade = 0.3;
+      } else if (uPat == 19) {               // lace
+        vec2 q = vec2(u, v) * 28.0;
+        vec3 vr = voronoi(q + uSeed);
+        float edge = 1.0 - smoothstep(0.02, 0.08, vr.y - vr.x);
+        float flower = 0.0;
+        if (vr.z > 0.55) flower = (1.0 - smoothstep(0.03, 0.07, abs(vr.x - 0.28))) + (1.0 - smoothstep(0.0, 0.08, vr.x)) * 0.9;
+        vec2 g = fract(q * 3.0) - 0.5;
+        float net = 1.0 - smoothstep(0.04, 0.12, min(abs(g.x + g.y * 0.5), abs(g.x - g.y * 0.5)));
+        float lace = clamp(max(max(edge * 0.9, flower), net * 0.35), 0.0, 1.0);
+        col = mix(uA, uB, lace * (0.8 + 0.2 * snoise(pn * 40.0)));
+        h = lace * 0.4; shade = 0.5;
+      } else if (uPat == 20) {               // agate slice
+        float n = fbm(pn * 1.5);
+        float dd = v + 0.012 * snoise(vec3(u * 25.0, 0.0, uSeed));
+        float bands = 0.5 + 0.5 * sin(dd * 60.0 + n * 2.0);
+        col = mix(uA, uB, smoothstep(0.55, 0.95, bands));
+        col = mix(col, uA, smoothstep(0.25, 0.6, v) * 0.5);
+        float cr = 1.0 - smoothstep(0.02, 0.03, dd);
+        col = mix(col, mix(uC, uD, 0.5 + 0.5 * snoise(pn * 30.0)), cr);
+        col = mix(col, uB * 0.8, (1.0 - smoothstep(0.0, 0.006, abs(dd - 0.034))) * 0.8);
+        h = cr * 0.5 + bands * 0.1; spec = 0.4; shade = 0.5;
+      } else if (uPat == 23) {               // white rock
+        float n = fbm(pn * 6.0);
+        col = mix(uB, uA, 0.55 + 0.45 * n) * (0.85 + 0.15 * snoise(pn * 50.0));
+        h = vH * 1.6 + n * 0.3; bumpK = 0.03; shade = 1.0;
+      } else if (uPat == 24) {               // wood end grain
+        float g = sin(v * 90.0 + fbm(pn * 4.0) * 5.0 + u * 2.0);
+        col = mix(uA, uB, smoothstep(0.2, 1.0, g) * (0.6 + 0.4 * fbm(pn * 10.0)));
+        col = mix(col, uA, 1.0 - smoothstep(0.0, 0.03, v));
+        h = g * 0.2; shade = 0.4;
+      } else if (uPat == 25) {               // cut-paper collage
+        vec2 q = vec2(u, v) * 5.0;
+        q += 0.15 * vec2(snoise(vec3(q, 1.0)), snoise(vec3(q, 5.0)));
+        vec3 vr = voronoi(q);
+        float id = vr.z;
+        col = id < 0.2 ? uA : id < 0.4 ? uB : id < 0.6 ? uC : id < 0.8 ? uD : vec3(0.95, 0.93, 0.88);
+        if (fract(id * 7.0) > 0.6) col = mix(col, vec3(0.95), step(0.5, fract((q.x + q.y) * 6.0)) * 0.8);
+        col *= 0.75 + 0.25 * smoothstep(0.0, 0.03, vr.y - vr.x);
+        col *= 0.95 + 0.05 * snoise(pn * 60.0);
+        shade = 0.0;
+      } else if (uPat == 26) {               // plant stem cross-section
+        vec2 q = vec2(u, v);
+        vec3 c1 = voronoi(q * 45.0);
+        float wall = 1.0 - smoothstep(0.03, 0.09, c1.y - c1.x);
+        col = mix(uA, uB, wall * 0.8);
+        vec3 c2 = voronoi(q * 5.0 + 3.1);
+        float bund = 1.0 - smoothstep(0.16, 0.2, c2.x);
+        col = mix(col, uC, bund * (0.5 + 0.5 * wall));
+        col = mix(col, uD * 0.8 + uC * 0.2, (1.0 - smoothstep(0.06, 0.09, c2.x)) * 0.7);
+        col = mix(col, uD, 1.0 - smoothstep(0.0, 0.008, v));
+        h = wall * 0.3; shade = 0.2;
+      } else if (uPat == 27) {               // dark dust sphere, ember rim
+        float sp = smoothstep(0.55, 0.85, snoise(pn * 35.0));
+        col = uA + uB * sp * 0.8;
+        col += uC * exp(-v * 60.0) * 0.9;
+        h = sp * 0.3;
+      } else if (uPat == 28) {               // ruled construction lines
+        col = uA * (0.97 + 0.03 * snoise(pn * 30.0));
+        vec2 q = vec2(u, v);
+        for (int i = 0; i < 12; i++) {
+          float fi = float(i);
+          float an = hash21(vec2(fi, uSeed)) * 3.1416;
+          vec2 dir = vec2(cos(an), sin(an));
+          float off = (hash21(vec2(fi * 1.7, 2.0)) - 0.5) * 1.2;
+          float ln = 1.0 - smoothstep(0.0015, 0.004, abs(dot(q, dir) - off));
+          int m = i - 3 * (i / 3);
+          vec3 lc = m == 0 ? uB : m == 1 ? uC : uD;
+          col = mix(col, lc, ln * 0.8);
+        }
+        col = mix(col, vec3(0.55), (1.0 - smoothstep(0.0, 0.006, v)) * 0.6);
+        shade = 0.0;
+      } else if (uPat == 29) {               // ink scribbles
+        col = uA * (0.9 + 0.12 * fbm(pn * 3.0));
+        float l1 = 1.0 - smoothstep(0.0, 0.035, abs(snoise(vec3(u * 18.0, v * 4.0, uSeed))));
+        float l2 = 1.0 - smoothstep(0.0, 0.03, abs(snoise(vec3(u * 5.0, v * 14.0, uSeed + 3.0))));
+        float dens = 1.0 - smoothstep(0.1, 0.6, v);
+        col = mix(col, uB, clamp(l1 * 0.9 + l2 * 0.6, 0.0, 1.0) * dens * (0.6 + 0.4 * snoise(pn * 50.0)));
+        col = mix(col, uB, (1.0 - smoothstep(0.003, 0.008, abs(v - 0.006))) * 0.9);
+        shade = 0.0;
+      } else if (uPat == 30) {               // white fur
+        float f  = snoise(vec3(u * 260.0, v * 6.0, uSeed));
+        float f2 = snoise(vec3(u * 90.0, v * 3.0, uSeed + 4.0));
+        col = mix(uB, uA, clamp(0.55 + 0.35 * f + 0.3 * f2, 0.0, 1.0));
+        col += 0.15 * exp(-v * 40.0);
+        h = f * 0.4; shade = 0.6;
+      } else if (uPat == 31) {               // mushroom gills
+        float g = sin(u * 260.0 + fbm(pn * 2.0) * 4.0);
+        col = mix(uB, uA, smoothstep(-0.6, 0.9, g));
+        col *= 0.7 + 0.4 * (1.0 - smoothstep(0.0, 0.4, v));
+        float cap = 1.0 - smoothstep(0.01, 0.022, v + 0.006 * snoise(vec3(u * 30.0, 0.0, 2.0)));
+        col = mix(col, uC * (0.8 + 0.3 * fbm(pn * 8.0)), cap);
+        h = g * 0.3;
+      }
+
+      vec3 V = normalize(-vViewPos);
+      vec3 n = normalize(vViewN);
+      if (dot(n, V) < 0.0) n = -n;
+      n = bumpNormal(n, vViewPos, h * bumpK);
+      vec3 L = normalize(vec3(-0.35, 0.8, 0.5));
+      float lam = max(dot(n, L), 0.0);
+      col *= mix(1.0, 0.45 + 0.75 * lam, shade);
+      col += spec * pow(max(dot(reflect(-L, n), V), 0.0), 30.0) * 0.6;
+      gl_FragColor = vec4(col, 1.0);
+    }`,
+});
+const rim = new THREE.Mesh(capGeometry(2000, 220, 2.3), sphereMat);
+rim.frustumCulled = false;
+scene.add(rim);
+
+/* ------------------------------------------------------------------------------------------
+   Droplets: glass beads and red drops sitting on the horizon (instanced spheres)
+------------------------------------------------------------------------------------------- */
+const MAX_DROPS = 90;
+const dropMat = new THREE.ShaderMaterial({
+  uniforms: { ...U, uMode: { value: 0 } },
+  vertexShader: /* glsl */`
+    varying vec3 vN; varying vec3 vV; varying vec3 vP;
+    void main(){
+      vP = position;
+      vec4 mv = modelViewMatrix * instanceMatrix * vec4(position, 1.0);
+      vV = -mv.xyz;
+      vN = normalize(normalMatrix * mat3(instanceMatrix) * normal);
+      gl_Position = projectionMatrix * mv;
+    }`,
+  fragmentShader: /* glsl */`
+    uniform vec3 uA, uB, uC, uD; uniform float uSeed, uTime; uniform int uMode;
+    varying vec3 vN; varying vec3 vV; varying vec3 vP;
+    ${NOISE}
+    void main(){
+      vec3 n = normalize(vN), V = normalize(vV);
+      float f = 1.0 - max(dot(n, V), 0.0);
+      vec3 L = normalize(vec3(-0.4, 0.7, 0.6));
+      float sp = pow(max(dot(reflect(-L, n), V), 0.0), 50.0);
+      vec3 col;
+      if (uMode == 1) {
+        vec3 red = vec3(0.86, 0.22, 0.14), dark = vec3(0.35, 0.05, 0.04);
+        col = mix(red, dark, pow(f, 1.2)) * (0.75 + 0.35 * snoise(vP * 3.5 + uSeed));
+        col += red * 0.35 * pow(1.0 - f, 3.0) + sp * 0.9;
+      } else {
+        col = mix(uA * 0.9, uC, pow(f, 1.6)) * (0.8 + 0.25 * max(dot(n, L), 0.0));
+        col += sp * 1.2;
+      }
+      gl_FragColor = vec4(col, 1.0);
+    }`,
+});
+const drops = new THREE.InstancedMesh(new THREE.SphereGeometry(1, 32, 16), dropMat, MAX_DROPS);
+drops.frustumCulled = false;
+scene.add(drops);
+
+/* ------------------------------------------------------------------------------------------
+   Text layer (2D canvas → texture, so it's part of the WebGL frame and gets recorded)
+   and a grain + vignette pass on top.
+------------------------------------------------------------------------------------------- */
+const textCanvas = document.createElement("canvas");
+const tctx = textCanvas.getContext("2d");
+const textTex = new THREE.CanvasTexture(textCanvas);
+textTex.minFilter = THREE.LinearFilter; textTex.generateMipmaps = false;
+const textQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({
+  transparent: true, depthTest: false, depthWrite: false,
+  uniforms: { uTex: { value: textTex } },
+  vertexShader: `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`,
+  fragmentShader: `uniform sampler2D uTex; varying vec2 vUv; void main(){ gl_FragColor = texture2D(uTex, vUv); }`,
+}));
+textQuad.frustumCulled = false; textQuad.renderOrder = 10;
+scene.add(textQuad);
+
+const grain = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMaterial({
+  transparent: true, depthTest: false, depthWrite: false,
+  uniforms: { uTime: U.uTime, uAspect: { value: 1 } },
+  vertexShader: `varying vec2 vNdc; void main(){ vNdc = position.xy; gl_Position = vec4(position.xy, 0.0, 1.0); }`,
+  fragmentShader: /* glsl */`
+    uniform float uTime, uAspect; varying vec2 vNdc;
+    float hash(vec2 p){ p = fract(p * vec2(443.8975, 397.2973)); p += dot(p, p + 19.19); return fract(p.x * p.y); }
+    void main(){
+      float g = hash(gl_FragCoord.xy + fract(uTime * 7.13) * 311.0);
+      float vig = smoothstep(0.55, 1.45, length(vNdc * vec2(uAspect * 0.62, 1.0)));
+      gl_FragColor = vec4(vec3(g) * (1.0 - vig), 0.028 + vig * 0.22);
+    }`,
+}));
+grain.frustumCulled = false; grain.renderOrder = 11;
+scene.add(grain);
+
+/* ------------------------------------------------------------------------------------------
+   Layout helpers
+------------------------------------------------------------------------------------------- */
+const tmpV = new THREE.Vector3();
+const rimState = { alpha: 1, thetaR: .5, R: 1, center: new THREE.Vector3(), spin: 0 };
+
+// Put the sphere so its angular radius is `alphaDeg` and its top edge sits at `rimY` on screen.
+function placeSphere(alphaDeg, rimY, spin) {
+  const a = alphaDeg * DEG;
+  const th = Math.atan((1 - 2 * rimY) * Math.tan(camera.fov * DEG / 2));
+  const c = th - a;
+  const R = DIST * Math.sin(a);
+  rimState.alpha = a; rimState.thetaR = Math.PI / 2 - a; rimState.R = R; rimState.spin = spin;
+  rimState.center.set(0, DIST * Math.sin(c), -DIST * Math.cos(c));
+  rim.position.copy(rimState.center);
+  rim.scale.setScalar(R);
+  rim.lookAt(0, 0, 0);
+  rim.updateMatrixWorld();
+  const su = sphereMat.uniforms;
+  su.uThetaR.value = rimState.thetaR;
+  su.uRimR.value = Math.sin(rimState.thetaR);
+  su.uSpin.value = spin;
+  bgMat.uniforms.uCenterDir.value.copy(rimState.center).normalize();
+  bgMat.uniforms.uAlpha.value = a;
+}
+
+// World-space point on the horizon at pattern angle `phi` (PI/2 = top), lifted by `lift` radians of arc.
+function rimPoint(phi, lift = 0, out = tmpV) {
+  const th = rimState.thetaR + lift, ph = phi - rimState.spin;
+  out.set(Math.sin(th) * Math.cos(ph), Math.sin(th) * Math.sin(ph), Math.cos(th));
+  return rim.localToWorld(out);
+}
+
+function mulberry(seed) {
+  let s = seed * 1e4 >>> 0;
+  return () => { s = (s + 0x6D2B79F5) | 0; let t = Math.imul(s ^ (s >>> 15), 1 | s); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; };
+}
+
+const dummy = new THREE.Object3D();
+const nrm = new THREE.Vector3();
+function layoutDrops(kind, seed) {
+  if (!kind) { drops.count = 0; return; }
+  const rnd = mulberry(seed + 1);
+  const L = DIST * Math.cos(rimState.alpha);                  // distance to the horizon
+  const px = L * Math.tan(camera.fov * DEG / 2) * 2;           // world size of one screen height there
+  let n = 0;
+  const put = (phi, lift, r, out) => {
+    const p = rimPoint(phi, lift, new THREE.Vector3());
+    nrm.copy(p).sub(rimState.center).normalize();
+    dummy.position.copy(p).addScaledVector(nrm, r * out);
+    dummy.scale.setScalar(r);
+    dummy.updateMatrix();
+    drops.setMatrixAt(n++, dummy.matrix);
+  };
+  if (kind === "red") {
+    dropMat.uniforms.uMode.value = 1;
+    for (let i = 0; i < 9; i++) put(Math.PI / 2 + (i / 8 - .5) * 1.05 + (rnd() - .5) * .06, 0, px * (.03 + rnd() * .03), .45);
+  } else {
+    dropMat.uniforms.uMode.value = 0;
+    let phi = Math.PI / 2 - .75;
+    while (phi < Math.PI / 2 + .75 && n < MAX_DROPS) {
+      const r = px * (.012 + rnd() * .012);
+      put(phi, -r / rimState.R * .4, r, .1);
+      phi += r / (rimState.R * Math.sin(rimState.thetaR)) * 2.1;
+    }
+  }
+  drops.count = n;
+  drops.instanceMatrix.needsUpdate = true;
+}
+
+/* ------------------------------------------------------------------------------------------
+   Shot switching + per-frame animation
+------------------------------------------------------------------------------------------- */
+const col = (h, c) => c.set(h || "#000000");
+let current = -1;
+
+function applyShot(i) {
+  const s = SHOTS[i];
+  current = i;
+  U.uSeed.value = s.seed;
+  if (s.pal) { col(s.pal[0], U.uA.value); col(s.pal[1], U.uB.value); col(s.pal[2] || s.pal[1], U.uC.value); col(s.pal[3] || s.pal[2] || s.pal[1], U.uD.value); }
+  const b = bgMat.uniforms;
+  b.uBg.value = s.bg;
+  col(s.bgA, b.uBgA.value); col(s.bgB || s.bgA, b.uBgB.value);
+  b.uGlowMode.value = s.glow ? s.glow[0] : 0;
+  if (s.glow) { col(s.glow[1], b.uGlowCol.value); b.uGlowK.value = s.glow[2]; }
+  const m = sphereMat.uniforms;
+  m.uPat.value = s.pat;
+  m.uDisp.value = s.disp || 0;
+  m.uScale.value = s.scale || 1;
+  rim.visible = !s.planet;
+  drops.visible = !!s.drops;
+}
+
+const ease = x => x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
+const clamp01 = x => Math.min(1, Math.max(0, x));
+const lerp = (a, b, k) => a + (b - a) * k;
+
+function update(t) {
+  let i = SHOTS.length - 1;
+  while (i > 0 && SHOTS[i].t > t) i--;
+  if (i !== current) applyShot(i);
+  const s = SHOTS[i];
+  const k = (t - s.t) / (s.end - s.t);
+  const b = bgMat.uniforms;
+
+  if (s.planet) {
+    let rimY, orange, soft, blue = 1;
+    if (!s.finale) {                                   // opening: the planet rising slowly
+      rimY = lerp(.56, .52, k); orange = 1; soft = .012;
+    } else {                                           // finale: horizon sinks, then climbs back to the opening frame
+      const rise = ease(clamp01((t - 18.2) / (END - 18.2)));
+      rimY = lerp(1.03, .56, rise);
+      orange = Math.pow(rise, 1.4);
+      soft = lerp(.035, .012, rise);
+      blue = .85 + .15 * rise;
+    }
+    placeSphere(72, rimY, 0);
+    b.uOrange.value = orange; b.uBlue.value = blue; b.uSoft.value = soft;
+    return { rimY };
+  }
+
+  const r0 = s.rimY ? s.rimY[0] : .54, r1 = s.rimY ? s.rimY[1] : .52;
+  placeSphere(s.alpha * (1 + .025 * k), lerp(r0, r1, k), (s.spin ?? .05) * (k - .5));
+  sphereMat.uniforms.uDispAmp.value = (s.amp || 0) / Math.tan(rimState.alpha);
+  if (s.drops) layoutDrops(s.drops, s.seed);
+  return {};
+}
+
+/* ------------------------------------------------------------------------------------------
+   Typography
+------------------------------------------------------------------------------------------- */
+const FONT = `"Newsreader", Georgia, "Times New Roman", serif`;
+
+function toScreen(p, W, H) {
+  tmpV.copy(p).project(camera);
+  return [(tmpV.x * .5 + .5) * W, (1 - (tmpV.y * .5 + .5)) * H];
+}
+
+function drawArcWord(word, ink, size, gap, W, H) {
+  // sample the projected horizon, left to right, and lift it by `gap` pixels
+  const pts = [];
+  for (let j = 0; j <= 80; j++) {
+    const phi = Math.PI / 2 + .9 - (j / 80) * 1.8;
+    pts.push(toScreen(rimPoint(phi + rimState.spin), W, H));
+  }
+  const lifted = pts.map((p, j) => {
+    const a = pts[Math.max(0, j - 1)], b = pts[Math.min(pts.length - 1, j + 1)];
+    let nx = b[1] - a[1], ny = -(b[0] - a[0]);
+    const l = Math.hypot(nx, ny) || 1; nx /= l; ny /= l;
+    if (ny > 0) { nx = -nx; ny = -ny; }
+    return [p[0] + nx * gap, p[1] + ny * gap];
+  });
+  const cum = [0];
+  for (let j = 1; j < lifted.length; j++) cum.push(cum[j - 1] + Math.hypot(lifted[j][0] - lifted[j - 1][0], lifted[j][1] - lifted[j - 1][1]));
+  let mid = 0;
+  for (let j = 1; j < lifted.length; j++) if (Math.abs(lifted[j][0] - W / 2) < Math.abs(lifted[mid][0] - W / 2)) mid = j;
+  const at = s => {
+    let j = 1;
+    while (j < cum.length - 1 && cum[j] < s) j++;
+    const f = (s - cum[j - 1]) / ((cum[j] - cum[j - 1]) || 1);
+    const a = lifted[j - 1], b = lifted[j];
+    return [lerp(a[0], b[0], f), lerp(a[1], b[1], f), Math.atan2(b[1] - a[1], b[0] - a[0])];
+  };
+  tctx.font = `${word === "discover" ? 500 : 400} ${size}px ${FONT}`;
+  tctx.fillStyle = ink;
+  tctx.textBaseline = "alphabetic";
+  const chars = [...word];
+  const widths = chars.map(c => tctx.measureText(c).width);
+  const total = tctx.measureText(word).width;
+  const squeeze = total / widths.reduce((x, y) => x + y, 0);   // keep the word's kerned width
+  let s = cum[mid] - total / 2;
+  chars.forEach((c, j) => {
+    const w = widths[j] * squeeze;
+    const [x, y, ang] = at(s + w / 2);
+    tctx.save();
+    tctx.translate(x, y); tctx.rotate(ang);
+    tctx.fillText(c, -widths[j] / 2, 0);
+    tctx.restore();
+    s += w;
+  });
+}
+
+// The spark: a dozen rounded rays of slightly different lengths
+const SPARK = Array.from({ length: 12 }, (_, i) => ({
+  a: i / 12 * Math.PI * 2 + [0, .06, -.04, .03, -.07, .05, 0, -.03, .06, -.05, .02, -.02][i],
+  l: [1, .82, .94, .78, 1, .86, .92, .8, .98, .84, .9, .8][i],
+}));
+function drawSpark(x, y, r, ink) {
+  tctx.save();
+  tctx.strokeStyle = ink; tctx.lineCap = "round"; tctx.lineWidth = r * .2;
+  tctx.beginPath();
+  for (const s of SPARK) { tctx.moveTo(x, y); tctx.lineTo(x + Math.cos(s.a) * r * s.l, y + Math.sin(s.a) * r * s.l); }
+  tctx.stroke();
+  tctx.beginPath(); tctx.arc(x, y, r * .2, 0, Math.PI * 2); tctx.fillStyle = ink; tctx.fill();
+  tctx.restore();
+}
+
+function drawText(t, info) {
+  const W = textCanvas.width, H = textCanvas.height;
+  tctx.clearRect(0, 0, W, H);
+  const unit = Math.min(W / 1920, H / 1080);
+  const s = SHOTS[current];
+  const shadow = ink => {
+    tctx.shadowColor = ink === "#fff" ? "rgba(0,0,0,.45)" : "rgba(0,0,0,0)";
+    tctx.shadowBlur = 18 * unit;
+  };
+  if (s.word) {
+    const big = s.word === "discover";
+    const size = (big ? 118 : 50) * unit;
+    shadow(s.ink);
+    drawArcWord(s.word, s.ink, size, big ? size * .3 : size * 1.25, W, H);
+  } else if (s.finale) {
+    tctx.fillStyle = "#f3f1ec"; tctx.textBaseline = "middle"; tctx.textAlign = "center";
+    shadow("#fff");
+    const size = 60 * unit;
+    const riseK = ease(clamp01((t - 18.2) / (END - 18.2)));
+    const y = H * .47 - (1.03 - info.rimY) * H * .95;
+    if (t < 17.2) {
+      tctx.globalAlpha = clamp01((t - 15.9) / .3) * clamp01((17.2 - t) / .12);
+      tctx.font = `400 ${size}px ${FONT}`;
+      tctx.fillText("Opus 5.5", W / 2, H * .47);
+    } else {
+      tctx.globalAlpha = clamp01((t - 17.2) / .3) * (1 - clamp01((riseK - .35) / .25));
+      tctx.font = `500 ${size}px ${FONT}`;
+      const tw = tctx.measureText("Claude").width, r = size * .36, gap = size * .16;
+      const x0 = W / 2 - (tw + r * 2 + gap) / 2;
+      drawSpark(x0 + r, y + size * .02, r, "#f3f1ec");
+      tctx.textAlign = "left";
+      tctx.fillText("Claude", x0 + r * 2 + gap, y);
+    }
+    tctx.globalAlpha = 1; tctx.textAlign = "left";
+  }
+  textTex.needsUpdate = true;
+}
+
+/* ------------------------------------------------------------------------------------------
+   Sound: a small WebAudio score scheduled against the film's clock
+------------------------------------------------------------------------------------------- */
+class Score {
+  constructor() {
+    const ctx = this.ctx = new AudioContext();
+    this.out = ctx.createGain(); this.out.gain.value = .9;
+    const comp = ctx.createDynamicsCompressor();
+    this.out.connect(comp); comp.connect(ctx.destination);
+    this.stream = ctx.createMediaStreamDestination(); comp.connect(this.stream);
+    this.verb = ctx.createConvolver();
+    const len = ctx.sampleRate * 3, ir = ctx.createBuffer(2, len, ctx.sampleRate);
+    for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3); }
+    this.verb.buffer = ir;
+    const wet = ctx.createGain(); wet.gain.value = .35;
+    this.verb.connect(wet); wet.connect(this.out);
+    this.noise = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+    const nd = this.noise.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+    this.nodes = [];
+  }
+  track(n) { this.nodes.push(n); return n; }
+  stopAll() { for (const n of this.nodes) { try { n.stop(); } catch {} } this.nodes = []; }
+  bus(gain, verb = true) {
+    const g = this.ctx.createGain(); g.gain.value = 0; g.connect(this.out); if (verb) g.connect(this.verb);
+    return g;
+  }
+  chord(freqs, t0, t1, cut0, cut1, level) {
+    const ctx = this.ctx, g = this.bus();
+    g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(level, t0 + 1.2);
+    g.gain.setValueAtTime(level, t1 - .6); g.gain.linearRampToValueAtTime(0, t1 + .4);
+    const lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.Q.value = .8;
+    lp.frequency.setValueAtTime(cut0, t0); lp.frequency.exponentialRampToValueAtTime(cut1, t1);
+    lp.connect(g);
+    for (const f of freqs) for (const det of [-5, 5]) {
+      const o = this.track(ctx.createOscillator()); o.type = "sawtooth"; o.frequency.value = f; o.detune.value = det;
+      o.connect(lp); o.start(t0); o.stop(t1 + .5);
+    }
+    const sub = this.track(ctx.createOscillator()); sub.frequency.value = freqs[0] / 2;
+    const sg = ctx.createGain(); sg.gain.value = .6; sub.connect(sg); sg.connect(lp); sub.start(t0); sub.stop(t1 + .5);
+  }
+  tick(t, level, freq) {
+    const ctx = this.ctx, src = this.track(ctx.createBufferSource()); src.buffer = this.noise;
+    const bp = ctx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = freq; bp.Q.value = 1.2;
+    const g = this.bus(0, false);
+    g.gain.setValueAtTime(level, t); g.gain.exponentialRampToValueAtTime(.0001, t + .07);
+    src.connect(bp); bp.connect(g); src.start(t); src.stop(t + .1);
+  }
+  pluck(t, f, level) {
+    const ctx = this.ctx, o = this.track(ctx.createOscillator()); o.type = "triangle"; o.frequency.value = f;
+    const g = this.bus();
+    g.gain.setValueAtTime(level, t); g.gain.exponentialRampToValueAtTime(.0001, t + .35);
+    o.connect(g); o.start(t); o.stop(t + .4);
+  }
+  bell(t, f, level) {
+    for (const [m, a, d] of [[1, 1, 3], [2.76, .4, 1.6], [5.4, .2, .8], [8.9, .08, .5]]) {
+      const o = this.track(this.ctx.createOscillator()); o.frequency.value = f * m;
+      const g = this.bus();
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(level * a, t + .01);
+      g.gain.exponentialRampToValueAtTime(.0001, t + d);
+      o.connect(g); o.start(t); o.stop(t + d + .1);
+    }
+  }
+  thump(t, level) {
+    const o = this.track(this.ctx.createOscillator()); o.frequency.setValueAtTime(110, t); o.frequency.exponentialRampToValueAtTime(42, t + .35);
+    const g = this.bus(0, false);
+    g.gain.setValueAtTime(level, t); g.gain.exponentialRampToValueAtTime(.0001, t + .5);
+    o.connect(g); o.start(t); o.stop(t + .6);
+  }
+  whoosh(t0, t1, level) {
+    const ctx = this.ctx, src = this.track(ctx.createBufferSource()); src.buffer = this.noise; src.loop = true;
+    const bp = ctx.createBiquadFilter(); bp.type = "bandpass"; bp.Q.value = 2;
+    bp.frequency.setValueAtTime(250, t0); bp.frequency.exponentialRampToValueAtTime(3200, t1);
+    const g = this.bus();
+    g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(level, t1 - .3); g.gain.linearRampToValueAtTime(0, t1 + .3);
+    src.connect(bp); bp.connect(g); src.start(t0); src.stop(t1 + .4);
+  }
+  // one pass of the film, starting at audio time `at`
+  loop(at) {
+    const A = x => at + x;
+    this.chord([146.83, 220, 329.63, 369.99, 554.37], A(0), A(8.72), 500, 1400, .022);
+    this.chord([123.47, 185, 220, 293.66, 329.63, 440], A(8.6), A(15.8), 900, 3200, .02);
+    this.chord([98, 146.83, 246.94, 369.99, 554.37], A(15.7), A(END), 1800, 600, .024);
+    this.whoosh(A(12.3), A(15.76), .05);
+    this.whoosh(A(18.2), A(END), .06);
+    const penta = [587.33, 659.25, 739.99, 880, 987.77, 1174.66];
+    SHOTS.forEach((s, i) => {
+      if (i === 0 || s.finale) return;
+      this.tick(A(s.t), s.word === "discover" ? .14 : .08, 2500 + (i * 977) % 4000);
+      if (s.word === "discover") this.pluck(A(s.t), penta[i % penta.length], .05);
+    });
+    for (const w of [8.72, 10.68, 12.48]) this.thump(A(w), .35);
+    this.bell(A(15.9), 587.33, .09);
+    this.bell(A(17.2), 440, .09);
+  }
+}
+
+/* ------------------------------------------------------------------------------------------
+   Clock, controls, recording
+------------------------------------------------------------------------------------------- */
+let score = null;
+const clock = {
+  acc: 0, last: performance.now(), paused: false, audio: false, base: 0, nextLoop: 0,
+  now() { return this.audio ? score.ctx.currentTime - this.base : this.acc; },
+  tick() {
+    const n = performance.now();
+    if (!this.paused && !this.audio) this.acc += Math.min(.1, (n - this.last) / 1000);
+    this.last = n;
+    if (this.audio) {
+      while (this.now() > this.nextLoop * END - 1.5) { score.loop(this.base + this.nextLoop * END); this.nextLoop++; }
+    }
+  },
+};
+
+const $ = id => document.getElementById(id);
+function restart() {
+  clock.acc = 0;
+  if (clock.audio) {
+    score.stopAll();
+    clock.base = score.ctx.currentTime + .08;
+    clock.nextLoop = 0;
+  }
+}
+async function setSound(on) {
+  if (on && !score) score = new Score();
+  if (on) {
+    await score.ctx.resume();
+    clock.audio = true; clock.paused = false;
+    restart();
+  } else if (score) {
+    score.stopAll();
+    clock.acc = Math.max(0, clock.now()); clock.audio = false;
+  }
+  $("bSound").textContent = on ? "Sound on" : "Sound off";
+  $("bSound").classList.toggle("on", on);
+  $("bPlay").textContent = "Pause";
+}
+function togglePause() {
+  clock.paused = !clock.paused;
+  if (clock.audio) clock.paused ? score.ctx.suspend() : score.ctx.resume();
+  $("bPlay").textContent = clock.paused ? "Play" : "Pause";
+}
+
+let recorder = null;
+async function record() {
+  if (recorder) return;
+  if (!clock.audio) await setSound(true);
+  if (clock.paused) togglePause();
+  restart();
+  const stream = renderer.domElement.captureStream(60);
+  score.stream.stream.getAudioTracks().forEach(tr => stream.addTrack(tr));
+  const type = ["video/webm;codecs=vp9,opus", "video/webm;codecs=vp8,opus", "video/webm"].find(m => MediaRecorder.isTypeSupported(m));
+  recorder = new MediaRecorder(stream, { mimeType: type, videoBitsPerSecond: 20e6 });
+  const chunks = [];
+  recorder.ondataavailable = e => e.data.size && chunks.push(e.data);
+  recorder.onstop = () => {
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob(chunks, { type: "video/webm" }));
+    a.download = "opus-5-5-launch.webm";
+    a.click();
+    recorder = null;
+    $("bRec").textContent = "Record"; $("bRec").classList.remove("rec");
+  };
+  recorder.start();
+  $("bRec").textContent = "Recording…"; $("bRec").classList.add("rec");
+}
+
+$("bPlay").onclick = togglePause;
+$("bRestart").onclick = restart;
+$("bSound").onclick = () => setSound(!clock.audio);
+$("bRec").onclick = record;
+addEventListener("keydown", e => {
+  if (e.code === "Space") { e.preventDefault(); togglePause(); }
+  else if (e.key === "r" || e.key === "R") restart();
+  else if (e.key === "m" || e.key === "M") setSound(!clock.audio);
+  else if (e.key === "h" || e.key === "H") $("ui").classList.toggle("hidden");
+});
+let idle;
+const wake = () => { $("ui").classList.remove("hidden"); clearTimeout(idle); idle = setTimeout(() => !recorder && $("ui").classList.add("hidden"), 2500); };
+addEventListener("pointermove", wake); addEventListener("pointerdown", wake); wake();
+
+function resize() {
+  const w = innerWidth, h = innerHeight, aspect = w / h;
+  renderer.setSize(w, h);
+  camera.aspect = aspect;
+  // keep the 16:9 framing's width on narrow screens
+  camera.fov = aspect >= 16 / 9 ? 36 : Math.min(80, 2 * Math.atan(Math.tan(18 * DEG) * (16 / 9) / aspect) / DEG);
+  camera.updateProjectionMatrix();
+  bgMat.uniforms.uInvProj.value.copy(camera.projectionMatrixInverse);
+  bgMat.uniforms.uAspect.value = aspect;
+  grain.material.uniforms.uAspect.value = aspect;
+  const buf = renderer.getDrawingBufferSize(new THREE.Vector2());
+  textCanvas.width = buf.x; textCanvas.height = buf.y;
+}
+addEventListener("resize", resize);
+resize();
+
+// ?t=12.6 freezes the film on one moment (handy for stills)
+const still = parseFloat(new URLSearchParams(location.search).get("t"));
+
+function frame() {
+  clock.tick();
+  const T = isNaN(still) ? clock.now() : still;
+  const t = ((Math.max(0, T) % END) + END) % END;
+  U.uTime.value = t;
+  const info = update(t);
+  drawText(t, info);
+  $("fill").style.width = (t / END * 100).toFixed(2) + "%";
+  renderer.render(scene, camera);
+  if (recorder && recorder.state === "recording" && clock.now() >= END) recorder.stop();
+  if (isNaN(still) || ++stillFrames < 3) requestAnimationFrame(frame);
+}
+let stillFrames = 0;
+document.fonts.load(`400 60px "Newsreader"`).finally(() => requestAnimationFrame(frame));
+</script>
+</body>
+</html>
