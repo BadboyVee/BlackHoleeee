@@ -3,15 +3,18 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Opus 5.5 — Launch Film</title>
+<title>Opus 5.5 Launch Film</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet" />
 <style>
-  html,body{ margin:0; height:100%; overflow:hidden; background:#0f1216; }
-  canvas{ display:block; width:100vw; height:100vh; }
+  [hidden]{ display:none !important; }
+  html,body{ margin:0; height:100%; overflow:hidden; background:#0f1216; color-scheme:dark; }
+  canvas{ display:block; position:fixed; inset:0; width:100%; height:100%; }
+  #msg{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:24px;
+    text-align:center; font:400 17px/1.5 "Newsreader", Georgia, serif; color:#cfd6de; z-index:6; }
   #ui{
-    position:fixed; left:50%; bottom:18px; transform:translateX(-50%);
+    position:fixed; left:50%; bottom:calc(18px + env(safe-area-inset-bottom, 0px)); transform:translateX(-50%);
     display:flex; align-items:center; gap:10px; padding:8px 12px;
     background:rgba(12,14,18,.55); border:1px solid rgba(255,255,255,.12); border-radius:999px;
     backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
@@ -31,6 +34,7 @@
 </style>
 </head>
 <body>
+<div id="msg" hidden></div>
 <div id="ui">
   <button id="bPlay" title="Pause / play (Space)">Pause</button>
   <button id="bRestart" title="Restart (R)">Restart</button>
@@ -39,6 +43,14 @@
   <button id="bRec" title="Record one loop to a .webm file">Record</button>
 </div>
 
+<script>
+  // If the film hasn't drawn a frame after a while, say why instead of leaving a blank screen.
+  (function () {
+    var show = function (text) { var m = document.getElementById("msg"); if (m && !window.__filmStarted) { m.textContent = text; m.hidden = false; } };
+    window.addEventListener("error", function (e) { show("The film couldn\u2019t start: " + (e.message || "a script failed to load") + ". Try reloading, or open it in Chrome or Safari."); });
+    setTimeout(function () { show("The film is taking too long to start. It needs an internet connection to load three.js \u2014 try reloading, or open the page in Chrome or Safari."); }, 12000);
+  })();
+</script>
 <script type="importmap">
 {
   "imports": {
@@ -102,8 +114,18 @@ SHOTS.forEach((s, i) => {
 /* ------------------------------------------------------------------------------------------
    Renderer, camera
 ------------------------------------------------------------------------------------------- */
-const renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: "high-performance" });
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+// Phones get a lighter mesh and fewer pixels
+const MOBILE = matchMedia("(pointer: coarse)").matches || Math.min(screen.width, screen.height) < 700;
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ antialias: !MOBILE, powerPreference: "high-performance" });
+} catch (e) {
+  const m = document.getElementById("msg");
+  m.textContent = "This film needs WebGL 2, which this browser or viewer doesn\u2019t provide. Open the page in Chrome, Safari or Firefox.";
+  m.hidden = false;
+  throw e;
+}
+renderer.setPixelRatio(Math.min(devicePixelRatio, MOBILE ? 1.5 : 2));
 renderer.setSize(innerWidth, innerHeight);
 document.body.prepend(renderer.domElement);
 
@@ -651,7 +673,7 @@ const sphereMat = new THREE.ShaderMaterial({
       gl_FragColor = vec4(col, 1.0);
     }`,
 });
-const rim = new THREE.Mesh(capGeometry(2000, 220, 2.3), sphereMat);
+const rim = new THREE.Mesh(capGeometry(MOBILE ? 1100 : 2000, MOBILE ? 150 : 220, 2.3), sphereMat);
 rim.frustumCulled = false;
 scene.add(rim);
 
@@ -929,7 +951,8 @@ function drawSpark(x, y, r, ink) {
 function drawText(t, info) {
   const W = textCanvas.width, H = textCanvas.height;
   tctx.clearRect(0, 0, W, H);
-  const unit = Math.min(W / 1920, H / 1080);
+  // portrait screens get larger type relative to their width
+  const unit = Math.min(H / 1080, W / 1920 * (W < H ? 2.2 : 1));
   const s = SHOTS[current];
   const shadow = ink => {
     tctx.shadowColor = ink === "#fff" ? "rgba(0,0,0,.45)" : "rgba(0,0,0,0)";
@@ -1134,6 +1157,10 @@ $("bPlay").onclick = togglePause;
 $("bRestart").onclick = restart;
 $("bSound").onclick = () => setSound(!clock.audio);
 $("bRec").onclick = record;
+// Inside an embedded viewer downloads are blocked, so recording can't save anything there
+let embedded = true;
+try { embedded = window.self !== window.top; } catch {}
+if (embedded || !window.MediaRecorder) $("bRec").hidden = true;
 addEventListener("keydown", e => {
   if (e.code === "Space") { e.preventDefault(); togglePause(); }
   else if (e.key === "r" || e.key === "R") restart();
@@ -1164,6 +1191,7 @@ resize();
 const still = parseFloat(new URLSearchParams(location.search).get("t"));
 
 function frame() {
+  window.__filmStarted = true;
   clock.tick();
   const T = isNaN(still) ? clock.now() : still;
   const t = ((Math.max(0, T) % END) + END) % END;
@@ -1176,7 +1204,11 @@ function frame() {
   if (isNaN(still) || ++stillFrames < 3) requestAnimationFrame(frame);
 }
 let stillFrames = 0;
-document.fonts.load(`400 60px "Newsreader"`).finally(() => requestAnimationFrame(frame));
+// Start once the serif is ready, but never wait on it for more than a second
+Promise.race([document.fonts.load(`400 60px "Newsreader"`), new Promise(r => setTimeout(r, 1000))])
+  .catch(() => {}).then(() => requestAnimationFrame(frame));
+// Respect reduced motion: start paused on the opening frame
+if (matchMedia("(prefers-reduced-motion: reduce)").matches) togglePause();
 </script>
 </body>
 </html>
