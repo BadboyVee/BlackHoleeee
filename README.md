@@ -5,6 +5,15 @@ any of them — every project is an `index.html` you can open directly.
 
 ## Projects
 
+### 🎬 [Opus 5.5 — Launch Film](opus-launch/)
+
+A real-time Three.js remake of the Opus 5.5 launch film. It uses about 30 hard cuts of
+procedural macro "horizons" (amber, lace, agate, fur, plant cells…), all rendered on one
+shader-driven sphere, with "There’s more to discover" set along the horizon. There's an
+optional synthesized soundtrack, and you can record the loop to a .webm file.
+
+**▶ [Watch it](https://badboyvee.github.io/BlackHoleeee/opus-launch/)** · [source](opus-launch/)
+
 ### 🚋 [Skyline Tram](skyline-tram/)
 
 Drive a retro aerial tram along a rail loop between two islands floating above a sea of clouds.

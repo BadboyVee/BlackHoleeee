@@ -68,7 +68,7 @@ const SHOTS = [
   { t: 4.24, pat: 5, bg: 2, pal: ["#4a7426","#83a843","#cfe09a","#d8c060"], bgA:"#ede3d1", alpha: 70, rimY:[.54,.52] },
   { t: 4.76, pat: 6, bg: 0, pal: ["#e2549a","#9e1c5c","#f590c0"], bgA:"#0b0b0b", bgB:"#060606", alpha: 64, rimY:[.62,.60], drops:"red" },
   { t: 5.36, pat: 7, bg: 0, pal: ["#dc9c88","#eab8a4","#1c3836","#35251f"], bgA:"#171717", bgB:"#101010", alpha: 60, rimY:[.54,.53], disp:3, amp:.004 },
-  { t: 5.88, pat: 8, bg: 2, pal: ["#efe0c0","#93a24e","#4e3f22"], bgA:"#efe0c0", alpha: 62, rimY:[.80,.78] },
+  { t: 5.88, pat: 8, bg: 2, pal: ["#efe0c0","#93a24e","#4e3f22"], bgA:"#efe0c0", alpha: 62, rimY:[.64,.62] },
   { t: 6.44, pat: 9, bg: 9, pal: ["#1a0838","#c02046","#f2d224","#34e2a4"], alpha: 66, rimY:[.62,.58] },
   { t: 7.56, pat:10, bg: 2, pal: ["#a9c9f2","#2a5ad0"], bgA:"#a9c9f2", alpha: 60, rimY:[.58,.56] },
   { t: 8.12, pat:11, bg: 1, pal: ["#c89a44","#4a300e"], bgA:"#0a0908", bgB:"#040303", alpha: 64, rimY:[.58,.56], disp:3, amp:.012 },
@@ -264,8 +264,8 @@ const bgMat = new THREE.ShaderMaterial({
         col = mix(vec3(0.043, 0.050, 0.060), vec3(0.070, 0.082, 0.098), y01);
         float hp = max(h, 0.0);
         col += vec3(0.20, 0.30, 0.38) * exp(-hp / 0.16) * 0.55 * uBlue;
-        col += vec3(0.46, 0.62, 0.72) * exp(-pow((h - 0.045) / 0.045, 2.0)) * 0.55 * uBlue;
-        col += vec3(1.00, 0.33, 0.06) * exp(-pow((h - 0.008) / 0.016, 2.0)) * 0.95 * uOrange;
+        col += vec3(0.46, 0.62, 0.72) * exp(-pow((h - 0.06) / 0.045, 2.0)) * 0.55 * uBlue;
+        col += vec3(1.00, 0.26, 0.03) * exp(-pow((h - 0.008) / 0.016, 2.0)) * 1.0 * uOrange;
         col += vec3(1.00, 0.55, 0.18) * exp(-pow(h / 0.006, 2.0)) * 0.30 * uOrange;
         float m = smoothstep(uSoft, -uSoft, h);
         vec3 ground = vec3(0.028, 0.026, 0.030) + vec3(0.25, 0.08, 0.02) * exp(h / 0.02) * uOrange * 0.4;
@@ -280,7 +280,7 @@ const bgMat = new THREE.ShaderMaterial({
       } else if (uBg == 8) {                // plaster wall
         col = mix(uBgA, uBgB, smoothstep(-0.2, 0.7, fbm(vec3(sp * 2.5, uSeed))));
         col *= 0.95 + 0.05 * snoise(vec3(sp * 80.0, 2.0));
-        col *= 1.0 - 0.35 * (1.0 - smoothstep(0.0, 0.012, abs(snoise(vec3(sp * 2.0, 5.0)))));
+        col *= 1.0 - 0.12 * (1.0 - smoothstep(0.0, 0.01, abs(snoise(vec3(sp * 2.0, 5.0)))));
       } else {                              // thermal camera
         vec3 q = vec3(sp * 1.6, uSeed);
         float n = fbm(q + fbm(q * 1.4) * 1.3);
@@ -456,7 +456,7 @@ const sphereMat = new THREE.ShaderMaterial({
         h = n * 0.3; spec = 0.3;
       } else if (uPat == 7) {                // terracotta with a greek-key band
         col = uA * (0.8 + 0.3 * fbm(pn * 3.0));
-        float d0 = 0.07, d1 = 0.19, cell = (d1 - d0) / 5.0;
+        float d0 = 0.12, d1 = 0.42, cell = (d1 - d0) / 5.0;
         float wear = smoothstep(-0.6, 0.2, snoise(pn * 12.0));
         if (v > d0 && v < d1) {
           int yy = int(floor((v - d0) / cell));
@@ -473,7 +473,7 @@ const sphereMat = new THREE.ShaderMaterial({
         h += fbm(pn * 6.0) * 0.2 + crust * 0.4;
       } else if (uPat == 8) {                // parchment with a painted green ring
         col = uA * (0.9 + 0.12 * fbm(pn * 3.0));
-        float b0 = 0.02, b1 = 0.09;
+        float b0 = 0.04, b1 = 0.2;
         float band = smoothstep(0.0, 0.004, v - b0) * (1.0 - smoothstep(0.0, 0.004, v - b1));
         col = mix(col, uB * (0.85 + 0.2 * fbm(pn * 10.0)), band);
         float ol = (1.0 - smoothstep(0.0015, 0.004, abs(v - b0))) + (1.0 - smoothstep(0.0015, 0.004, abs(v - b1)));
@@ -510,9 +510,9 @@ const sphereMat = new THREE.ShaderMaterial({
         col *= 0.9 + 0.1 * snoise(pn * 50.0);
         spec = 0.8; h = n * 0.4;
       } else if (uPat == 14) {               // engraving
-        float tone = 0.5 + 0.5 * fbm(pn * 2.5);
-        float hat = 0.5 + 0.5 * sin(u * 300.0 + v * 40.0 + snoise(pn * 3.0) * 3.0);
-        float ink = step(hat, (1.0 - tone) * 1.1);
+        float tone = 0.62 + 0.45 * fbm(pn * 2.5);
+        float hat = 0.5 + 0.5 * sin(u * 420.0 + v * 40.0 + snoise(pn * 3.0) * 3.0);
+        float ink = step(hat, (1.0 - tone) * 0.9);
         if (v > 0.018 && v < 0.05) {
           float blocks = step(0.45, hash21(vec2(floor(u * 110.0), floor(v * 70.0))));
           ink = blocks * step(0.3, fract(u * 110.0));
@@ -619,9 +619,9 @@ const sphereMat = new THREE.ShaderMaterial({
         shade = 0.0;
       } else if (uPat == 29) {               // ink scribbles
         col = uA * (0.9 + 0.12 * fbm(pn * 3.0));
-        float l1 = 1.0 - smoothstep(0.0, 0.035, abs(snoise(vec3(u * 18.0, v * 4.0, uSeed))));
-        float l2 = 1.0 - smoothstep(0.0, 0.03, abs(snoise(vec3(u * 5.0, v * 14.0, uSeed + 3.0))));
-        float dens = 1.0 - smoothstep(0.1, 0.6, v);
+        float l1 = 1.0 - smoothstep(0.02, 0.07, abs(snoise(vec3(u * 18.0, v * 4.0, uSeed))));
+        float l2 = 1.0 - smoothstep(0.015, 0.05, abs(snoise(vec3(u * 5.0, v * 14.0, uSeed + 3.0))));
+        float dens = 1.0 - smoothstep(0.25, 0.8, v);
         col = mix(col, uB, clamp(l1 * 0.9 + l2 * 0.6, 0.0, 1.0) * dens * (0.6 + 0.4 * snoise(pn * 50.0)));
         col = mix(col, uB, (1.0 - smoothstep(0.003, 0.008, abs(v - 0.006))) * 0.9);
         shade = 0.0;
@@ -937,7 +937,7 @@ function drawText(t, info) {
   };
   if (s.word) {
     const big = s.word === "discover";
-    const size = (big ? 118 : 50) * unit;
+    const size = (big ? 118 : 58) * unit;
     shadow(s.ink);
     drawArcWord(s.word, s.ink, size, big ? size * .3 : size * 1.25, W, H);
   } else if (s.finale) {
