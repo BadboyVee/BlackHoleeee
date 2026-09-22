@@ -4,7 +4,7 @@ A remake of the 20-second Opus 5.5 launch film, built in real time with Three.js
 video files or images. Every frame is generated in the browser from shaders and JavaScript.
 
 **▶ [Watch it](https://badboyvee.github.io/BlackHoleeee/opus-launch/)** · or open
-[`index.html`](index.html) directly. There's no build step; Three.js r159 ships next to it as `three.min.js`, so the film needs no network (the Newsreader font falls back to Georgia offline).
+[`index.html`](index.html) directly. There's no build step; Three.js r159 ships in the repo as [`vendor/three.r159.min.js`](../vendor/three.r159.min.js), so the film needs no network (the Newsreader font falls back to Georgia offline).
 
 ## The film
 

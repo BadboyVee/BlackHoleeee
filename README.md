@@ -5,6 +5,14 @@ any of them — every project is an `index.html` you can open directly.
 
 ## Projects
 
+### 🟧 [A Day in the Life of Claude Code](claude-code-life/)
+
+A 30-second, single-shot 3D life-sim of the Claude Code mascot. It wakes up with the sun,
+commutes, presses computer, goes brazy, ships, dances, and walks home under the moon. The
+soundtrack is made only of recorded samples, and it's signed off by Opus 5.5.
+
+**▶ [Watch it](https://badboyvee.github.io/BlackHoleeee/claude-code-life/)** · [source](claude-code-life/)
+
 ### 🎬 [Opus 5.5 — Launch Film](opus-launch/)
 
 A real-time Three.js remake of the Opus 5.5 launch film. It uses about 30 hard cuts of
