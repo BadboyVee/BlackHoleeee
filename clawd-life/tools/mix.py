@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build the 30-second soundtrack for "A Day in the Life of Claude Code".
+"""Build the 30-second soundtrack for "A Day in the Life of Clawd".
 
 Everything here is a recorded sample from the LibreOffice sound gallery
 (/usr/lib/libreoffice/share/gallery/sounds). Nothing is synthesized: the

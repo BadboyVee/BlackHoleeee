@@ -11,7 +11,7 @@ const PW = process.env.PW || path.join(execSync("npm root -g").toString().trim()
 const { chromium } = require(PW);
 
 const ROOT = path.resolve(__dirname, "..");
-const OUT = path.resolve(process.argv[2] || "a-day-in-the-life-of-claude-code.mp4");
+const OUT = path.resolve(process.argv[2] || "a-day-in-the-life-of-clawd.mp4");
 const FFMPEG = process.env.FFMPEG || "ffmpeg";
 const W = +(process.env.W || 1920), H = +(process.env.H || 1080), FPS = +(process.env.FPS || 30);
 const FROM = +(process.env.FROM || 0), TO = +(process.env.TO || 30);

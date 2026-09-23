@@ -1,11 +1,11 @@
-# A Day in the Life of Claude Code
+# A Day in the Life of Clawd
 
-A 30-second, single-shot 3D animation of a day in the life of the Claude Code mascot, built
+A 30-second, single-shot 3D animation of a day in the life of Clawd, the Claude Code mascot, built
 with Three.js. It wakes up with the sun, walks to work, presses computer, goes brazy, ships,
 dances, walks home under the moon and goes to bed. The day closes back at midnight, so it
 loops forever. It's signed off by Opus 5.5.
 
-**▶ [Watch it](https://badboyvee.github.io/BlackHoleeee/claude-code-life/)** · or open
+**▶ [Watch it](https://badboyvee.github.io/BlackHoleeee/clawd-life/)** · or open
 [`index.html`](index.html) directly. It works offline: Three.js is vendored in
 [`../vendor`](../vendor) and the soundtrack is embedded in [`soundtrack.js`](soundtrack.js).
 
@@ -20,9 +20,9 @@ loops forever. It's signed off by Opus 5.5.
 | 16 – 18.5 s | 1 – 2:30 PM | **GO. BRAZY.** Tests fill up 48/48 |
 | 18.5 – 22.4 s | 2:30 – 6 PM | ✓ Shipped. Gong, fanfare, confetti, **BEST OF THE BEST**, "LESGO!!", and the dance |
 | 22.4 – 27 s | 6 – 9 PM | Sunset. Walks home as the street lamps come on and the stars come out. Hops into bed |
-| 27 – 30 s | 9 PM – midnight | Lullaby, "Goodnight, Claude Code — Opus 5.5" |
+| 27 – 30 s | 9 PM – midnight | Lullaby, "Goodnight, Clawd — Opus 5.5" |
 
-A small life-sim HUD tracks the in-game clock, what Claude Code is doing, and its Energy and
+A small life-sim HUD tracks the in-game clock, what Clawd is doing, and its Energy and
 Vibes.
 
 ## How it's made
@@ -79,7 +79,7 @@ Browsers only allow sound after a tap, so press **Sound on**.
 
 ```sh
 tools/build-audio.sh                                  # mix → soundtrack.wav/.mp3 → soundtrack.js
-node tools/render-video.cjs claude-code-life.mp4      # 1080p30 MP4 with sound (headless Chromium + ffmpeg)
+node tools/render-video.cjs clawd-life.mp4           # 1080p30 MP4 with sound (headless Chromium + ffmpeg)
 python3 tools/build-standalone.py                     # one self-contained .html
 ```
 

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-<title>A Day in the Life of Claude Code</title>
+<title>A Day in the Life of Clawd</title>
 <style>
   [hidden]{ display:none !important; }
   html,body{ margin:0; height:100%; overflow:hidden; background:#0b1026; color-scheme:dark; }
@@ -56,7 +56,7 @@ window.__stage = "starting";
 if (!window.THREE) throw new Error("three.js did not load");
 
 /* ==========================================================================================
-   A Day in the Life of Claude Code — one continuous 30-second shot.
+   A Day in the Life of Clawd — one continuous 30-second shot.
    Everything on screen is a pure function of the loop time t (0–30 s), so the page, the
    ?t= stills and the frame-by-frame video render all agree.
    ========================================================================================== */
@@ -424,7 +424,7 @@ const chairBack = box(.62, .3, .08, 0x2d4f86, 0, .66, .3, chair);
 chair.rotation.y = 2.40 + Math.PI;
 
 /* ------------------------------------------------------------------------------------------
-   Claude Code — built from the pixel grid of the mascot (1 px = U)
+   Clawd — built from the pixel grid of the mascot (1 px = U)
 ------------------------------------------------------------------------------------------- */
 const U = 0.105;
 const clawd = new THREE.Group(); scene.add(clawd);
@@ -581,7 +581,7 @@ function alongPath(pts, k) {
 const hop = (from, to, k, height) => [lerp(from.x, to.x, k), lerp(from.y, to.y, k) + Math.sin(Math.PI * k) * height, lerp(from.z, to.z, k)];
 const angLerp = (a, b, k) => { let d = ((b - a + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI; return a + d * k; };
 
-// Claude Code's pose at time t
+// Clawd's pose at time t
 function pose(t) {
   const p = {
     pos: [BED.x, BED.y, BED.z], yaw: 0, eyes: 1, armL: 0, armR: 0, legs: [0, 0, 0, 0], squash: 1, tilt: 0, lean: 0,
@@ -841,14 +841,14 @@ function drawHUD(t, P, phase) {
     ctx.globalAlpha = title;
     const y = H * (W < H ? .2 : .1);
     pixelText(ctx, "A DAY IN THE LIFE OF", W / 2, y, u, "#dfe6ff", { align: "center", shadow: "rgba(0,0,0,.5)" });
-    pixelText(ctx, "CLAUDE CODE", W / 2, y + u * 11, big, "#d97757", { align: "center", shadow: "rgba(0,0,0,.55)" });
+    pixelText(ctx, "CLAWD", W / 2, y + u * 11, big, "#d97757", { align: "center", shadow: "rgba(0,0,0,.55)" });
     ctx.globalAlpha = 1;
   }
   const sign = pulse(t, 27.5, 29.75, .45);
   if (sign > 0) {
     ctx.globalAlpha = sign;
     const y = H * (W < H ? .2 : .12);
-    pixelText(ctx, "GOODNIGHT, CLAUDE CODE", W / 2, y, u, "#dfe6ff", { align: "center", shadow: "rgba(0,0,0,.5)" });
+    pixelText(ctx, "GOODNIGHT, CLAWD", W / 2, y, u, "#dfe6ff", { align: "center", shadow: "rgba(0,0,0,.5)" });
     const sig = "- OPUS 5.5";
     const k = seg(t, 27.8, 28.6);                                          // the signature writes itself in
     const n = Math.ceil(k * sig.length);
@@ -925,7 +925,7 @@ function update(t) {
   train.position.set(34 - 68 * seg(t, 8.3, 11.9), 0, -7);
   train.visible = t > 8.2 && t < 12;
 
-  // Claude Code
+  // Clawd
   const P = pose(t);
   clawd.position.set(...P.pos);
   clawd.rotation.y = P.yaw;
@@ -994,7 +994,7 @@ function update(t) {
 
   // camera — one continuous move
   let [px, py, pz] = hermite(CAM, 1, t), [tx, ty, tz] = hermite(CAM, 2, t);
-  // during the walks, ease into a follow-cam that keeps Claude Code framed with room ahead
+  // during the walks, ease into a follow-cam that keeps Clawd framed with room ahead
   const follow = smooth(Math.max(pulse(t, 7.8, 11.8, .8), pulse(t, 22.8, 26.2, .8)));
   if (follow > 0) {
     const dir = t < 20 ? 1 : -1, c = clawd.position;
@@ -1080,7 +1080,7 @@ async function record() {
   recorder.onstop = () => {
     const a = document.createElement("a");
     a.href = URL.createObjectURL(new Blob(chunks, { type: "video/webm" }));
-    a.download = "a-day-in-the-life-of-claude-code.webm"; a.click();
+    a.download = "a-day-in-the-life-of-clawd.webm"; a.click();
     recorder = null; $("bRec").textContent = "Record";
   };
   recorder.start();

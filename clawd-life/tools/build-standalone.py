@@ -11,7 +11,7 @@ from pathlib import Path
 
 root = Path(__file__).resolve().parent.parent
 args = [a for a in sys.argv[1:] if not a.startswith("--")]
-out = Path(args[0]) if args else root / "a-day-in-the-life-of-claude-code.html"
+out = Path(args[0]) if args else root / "a-day-in-the-life-of-clawd.html"
 html = (root / "index.html").read_text()
 
 
