@@ -6,7 +6,7 @@
 <title>Opus 5.5 Launch Film</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet" />
 <style>
   [hidden]{ display:none !important; }
   html,body{ margin:0; height:100%; overflow:hidden; background:#0f1216; color-scheme:dark; }
@@ -62,52 +62,87 @@ if (!window.THREE) throw new Error("three.js did not load");
 THREE.ColorManagement.enabled = false; // palette hexes are used as display colours, untouched
 
 /* ------------------------------------------------------------------------------------------
-   Timeline — cut points measured from the original film (20.05 s, 25 fps).
-   Every shot is the same idea: the curved rim of a sphere seen from just above its surface,
-   dressed in a different procedural material.
+   Timeline — every cut measured from the original film (20.05 s, 25 fps, 38 shots).
+   Most shots are the same idea: the curved rim of a sphere seen from just above its surface,
+   dressed in a different procedural material. The exceptions are the planet (opening and
+   titles) and the galloping horses, a hand-coloured phenakistiscope print drawn in 2D.
    pat: sphere material, bg: backdrop, pal: sphere palette, alpha: angular radius of the sphere
-   (bigger = flatter horizon), rimY: rim height on screen [start, end] (0 = top).
+   (bigger = flatter horizon), rimY: rim height in the 16:9 frame [start, end] (0 = top),
+   cx: where the top of the rim sits across the frame (0.5 = centre).
+   Words: tw is the word's width as a fraction of the frame width (it steps up at every cut,
+   like the original), tb its baseline, ta its opacity; "discover" bends along the horizon.
 ------------------------------------------------------------------------------------------- */
 const END = 20.05;
+const W1 = "There’s", W2 = "more to", W3 = "discover";
 const SHOTS = [
-  { t: 0.00, pat: 0, bg: 5, planet: true },
-  { t: 1.24, pat: 1, bg: 1, pal: ["#6e4a10","#e8bd55","#f6e7bd","#ffffff"], bgA:"#0e0f12", bgB:"#060708", alpha: 62, rimY:[.60,.57], drops:"beads", glow:[1,"#a8783a",.35] },
-  { t: 3.32, pat: 2, bg: 0, pal: ["#f7c95e","#c56a18","#3a1606"], bgA:"#050505", bgB:"#0b0705", alpha: 70, rimY:[.50,.48], glow:[1,"#ff9a3c",.45] },
-  { t: 3.76, pat: 3, bg: 0, pal: ["#8d4f22","#d49a58","#8a3a22","#f4e8dc"], bgA:"#ececee", bgB:"#dcdce0", alpha: 60, rimY:[.64,.62], disp:3, amp:.006 },
-  { t: 4.00, pat: 4, bg: 4, pal: ["#3f6f9f","#f2f5f7"], bgA:"#3a6898", bgB:"#f2f5f7", alpha: 56, rimY:[.62,.60] },
-  { t: 4.24, pat: 5, bg: 2, pal: ["#4a7426","#83a843","#cfe09a","#d8c060"], bgA:"#ede3d1", alpha: 70, rimY:[.54,.52] },
-  { t: 4.76, pat: 6, bg: 0, pal: ["#e2549a","#9e1c5c","#f590c0"], bgA:"#0b0b0b", bgB:"#060606", alpha: 64, rimY:[.62,.60], drops:"red" },
-  { t: 5.36, pat: 7, bg: 0, pal: ["#dc9c88","#eab8a4","#1c3836","#35251f"], bgA:"#171717", bgB:"#101010", alpha: 60, rimY:[.54,.53], disp:3, amp:.004 },
-  { t: 5.88, pat: 8, bg: 2, pal: ["#efe0c0","#93a24e","#4e3f22"], bgA:"#efe0c0", alpha: 62, rimY:[.64,.62] },
-  { t: 6.44, pat: 9, bg: 9, pal: ["#1a0838","#c02046","#f2d224","#34e2a4"], alpha: 66, rimY:[.62,.58] },
-  { t: 7.56, pat:10, bg: 2, pal: ["#a9c9f2","#2a5ad0"], bgA:"#a9c9f2", alpha: 60, rimY:[.58,.56] },
-  { t: 8.12, pat:11, bg: 1, pal: ["#c89a44","#4a300e"], bgA:"#0a0908", bgB:"#040303", alpha: 64, rimY:[.58,.56], disp:3, amp:.012 },
-  { t: 8.72, pat:12, bg: 0, pal: ["#e0461e","#98200e","#f58a58"], bgA:"#070707", bgB:"#040404", alpha: 70, word:"There’s", ink:"#fff" },
-  { t: 9.44, pat: 9, bg: 9, pal: ["#2ae0a8","#8af070","#c02046","#f2d224"], alpha: 68, word:"There’s", ink:"#fff" },
-  { t: 9.76, pat:14, bg: 0, pal: ["#f4f0e6","#111111"], bgA:"#060606", bgB:"#020202", alpha: 64, word:"There’s", ink:"#fff" },
-  { t:10.20, pat:15, bg: 0, pal: ["#262a33","#4a515c"], bgA:"#0a0b0d", bgB:"#060607", alpha: 70, word:"There’s", ink:"#fff", glow:[2,"#ffffff",.9] },
-  { t:10.68, pat:16, bg: 7, pal: ["#240805","#6c1c0a"], bgA:"#f07c2c", bgB:"#541004", alpha: 70, word:"more to", ink:"#fff", disp:3, amp:.010 },
-  { t:11.00, pat:17, bg: 3, pal: ["#c8402a","#7a1a12","#ec9462"], bgA:"#384c6c", bgB:"#6b7d99", alpha: 68, word:"more to", ink:"#fff", disp:3, amp:.004 },
-  { t:11.40, pat:18, bg: 6, pal: ["#f040a0","#f4e640","#40e080","#8020c0"], alpha: 64, word:"more to", ink:"#fff" },
-  { t:11.72, pat:19, bg: 0, pal: ["#090909","#f4f4ee"], bgA:"#050505", bgB:"#020202", alpha: 66, word:"more to", ink:"#fff", disp:4, amp:.010 },
-  { t:12.48, pat:20, bg: 0, pal: ["#f6e6ef","#b0408e","#3a3a1a","#d8c060"], bgA:"#9c3a8c", bgB:"#a44494", alpha: 66, word:"discover", ink:"#fff" },
-  { t:12.76, pat:10, bg: 2, pal: ["#aecbf8","#3464dc"], bgA:"#aecbf8", alpha: 62, word:"discover", ink:"#fff" },
-  { t:13.00, pat:11, bg: 1, pal: ["#caa050","#553810"], bgA:"#0a0908", bgB:"#040303", alpha: 68, word:"discover", ink:"#fff", disp:3, amp:.014 },
-  { t:13.32, pat:23, bg: 0, pal: ["#f2f2ee","#6c6c74"], bgA:"#030303", bgB:"#000000", alpha: 60, word:"discover", ink:"#fff", disp:1, amp:.07 },
-  { t:13.64, pat:24, bg: 8, pal: ["#efe8d8","#2a2016"], bgA:"#ecc944", bgB:"#c29a22", alpha: 64, word:"discover", ink:"#fff" },
-  { t:13.92, pat:25, bg: 2, pal: ["#2a50a0","#f0d030","#6a1a20","#3a8a4a"], bgA:"#f2eee4", alpha: 62, word:"discover", ink:"#111" },
-  { t:14.24, pat:26, bg: 2, pal: ["#eef2ee","#7ab8b0","#138a8a","#0a2a4a"], bgA:"#ece8e4", alpha: 62, word:"discover", ink:"#111" },
-  { t:14.48, pat:27, bg: 1, pal: ["#140606","#c03a1a","#ff6a2a"], bgA:"#070404", bgB:"#030202", alpha: 66, word:"discover", ink:"#fff" },
-  { t:14.76, pat:28, bg: 2, pal: ["#f4f0ea","#d04040","#4050c0","#40a060"], bgA:"#f4f0ea", alpha: 60, word:"discover", ink:"#111" },
-  { t:15.04, pat:29, bg: 2, pal: ["#dccca6","#2a2218"], bgA:"#dccca6", alpha: 62, word:"discover", ink:"#111" },
-  { t:15.32, pat:30, bg: 0, pal: ["#fafafa","#7a7a7a"], bgA:"#040404", bgB:"#000000", alpha: 64, word:"discover", ink:"#fff", disp:2, amp:.05 },
-  { t:15.56, pat:31, bg: 0, pal: ["#dc6432","#561208","#e8c090"], bgA:"#030303", bgB:"#000000", alpha: 66, word:"discover", ink:"#fff" },
-  { t:15.76, pat: 0, bg: 5, planet: true, finale: true },
+  { t: 0.00, planet: true },
+  { t: 1.24, pat: 1, bg: 1, pal: ["#b07a18","#e8bd55","#e6e0d2","#ffffff"], bgA:"#15171b", bgB:"#08090b", alpha: 67, cx:.45, rimY:[.476,.469], glow:[1,"#8a7a6a",.25] },
+  { t: 2.28, pat: 2, bg: 0, pal: ["#f2b04a","#d8801e","#3a1606","#5a1408"], bgA:"#040606", bgB:"#030404", alpha: 68.5, cx:.53, rimY:[.479,.475], glow:[1,"#ff5a1c",.22] },
+  { t: 3.32, pat: 3, bg: 0, pal: ["#8d4f22","#d49a58","#8a3a22","#f4e8dc"], bgA:"#e4e4e4", bgB:"#d6d6d6", alpha: 53, cx:.54, rimY:[.482,.480], disp:3, amp:.006 },
+  { t: 3.76, pat:32, bg: 0, pal: ["#ee3c14","#ff8036","#c9d860","#6a4a14"], bgA:"#31a696", bgB:"#2b9d8d", alpha: 66.5, cx:.51, rimY:[.494,.492] },
+  { t: 4.00, pat:33, bg: 0, pal: ["#1a2464","#f2f5fb","#4a2a6a","#7a98d8"], bgA:"#1b1519", bgB:"#140f12", alpha: 52, cx:.52, rimY:[.452,.440], glow:[1,"#c9b2da",.55] },
+  { t: 4.24, pat: 4, bg: 4, pal: ["#3f6f9f","#f2f5f7"], bgA:"#3b6a99", bgB:"#f2f5f7", alpha: 57, cx:.43, rimY:[.50,.50] },
+  { t: 4.76, pat:34, bg: 0, pal: ["#f3f3f1","#121214","#b4b4b8","#77777d"], bgA:"#111113", bgB:"#0c0c0e", alpha: 52, cx:.50, rimY:[.497,.495] },
+  { t: 5.36, pat: 5, bg: 2, pal: ["#4a7426","#83a843","#cfe09a","#d8c060"], bgA:"#ecdcc4", alpha: 66, cx:.42, rimY:[.486,.484] },
+  { t: 5.88, pat:35, bg: 0, pal: ["#1c060c","#5a1624","#e2a8b2","#0e0206"], bgA:"#3fa4b8", bgB:"#3a9db1", alpha: 59, cx:.48, rimY:[.548,.544], disp:5, amp:.045 },
+  { t: 6.44, pat: 6, bg: 0, pal: ["#e2549a","#9e1c5c","#f590c0"], bgA:"#060a07", bgB:"#040604", alpha: 49, cx:.48, rimY:[.530,.525], drops:"red" },
+  { t: 7.04, pat: 7, bg: 0, pal: ["#dc9c88","#eab8a4","#1c3836","#35251f"], bgA:"#171717", bgB:"#141414", alpha: 44, cx:.53, rimY:[.490,.489], disp:3, amp:.004 },
+  { t: 7.56, pat:36, bg: 2, pal: ["#c4722a","#e6a452","#140e0a","#7a3e14"], bgA:"#cdb797", alpha: 58, cx:.54, rimY:[.502,.498], overlay:"threads" },
+  { t: 8.12, horses: true, bg:10, bgA:"#e2c992", bgB:"#ae9e46" },
+  { t: 8.72, pat:37, bg:14, pal: ["#a4642e","#ecd2ac","#5a3c96","#2a1608"], bgA:"#1f1c1f", bgB:"#141214", alpha: 74.5, cx:.50, rimY:[.522,.518], word:W1, tw:.1146, ink:"#f6f2ec", ta:.92 },
+  { t: 9.04, pat:12, bg: 0, pal: ["#e0461e","#98200e","#f58a58"], bgA:"#06070a", bgB:"#040506", alpha: 58, cx:.51, rimY:[.497,.493], word:W1, tw:.1266, ink:"#fff" },
+  { t: 9.44, pat:38, bg:11, pal: ["#3ee6b0","#b4f070","#169c9c","#6a5a3a"], bgA:"#c02a78", bgB:"#a8a83a", alpha: 72, cx:.78, rimY:[.505,.500], word:W1, tw:.1380, tb:.486, ink:"#fff" },
+  { t: 9.76, pat:14, bg: 1, pal: ["#f4f0e6","#111111"], bgA:"#060606", bgB:"#020202", alpha: 59, cx:.50, rimY:[.497,.495], word:W1, tw:.1510, ink:"#fff" },
+  { t:10.20, pat:15, bg: 0, pal: ["#262a33","#4a515c"], bgA:"#131410", bgB:"#0e0f0c", alpha: 61.5, cx:.50, rimY:[.480,.477], word:W1, tw:.1656, ink:"#fff", glow:[2,"#ffffff",.9] },
+  { t:10.68, pat:16, bg: 7, pal: ["#2a0806","#7a1418"], bgA:"#e27a2e", bgB:"#b02a1c", alpha: 66, cx:.54, rimY:[.470,.468], word:W2, tw:.194, ink:"#fff", ta:.6 },
+  { t:11.00, pat:39, bg:15, pal: ["#120404","#b04818"], bgA:"#d9581c", bgB:"#1c0604", alpha: 71.5, cx:.46, rimY:[.537,.533], disp:1, amp:.02, word:W2, tw:.206, ink:"#fff", ta:.55 },
+  { t:11.40, pat:17, bg: 3, pal: ["#c8402a","#7a1a12","#ec9462"], bgA:"#384c6c", bgB:"#6b7d99", alpha: 74.5, cx:.53, rimY:[.490,.488], disp:3, amp:.004, word:W2, tw:.2156, ink:"#fff", ta:.88 },
+  { t:11.72, pat:18, bg: 6, pal: ["#f040a0","#f4e640","#40e080","#8020c0"], alpha: 67, cx:.44, rimY:[.530,.530], word:W2, tw:.2255, ink:"#fff" },
+  { t:12.04, pat:19, bg: 0, pal: ["#090909","#f4f4ee"], bgA:"#050505", bgB:"#020202", alpha: 62, cx:.50, rimY:[.490,.490], disp:4, amp:.010, word:W2, tw:.2323, ink:"#fff" },
+  { t:12.48, pat:20, bg: 0, pal: ["#f6e6ef","#b0408e","#3a3a1a","#d8c060"], bgA:"#963a8c", bgB:"#98408e", alpha: 56, cx:.53, rimY:[.523,.521], word:W3, tw:.2995, ink:"#f3eee6" },
+  { t:12.76, pat:10, bg: 2, pal: ["#aecbf8","#3464dc"], bgA:"#a6c4f2", alpha: 62.5, cx:.52, rimY:[.520,.520], word:W3, tw:.3078, ink:"#f6f2ea", ta:.9 },
+  { t:13.00, pat:11, bg: 1, pal: ["#caa050","#553810"], bgA:"#0a0908", bgB:"#040303", alpha: 65, cx:.56, rimY:[.522,.514], disp:3, amp:.014, word:W3, tw:.3203, ink:"#f0ece4" },
+  { t:13.32, pat:23, bg: 0, pal: ["#f2f2ee","#6c6c74"], bgA:"#030303", bgB:"#000000", alpha: 65.5, cx:.52, rimY:[.530,.530], disp:1, amp:.07, word:W3, tw:.3214, ink:"#fff" },
+  { t:13.64, pat:40, bg:12, pal: ["#ece6d8","#9a9080","#4e4030"], bgA:"#8f7450", bgB:"#5c4632", alpha: 72.5, cx:.46, rimY:[.542,.540], word:W3, tw:.345, ink:"#f6f2ea", shadeText:[.47,.56,.5] },
+  { t:13.92, pat:24, bg: 8, pal: ["#d9cdb6","#2e261e"], bgA:"#ecc944", bgB:"#d2a82c", alpha: 81, cx:.42, rimY:[.535,.535], word:W3, tw:.3583, ink:"#f6f0e4" },
+  { t:14.24, pat:25, bg: 2, pal: ["#2a50a0","#f0d030","#6a1a20","#3a8a4a"], bgA:"#f2eee4", alpha: 64.5, cx:.52, rimY:[.524,.524], word:W3, tw:.372, ink:"#111" },
+  { t:14.48, pat:26, bg: 2, pal: ["#eef2ee","#7ab8b0","#138a8a","#0a2a4a"], bgA:"#ece6de", alpha: 52, cx:.54, rimY:[.522,.522], word:W3, tw:.3833, ink:"#141414" },
+  { t:14.76, pat:27, bg:16, pal: ["#140606","#c03a1a","#ff6a2a"], bgA:"#2e140c", bgB:"#1e0c08", alpha: 77.5, cx:.56, rimY:[.560,.560], word:W3, tw:.4026, ink:"#f4f0ea" },
+  { t:15.04, pat:28, bg: 2, pal: ["#f4f0ea","#d04040","#4050c0","#40a060"], bgA:"#f6f2ea", alpha: 52, cx:.50, rimY:[.545,.545], word:W3, tw:.4146, ink:"#141414" },
+  { t:15.32, pat:29, bg: 2, pal: ["#dccca6","#2a2218"], bgA:"#d8c396", alpha: 65, cx:.44, rimY:[.540,.540], word:W3, tw:.4266, ink:"#221c14", ta:.9 },
+  { t:15.56, pat:30, bg: 0, pal: ["#fafafa","#7a7a7a"], bgA:"#0e0e0e", bgB:"#0a0a0a", alpha: 70, cx:.50, rimY:[.540,.540], disp:2, amp:.05, word:W3, tw:.4313, ink:"#f4f4f2" },
+  { t:15.76, pat:31, bg: 0, pal: ["#dc6432","#561208","#e8c090"], bgA:"#131313", bgB:"#0e0e0e", alpha: 77.5, cx:.42, rimY:[.535,.535], word:W3, tw:.4255, ink:"#efe8dc" },
+  { t:15.96, planet: true, finale: true },
 ];
 SHOTS.forEach((s, i) => {
   s.end = i + 1 < SHOTS.length ? SHOTS[i + 1].t : END;
   s.seed = (i * 7.31) % 17;
 });
+
+// Title cards and the closing move, measured off the original:
+// "Opus 5.5" 15.96 → 17.28, then the wordmark; from 18.28 the whole frame rises (titles and the
+// glow of the atmosphere together) until the horizon lands back on the opening frame.
+const T_CLAUDE = 17.28, T_RISE = 18.28;
+const RISE = [ // [time, how far the frame has risen, in frame heights]
+  [18.28, 0], [18.44, .013], [18.56, .024], [18.68, .039], [18.80, .059], [18.92, .085], [19.04, .118],
+  [19.16, .158], [19.28, .212], [19.40, .280], [19.52, .367], [19.64, .480], [19.72, .561],
+  [19.80, .650], [19.88, .707], [19.96, .738], [20.05, .745],
+];
+const HORIZON = .47;                        // where the planet's limb sits in the opening frame
+const HORIZON_LOW = HORIZON + RISE[RISE.length - 1][1];   // ... and under the titles, below the frame
+function riseAt(t) {
+  if (t <= RISE[0][0]) return 0;
+  for (let i = 1; i < RISE.length; i++) {
+    const [t1, d1] = RISE[i], [t0, d0] = RISE[i - 1];
+    if (t <= t1) {
+      // Catmull-Rom through the samples keeps the move smooth
+      const p = RISE[Math.max(0, i - 2)][1], n = RISE[Math.min(RISE.length - 1, i + 1)][1];
+      const k = (t - t0) / (t1 - t0), k2 = k * k, k3 = k2 * k;
+      return .5 * (2 * d0 + (-p + d1) * k + (2 * p - 5 * d0 + 4 * d1 - n) * k2 + (-p + 3 * d0 - 3 * d1 + n) * k3);
+    }
+  }
+  return RISE[RISE.length - 1][1];
+}
 
 /* ------------------------------------------------------------------------------------------
    Renderer, camera
@@ -139,6 +174,10 @@ document.body.prepend(renderer.domElement);
 const scene = new THREE.Scene();
 const camera = new THREE.PerspectiveCamera(36, innerWidth / innerHeight, 0.01, 100);
 const DEG = Math.PI / 180, DIST = 10;
+// The film is framed for 16:9. Wider screens see a little more at the sides; narrower ones keep
+// most of the frame's width, and portrait crops a little off the sides so the words stay large.
+const TAN_V = Math.tan(18 * DEG), TAN_H = TAN_V * 16 / 9;    // half-extent of the 16:9 frame
+const frame = { k: 1, w: 1, h: 1, x: 0, y: 0 };               // visible share of the frame's width; frame box in canvas px
 
 /* ------------------------------------------------------------------------------------------
    Shared GLSL: simplex noise, fbm, cellular noise, hashes
@@ -229,7 +268,8 @@ const bgMat = new THREE.ShaderMaterial({
     uInvProj: { value: new THREE.Matrix4() }, uCenterDir: { value: new THREE.Vector3(0, -1, 0) },
     uAlpha: { value: 1 }, uAspect: { value: 1 },
     uGlowMode: { value: 0 }, uGlowCol: { value: new THREE.Color() }, uGlowK: { value: 0 },
-    uOrange: { value: 1 }, uBlue: { value: 1 }, uSoft: { value: .01 },
+    uSoft: { value: .01 }, uHaze: { value: 1 },
+    uFrame: { value: new THREE.Vector2(1, 1) }, uJit: { value: new THREE.Vector2() },
   },
   vertexShader: /* glsl */`
     varying vec2 vNdc;
@@ -239,7 +279,8 @@ const bgMat = new THREE.ShaderMaterial({
     uniform int uBg; uniform vec3 uBgA, uBgB;
     uniform mat4 uInvProj; uniform vec3 uCenterDir; uniform float uAlpha, uAspect;
     uniform int uGlowMode; uniform vec3 uGlowCol; uniform float uGlowK;
-    uniform float uOrange, uBlue, uSoft;
+    uniform float uSoft, uHaze;
+    uniform vec2 uFrame, uJit;
     varying vec2 vNdc;
     ${NOISE}
     vec3 pal4(float t){
@@ -257,8 +298,8 @@ const bgMat = new THREE.ShaderMaterial({
       vec4 r = uInvProj * vec4(vNdc, 1.0, 1.0);
       vec3 dir = normalize(r.xyz / r.w);
       float h = acos(clamp(dot(dir, uCenterDir), -1.0, 1.0)) - uAlpha;   // radians above the rim
-      vec2 sp = vec2(vNdc.x * uAspect, vNdc.y);
-      float y01 = vNdc.y * 0.5 + 0.5;
+      vec2 sp = vNdc * uFrame * vec2(16.0 / 9.0, 1.0);            // 16:9 frame space, frame height = 2
+      float y01 = sp.y * 0.5 + 0.5;
       vec3 col;
 
       if (uBg == 0) {                       // plain gradient
@@ -280,36 +321,106 @@ const bgMat = new THREE.ShaderMaterial({
       } else if (uBg == 4) {                // blueprint: chalk lines on blue
         col = uBgA * (0.92 + 0.08 * fbm(vec3(sp * 3.0, uSeed)));
         float L = 0.0;
-        for (int i = 0; i < 16; i++) {
+        for (int i = 0; i < 5; i++) {       // a bundle of parallel strokes, top left
           float fi = float(i);
-          vec2 a = vec2((hash21(vec2(fi, 1.3)) * 2.0 - 1.0) * uAspect, hash21(vec2(fi, 7.1)) * 1.1 - 0.1);
-          float an = hash21(vec2(fi, 3.3)) * 3.1416;
-          vec2 b = a + vec2(cos(an), sin(an)) * (0.4 + hash21(vec2(fi, 9.0)) * 1.3);
-          L = max(L, 1.0 - smoothstep(0.002, 0.006, sdSeg(sp, a, b)));
+          vec2 o = vec2(0.0, fi * 0.075 + 0.02 * hash21(vec2(fi, 4.0)));
+          L = max(L, 1.0 - smoothstep(0.004, 0.009, sdSeg(sp, vec2(-1.85, 0.32) + o, vec2(-0.95 + 0.1 * hash21(vec2(fi, 1.0)), 0.98) + o)));
         }
+        L = max(L, 1.0 - smoothstep(0.004, 0.009, sdSeg(sp, vec2(-1.2, 0.2), vec2(-0.3, 1.1))));
+        L = max(L, 1.0 - smoothstep(0.004, 0.009, sdSeg(sp, vec2(0.95, 1.1), vec2(1.32, 0.56))));
+        L = max(L, 1.0 - smoothstep(0.004, 0.009, sdSeg(sp, vec2(1.32, 0.56), vec2(1.85, 0.8))));
+        L = max(L, 1.0 - smoothstep(0.004, 0.009, sdSeg(sp, vec2(1.05, 1.1), vec2(1.55, 0.75))));
+        L = max(L, 1.0 - smoothstep(0.004, 0.009, sdSeg(sp, vec2(0.45, 0.12), vec2(0.72, 0.4))));
+        L = max(L, 1.0 - smoothstep(0.004, 0.009, sdSeg(sp, vec2(-0.2, 1.1), vec2(0.35, 0.58))));
         float chalk = smoothstep(-0.3, 0.5, snoise(vec3(sp * 150.0, uSeed)));
         col = mix(col, uBgB, L * chalk * 0.9);
-      } else if (uBg == 5) {                // planet + atmosphere
-        col = mix(vec3(0.043, 0.050, 0.060), vec3(0.070, 0.082, 0.098), y01);
+      } else if (uBg == 5) {                // planet + atmosphere, graded to the original's colours
         float hp = max(h, 0.0);
-        col += vec3(0.20, 0.30, 0.38) * exp(-hp / 0.16) * 0.55 * uBlue;
-        col += vec3(0.46, 0.62, 0.72) * exp(-pow((h - 0.06) / 0.045, 2.0)) * 0.55 * uBlue;
-        col += vec3(1.00, 0.26, 0.03) * exp(-pow((h - 0.008) / 0.016, 2.0)) * 1.0 * uOrange;
-        col += vec3(1.00, 0.55, 0.18) * exp(-pow(h / 0.006, 2.0)) * 0.30 * uOrange;
+        // under the titles the haze is thin and the sky above it near black; by the opening frame
+        // the haze has spread and the high sky turned teal (uHaze 0 -> 1)
+        vec3 sky = mix(vec3(0.066, 0.082, 0.094), vec3(0.075, 0.135, 0.18), uHaze);
+        col = mix(vec3(0.42, 0.53, 0.56), sky, smoothstep(mix(0.12, 0.17, uHaze), mix(0.28, 0.36, uHaze), hp));   // haze, then high sky
+        col = mix(vec3(0.62, 0.53, 0.50), col, smoothstep(0.07, 0.15, hp));                         // warm grey veil
+        col = mix(vec3(0.74, 0.56, 0.39), col, smoothstep(0.04, 0.085, hp));                        // yellow-orange
+        col = mix(vec3(0.88, 0.52, 0.24), col, smoothstep(0.016, 0.05, hp));                        // orange band
+        col = mix(vec3(0.60, 0.18, 0.13), col, smoothstep(0.0, 0.018, hp));                         // red at the limb
+        col *= 0.975 + 0.025 * sin(hp * 170.0 + snoise(vec3(sp.x * 0.8, hp * 20.0, 1.0)));          // faint layering in the haze
         float m = smoothstep(uSoft, -uSoft, h);
-        vec3 ground = vec3(0.028, 0.026, 0.030) + vec3(0.25, 0.08, 0.02) * exp(h / 0.02) * uOrange * 0.4;
+        vec3 ground = vec3(0.125, 0.1, 0.105) * (0.75 + 0.25 * exp(h / 0.03));
         col = mix(col, ground, m);
       } else if (uBg == 6) {                // psychedelic vertical bars
         float x = sp.x * 2.6 + 0.25 * snoise(vec3(sp * 1.5, uSeed));
         col = pal4(fract(x));
         col *= 0.85 + 0.15 * sin(sp.x * 90.0 + snoise(vec3(sp * 4.0, 2.0)) * 3.0);
-      } else if (uBg == 7) {                // sunset
-        col = mix(uBgB, uBgA, smoothstep(0.0, 0.32, h));
-        col *= 0.95 + 0.05 * snoise(vec3(sp * 3.0, uSeed));
-      } else if (uBg == 8) {                // plaster wall
-        col = mix(uBgA, uBgB, smoothstep(-0.2, 0.7, fbm(vec3(sp * 2.5, uSeed))));
-        col *= 0.95 + 0.05 * snoise(vec3(sp * 80.0, 2.0));
-        col *= 1.0 - 0.12 * (1.0 - smoothstep(0.0, 0.01, abs(snoise(vec3(sp * 2.0, 5.0)))));
+      } else if (uBg == 7) {                // sunset: a crimson glow on the rim, orange above it
+        col = mix(uBgB, uBgA, smoothstep(0.0, 0.16, h));
+        col = mix(col, uBgA * 1.12, smoothstep(0.2, 0.6, h) * 0.5);
+        col *= 0.97 + 0.03 * snoise(vec3(sp * 2.0, uSeed));
+      } else if (uBg == 8) {                // painted wall: flat yellow, a stripe of old white paint, hairline cracks
+        col = mix(uBgA, uBgB, smoothstep(0.1, 0.9, fbm(vec3(sp * 1.2, uSeed))) * 0.5);
+        col *= 0.96 + 0.04 * snoise(vec3(sp * 80.0, 2.0));
+        col *= 1.0 - 0.3 * (1.0 - smoothstep(0.0, 0.006, abs(snoise(vec3(sp * 1.6, 5.0)))));
+        col *= 1.0 - 0.25 * (1.0 - smoothstep(0.0, 0.004, abs(sp.x - 0.35 + 0.03 * snoise(vec3(0.0, sp.y * 3.0, 1.0)))));
+        float stripe = 1.0 - smoothstep(0.0, 0.015, abs(sp.x + 1.36 + 0.02 * snoise(vec3(0.0, sp.y * 4.0, 2.0))) - 0.08);
+        col = mix(col, vec3(0.9, 0.88, 0.84), stripe * 0.95);
+      } else if (uBg == 10) {               // hand-coloured print: foxed paper and the green arches of the disc
+        vec2 f = vec2(960.0 + sp.x * 540.0, 540.0 - sp.y * 540.0) - uJit;   // 1920x1080 frame pixels, y down
+        col = uBgA * (0.93 + 0.07 * fbm(vec3(f / 520.0, 3.0)));
+        col *= 0.985 + 0.015 * snoise(vec3(f / vec2(3.0, 16.0), 1.0));      // fibres
+        float fox = smoothstep(0.6, 0.82, snoise(vec3(f / 34.0, 7.0))) * smoothstep(0.0, 0.6, snoise(vec3(f / 240.0, 2.0)));
+        col = mix(col, vec3(0.74, 0.55, 0.36), fox * 0.32);
+        col = mix(col, vec3(0.6, 0.42, 0.26), step(0.9986, hash21(floor(f / 3.0))) * 0.45);
+        // the arches: parabolas whose tops sit at AP, one every P pixels
+        const float P = 2000.0, K = 0.000263, AP = 470.0, TH = 132.0;
+        float xc = mod(f.x - 960.0 + P * 0.5, P) - P * 0.5;
+        float top = AP + K * xc * xc;
+        float d = f.y - top;                                                // pixels below the top of the band
+        float edge = 3.0 * snoise(vec3(f.x / 46.0, 0.0, 4.0)) + 1.4 * snoise(vec3(f.x / 11.0, 1.0, 4.0));
+        float band = smoothstep(-1.5, 1.5, d + edge) * (1.0 - smoothstep(TH - 8.0, TH + 8.0, d - edge * 2.0));
+        float lower = smoothstep(TH * 0.52, TH * 0.6, d);
+        vec3 green = mix(uBgB, uBgB * vec3(0.71, 0.72, 0.66), lower);
+        green *= 0.9 + 0.13 * fbm(vec3(f / 70.0, 5.0));
+        float line = 1.0 - smoothstep(0.8, 2.4, abs(d - TH * 0.55));       // the inked ground line
+        float hatch = smoothstep(0.35, 0.5, abs(fract((f.x - d * 0.45) / 5.0) - 0.5)) * lower * 0.35;
+        col = mix(col, green, band * 0.95);
+        col = mix(col, vec3(0.24, 0.3, 0.12), band * clamp(line * 0.75 + hatch, 0.0, 1.0));
+        col *= 1.0 - 0.05 * smoothstep(TH, TH + 8.0, d) * (1.0 - smoothstep(TH + 8.0, TH + 30.0, d));
+      } else if (uBg == 11) {               // false-colour herringbone ribs (sky of the neon shot)
+        vec2 q = vec2(sp.x * 0.8 + sp.y * 0.55, sp.y * 0.8 - sp.x * 0.55);
+        float w = snoise(vec3(q * 3.0, uSeed)) * 0.08;
+        float rib = fract(q.x * 7.5 + w);
+        float cross = fract((q.y + abs(fract(q.x * 7.5 + w) - 0.5) * 0.35) * 26.0);
+        vec3 c1 = mix(uBgA, vec3(0.34, 0.1, 0.42), smoothstep(0.35, 0.6, rib));
+        col = mix(c1, uBgB, smoothstep(0.62, 0.85, rib) * (1.0 - smoothstep(0.9, 1.0, rib)));
+        col = mix(col, vec3(0.9, 0.78, 0.2), smoothstep(0.6, 0.9, snoise(vec3(q * 5.0, 3.0))) * 0.5);
+        col *= 0.78 + 0.22 * smoothstep(0.1, 0.4, cross);
+        col = mix(col, vec3(0.95, 0.75, 0.12), 1.0 - smoothstep(0.035, 0.05, length((sp - vec2(1.0, 0.75)) * vec2(1.0, 0.8)) + 0.012 * snoise(vec3(sp * 30.0, 1.0))));
+      } else if (uBg == 12) {               // sandstone wall, stained
+        float n = fbm(vec3(sp * 1.6, uSeed));
+        col = mix(uBgB, uBgA, smoothstep(-0.45, 0.55, n));
+        col *= 0.9 + 0.1 * snoise(vec3(sp * 22.0, 2.0)) + 0.06 * snoise(vec3(sp * 90.0, 5.0));
+        float pit = smoothstep(0.55, 0.8, snoise(vec3(sp * 14.0, 9.0)));
+        col *= 1.0 - pit * 0.18;
+        float stain = smoothstep(0.35, 0.75, snoise(vec3(sp * vec2(2.5, 1.2), 4.0))) * (1.0 - smoothstep(-1.1, -0.6, sp.x));
+        col = mix(col, vec3(0.38, 0.12, 0.06), stain * 0.6);
+        float fleck = smoothstep(0.82, 0.95, snoise(vec3(sp * 18.0, 8.0))) * smoothstep(0.7, 1.1, sp.x) * smoothstep(0.35, 0.7, sp.y);
+        col = mix(col, vec3(0.95, 0.93, 0.88), fleck);
+      } else if (uBg == 14) {               // dark, smeared sideways, with a glare on the rim
+        col = mix(uBgB, uBgA, y01);
+        col += vec3(0.16, 0.1, 0.06) * smoothstep(0.2, 1.0, snoise(vec3(sp.x * 1.2, sp.y * 34.0, uSeed))) * 0.35;
+        float hp = max(h, 0.0);
+        col += vec3(0.34, 0.24, 0.62) * exp(-hp / 0.006) * 0.7;
+        col += vec3(0.95, 0.92, 0.9) * exp(-pow((sp.x + 0.62) / 0.07, 2.0)) * exp(-hp / 0.03) * (0.6 + 0.4 * snoise(vec3(sp.x * 60.0, 0.0, 2.0)));
+      } else if (uBg == 15) {               // sunset behind a ridge: bright upper left, dark to the right
+        float k = clamp(0.62 - sp.x * 0.32 + (y01 - 0.5) * 0.9, 0.0, 1.0);
+        col = mix(uBgB, uBgA, smoothstep(0.1, 0.95, k));
+        col += uBgA * exp(-max(h, 0.0) / 0.035) * 0.25;
+      } else if (uBg == 16) {               // rust-brown dark, dense with glinting specks
+        col = mix(uBgB, uBgA, y01) * (0.85 + 0.15 * fbm(vec3(sp * 2.0, uSeed)));
+        vec2 g = floor(sp * 420.0);
+        float s = hash21(g + uSeed);
+        col = mix(col, vec3(0.95, 0.42, 0.18), step(0.965, s) * (0.35 + 0.6 * hash21(g + 5.0)));
+        col = mix(col, vec3(1.0, 0.72, 0.45), step(0.996, s) * 0.8);
       } else {                              // thermal camera
         vec3 q = vec3(sp * 1.6, uSeed);
         float n = fbm(q + fbm(q * 1.4) * 1.3);
@@ -374,6 +485,8 @@ const sphereMat = new THREE.ShaderMaterial({
     ...U,
     uPat: { value: 1 }, uThetaR: { value: .4 }, uRimR: { value: .4 }, uMargin: { value: .12 },
     uSpin: { value: 0 }, uScale: { value: 1 }, uDisp: { value: 0 }, uDispAmp: { value: 0 },
+    uRes: { value: new THREE.Vector2(1, 1) }, uTan: { value: new THREE.Vector2(1, 1) },
+    uCDir: { value: new THREE.Vector3(0, -1, 0) }, uCosA: { value: .5 },
   },
   vertexShader: /* glsl */`
     uniform vec3 uA, uB, uC, uD; uniform float uSeed, uTime;
@@ -389,6 +502,11 @@ const sphereMat = new THREE.ShaderMaterial({
       }
       if (uDisp == 3) return 0.5 + snoise(pn * 22.0) * 0.35 + snoise(pn * 60.0) * 0.2;           // grain
       if (uDisp == 4) return pow(abs(sin(u * 36.0)), 0.6) + snoise(pn * 30.0) * 0.2;             // scallops
+      if (uDisp == 5) {                                                                           // rounded teeth
+        float k = u * 6.6, id = floor(k + 0.5), f = k - id;
+        float tooth = (1.0 - smoothstep(0.14, 0.3, abs(f))) * (0.55 + 0.45 * hash21(vec2(id, uSeed)));
+        return tooth + 0.22 * pow(abs(sin(u * 64.0)), 3.0) + snoise(pn * 20.0) * 0.06;
+      }
       return 0.0;
     }
     void main(){
@@ -406,6 +524,28 @@ const sphereMat = new THREE.ShaderMaterial({
   fragmentShader: /* glsl */`
     uniform vec3 uA, uB, uC, uD; uniform float uSeed, uTime;
     uniform int uPat;
+    uniform vec2 uRes, uTan; uniform vec3 uCDir; uniform float uCosA;
+    const float TANV = 0.3249197;          // tan(18 deg): half the height of the 16:9 frame
+    // Face-on coordinates, as if the edge were photographed straight on like the originals:
+    // fp is the pixel's place in the 16:9 frame (height 2, y up) and depth how far it lies
+    // below the rim, in frame heights. The rim height at this column solves a quadratic: the
+    // ray whose angle to the sphere's centre equals the sphere's angular radius.
+    void flatCoords(out vec2 fp, out float depth){
+      vec2 ndc = gl_FragCoord.xy / uRes * 2.0 - 1.0;
+      float X = ndc.x * uTan.x, Y = ndc.y * uTan.y;
+      fp = vec2(X, Y) / TANV;
+      float c2 = uCosA * uCosA, k = X * uCDir.x - uCDir.z;
+      float A = uCDir.y * uCDir.y - c2, B = 2.0 * uCDir.y * k, Cq = k * k - c2 * (X * X + 1.0);
+      float yr;
+      if (abs(A) < 1e-5) yr = -Cq / B;
+      else {
+        float sq = sqrt(max(B * B - 4.0 * A * Cq, 0.0));
+        float y1 = (-B + sq) / (2.0 * A), y2 = (-B - sq) / (2.0 * A);
+        bool ok1 = X * uCDir.x + y1 * uCDir.y - uCDir.z > 0.0, ok2 = X * uCDir.x + y2 * uCDir.y - uCDir.z > 0.0;
+        yr = (ok1 && ok2) ? max(y1, y2) : (ok1 ? y1 : y2);
+      }
+      depth = (yr - Y) / (2.0 * TANV);
+    }
     ${NOISE}
     ${SPHERE_COMMON}
     varying vec3 vObj; varying vec3 vViewPos; varying vec3 vViewN; varying float vH;
@@ -430,75 +570,93 @@ const sphereMat = new THREE.ShaderMaterial({
 
     void main(){
       float u, v; vec3 pn; rimCoords(vObj, u, v, pn);
+      vec2 fp; float dp; flatCoords(fp, dp);
       vec3 col = uA; float h = 0.0, spec = 0.0, shade = 0.8, bumpK = 0.004;
 
-      if (uPat == 1) {                       // amber with a glassy rim
+      if (uPat == 1) {                       // a glassy rim full of bubbles, amber below it
         float n = fbm(pn * 2.0);
-        col = mix(uB, uA, clamp(smoothstep(0.05, 0.7, v) + n * 0.2, 0.0, 1.0));
-        col *= 0.9 + 0.1 * sin(v * 140.0 + n * 6.0);
-        col = mix(col, uC, (1.0 - smoothstep(0.015, 0.06, v)) * 0.6);
-        h = n * 0.3; spec = 0.5;
+        vec3 amber = mix(uB, uA, clamp(smoothstep(0.4, 0.95, v) + n * 0.2, 0.0, 1.0));
+        amber *= 0.9 + 0.1 * sin(v * 60.0 + n * 6.0);
+        float zone = 1.0 - smoothstep(0.34, 0.46, v + 0.03 * snoise(vec3(u * 8.0, 0.0, 2.0)));
+        vec3 glass = mix(vec3(0.6, 0.58, 0.55), uC, 0.3) * (0.78 + 0.3 * fbm(pn * 4.0));
+        vec3 c = voronoi(vec2(fp.x * 11.0, dp * 34.0) + uSeed);
+        float has = step(0.25, c.z) * (1.0 - smoothstep(0.045, 0.06, dp));
+        float ring = (1.0 - smoothstep(0.035, 0.09, abs(c.x - 0.3))) * has;
+        float core = (1.0 - smoothstep(0.18, 0.28, c.x)) * has;
+        glass = mix(glass, vec3(0.22, 0.2, 0.24), core * 0.55);
+        glass = mix(glass, vec3(0.95, 0.94, 0.9), ring * 0.8);
+        col = mix(amber, glass, zone * 0.88);
+        h = n * 0.3 + ring * 0.4; spec = 0.6;
       } else if (uPat == 2) {                // amber liquid with dark specks
         float n = fbm(pn * 1.5);
         col = mix(uA, uB, clamp(smoothstep(0.0, 0.7, v) + n * 0.2, 0.0, 1.0));
-        float sp = smoothstep(0.55, 0.75, snoise(pn * 18.0)) * smoothstep(0.2, 0.8, snoise(pn * 3.0 + 7.0));
+        float sp = smoothstep(0.8, 0.92, snoise(pn * 55.0)) * smoothstep(0.3, 0.8, snoise(pn * 3.0 + 7.0));
         col = mix(col, uC, sp);
         col *= 0.96 + 0.04 * snoise(pn * 90.0);
-        h = sp * 0.6 + n * 0.1; spec = 0.4; shade = 0.4;
+        vec2 sq = vec2(u + 0.08, v - 0.55);                  // one dark splat right of centre, dripping
+        float spl = 1.0 - smoothstep(0.8, 1.2, length(sq / vec2(0.014, 0.008)) + 0.2 * snoise(pn * 40.0));
+        float drip = (1.0 - smoothstep(0.0015, 0.004, abs(sq.x + 0.0015 * sin(v * 70.0)))) * step(0.0, sq.y) * (1.0 - smoothstep(0.04, 0.1, sq.y));
+        col = mix(col, uC * 0.7, clamp(spl + drip * 0.75, 0.0, 1.0));
+        col = mix(col, uD, (1.0 - smoothstep(0.02, 0.1, v)) * 0.9);    // thin dark lip on the rim
+        h = sp * 0.6 + n * 0.1 + spl * 0.5; spec = 0.4; shade = 0.4;
       } else if (uPat == 3) {                // bread crust, one flake peeled back
         float n = fbm(pn * 3.0);
-        col = mix(uA, uB, smoothstep(-0.5, 0.6, n));
-        float pr = smoothstep(0.2, 0.7, snoise(pn * 45.0));
-        col *= 1.0 - pr * 0.45;
-        float peel = snoise(pn * 1.2 + 11.0);
-        float inside = smoothstep(0.25, 0.3, peel) * smoothstep(0.08, 0.12, v);
+        col = mix(uA, uB, smoothstep(-0.6, 0.7, n) * 0.8);
+        vec3 cc = voronoi(vec2(u * 150.0, v * 70.0) + uSeed);
+        float pore = 1.0 - smoothstep(0.08, 0.3, cc.x);
+        col *= 1.0 - pore * 0.55;
+        float edge = dp - 0.06 - 0.22 * (fp.x - 0.3) * (fp.x - 0.3) + 0.006 * snoise(vec3(fp.x * 5.0, 0.0, 3.0));
+        float inside = smoothstep(0.0, 0.004, edge) * step(-0.6, fp.x);
         col = mix(col, uC * (0.8 + 0.3 * fbm(pn * 6.0)), inside);
-        col = mix(col, uD, (1.0 - smoothstep(0.0, 0.02, abs(peel - 0.28))) * smoothstep(0.08, 0.12, v) * 0.8);
-        h = n * 0.5 - pr * 0.5 - inside * 0.5; bumpK = 0.008;
-      } else if (uPat == 4) {                // blueprint
+        col = mix(col, uD, (1.0 - smoothstep(0.002, 0.006, abs(edge))) * step(-0.6, fp.x) * 0.9);
+        h = n * 0.5 - pore * 0.5 - inside * 0.5; bumpK = 0.008;
+      } else if (uPat == 4) {                // blueprint: the chalk arc on the rim, radial strokes below it
         col = uA * (0.9 + 0.1 * fbm(pn * 4.0));
-        float k = u * 14.0;
-        float rl = abs(fract(k + 0.15 * snoise(vec3(u * 2.0, v * 3.0, uSeed))) - 0.5) / 14.0;
-        float line = (1.0 - smoothstep(0.0015, 0.004, rl)) * step(0.04, v) * step(fract(k * 0.37 + 0.3), 0.7);
-        float al = abs(fract(v * 4.0 + 0.2) - 0.5) / 4.0;
-        float arc = 1.0 - smoothstep(0.002, 0.005, al);
-        float rimL = 1.0 - smoothstep(0.0, 0.008, abs(v - 0.006));
-        float chalk = smoothstep(-0.3, 0.5, snoise(pn * 60.0)) * (0.6 + 0.4 * snoise(pn * 8.0));
-        col = mix(col, uB, clamp(max(max(line, arc), rimL) * chalk, 0.0, 1.0) * 0.95);
-        shade = 0.2;
+        vec2 rq = vec2(fp.x + 0.25, fp.y + 3.0);           // the strokes radiate from a point far below
+        float k = atan(rq.x, rq.y) * 30.0, id = floor(k);
+        float lw = abs(fract(k) - 0.5 + 0.3 * (hash21(vec2(id, 2.0)) - 0.5)) / 30.0 * length(rq);
+        float len = 0.08 + 0.4 * hash21(vec2(id, 5.0));
+        float radial = (1.0 - smoothstep(0.004, 0.009, lw)) * step(0.012, dp) * step(dp, len) * step(0.35, hash21(vec2(id, 9.0)));
+        float rimL = 1.0 - smoothstep(0.004, 0.009, abs(dp - 0.004 - 0.002 * snoise(vec3(fp.x * 30.0, 0.0, 3.0))));
+        float chalk = smoothstep(-0.35, 0.45, snoise(vec3(fp * 130.0, uSeed))) * (0.6 + 0.4 * snoise(vec3(fp * 9.0, 1.0)));
+        col = mix(col, uB, clamp(max(radial, rimL) * (0.55 + 0.45 * chalk), 0.0, 1.0));
+        shade = 0.15;
       } else if (uPat == 5) {                // leaf
         float n = fbm(pn * 2.0);
         col = mix(uA, uB, 0.5 + 0.5 * n);
         float vn  = 1.0 - smoothstep(0.0, 0.05, abs(snoise(pn * 3.0 + 2.0)));
         float vn2 = 1.0 - smoothstep(0.0, 0.08, abs(snoise(pn * 14.0 + 5.0)));
-        col = mix(col, uC, vn * 0.55 + vn2 * 0.25);
-        float sp = smoothstep(0.45, 0.8, snoise(pn * 1.2 + 9.0));
-        col = mix(col, uD, sp * 0.6 * (0.6 + 0.4 * snoise(pn * 20.0)));
-        col = mix(col, uC, (1.0 - smoothstep(0.0, 0.015, v)) * 0.6);
+        col = mix(col, uA * 0.55, vn * 0.6 + vn2 * 0.3);
+        float streak = exp(-pow((u + 0.1 + 0.02 * snoise(vec3(v * 8.0, 0.0, 1.0))) / 0.022, 2.0)) * smoothstep(0.45, 0.55, v);
+        col = mix(col, uD, streak * (0.7 + 0.3 * snoise(pn * 20.0)));
+        col = mix(col, uA * 0.8, (1.0 - smoothstep(0.05, 0.2, v)) * 0.5);
         col *= 0.92 + 0.08 * snoise(pn * 90.0);
         h = vn * 0.4 + vn2 * 0.3; shade = 0.5;
       } else if (uPat == 6) {                // pink gel
         float n = fbm(pn * 3.0);
-        col = mix(uC, uA, smoothstep(0.0, 0.08, v));
-        col = mix(col, uB, clamp(smoothstep(0.1, 0.8, v) + n * 0.2, 0.0, 1.0));
+        col = mix(vec3(0.96, 0.8, 0.8), uA, smoothstep(0.006, 0.02, dp));
+        col = mix(col, uB, clamp(smoothstep(0.3, 0.9, v) + n * 0.2, 0.0, 1.0));
+        vec3 gc = voronoi(vec2(u * 30.0, v * 14.0));
+        col = mix(col, uC, (1.0 - smoothstep(0.02, 0.07, gc.y - gc.x)) * smoothstep(0.35, 0.6, v) * 0.35);
         col *= 0.9 + 0.1 * snoise(pn * 70.0);
         h = n * 0.3; spec = 0.3;
-      } else if (uPat == 7) {                // terracotta with a greek-key band
+      } else if (uPat == 7) {                // terracotta: chipped dark lip, then a greek-key band
         col = uA * (0.8 + 0.3 * fbm(pn * 3.0));
-        float d0 = 0.12, d1 = 0.42, cell = (d1 - d0) / 5.0;
+        float d0 = 0.34, d1 = 0.48, cellV = (d1 - d0) / 5.0, cellU = 0.0195;
         float wear = smoothstep(-0.6, 0.2, snoise(pn * 12.0));
         if (v > d0 && v < d1) {
-          int yy = int(floor((v - d0) / cell));
-          int xx = int(mod(floor(u / cell), 6.0));
+          int yy = int(floor((v - d0) / cellV));
+          int xx = int(mod(floor(u / cellU), 6.0));
           float key = mod(floor(float(keyRow(yy)) / exp2(float(xx))), 2.0);   // bit xx, WebGL1-safe
           col = mix(uB * (0.9 + 0.2 * fbm(pn * 5.0)), uC, key * wear);
           h = key * 0.3;
         }
-        float border = (1.0 - smoothstep(cell * 0.3, cell * 0.5, abs(v - d0 + cell * 0.8)))
-                     + (1.0 - smoothstep(cell * 0.3, cell * 0.5, abs(v - d1 - cell * 0.8)));
+        float border = (1.0 - smoothstep(cellV * 0.3, cellV * 0.5, abs(v - d0 + cellV * 0.8)))
+                     + (1.0 - smoothstep(cellV * 0.3, cellV * 0.5, abs(v - d1 - cellV * 0.8)))
+                     + (1.0 - smoothstep(0.004, 0.009, abs(v - 0.53)));
         col = mix(col, uC, clamp(border, 0.0, 1.0) * wear);
-        float crust = 1.0 - smoothstep(0.015, 0.035, v + 0.012 * snoise(vec3(u * 40.0, 0.0, 1.0)));
-        col = mix(col, uD, crust);
+        float crust = 1.0 - smoothstep(0.022, 0.03, dp + 0.008 * snoise(vec3(fp.x * 14.0, 0.0, 1.0)));
+        col = mix(col, mix(uD, uC, 0.5) * (0.7 + 0.5 * fbm(pn * 9.0)), crust);
         h += fbm(pn * 6.0) * 0.2 + crust * 0.4;
       } else if (uPat == 8) {                // parchment with a painted green ring
         col = uA * (0.9 + 0.12 * fbm(pn * 3.0));
@@ -514,15 +672,16 @@ const sphereMat = new THREE.ShaderMaterial({
         float st = sin(u * 40.0 + n * 8.0) * 0.5 + 0.5;
         col = pal4(0.5 + 0.6 * n + 0.25 * st * step(0.1, v));
         h = n * 0.2; shade = 0.3;
-      } else if (uPat == 10) {               // crayon strokes on blue paper
+      } else if (uPat == 10) {               // crayon strokes on blue paper, running along the rim
         col = uA * (0.95 + 0.08 * fbm(pn * 8.0));
         for (int i = 0; i < 3; i++) {
           float fi = float(i);
-          float cd = 0.008 + fi * (0.08 + 0.04 * fi);
-          float w = abs(v - cd - 0.015 * snoise(vec3(u * 2.0, fi, uSeed)));
-          float st = (1.0 - smoothstep(0.008 + fi * 0.006, 0.022 + fi * 0.012, w))
-                   * smoothstep(-0.4, 0.4, snoise(vec3(u * 120.0, v * 40.0, fi * 3.0)));
-          col = mix(col, uB, st * 0.85);
+          float d0 = fi < 0.5 ? 0.008 : fi < 1.5 ? 0.036 : 0.13;
+          float w = fi < 0.5 ? 0.034 : fi < 1.5 ? 0.028 : 0.042;
+          float wob = 0.012 * snoise(vec3(fp.x * 1.4, fi, uSeed)) + 0.004 * snoise(vec3(fp.x * 6.0, fi, 2.0));
+          float s = 1.0 - smoothstep(w * 0.45, w, abs(dp - d0 - wob));
+          float wax = smoothstep(-0.55, 0.3, snoise(vec3(fp.x * 60.0, dp * 500.0, fi * 3.0))) * (0.75 + 0.25 * snoise(vec3(fp.x * 6.0, fi, 9.0)));
+          col = mix(col, uB, s * wax * 0.92);
         }
         shade = 0.0;
       } else if (uPat == 11) {               // golden moss
@@ -538,30 +697,39 @@ const sphereMat = new THREE.ShaderMaterial({
         col = mix(col, uC, (1.0 - smoothstep(0.0, 0.03, v)) * 0.5);
         col *= 0.9 + 0.1 * snoise(pn * 50.0);
         spec = 0.8; h = n * 0.4;
-      } else if (uPat == 14) {               // engraving
-        float tone = 0.62 + 0.45 * fbm(pn * 2.5);
-        float hat = 0.5 + 0.5 * sin(u * 420.0 + v * 40.0 + snoise(pn * 3.0) * 3.0);
-        float ink = step(hat, (1.0 - tone) * 0.9);
-        if (v > 0.018 && v < 0.05) {
-          float blocks = step(0.45, hash21(vec2(floor(u * 110.0), floor(v * 70.0))));
-          ink = blocks * step(0.3, fract(u * 110.0));
+      } else if (uPat == 14) {               // engraving: a hatched band, rules, blocks, tonal hatching below
+        float ink = 0.0;
+        if (dp < 0.058) {
+          float hx = abs(fract(fp.x * 34.0) - 0.5);
+          ink = (1.0 - smoothstep(0.12, 0.26, hx)) * step(-0.2, snoise(vec3(fp.x * 12.0, dp * 60.0, 2.0)));
+          vec2 gcell = floor(vec2(fp.x * 11.0, dp * 40.0));
+          ink = max(ink, step(0.72, hash21(gcell + uSeed)) * smoothstep(0.1, 0.5, snoise(vec3(fp * 160.0, 1.0))));
         }
-        float lines = 0.0;
-        lines += 1.0 - smoothstep(0.001, 0.003, abs(v - 0.016));
-        lines += 1.0 - smoothstep(0.001, 0.003, abs(v - 0.052));
-        lines += 1.0 - smoothstep(0.001, 0.003, abs(v - 0.09));
-        col = mix(uA, uB, clamp(max(ink, lines), 0.0, 1.0));
-        shade = 0.15;
-      } else if (uPat == 15) {               // slate with a prismatic rim
+        ink = max(ink, 1.0 - smoothstep(0.0015, 0.003, abs(dp - 0.061)));
+        ink = max(ink, 1.0 - smoothstep(0.0015, 0.003, abs(dp - 0.108)));
+        if (dp > 0.068 && dp < 0.1) {
+          float bx = fract(fp.x * 9.0), bid = floor(fp.x * 9.0);
+          ink = max(ink, step(0.12, bx) * step(bx, 0.82) * step(0.3, hash21(vec2(bid, 3.0))) * step(0.25, fract(dp * 60.0 + hash21(vec2(bid, 7.0)))));
+        }
+        if (dp > 0.115) {
+          float tone = 0.35 + 0.5 * fbm(vec3(fp * 2.4, 4.0));
+          ink = max(ink, step(fract((fp.x * 0.7 + fp.y) * 55.0), tone * 0.7));
+        }
+        col = mix(uA * (0.96 + 0.04 * snoise(pn * 30.0)), uB, clamp(ink, 0.0, 1.0));
+        shade = 0.1;
+      } else if (uPat == 15) {               // slate under a prismatic band: orange edge, white, blue, violet
         float n = fbm(pn * 1.5);
-        col = mix(uA, uB, 0.5 + 0.5 * n) * (0.7 + 0.3 * smoothstep(0.0, 0.3, v));
-        float rb = 1.0 - smoothstep(0.0, 0.03, v);
-        vec3 spc = 0.5 + 0.5 * cos(6.2831 * (v / 0.03 * 0.9 + vec3(0.0, 0.33, 0.67)));
-        col = mix(col, spc, rb * 0.75);
+        col = mix(uA, uB, 0.5 + 0.5 * n) * (0.75 + 0.25 * smoothstep(0.02, 0.2, dp));
+        vec3 spc = mix(vec3(1.0, 0.42, 0.2), vec3(1.0, 0.9, 0.78), smoothstep(0.002, 0.012, dp));
+        spc = mix(spc, vec3(0.45, 0.5, 0.95), smoothstep(0.01, 0.024, dp));
+        spc = mix(spc, vec3(0.42, 0.28, 0.75), smoothstep(0.022, 0.038, dp));
+        col = mix(col, spc, (1.0 - smoothstep(0.032, 0.06, dp)) * 0.9);
         shade = 0.4;
-      } else if (uPat == 16) {               // silhouette against a sunset
+      } else if (uPat == 16 || uPat == 39) { // dark ground against a sunset: 16 glows soft, 39 is a sharp ridge
         col = uA * (0.7 + 0.4 * fbm(pn * 4.0));
-        col = mix(col, uB, (1.0 - smoothstep(0.0, 0.02, v)) * 0.6);
+        col *= 0.8 + 0.3 * smoothstep(-0.4, 0.8, snoise(vec3(fp.x * 40.0, dp * 4.0, 2.0)));
+        float soft = uPat == 39 ? 0.004 : 0.045;
+        col = mix(col, uB, exp(-max(dp, 0.0) / soft) * 0.85);
         shade = 0.3;
       } else if (uPat == 17) {               // printed floral fabric
         vec3 w = pn * 2.0;
@@ -575,84 +743,112 @@ const sphereMat = new THREE.ShaderMaterial({
         float t = v * 6.0 + fbm(pn * 1.5) * 0.6 + sin(u * 10.0) * 0.05;
         col = pal4(fract(t));
         shade = 0.3;
-      } else if (uPat == 19) {               // lace
-        vec2 q = vec2(u, v) * 28.0;
-        vec3 vr = voronoi(q + uSeed);
-        float edge = 1.0 - smoothstep(0.02, 0.08, vr.y - vr.x);
-        float flower = 0.0;
-        if (vr.z > 0.55) flower = (1.0 - smoothstep(0.03, 0.07, abs(vr.x - 0.28))) + (1.0 - smoothstep(0.0, 0.08, vr.x)) * 0.9;
-        vec2 g = fract(q * 3.0) - 0.5;
-        float net = 1.0 - smoothstep(0.04, 0.12, min(abs(g.x + g.y * 0.5), abs(g.x - g.y * 0.5)));
-        float lace = clamp(max(max(edge * 0.9, flower), net * 0.35), 0.0, 1.0);
-        col = mix(uA, uB, lace * (0.8 + 0.2 * snoise(pn * 40.0)));
-        h = lace * 0.4; shade = 0.5;
-      } else if (uPat == 20) {               // agate slice
-        float n = fbm(pn * 1.5);
-        float dd = v + 0.012 * snoise(vec3(u * 25.0, 0.0, uSeed));
-        float bands = 0.5 + 0.5 * sin(dd * 60.0 + n * 2.0);
-        col = mix(uA, uB, smoothstep(0.55, 0.95, bands));
-        col = mix(col, uA, smoothstep(0.25, 0.6, v) * 0.5);
-        float cr = 1.0 - smoothstep(0.02, 0.03, dd);
-        col = mix(col, mix(uC, uD, 0.5 + 0.5 * snoise(pn * 30.0)), cr);
-        col = mix(col, uB * 0.8, (1.0 - smoothstep(0.0, 0.006, abs(dd - 0.034))) * 0.8);
-        h = cr * 0.5 + bands * 0.1; spec = 0.4; shade = 0.5;
+      } else if (uPat == 19) {               // lace: bright white mesh, solid petals and leaves, a few big holes
+        vec2 q = vec2(fp.x, -2.0 * dp);
+        vec2 g = fract(q * vec2(95.0, 95.0) + vec2(0.5 * floor(q.y * 95.0), 0.0)) - 0.5;
+        float mesh = smoothstep(0.24, 0.34, length(g));                     // white threads between round holes
+        vec3 vr = voronoi(q * 7.0 + uSeed);
+        float petal = 1.0 - smoothstep(0.02, 0.06, abs(vr.x - 0.26 - 0.06 * snoise(vec3(q * 22.0, vr.z * 9.0))));
+        float leaf = (1.0 - smoothstep(0.15, 0.2, vr.x)) * step(0.6, vr.z);
+        float outline = 1.0 - smoothstep(0.015, 0.05, vr.y - vr.x);
+        float hole = (1.0 - smoothstep(0.12, 0.17, vr.x)) * step(vr.z, 0.18);   // a few torn-out holes
+        float lace = max(max(mesh * 0.8, petal * step(0.3, vr.z)), max(leaf, outline * 0.9)) * (1.0 - hole);
+        col = mix(uA, uB, clamp(lace, 0.0, 1.0) * (0.88 + 0.12 * snoise(pn * 40.0)));
+        h = lace * 0.4; shade = 0.35;
+      } else if (uPat == 20) {               // agate: golden lip, glossy dark crust, scalloped purple line, pale inside
+        float wav = 0.012 * snoise(vec3(fp.x * 5.0, 0.0, uSeed)) + 0.005 * sin(fp.x * 38.0);
+        float cb = 0.065 + wav;                                 // where the crust ends
+        col = uA * (0.97 + 0.03 * snoise(pn * 20.0));
+        col = mix(col, uB * 1.15, smoothstep(0.0, 0.01, dp - cb) * (1.0 - smoothstep(0.01, 0.035, dp - cb)) * 0.35);
+        col = mix(col, uB, (1.0 - smoothstep(0.003, 0.008, abs(dp - cb - 0.007))) * 0.9);
+        col = mix(col, uB, (1.0 - smoothstep(0.006, 0.02, abs(dp - 0.17 - wav))) * 0.25);
+        float crust = 1.0 - smoothstep(cb - 0.002, cb + 0.002, dp);
+        col = mix(col, uC * (0.7 + 0.6 * fbm(vec3(fp * 14.0, 1.0))), crust);
+        col = mix(col, uD, 1.0 - smoothstep(0.001, 0.006, dp));
+        h = crust * (0.3 + 0.4 * fbm(vec3(fp * 30.0, 2.0))); spec = crust * 0.8; shade = 0.5;
       } else if (uPat == 23) {               // white rock
         float n = fbm(pn * 6.0);
         col = mix(uB, uA, 0.55 + 0.45 * n) * (0.85 + 0.15 * snoise(pn * 50.0));
-        h = vH * 1.6 + n * 0.3; bumpK = 0.03; shade = 1.0;
-      } else if (uPat == 24) {               // wood end grain
-        float g = sin(v * 90.0 + fbm(pn * 4.0) * 5.0 + u * 2.0);
-        col = mix(uA, uB, smoothstep(0.2, 1.0, g) * (0.6 + 0.4 * fbm(pn * 10.0)));
-        col = mix(col, uA, 1.0 - smoothstep(0.0, 0.03, v));
-        h = g * 0.2; shade = 0.4;
-      } else if (uPat == 25) {               // cut-paper collage
-        vec2 q = vec2(u, v) * 5.0;
-        q += 0.15 * vec2(snoise(vec3(q, 1.0)), snoise(vec3(q, 5.0)));
-        vec3 vr = voronoi(q);
+        float gx = abs(fract(fp.x * 1.2 + 0.25 * fbm(vec3(fp * 1.5, 3.0))) - 0.5);
+        float groove = (1.0 - smoothstep(0.02, 0.02 + 0.2 * smoothstep(0.01, 0.2, dp), gx)) * smoothstep(0.01, 0.06, dp);
+        col = mix(col * 1.08, vec3(0.1, 0.11, 0.13), groove * 0.85);
+        h = vH * 1.6 + n * 0.3 - groove * 0.5; bumpK = 0.03; shade = 1.0;
+      } else if (uPat == 24) {               // weathered end grain: dense wavy contours, two blobs of paint
+        float wv = 0.02 * fbm(vec3(fp.x * 1.6, 0.0, uSeed)) + 0.05 * exp(-fp.x * fp.x * 6.0) * smoothstep(0.1, 0.35, dp);
+        float g = fract((dp - wv) * 30.0 + 0.9 * fbm(vec3(fp * 3.5, 1.0)) + 0.25 * snoise(vec3(fp * 14.0, 4.0)));
+        float line = smoothstep(0.3, 0.45, g) * (1.0 - smoothstep(0.78, 0.95, g));
+        col = mix(uA, uB, line * (0.7 + 0.3 * fbm(vec3(fp * 20.0, 2.0))));
+        col = mix(col, uA * 0.85, 1.0 - smoothstep(0.004, 0.02, dp));
+        float blob = max(1.0 - smoothstep(0.8, 1.0, length((vec2(fp.x, dp) - vec2(-0.15, 0.075)) / vec2(0.06, 0.022))),
+                         1.0 - smoothstep(0.8, 1.0, length((vec2(fp.x, dp) - vec2(0.2, 0.055)) / vec2(0.08, 0.018))));
+        col = mix(col, vec3(0.95, 0.95, 0.93), blob);
+        h = line * 0.3; shade = 0.4;
+      } else if (uPat == 25) {               // cut-paper collage: flat shapes on a blue sheet
+        vec2 q = vec2(fp.x, -2.0 * dp);
+        vec2 qq = q * vec2(2.4, 3.2) + 0.12 * vec2(snoise(vec3(q * 3.0, 1.0)), snoise(vec3(q * 3.0, 5.0)));
+        vec3 vr = voronoi(qq + uSeed);
         float id = vr.z;
-        col = id < 0.2 ? uA : id < 0.4 ? uB : id < 0.6 ? uC : id < 0.8 ? uD : vec3(0.95, 0.93, 0.88);
-        if (fract(id * 7.0) > 0.6) col = mix(col, vec3(0.95), step(0.5, fract((q.x + q.y) * 6.0)) * 0.8);
-        col *= 0.75 + 0.25 * smoothstep(0.0, 0.03, vr.y - vr.x);
+        col = uA;
+        if (id > 0.45) col = id < 0.55 ? vec3(0.28, 0.09, 0.05) : id < 0.63 ? vec3(0.75, 0.08, 0.1) : id < 0.72 ? uD : id < 0.8 ? vec3(0.2, 0.16, 0.36) : id < 0.88 ? vec3(0.93, 0.47, 0.12) : vec3(0.95, 0.94, 0.9);
+        float inset = smoothstep(0.02, 0.05, vr.y - vr.x);
+        col = mix(uA, col, inset);
+        col = mix(col, vec3(0.97, 0.88, 0.48), 1.0 - smoothstep(0.8, 1.0, length((q - vec2(-0.55, -0.1)) / 0.1)));   // the yellow disc
+        if (id > 0.88) col = mix(col, vec3(0.3), step(0.85, fract((q.x * 0.6 + q.y) * 40.0 + snoise(vec3(q * 8.0, 2.0)))) * 0.6);   // pencil scribble
         col *= 0.95 + 0.05 * snoise(pn * 60.0);
         shade = 0.0;
-      } else if (uPat == 26) {               // plant stem cross-section
-        vec2 q = vec2(u, v);
-        vec3 c1 = voronoi(q * 45.0);
-        float wall = 1.0 - smoothstep(0.03, 0.09, c1.y - c1.x);
-        col = mix(uA, uB, wall * 0.8);
-        vec3 c2 = voronoi(q * 5.0 + 3.1);
-        float bund = 1.0 - smoothstep(0.16, 0.2, c2.x);
-        col = mix(col, uC, bund * (0.5 + 0.5 * wall));
-        col = mix(col, uD * 0.8 + uC * 0.2, (1.0 - smoothstep(0.06, 0.09, c2.x)) * 0.7);
-        col = mix(col, uD, 1.0 - smoothstep(0.0, 0.008, v));
+      } else if (uPat == 26) {               // plant stem: fine cells, a ring of vascular bundles, dark skin
+        vec2 q = vec2(fp.x, -2.0 * dp);
+        vec3 c1 = voronoi(q * 24.0 + uSeed);
+        float wall = 1.0 - smoothstep(0.05, 0.14, c1.y - c1.x);
+        col = mix(uA, uB, wall * 0.9);
+        for (int r = 0; r < 2; r++) {
+          float fr = float(r);
+          float sx = fr < 0.5 ? 2.8 : 2.0, cy = fr < 0.5 ? -0.07 : -0.3, rad = fr < 0.5 ? 0.09 : 0.12;
+          float bid = floor(q.x * sx + fr * 0.5);
+          vec2 bc = vec2((fract(q.x * sx + fr * 0.5) - 0.5) / sx + 0.03 * (hash21(vec2(bid, fr)) - 0.5), q.y - cy - 0.04 * (hash21(vec2(bid, fr + 3.0)) - 0.5));
+          float br = length(bc) / rad;
+          float inB = 1.0 - smoothstep(0.85, 1.0, br);
+          vec3 cb = voronoi(bc * 70.0 + bid);
+          vec3 fill = mix(uC, vec3(0.75, 0.9, 0.4), step(0.6, cb.z)) * (0.7 + 0.3 * smoothstep(0.02, 0.1, cb.y - cb.x));
+          col = mix(col, fill, inB);
+          col = mix(col, uD, (1.0 - smoothstep(0.05, 0.14, abs(br - 1.0))) * 0.95);
+        }
+        col = mix(col, uD, 1.0 - smoothstep(0.004, 0.01, dp));
         h = wall * 0.3; shade = 0.2;
       } else if (uPat == 27) {               // dark dust sphere, ember rim
         float sp = smoothstep(0.55, 0.85, snoise(pn * 35.0));
         col = uA + uB * sp * 0.8;
         col += uC * exp(-v * 60.0) * 0.9;
-        h = sp * 0.3;
-      } else if (uPat == 28) {               // ruled construction lines
+        float mt = 0.28 + 0.2 * (fp.x - 0.1) * (fp.x - 0.1) + 0.012 * snoise(vec3(fp.x * 12.0, 0.0, 3.0));   // a red granular mound far below
+        float mound = smoothstep(mt, mt + 0.006, dp);
+        col = mix(col, uB * (0.75 + 0.6 * smoothstep(0.2, 0.9, snoise(pn * 80.0))), mound);
+        h = sp * 0.3 + mound * 0.3;
+      } else if (uPat == 28) {               // ruled construction lines: a lattice of diagonals, a red V, arcs along the rim
         col = uA * (0.97 + 0.03 * snoise(pn * 30.0));
-        vec2 q = vec2(u, v);
-        for (int i = 0; i < 12; i++) {
-          float fi = float(i);
-          float an = hash21(vec2(fi, uSeed)) * 3.1416;
-          vec2 dir = vec2(cos(an), sin(an));
-          float off = (hash21(vec2(fi * 1.7, 2.0)) - 0.5) * 1.2;
-          float ln = 1.0 - smoothstep(0.0015, 0.004, abs(dot(q, dir) - off));
-          int m = i - 3 * (i / 3);
-          vec3 lc = m == 0 ? uB : m == 1 ? uC : uD;
-          col = mix(col, lc, ln * 0.8);
-        }
-        col = mix(col, vec3(0.55), (1.0 - smoothstep(0.0, 0.006, v)) * 0.6);
+        vec2 q = fp - vec2(0.0, -0.09);                         // the top of the rim
+        float ink = 0.0;
+        vec2 d1 = normalize(vec2(1.0, 1.25)), d2 = normalize(vec2(-1.0, 1.25));
+        float l1 = abs(fract(dot(q, vec2(d1.y, -d1.x)) / 0.2 + 0.5) - 0.5) * 0.2;
+        float l2 = abs(fract(dot(q, vec2(d2.y, -d2.x)) / 0.2 + 0.5) - 0.5) * 0.2;
+        ink = max(ink, (1.0 - smoothstep(0.0015, 0.0035, min(l1, l2))) * 0.85);
+        ink = max(ink, 1.0 - smoothstep(0.0015, 0.0035, abs(q.x)));
+        ink = max(ink, 1.0 - smoothstep(0.0015, 0.0035, abs(dp - 0.075)));
+        ink = max(ink, 1.0 - smoothstep(0.0015, 0.0035, abs(dp - 0.19)));
+        col = mix(col, vec3(0.12), ink);
+        float vr = min(abs(dot(q, vec2(0.781, 0.625))), abs(dot(q, vec2(0.781, -0.625))));   // the red V from the top
+        col = mix(col, uB, 1.0 - smoothstep(0.002, 0.004, vr));
+        col = mix(col, uC, 1.0 - smoothstep(0.002, 0.004, abs(dot(q - vec2(0.5, 0.0), vec2(0.781, 0.625)))));
+        col = mix(col, uD, (1.0 - smoothstep(0.002, 0.004, abs(dot(q + vec2(1.1, 0.0), vec2(0.781, -0.625))))) * 0.8);
+        col = mix(col, vec3(0.3), 1.0 - smoothstep(0.0, 0.004, dp));
         shade = 0.0;
-      } else if (uPat == 29) {               // ink scribbles
+      } else if (uPat == 29) {               // ink: a drawn horizon with scribbled grass standing up through it
         col = uA * (0.9 + 0.12 * fbm(pn * 3.0));
-        float l1 = 1.0 - smoothstep(0.02, 0.07, abs(snoise(vec3(u * 18.0, v * 4.0, uSeed))));
-        float l2 = 1.0 - smoothstep(0.015, 0.05, abs(snoise(vec3(u * 5.0, v * 14.0, uSeed + 3.0))));
-        float dens = 1.0 - smoothstep(0.25, 0.8, v);
-        col = mix(col, uB, clamp(l1 * 0.9 + l2 * 0.6, 0.0, 1.0) * dens * (0.6 + 0.4 * snoise(pn * 50.0)));
-        col = mix(col, uB, (1.0 - smoothstep(0.003, 0.008, abs(v - 0.006))) * 0.9);
+        float arcL = 1.0 - smoothstep(0.0015, 0.004, abs(dp - 0.03));
+        float s1 = abs(snoise(vec3(fp.x * 10.0, dp * 3.0, uSeed)));
+        float s2 = abs(snoise(vec3(fp.x * 24.0 + dp * 5.0, dp * 7.0, uSeed + 3.0)));
+        float strokes = (1.0 - smoothstep(0.03, 0.07, s1)) + (1.0 - smoothstep(0.02, 0.05, s2));
+        float dens = smoothstep(0.0, 0.015, dp) * (0.3 + 0.7 * exp(-fp.x * fp.x * 1.5)) * (0.5 + 0.5 * smoothstep(-0.4, 0.5, snoise(vec3(fp.x * 1.3, 0.0, 7.0))));
+        col = mix(col, uB, clamp(max(arcL, strokes * dens), 0.0, 1.0) * (0.75 + 0.25 * snoise(pn * 50.0)));
         shade = 0.0;
       } else if (uPat == 30) {               // white fur
         float f  = snoise(vec3(u * 260.0, v * 6.0, uSeed));
@@ -660,13 +856,102 @@ const sphereMat = new THREE.ShaderMaterial({
         col = mix(uB, uA, clamp(0.55 + 0.35 * f + 0.3 * f2, 0.0, 1.0));
         col += 0.15 * exp(-v * 40.0);
         h = f * 0.4; shade = 0.6;
-      } else if (uPat == 31) {               // mushroom gills
-        float g = sin(u * 260.0 + fbm(pn * 2.0) * 4.0);
-        col = mix(uB, uA, smoothstep(-0.6, 0.9, g));
-        col *= 0.7 + 0.4 * (1.0 - smoothstep(0.0, 0.4, v));
-        float cap = 1.0 - smoothstep(0.01, 0.022, v + 0.006 * snoise(vec3(u * 30.0, 0.0, 2.0)));
+      } else if (uPat == 31) {               // mushroom gills fanning down from a ragged cream cap edge
+        vec2 rq = vec2(fp.x, fp.y + 4.0);
+        float a = atan(rq.x, rq.y) * 150.0 + 2.2 * fbm(vec3(fp * 3.0, 1.0));
+        float g = 0.5 + 0.5 * sin(a);
+        col = mix(uB, uA, smoothstep(0.02, 0.3, g)) * (0.8 + 0.3 * smoothstep(0.0, 0.25, dp)) * (0.8 + 0.3 * snoise(vec3(fp.x * 30.0, dp * 8.0, 2.0)));
+        float cap = 1.0 - smoothstep(0.006, 0.014, dp + 0.004 * snoise(vec3(fp.x * 40.0, 0.0, 2.0)));
         col = mix(col, uC * (0.8 + 0.3 * fbm(pn * 8.0)), cap);
         h = g * 0.3;
+      } else if (uPat == 32) {               // orange-red granules under a thin glassy skin
+        float n = fbm(pn * 2.5);
+        float g = snoise(pn * 70.0), g2 = snoise(pn * 150.0 + 3.0);
+        col = mix(uA, uB, clamp(0.35 + 0.35 * n + 0.25 * g, 0.0, 1.0));
+        col = mix(col, vec3(1.0, 0.8, 0.5), smoothstep(0.55, 0.95, g2) * 0.55);
+        col *= 0.82 + 0.18 * smoothstep(-0.8, 0.8, g);
+        float skin = 1.0 - smoothstep(0.12, 0.26, v + 0.02 * snoise(vec3(u * 30.0, 0.0, 1.0)));
+        col = mix(col, mix(uC, col, 0.3), skin * 0.85);
+        col = mix(col, uD, (1.0 - smoothstep(0.0, 0.06, v)) * 0.7);
+        h = g * 0.25; spec = 0.35; shade = 0.35;
+      } else if (uPat == 33) {               // blue crackle glaze: a white worm-like network, sheen on the rim
+        float w1 = abs(snoise(pn * 40.0 + uSeed)), w2 = abs(snoise(pn * 90.0 + 3.0));
+        float net = (1.0 - smoothstep(0.05, 0.15, w1)) * 0.85 + (1.0 - smoothstep(0.04, 0.11, w2)) * 0.45;
+        float big = (1.0 - smoothstep(0.02, 0.07, abs(snoise(pn * 5.0 + 2.0)))) * smoothstep(0.05, 0.4, u);
+        float zone = smoothstep(0.1, 0.45, u + 0.2 * snoise(pn * 2.0));      // darker, purpler on the left
+        col = mix(uA, uD * 0.7, 0.35 + 0.3 * fbm(pn * 2.0));
+        col = mix(col, uC * 0.7, zone * 0.7);
+        col = mix(col, uB * 0.95, clamp(net * (1.0 - zone * 0.6) + big, 0.0, 1.0));
+        col = mix(col, mix(uD, vec3(0.85, 0.92, 0.95), 0.4), (1.0 - smoothstep(0.005, 0.06, dp)) * 0.45 * (1.0 - zone));
+        col = mix(col, vec3(0.97, 0.97, 1.0), (1.0 - smoothstep(0.04, 0.22, v)) * 0.92);
+        col += vec3(0.8, 0.85, 0.95) * exp(-u * u / 0.01 - pow(v - 0.86, 2.0) / 0.004) * 0.7;
+        h = net * 0.25 + big * 0.3; spec = 0.9; shade = 0.55;
+      } else if (uPat == 34) {               // white stone with black, ink-like cavities
+        vec3 w = pn * 2.4;
+        float f = fbm(w + vec3(fbm(w * 1.7), fbm(w * 1.7 + 3.1), 0.0) * 1.3);
+        float band = smoothstep(0.18, 0.3, v) * (1.0 - smoothstep(0.5, 0.6, v));
+        float blk = smoothstep(0.12, 0.3, f) * band;
+        col = uA * (0.9 + 0.1 * fbm(pn * 6.0));
+        col = mix(col, uC, smoothstep(-0.25, 0.35, f) * 0.5);
+        col = mix(col, uD, smoothstep(0.05, 0.25, f) * band * 0.6);
+        col = mix(col, uB, blk);
+        vec2 rc = vec2(fp.x + 0.95, -2.0 * dp + 0.95);        // a big round cell low on the left, like a cut fruit
+        float rr = length(rc);
+        float ring = 1.0 - smoothstep(0.01, 0.03, abs(rr - 0.34));
+        float fan = (1.0 - smoothstep(0.2, 0.33, rr)) * (0.5 + 0.5 * sin(atan(rc.y, rc.x) * 22.0 + fbm(pn * 4.0) * 2.0));
+        col = mix(col, uD, clamp(ring * 0.8 + fan * 0.35, 0.0, 1.0));
+        h = f * 0.35 - blk * 0.4; bumpK = 0.006; shade = 0.7;
+      } else if (uPat == 35) {               // dark maroon ribs rising into rounded teeth
+        float rib = 0.5 + 0.5 * sin(u * 64.0 + snoise(vec3(u * 6.0, v * 3.0, uSeed)) * 1.5);
+        float n = fbm(pn * 3.0);
+        col = mix(uA, uB, clamp(rib * 0.7 + n * 0.3, 0.0, 1.0));
+        col *= 0.75 + 0.35 * smoothstep(0.0, 0.8, vH);
+        col *= 0.65 + 0.5 * smoothstep(-0.6, 0.8, snoise(vec3(fp * 60.0, 1.0)));
+        float spot = smoothstep(0.45, 0.75, snoise(vec3(fp * 7.0, 2.0))) * smoothstep(0.05, 0.14, dp);
+        col = mix(col, uC, spot * (0.5 + 0.4 * snoise(pn * 30.0)));
+        col = mix(col, uD, (1.0 - rib) * 0.4);
+        h = rib * 0.4 + vH * 0.5 + snoise(vec3(fp * 90.0, 3.0)) * 0.3; shade = 0.45; bumpK = 0.01;
+      } else if (uPat == 36) {               // tan leather, a row of stitch holes along the edge
+        float g = snoise(pn * 55.0), g2 = snoise(pn * 160.0);
+        float n = fbm(pn * 2.0);
+        col = mix(uA, uB, clamp(0.45 + 0.35 * n + 0.15 * g, 0.0, 1.0));
+        col *= 0.9 + 0.1 * g2;
+        col = mix(col, uD, smoothstep(0.3, 0.8, snoise(pn * 4.0 + 6.0)) * 0.25);
+        col = mix(col, uB * 1.12, (1.0 - smoothstep(0.02, 0.1, v)) * 0.6);
+        float along = u * 42.0;
+        vec2 hp = vec2((fract(along) - 0.5) / 42.0, v - 0.45 - 0.02 * sin(u * 5.0));
+        float hole = 1.0 - smoothstep(0.8, 1.2, length(hp / vec2(0.0034, 0.0045)));
+        col = mix(col, uC, hole * step(0.15, hash21(vec2(floor(along), 1.0))));
+        float ring2 = 1.0 - smoothstep(0.0, 0.006, abs(v - 0.78 - 0.01 * snoise(vec3(u * 5.0, 0.0, 1.0))));
+        col = mix(col, uD, ring2 * 0.35);
+        h = g * 0.25 - hole * 0.6; shade = 0.55;
+      } else if (uPat == 37) {               // sepia paint smeared sideways, violet at the rim
+        float s1 = snoise(vec3(u * 3.0, v * 55.0, uSeed));
+        float s2 = snoise(vec3(u * 1.2, v * 14.0, uSeed + 2.0));
+        col = mix(uA, uB, clamp(0.45 + 0.35 * s1 + 0.3 * s2, 0.0, 1.0));
+        float glow = exp(-pow(u / 0.3, 2.0)) * exp(-pow((v - 0.56) / 0.1, 2.0));
+        col = mix(col, uB * 1.08, glow * 0.6);
+        col = mix(col, uD, smoothstep(0.5, 0.9, snoise(vec3(u * 2.0, v * 90.0, 7.0))) * 0.5);
+        col = mix(col, uC, (1.0 - smoothstep(0.06, 0.22, v)) * 0.8);
+        shade = 0.15;
+      } else if (uPat == 38) {               // false-colour ground: mint and lime speckle
+        float g = snoise(pn * 45.0), g2 = snoise(pn * 120.0 + 4.0);
+        col = mix(uA, uB, smoothstep(0.1, 0.9, g) * 0.8);
+        col = mix(col, uC, smoothstep(0.35, 0.9, g2) * 0.5);
+        col = mix(col, uB, (1.0 - smoothstep(0.02, 0.12, v)) * 0.5);
+        vec2 pc = vec2(u - 0.79, v - 0.27);                  // a speckled pebble on the left
+        float peb = 1.0 - smoothstep(0.8, 1.0, length(pc / vec2(0.045, 0.03)));
+        col = mix(col, mix(uD, vec3(0.8, 0.5, 0.6), smoothstep(0.0, 1.0, g2)), peb);
+        h = g * 0.2; shade = 0.3;
+      } else if (uPat == 40) {               // white plaster, scraped, half in shadow
+        float n = fbm(pn * 3.0);
+        float scr = snoise(vec3(u * 90.0, v * 4.0, uSeed));
+        col = uA * (0.9 + 0.08 * n + 0.05 * scr);
+        col = mix(col, uB, smoothstep(0.35, 0.8, snoise(pn * 5.0 + 3.0)) * 0.45);
+        col = mix(col, uB * 0.8, smoothstep(0.6, 0.75, snoise(pn * 40.0)) * 0.5);
+        float sh = smoothstep(-0.02, 0.02, (-0.3 + 0.95 * v - 1.64 * v * v) - u);   // the shadow falls from the right
+        col = mix(col, uC, sh * 0.72);
+        h = n * 0.3 + scr * 0.2; shade = 0.6;
       }
 
       vec3 V = normalize(-vViewPos);
@@ -710,9 +995,10 @@ const dropMat = new THREE.ShaderMaterial({
       float sp = pow(max(dot(reflect(-L, n), V), 0.0), 50.0);
       vec3 col;
       if (uMode == 1) {
-        vec3 red = vec3(0.86, 0.22, 0.14), dark = vec3(0.35, 0.05, 0.04);
-        col = mix(red, dark, pow(f, 1.2)) * (0.75 + 0.35 * snoise(vP * 3.5 + uSeed));
-        col += red * 0.35 * pow(1.0 - f, 3.0) + sp * 0.9;
+        vec3 red = vec3(0.93, 0.3, 0.2), dark = vec3(0.55, 0.06, 0.05);
+        col = mix(red, dark, pow(f, 1.3)) * (0.82 + 0.25 * snoise(vP * 3.5 + uSeed));
+        col = mix(col, vec3(0.5, 0.14, 0.07), smoothstep(0.45, 0.8, snoise(vP * 6.0 + 2.0)) * 0.35);   // a little darker mottling inside
+        col += vec3(1.0, 0.6, 0.35) * 0.3 * pow(1.0 - f, 3.0) + sp * 0.9;
       } else {
         col = mix(uA * 0.9, uC, pow(f, 1.6)) * (0.8 + 0.25 * max(dot(n, L), 0.0));
         col += sp * 1.2;
@@ -751,7 +1037,7 @@ const grain = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMate
     void main(){
       float g = hash(gl_FragCoord.xy + fract(uTime * 7.13) * 311.0);
       float vig = smoothstep(0.55, 1.45, length(vNdc * vec2(uAspect * 0.62, 1.0)));
-      gl_FragColor = vec4(vec3(g) * (1.0 - vig), 0.028 + vig * 0.22);
+      gl_FragColor = vec4(vec3(g) * (1.0 - vig), 0.028 + vig * 0.12);
     }`,
 }));
 grain.frustumCulled = false; grain.renderOrder = 11;
@@ -763,16 +1049,20 @@ scene.add(grain);
 const tmpV = new THREE.Vector3();
 const rimState = { alpha: 1, thetaR: .5, R: 1, center: new THREE.Vector3(), spin: 0 };
 
-// Put the sphere so its angular radius is `alphaDeg` and its top edge sits at `rimY` on screen.
-function placeSphere(alphaDeg, rimY, spin) {
+// Put the sphere so its angular radius is `alphaDeg`, the top of its rim sits at `rimY` in the
+// 16:9 frame and at `cx` across it, with an optional roll of the horizon in degrees.
+const Y_AXIS = new THREE.Vector3(0, 1, 0), Z_AXIS = new THREE.Vector3(0, 0, 1);
+function placeSphere(alphaDeg, rimY, spin, cx = .5, roll = 0) {
   const a = alphaDeg * DEG;
-  const th = Math.atan((1 - 2 * rimY) * Math.tan(camera.fov * DEG / 2));
+  const th = Math.atan((1 - 2 * rimY) * TAN_V);
+  const yaw = Math.atan((2 * cx - 1) * TAN_H);
   const c = th - a;
   const R = DIST * Math.sin(a);
   rimState.alpha = a; rimState.thetaR = Math.PI / 2 - a; rimState.R = R; rimState.spin = spin;
-  rimState.center.set(0, DIST * Math.sin(c), -DIST * Math.cos(c));
+  rimState.center.set(0, Math.sin(c), -Math.cos(c)).applyAxisAngle(Y_AXIS, -yaw).applyAxisAngle(Z_AXIS, roll * DEG).multiplyScalar(DIST);
   rim.position.copy(rimState.center);
   rim.scale.setScalar(R);
+  rim.up.set(-Math.sin(roll * DEG), Math.cos(roll * DEG), 0);
   rim.lookAt(0, 0, 0);
   rim.updateMatrixWorld();
   const su = sphereMat.uniforms;
@@ -781,6 +1071,8 @@ function placeSphere(alphaDeg, rimY, spin) {
   su.uSpin.value = spin;
   bgMat.uniforms.uCenterDir.value.copy(rimState.center).normalize();
   bgMat.uniforms.uAlpha.value = a;
+  su.uCDir.value.copy(bgMat.uniforms.uCenterDir.value);
+  su.uCosA.value = Math.cos(a);
 }
 
 // World-space point on the horizon at pattern angle `phi` (PI/2 = top), lifted by `lift` radians of arc.
@@ -801,7 +1093,7 @@ function layoutDrops(kind, seed) {
   if (!kind) { drops.count = 0; return; }
   const rnd = mulberry(seed + 1);
   const L = DIST * Math.cos(rimState.alpha);                  // distance to the horizon
-  const px = L * Math.tan(camera.fov * DEG / 2) * 2;           // world size of one screen height there
+  const px = L * TAN_V * 2;                                    // world size of one frame height there
   let n = 0;
   const put = (phi, lift, r, out) => {
     const p = rimPoint(phi, lift, new THREE.Vector3());
@@ -813,7 +1105,9 @@ function layoutDrops(kind, seed) {
   };
   if (kind === "red") {
     dropMat.uniforms.uMode.value = 1;
-    for (let i = 0; i < 9; i++) put(Math.PI / 2 + (i / 8 - .5) * 1.05 + (rnd() - .5) * .06, 0, px * (.03 + rnd() * .03), .45);
+    // a string of translucent red beads of mixed sizes riding the rim, as in the original
+    const sizes = [.052, .03, .047, .036, .062, .027, .045, .033, .058, .024, .04, .05];
+    for (let i = 0; i < sizes.length; i++) put(Math.PI / 2 + (i / (sizes.length - 1) - .5) * 1.3 + (rnd() - .5) * .04, 0, px * sizes[i] * 1.5, .1);
   } else {
     dropMat.uniforms.uMode.value = 0;
     let phi = Math.PI / 2 - .75;
@@ -839,21 +1133,26 @@ function applyShot(i) {
   U.uSeed.value = s.seed;
   if (s.pal) { col(s.pal[0], U.uA.value); col(s.pal[1], U.uB.value); col(s.pal[2] || s.pal[1], U.uC.value); col(s.pal[3] || s.pal[2] || s.pal[1], U.uD.value); }
   const b = bgMat.uniforms;
-  b.uBg.value = s.bg;
+  b.uBg.value = s.planet ? 5 : s.bg;
   col(s.bgA, b.uBgA.value); col(s.bgB || s.bgA, b.uBgB.value);
   b.uGlowMode.value = s.glow ? s.glow[0] : 0;
   if (s.glow) { col(s.glow[1], b.uGlowCol.value); b.uGlowK.value = s.glow[2]; }
+  b.uJit.value.set(0, 0);
   const m = sphereMat.uniforms;
-  m.uPat.value = s.pat;
+  m.uPat.value = s.pat || 0;
   m.uDisp.value = s.disp || 0;
   m.uScale.value = s.scale || 1;
-  rim.visible = !s.planet;
+  rim.visible = !s.planet && !s.horses;
   drops.visible = !!s.drops;
+  // the print is inked and painted onto its paper: multiply the overlay instead of laying it on top
+  textQuad.material.blending = s.horses ? THREE.MultiplyBlending : THREE.NormalBlending;
+  overlayKey = "";
 }
 
-const ease = x => x < .5 ? 2 * x * x : 1 - Math.pow(-2 * x + 2, 2) / 2;
 const clamp01 = x => Math.min(1, Math.max(0, x));
 const lerp = (a, b, k) => a + (b - a) * k;
+const smooth = x => x * x * (3 - 2 * x);
+const hash1 = n => { const s = Math.sin(n * 127.1 + 311.7) * 43758.5453; return s - Math.floor(s); };
 
 function update(t) {
   let i = SHOTS.length - 1;
@@ -864,66 +1163,316 @@ function update(t) {
   const b = bgMat.uniforms;
 
   if (s.planet) {
-    let rimY, orange, soft, blue = 1;
-    if (!s.finale) {                                   // opening: the planet rising slowly
-      rimY = lerp(.56, .52, k); orange = 1; soft = .012;
-    } else {                                           // finale: horizon sinks, then climbs back to the opening frame
-      const rise = ease(clamp01((t - 18.2) / (END - 18.2)));
-      rimY = lerp(1.03, .56, rise);
-      orange = Math.pow(rise, 1.4);
-      soft = lerp(.035, .012, rise);
-      blue = .85 + .15 * rise;
-    }
+    // Opening: the limb holds still. Titles: the horizon is below the frame and only the
+    // atmosphere's glow shows; from T_RISE the frame rises until it is the opening frame again.
+    const rise = s.finale ? riseAt(t) : 0;
+    const rimY = s.finale ? HORIZON_LOW - rise : HORIZON;
     placeSphere(72, rimY, 0);
-    b.uOrange.value = orange; b.uBlue.value = blue; b.uSoft.value = soft;
-    return { rimY };
+    b.uSoft.value = .012;
+    b.uHaze.value = s.finale ? smooth(clamp01(rise / RISE[RISE.length - 1][1])) : 1;
+    return { rimY, rise };
+  }
+
+  if (s.horses) {
+    // one figure per film frame; the disc wobbles a little from frame to frame
+    const f = Math.min(WOBBLE.length - 1, Math.floor((t - s.t) * 25 + 1e-4));
+    b.uJit.value.set(WOBBLE[f][0], WOBBLE[f][1]);
+    return { frame: f };
   }
 
   const r0 = s.rimY ? s.rimY[0] : .54, r1 = s.rimY ? s.rimY[1] : .52;
-  placeSphere(s.alpha * (1 + .025 * k), lerp(r0, r1, k), (s.spin ?? .05) * (k - .5));
+  placeSphere(s.alpha * (1 + .012 * k), lerp(r0, r1, k), (s.spin ?? .04) * (k - .5), s.cx ?? .5, s.roll || 0);
   sphereMat.uniforms.uDispAmp.value = (s.amp || 0) / Math.tan(rimState.alpha);
   if (s.drops) layoutDrops(s.drops, s.seed);
   return {};
 }
 
 /* ------------------------------------------------------------------------------------------
-   Typography
+   The horses (8.12 – 8.72 s). A close-up of a hand-coloured phenakistiscope disc: every film
+   frame shows the next figure, so the horse gallops on the spot, eight poses to a stride,
+   one pose per frame. The foxed paper and the green arches are in the backdrop shader; the
+   horses are drawn here in 2D, in 1920 x 1080 frame pixels, and multiplied onto the paper
+   the way ink and watercolour sit on a print.
+------------------------------------------------------------------------------------------- */
+// Each arch is a parabola, flat across the top; the figures stand on them. Measured off the
+// original: 0.000263 px of sag per px² from the apex, a new arch every 2000 px, and the whole
+// disc wobbling from frame to frame by these offsets (x, y in frame pixels).
+const ARCH = { P: 2000, K: .000263, AP: 470 };         // must match the arches in the backdrop
+const WOBBLE = [[33,-4],[-10,1],[98,24],[-32,11],[106,-4],[-45,12],[0,-16],[55,-7],[-8,1],[88,25],[-108,10],[-38,12],[105,-5],[-7,-17],[49,-8]];
+function archTop(x, jx, jy) {
+  const xc = ((x - 960 - jx + ARCH.P / 2) % ARCH.P + ARCH.P) % ARCH.P - ARCH.P / 2;
+  return ARCH.AP + ARCH.K * xc * xc + jy;
+}
+
+// The stride, read off the print one frame at a time (f = frame of the shot, stride = 8 frames):
+// f0 fore legs planted ahead, hind legs trailing high; f1–f2 hind legs land under the belly
+// while the fore legs fold up; f3 hinds push, fores reach; f4 fully stretched, all four down;
+// f5–f7 fore legs planted, hinds trailing. Body space: origin at the lowest point of the belly,
+// x forward (the horse runs to the right), y down; x positions are in that space.
+const LEGS = [
+  { fore: false, near: false, root: [-290, -48], a: 226, b: 240, on: .14, off: .56, land: -120, push: -520, back: -700, lift: 190, sink: 10 },
+  { fore: true,  near: false, root: [362, -34],  a: 200, b: 222, on: .53, off: 1.0, land: 540, push: 260, fold: 440, lift: 125, sink: 40 },
+  { fore: false, near: true,  root: [-318, -40], a: 226, b: 240, on: .11, off: .53, land: -100, push: -500, back: -690, lift: 200, sink: 14 },
+  { fore: true,  near: true,  root: [330, -24],  a: 200, b: 222, on: .48, off: .95, land: 510, push: 250, fold: 410, lift: 135, sink: 48 },
+];
+const BODY = [[-440,-560],[-452,-420],[-462,-320],[-462,-240],[-450,-170],[-428,-110],[-398,-62],[-352,-26],[-280,-8],[-160,-2],[-40,2],[110,0],[230,-6],[320,-16],[380,-34],[420,-80],[446,-160],[458,-260],[462,-560]];
+const INK = "#2e1a10";
+// Colours to paint with, already divided by the paper they are multiplied onto
+const HIDE = "#b0602e", HIDE_FAR = "#8c4722";
+
+function ik(root, tgt, a, b, kneeForward) {
+  const dx = tgt[0] - root[0], dy = tgt[1] - root[1];
+  const d0 = Math.hypot(dx, dy) || 1;
+  const d = Math.min(a + b - 2, Math.max(Math.abs(a - b) + 2, d0));
+  const end = [root[0] + dx / d0 * d, root[1] + dy / d0 * d];
+  const base = Math.atan2(dy, dx);
+  const A = Math.acos(Math.min(1, Math.max(-1, (a * a + d * d - b * b) / (2 * a * d))));
+  const k1 = [root[0] + a * Math.cos(base + A), root[1] + a * Math.sin(base + A)];
+  const k2 = [root[0] + a * Math.cos(base - A), root[1] + a * Math.sin(base - A)];
+  return [kneeForward ? (k1[0] > k2[0] ? k1 : k2) : (k1[0] < k2[0] ? k1 : k2), end];
+}
+
+// A closed outline through `P`, smoothed by curving through the midpoints of its edges
+function smoothPath(ctx, P) {
+  const n = P.length, mid = i => [(P[i % n][0] + P[(i + 1) % n][0]) / 2, (P[i % n][1] + P[(i + 1) % n][1]) / 2];
+  const m = mid(n - 1);
+  ctx.moveTo(m[0], m[1]);
+  for (let i = 0; i < n; i++) { const q = mid(i); ctx.quadraticCurveTo(P[i][0], P[i][1], q[0], q[1]); }
+  ctx.closePath();
+}
+
+// A limb through the joints `pts`, `ws` wide at each (plus a bulge `bs` at the back of the
+// leg for the hock and fetlock). Its top melts into the body: the outline is inked down the
+// sides and round the foot only, and the shaded back edge is hatched.
+function openSmooth(ctx, P) {
+  ctx.moveTo(P[0][0], P[0][1]);
+  for (let i = 1; i < P.length - 1; i++) ctx.quadraticCurveTo(P[i][0], P[i][1], (P[i][0] + P[i + 1][0]) / 2, (P[i][1] + P[i + 1][1]) / 2);
+  ctx.lineTo(P[P.length - 1][0], P[P.length - 1][1]);
+}
+function limb(ctx, pts, ws, bs, fill, hatch) {
+  const L = [], R = [];
+  for (let i = 0; i < pts.length; i++) {
+    const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
+    let nx = -(b[1] - a[1]), ny = b[0] - a[0];
+    const l = Math.hypot(nx, ny) || 1; nx /= l; ny /= l;
+    if (nx > 0) { nx = -nx; ny = -ny; }                   // n points to the back of the leg
+    const w = ws[i] / 2, bb = bs[i] || 0;
+    L.push([pts[i][0] + nx * (w + bb), pts[i][1] + ny * (w + bb)]);   // back edge
+    R.push([pts[i][0] - nx * w, pts[i][1] - ny * w]);                  // front edge
+  }
+  const outline = L.concat(R.slice().reverse());
+  ctx.beginPath(); openSmooth(ctx, outline); ctx.closePath();
+  ctx.fillStyle = fill; ctx.fill();
+  ctx.beginPath(); openSmooth(ctx, outline.slice(1, -1));
+  ctx.lineWidth = 3.4; ctx.strokeStyle = INK; ctx.stroke();
+  if (!hatch) return;
+  ctx.beginPath();
+  for (let i = 1; i < L.length - 1; i++) {
+    const [x0, y0] = L[i], [x1, y1] = L[i + 1];
+    const n = Math.floor(Math.hypot(x1 - x0, y1 - y0) / 6.5);
+    const ix = pts[i][0] - x0, iy = pts[i][1] - y0, il = Math.hypot(ix, iy) || 1;
+    for (let j = 0; j < n; j++) {
+      const f = j / n, x = lerp(x0, x1, f), y = lerp(y0, y1, f), s = (5 + 8 * hash1(i * 31 + j)) * Math.min(1, ws[i] / 40);
+      ctx.moveTo(x, y); ctx.lineTo(x + ix / il * s + 2, y + iy / il * s + 3);
+    }
+  }
+  ctx.lineWidth = 1.5; ctx.strokeStyle = "rgba(46,26,16,.8)"; ctx.stroke();
+}
+
+function hoofAt(leg, phi, ground) {
+  const span = leg.off - leg.on;
+  const p = ((phi - leg.on) % 1 + 1) % 1;
+  if (p < span) { const x = lerp(leg.land, leg.push, p / span); return { x, y: ground(x) + leg.sink, q: -1 }; }
+  const q = (p - span) / (1 - span);
+  let x;
+  if (leg.fore) x = q < .35 ? lerp(leg.push, leg.fold, smooth(q / .35)) : lerp(leg.fold, leg.land, smooth((q - .35) / .65));   // fold up under the chest, then reach
+  else x = q < .55 ? lerp(leg.push, leg.back, smooth(q / .55)) : lerp(leg.back, leg.land, smooth((q - .55) / .45));          // trail out behind, then swing through
+  const lift = leg.fore ? Math.sin(Math.PI * Math.pow(q, .7)) : Math.pow(Math.sin(Math.PI * q), .8);   // fores peak early, then reach down
+  return { x, y: ground(x) + leg.sink - leg.lift * lift, q };
+}
+
+function drawLeg(ctx, leg, phi, ground, fill, hatch) {
+  const h = hoofAt(leg, phi, ground);
+  const [knee, T] = ik(leg.root, [h.x, h.y - 30], leg.a, leg.b, leg.fore);
+  // fetlock three quarters down the cannon; the pastern angles forward under load, tucks in flight
+  const dx = T[0] - knee[0], dy = T[1] - knee[1], dl = Math.hypot(dx, dy) || 1;
+  let bx = -dy / dl, by = dx / dl;
+  if (bx > 0) { bx = -bx; by = -by; }
+  const bend = h.q < 0 ? 16 : -10 * Math.sin(Math.PI * h.q);
+  const fet = [knee[0] + dx * .76 + bx * bend, knee[1] + dy * .76 + by * bend];
+  const upper = [lerp(leg.root[0], knee[0], .45), lerp(leg.root[1], knee[1], .45)];
+  const cannon = [lerp(knee[0], fet[0], .5), lerp(knee[1], fet[1], .5)];
+  const top = [leg.root[0] + (leg.fore ? -14 : 14), leg.root[1] - 70];    // where the leg's muscle starts, inside the body
+  const pts = [top, leg.root, upper, knee, cannon, fet, T];
+  const ws = leg.fore ? [80, 84, 58, 40, 27, 34, 25] : [104, 112, 74, 42, 28, 34, 25];
+  const bs = leg.fore ? [0, 0, 0, 4, 0, 8, 0] : [0, 0, 8, 18, 0, 8, 0];
+  limb(ctx, pts, ws, bs, fill, hatch);
+  // pale ergot and fetlock hair, then the hoof: dark horn under a pale coronet band
+  ctx.fillStyle = "rgba(250,244,232,.9)";
+  ctx.beginPath(); ctx.ellipse(fet[0] + bx * 12, fet[1] + by * 12 + 6, 8, 12, 0, 0, Math.PI * 2); ctx.fill();
+  const ang = Math.atan2(T[1] - fet[1], T[0] - fet[0]) - Math.PI / 2;
+  ctx.save(); ctx.translate(T[0], T[1]); ctx.rotate(ang);
+  ctx.beginPath(); ctx.moveTo(-17, -4); ctx.lineTo(17, -4); ctx.lineTo(22, 30); ctx.lineTo(-20, 32); ctx.closePath();
+  ctx.fillStyle = "#56566a"; ctx.fill(); ctx.lineWidth = 2.8; ctx.strokeStyle = INK; ctx.stroke();
+  ctx.fillStyle = "rgba(226,226,236,.9)"; ctx.fillRect(-15, -2, 30, 7);
+  ctx.restore();
+}
+
+function drawHorse(ctx, cx, phi, jx, jy) {
+  const bob = 14 * Math.cos(2 * Math.PI * (phi - .85));
+  const baseY = ARCH.AP + jy - 226 - bob;                   // belly height over the arch's apex
+  const pitch = .03 * Math.sin(2 * Math.PI * (phi - .1));
+  const ground = x => archTop(cx + x, jx, jy) - baseY;
+  ctx.save();
+  ctx.translate(cx, baseY); ctx.rotate(pitch);
+  for (const leg of LEGS) if (!leg.near) drawLeg(ctx, leg, phi, ground, HIDE_FAR, false);
+  // one wash for the barrel and the near legs, so where a leg's top overlaps the body it disappears
+  const g = ctx.createLinearGradient(0, -330, 0, 8);
+  g.addColorStop(0, "#c07038"); g.addColorStop(.7, HIDE); g.addColorStop(1, "#a45a2c");
+  ctx.beginPath(); smoothPath(ctx, BODY); ctx.fillStyle = g; ctx.fill();
+  ctx.lineWidth = 3.6; ctx.strokeStyle = INK; ctx.stroke();
+  // muscle lines, and hatching along the belly
+  ctx.beginPath();
+  ctx.moveTo(-388, -98); ctx.quadraticCurveTo(-350, -190, -380, -330);
+  ctx.moveTo(-250, -22); ctx.quadraticCurveTo(-205, -90, -222, -170);
+  ctx.moveTo(330, -34); ctx.quadraticCurveTo(290, -130, 322, -290);
+  ctx.moveTo(90, -2); ctx.quadraticCurveTo(118, -50, 104, -104);
+  for (let x = -330; x < 330; x += 8) {
+    const y = Math.abs(x) < 150 ? 0 : (Math.abs(x) - 150) * -.2;
+    ctx.moveTo(x, y - 3); ctx.lineTo(x + 3, y - 12 - 9 * hash1(x));
+  }
+  ctx.lineWidth = 1.7; ctx.strokeStyle = "rgba(46,26,16,.72)"; ctx.stroke();
+  const near = LEGS.filter(l => l.near);
+  drawLeg(ctx, near[0], phi, ground, g, true);
+  // the rider's leg: yellow breeches, white knee, brown boot top, black boot
+  ctx.lineWidth = 3.2; ctx.strokeStyle = INK;
+  const part = (pts, fill) => { ctx.beginPath(); smoothPath(ctx, pts); ctx.fillStyle = fill; ctx.fill(); ctx.stroke(); };
+  part([[80,-620],[200,-620],[208,-300],[198,-204],[150,-194],[116,-236]], "#e6bd18");
+  part([[146,-200],[198,-208],[212,-146],[202,-106],[160,-100],[146,-132]], "#f6efe2");
+  part([[152,-108],[204,-110],[206,-86],[154,-82]], "#c49660");
+  part([[154,-86],[206,-88],[208,20],[214,70],[240,100],[256,118],[244,128],[206,122],[182,110],[166,100],[160,30]], "#262738");
+  drawLeg(ctx, near[1], phi, ground, g, true);
+  ctx.restore();
+}
+
+// Dark figures on the disc's inner ring: only their ears and flung legs reach into the frame
+function drawHound(ctx, f, jx, jy) {
+  const x = 980 + 230 * Math.sin(f * 2.1) + jx, y = 1000 + 30 * Math.cos(f * 1.3) + jy, rot = .55 * Math.sin(f * 1.7);
+  ctx.save(); ctx.translate(x, y); ctx.rotate(rot);
+  ctx.beginPath();
+  if (f % 3 === 1) {        // a leg flung up and back
+    ctx.moveTo(-50, 150); ctx.lineTo(-74, 20); ctx.lineTo(-130, -104); ctx.lineTo(-108, -114); ctx.lineTo(-40, 0); ctx.lineTo(40, 150);
+  } else {                  // head and pricked ears
+    ctx.moveTo(-70, 160); ctx.lineTo(-52, 30); ctx.lineTo(-36, -50); ctx.lineTo(-32, -140); ctx.lineTo(-12, -60);
+    ctx.lineTo(8, -60); ctx.lineTo(22, -155); ctx.lineTo(36, -48); ctx.lineTo(56, 20); ctx.lineTo(84, 160);
+  }
+  ctx.closePath();
+  ctx.fillStyle = "#28304a"; ctx.fill();
+  ctx.lineWidth = 2.4; ctx.strokeStyle = "#141824"; ctx.stroke();
+  ctx.restore();
+}
+
+const HORSE_PHASE0 = 0;               // the first frame of the shot is f0 of the stride
+const HORSE_SHIFT = [-120, -60, -60, -20, 60, 30, 0, -10, -110, -60, -60, -20, 60, 30, 0];   // each figure sits a little differently on the disc
+function drawHorses(f) {
+  const s = frame.w / 1920;
+  tctx.setTransform(s, 0, 0, s, frame.x, frame.y);
+  const [jx, jy] = WOBBLE[Math.min(f, WOBBLE.length - 1)];
+  const phi = (HORSE_PHASE0 + f / 8) % 1;
+  const cx = 960 + jx + HORSE_SHIFT[Math.min(f, HORSE_SHIFT.length - 1)];
+  tctx.lineJoin = "round"; tctx.lineCap = "round";
+  drawHound(tctx, f, jx, jy);
+  drawHorse(tctx, cx - 1350, (phi + 7 / 8) % 1, jx, jy);   // neighbours on the disc: the figures before and after
+  drawHorse(tctx, cx + 1350, (phi + 1 / 8) % 1, jx, jy);
+  drawHorse(tctx, cx, phi, jx, jy);
+  tctx.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+/* ------------------------------------------------------------------------------------------
+   The leather shot's threads: a red one through two stitch holes, frayed end up in the air,
+   and a green one looped round a hole. Frame pixels, with soft shadows on the paper.
+------------------------------------------------------------------------------------------- */
+const THREADS = [
+  { col: "#d4303c", hi: "#f08088", w: 6.5, pts: [[755,525],[782,590],[815,636],[870,646],[912,652],[936,688],[952,722],[972,700],[990,668],[972,628],[952,580],[958,540],[986,470],[1015,420],[1046,392]] },
+  { col: "#3c4a2c", hi: "#6a7a50", w: 6, pts: [[560,736],[640,733],[700,730],[782,724]] },
+  { col: "#3c4a2c", hi: "#6a7a50", w: 6, pts: [[560,606],[600,588],[640,572]] },
+];
+function drawThreads() {
+  const s = frame.w / 1920;
+  tctx.setTransform(s, 0, 0, s, frame.x, frame.y);
+  tctx.lineJoin = "round"; tctx.lineCap = "round";
+  const stroke = (pts, w, style) => {
+    tctx.beginPath(); tctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i = 1; i < pts.length - 1; i++) tctx.quadraticCurveTo(pts[i][0], pts[i][1], (pts[i][0] + pts[i + 1][0]) / 2, (pts[i][1] + pts[i + 1][1]) / 2);
+    tctx.lineTo(pts[pts.length - 1][0], pts[pts.length - 1][1]);
+    tctx.lineWidth = w; tctx.strokeStyle = style; tctx.stroke();
+  };
+  for (const th of THREADS) stroke(th.pts.map(p => [p[0] + 14, p[1] + 10]), th.w * 1.6, "rgba(40,30,20,.18)");
+  for (const th of THREADS) {
+    stroke(th.pts, th.w, th.col);
+    tctx.setLineDash([5, 7]); stroke(th.pts, th.w * .35, th.hi); tctx.setLineDash([]);   // the twist of the ply
+  }
+  // the green loop round a hole, right of centre
+  tctx.beginPath(); tctx.ellipse(1155, 695, 27, 24, 0, 0, Math.PI * 2);
+  tctx.lineWidth = 7; tctx.strokeStyle = "#3c4a2c"; tctx.stroke();
+  tctx.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+/* ------------------------------------------------------------------------------------------
+   Typography, drawn into a canvas that is part of the WebGL frame (so it records).
+   Sizes and positions come from the original: every word is fitted to its measured width,
+   so the layout holds whatever serif the browser ends up using.
 ------------------------------------------------------------------------------------------- */
 const FONT = `"Newsreader", Georgia, "Times New Roman", serif`;
+const WEIGHT = 600;                  // the original's serif is set fairly heavy
+const inkWidth = m => (m.actualBoundingBoxLeft !== undefined ? m.actualBoundingBoxLeft + m.actualBoundingBoxRight : m.width * .96);
 
 function toScreen(p, W, H) {
   tmpV.copy(p).project(camera);
   return [(tmpV.x * .5 + .5) * W, (1 - (tmpV.y * .5 + .5)) * H];
 }
 
-function drawArcWord(word, ink, size, gap, W, H) {
-  // sample the projected horizon, left to right, and lift it by `gap` pixels
+// font size (canvas px) at which `text` is `frac` of the frame's width, ink edge to ink edge
+const fitCache = new Map();
+// if the web font arrives after the film has started, measure again with it
+if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener("loadingdone", () => { fitCache.clear(); overlayKey = ""; });
+function fitSize(text, frac) {
+  let per100 = fitCache.get(text);
+  if (!per100) { tctx.font = `${WEIGHT} 100px ${FONT}`; per100 = inkWidth(tctx.measureText(text)) / 100; fitCache.set(text, per100); }
+  return frac * frame.w / per100;
+}
+
+function drawStraightWord(word, size, baseY) {
+  tctx.font = `${WEIGHT} ${size}px ${FONT}`;
+  tctx.textAlign = "center"; tctx.textBaseline = "alphabetic";
+  tctx.fillText(word, textCanvas.width / 2, baseY);
+}
+
+// Lay the word along the projected horizon, lifted so the curve passes through the baseline
+// at the centre of the frame.
+function drawArchedWord(word, size, baseY) {
+  const W = textCanvas.width, H = textCanvas.height, cx = W / 2;
   const pts = [];
-  for (let j = 0; j <= 80; j++) {
-    const phi = Math.PI / 2 + .9 - (j / 80) * 1.8;
-    pts.push(toScreen(rimPoint(phi + rimState.spin), W, H));
+  for (let j = 0; j <= 96; j++) pts.push(toScreen(rimPoint(Math.PI / 2 + 1 - (j / 96) * 2 + rimState.spin), W, H));
+  let yc = baseY;
+  for (let j = 1; j < pts.length; j++) {
+    const a = pts[j - 1], b = pts[j];
+    if ((a[0] - cx) * (b[0] - cx) <= 0 && a[0] !== b[0]) { yc = lerp(a[1], b[1], (cx - a[0]) / (b[0] - a[0])); break; }
   }
-  const lifted = pts.map((p, j) => {
-    const a = pts[Math.max(0, j - 1)], b = pts[Math.min(pts.length - 1, j + 1)];
-    let nx = b[1] - a[1], ny = -(b[0] - a[0]);
-    const l = Math.hypot(nx, ny) || 1; nx /= l; ny /= l;
-    if (ny > 0) { nx = -nx; ny = -ny; }
-    return [p[0] + nx * gap, p[1] + ny * gap];
-  });
+  const path = pts.map(p => [p[0], p[1] + baseY - yc]);
   const cum = [0];
-  for (let j = 1; j < lifted.length; j++) cum.push(cum[j - 1] + Math.hypot(lifted[j][0] - lifted[j - 1][0], lifted[j][1] - lifted[j - 1][1]));
+  for (let j = 1; j < path.length; j++) cum.push(cum[j - 1] + Math.hypot(path[j][0] - path[j - 1][0], path[j][1] - path[j - 1][1]));
   let mid = 0;
-  for (let j = 1; j < lifted.length; j++) if (Math.abs(lifted[j][0] - W / 2) < Math.abs(lifted[mid][0] - W / 2)) mid = j;
+  for (let j = 1; j < path.length; j++) if (Math.abs(path[j][0] - cx) < Math.abs(path[mid][0] - cx)) mid = j;
   const at = s => {
     let j = 1;
     while (j < cum.length - 1 && cum[j] < s) j++;
     const f = (s - cum[j - 1]) / ((cum[j] - cum[j - 1]) || 1);
-    const a = lifted[j - 1], b = lifted[j];
+    const a = path[j - 1], b = path[j];
     return [lerp(a[0], b[0], f), lerp(a[1], b[1], f), Math.atan2(b[1] - a[1], b[0] - a[0])];
   };
-  tctx.font = `${word === "discover" ? 500 : 400} ${size}px ${FONT}`;
-  tctx.fillStyle = ink;
-  tctx.textBaseline = "alphabetic";
+  tctx.font = `${WEIGHT} ${size}px ${FONT}`;
+  tctx.textAlign = "left"; tctx.textBaseline = "alphabetic";
   const chars = [...word];
   const widths = chars.map(c => tctx.measureText(c).width);
   const total = tctx.measureText(word).width;
@@ -932,12 +1481,33 @@ function drawArcWord(word, ink, size, gap, W, H) {
   chars.forEach((c, j) => {
     const w = widths[j] * squeeze;
     const [x, y, ang] = at(s + w / 2);
-    tctx.save();
-    tctx.translate(x, y); tctx.rotate(ang);
+    tctx.save(); tctx.translate(x, y); tctx.rotate(ang);
     tctx.fillText(c, -widths[j] / 2, 0);
     tctx.restore();
     s += w;
   });
+}
+
+function drawWord(s) {
+  const fy = v => frame.y + v * frame.h;
+  const size = fitSize(s.word, s.tw);
+  tctx.save();
+  tctx.fillStyle = s.ink || "#fff";
+  tctx.globalAlpha = s.ta ?? 1;
+  tctx.shadowColor = new THREE.Color(s.ink || "#fff").getHSL({}).l > .5 ? "rgba(0,0,0,.28)" : "rgba(0,0,0,0)";
+  tctx.shadowBlur = 12 * frame.h / 1080;
+  if (s.word === W3) drawArchedWord(s.word, size, fy(s.tb ?? .49));
+  else drawStraightWord(s.word, size, fy(s.tb ?? (s.word === W1 ? .473 : .477)));
+  tctx.restore();
+  if (s.shadeText) {
+    // part of the word falls in the plaster's shadow
+    const [x0, x1, a] = s.shadeText, X0 = frame.x + x0 * frame.w, X1 = frame.x + x1 * frame.w;
+    tctx.save(); tctx.globalCompositeOperation = "destination-out";
+    const g = tctx.createLinearGradient(X0, 0, X1, 0);
+    g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, `rgba(0,0,0,${1 - a})`);
+    tctx.fillStyle = g; tctx.fillRect(X0, 0, textCanvas.width - X0, textCanvas.height);
+    tctx.restore();
+  }
 }
 
 // The spark: a dozen rounded rays of slightly different lengths
@@ -945,51 +1515,74 @@ const SPARK = Array.from({ length: 12 }, (_, i) => ({
   a: i / 12 * Math.PI * 2 + [0, .06, -.04, .03, -.07, .05, 0, -.03, .06, -.05, .02, -.02][i],
   l: [1, .82, .94, .78, 1, .86, .92, .8, .98, .84, .9, .8][i],
 }));
-function drawSpark(x, y, r, ink) {
+function drawSpark(x, y, r) {
   tctx.save();
-  tctx.strokeStyle = ink; tctx.lineCap = "round"; tctx.lineWidth = r * .2;
+  tctx.lineCap = "round"; tctx.lineWidth = r * .17;
   tctx.beginPath();
   for (const s of SPARK) { tctx.moveTo(x, y); tctx.lineTo(x + Math.cos(s.a) * r * s.l, y + Math.sin(s.a) * r * s.l); }
   tctx.stroke();
-  tctx.beginPath(); tctx.arc(x, y, r * .2, 0, Math.PI * 2); tctx.fillStyle = ink; tctx.fill();
+  tctx.beginPath(); tctx.arc(x, y, r * .18, 0, Math.PI * 2); tctx.fill();
   tctx.restore();
 }
 
-function drawText(t, info) {
-  const W = textCanvas.width, H = textCanvas.height;
-  tctx.clearRect(0, 0, W, H);
-  // portrait screens get larger type relative to their width
-  const unit = Math.min(H / 1080, W / 1920 * (W < H ? 2.2 : 1));
+// Title cards, measured off the original: "Opus 5.5" 19.6% of the frame wide with its cap top
+// at 43.3% of the height; the wordmark 21.4% wide, spark as tall as the word.
+function drawTitle(t, info, offY) {
+  const fy = v => frame.y + v * frame.h + offY;
+  const W = textCanvas.width;
+  tctx.textBaseline = "alphabetic";
+  if (t < T_CLAUDE) {
+    const size = fitSize("Opus 5.5", .1964);
+    tctx.font = `${WEIGHT} ${size}px ${FONT}`;
+    const m = tctx.measureText("Opus 5.5");
+    tctx.textAlign = "left";
+    tctx.fillText("Opus 5.5", W / 2 - inkWidth(m) / 2 + (m.actualBoundingBoxLeft || 0), fy(.4333) + (m.actualBoundingBoxAscent || size * .68));
+  } else {
+    const size = fitSize("Claude", .1594);
+    tctx.font = `${WEIGHT} ${size}px ${FONT}`;
+    const m = tctx.measureText("Claude");
+    const tw = inkWidth(m), asc = m.actualBoundingBoxAscent || size * .7;
+    const r = asc * .52, gap = frame.w * .0083;
+    const x0 = W / 2 - (r * 2 + gap + tw) / 2;
+    const top = fy(.4278), base = top + asc;
+    drawSpark(x0 + r, (top + base) / 2, r);
+    tctx.textAlign = "left";
+    tctx.fillText("Claude", x0 + r * 2 + gap + (m.actualBoundingBoxLeft || 0), base);
+  }
+}
+
+function drawTitles(t, info) {
+  tctx.save();
+  tctx.fillStyle = "#f4f2ee"; tctx.strokeStyle = "#f4f2ee";
+  tctx.shadowColor = "rgba(0,0,0,.3)"; tctx.shadowBlur = 10 * frame.h / 1080;
+  const off = -info.rise * frame.h;
+  // while the frame is rising fast, smear the wordmark along its path like the camera does
+  const v = (riseAt(t) - riseAt(t - .04)) * frame.h;
+  const taps = v > 6 ? Math.min(10, Math.ceil(v / 6)) : 1;
+  tctx.globalAlpha = taps > 1 ? Math.min(1, 1.8 / taps) : 1;
+  for (let k = 0; k < taps; k++) drawTitle(t, info, off + (taps > 1 ? k / (taps - 1) * v : 0));
+  tctx.restore();
+}
+
+// Only redraw and re-upload the overlay when what it shows has changed
+let overlayKey = "";
+function drawOverlay(t, info) {
   const s = SHOTS[current];
-  const shadow = ink => {
-    tctx.shadowColor = ink === "#fff" ? "rgba(0,0,0,.45)" : "rgba(0,0,0,0)";
-    tctx.shadowBlur = 18 * unit;
-  };
-  if (s.word) {
-    const big = s.word === "discover";
-    const size = (big ? 118 : 58) * unit;
-    shadow(s.ink);
-    drawArcWord(s.word, s.ink, size, big ? size * .3 : size * 1.25, W, H);
-  } else if (s.finale) {
-    tctx.fillStyle = "#f3f1ec"; tctx.textBaseline = "middle"; tctx.textAlign = "center";
-    shadow("#fff");
-    const size = 60 * unit;
-    const riseK = ease(clamp01((t - 18.2) / (END - 18.2)));
-    const y = H * .47 - (1.03 - info.rimY) * H * .95;
-    if (t < 17.2) {
-      tctx.globalAlpha = clamp01((t - 15.9) / .3) * clamp01((17.2 - t) / .12);
-      tctx.font = `400 ${size}px ${FONT}`;
-      tctx.fillText("Opus 5.5", W / 2, H * .47);
-    } else {
-      tctx.globalAlpha = clamp01((t - 17.2) / .3) * (1 - clamp01((riseK - .35) / .25));
-      tctx.font = `500 ${size}px ${FONT}`;
-      const tw = tctx.measureText("Claude").width, r = size * .36, gap = size * .16;
-      const x0 = W / 2 - (tw + r * 2 + gap) / 2;
-      drawSpark(x0 + r, y + size * .02, r, "#f3f1ec");
-      tctx.textAlign = "left";
-      tctx.fillText("Claude", x0 + r * 2 + gap, y);
-    }
-    tctx.globalAlpha = 1; tctx.textAlign = "left";
+  const key = s.horses ? `h${info.frame}`
+    : s.finale ? `f${t < T_CLAUDE ? 0 : 1}:${Math.round(info.rise * frame.h * 2)}`
+    : s.word === W3 ? `s${current}:${Math.round(rimState.alpha * 2e3)}` : `s${current}`;   // only the bent word follows the moving rim
+  if (key === overlayKey) return;
+  overlayKey = key;
+  const W = textCanvas.width, H = textCanvas.height;
+  tctx.setTransform(1, 0, 0, 1, 0, 0);
+  if (s.horses) {
+    tctx.fillStyle = "#fff"; tctx.fillRect(0, 0, W, H);        // white multiplies to nothing
+    drawHorses(info.frame);
+  } else {
+    tctx.clearRect(0, 0, W, H);
+    if (s.overlay === "threads") drawThreads();
+    if (s.word) drawWord(s);
+    else if (s.finale) drawTitles(t, info);
   }
   textTex.needsUpdate = true;
 }
@@ -1070,23 +1663,38 @@ class Score {
     g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(level, t1 - .3); g.gain.linearRampToValueAtTime(0, t1 + .3);
     src.connect(bp); bp.connect(g); src.start(t0); src.stop(t1 + .4);
   }
+  // hoofbeat: a dull knock on turf
+  clop(t, level) {
+    const ctx = this.ctx, src = this.track(ctx.createBufferSource()); src.buffer = this.noise;
+    const bp = ctx.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 520; bp.Q.value = 2.5;
+    const g = this.bus(0, false);
+    g.gain.setValueAtTime(level, t); g.gain.exponentialRampToValueAtTime(.0001, t + .09);
+    src.connect(bp); bp.connect(g); src.start(t); src.stop(t + .12);
+    this.thump(t, level * .6);
+  }
   // one pass of the film, starting at audio time `at`
   loop(at) {
     const A = x => at + x;
     this.chord([146.83, 220, 329.63, 369.99, 554.37], A(0), A(8.72), 500, 1400, .022);
-    this.chord([123.47, 185, 220, 293.66, 329.63, 440], A(8.6), A(15.8), 900, 3200, .02);
-    this.chord([98, 146.83, 246.94, 369.99, 554.37], A(15.7), A(END), 1800, 600, .024);
-    this.whoosh(A(12.3), A(15.76), .05);
-    this.whoosh(A(18.2), A(END), .06);
+    this.chord([123.47, 185, 220, 293.66, 329.63, 440], A(8.6), A(15.96), 900, 3200, .02);
+    this.chord([98, 146.83, 246.94, 369.99, 554.37], A(15.9), A(END), 1800, 600, .024);
+    this.whoosh(A(12.48), A(15.96), .05);
+    this.whoosh(A(T_RISE), A(END), .06);
     const penta = [587.33, 659.25, 739.99, 880, 987.77, 1174.66];
     SHOTS.forEach((s, i) => {
       if (i === 0 || s.finale) return;
-      this.tick(A(s.t), s.word === "discover" ? .14 : .08, 2500 + (i * 977) % 4000);
-      if (s.word === "discover") this.pluck(A(s.t), penta[i % penta.length], .05);
+      this.tick(A(s.t), s.word === W3 ? .14 : .08, 2500 + (i * 977) % 4000);
+      if (s.word === W3) this.pluck(A(s.t), penta[i % penta.length], .05);
     });
+    // the galloping horses: four beats a stride, a stride every eight frames
+    const horses = SHOTS.find(s => s.horses);
+    for (let n = 0; n < 3; n++) for (const leg of LEGS) {
+      const tt = horses.t + ((leg.on - HORSE_PHASE0 + 1) % 1 + n) * 8 / 25;
+      if (tt < horses.end) this.clop(A(tt), leg.fore ? .16 : .2);
+    }
     for (const w of [8.72, 10.68, 12.48]) this.thump(A(w), .35);
-    this.bell(A(15.9), 587.33, .09);
-    this.bell(A(17.2), 440, .09);
+    this.bell(A(15.96), 587.33, .09);
+    this.bell(A(T_CLAUDE), 440, .09);
   }
 }
 
@@ -1182,14 +1790,23 @@ function resize() {
   const w = innerWidth, h = innerHeight, aspect = w / h;
   renderer.setSize(w, h);
   camera.aspect = aspect;
-  // keep the 16:9 framing's width on narrow screens
-  camera.fov = aspect >= 16 / 9 ? 36 : Math.min(80, 2 * Math.atan(Math.tan(18 * DEG) * (16 / 9) / aspect) / DEG);
+  // 16:9 and wider: the frame's height fills the screen. Narrower: keep most of its width
+  // (all of it at 16:9, 60% in portrait) and show more above and below.
+  frame.k = aspect >= 16 / 9 ? 1 : Math.max(.6, Math.sqrt(aspect / (16 / 9)));
+  camera.fov = aspect >= 16 / 9 ? 36 : 2 * Math.atan(frame.k * TAN_H / aspect) / DEG;
   camera.updateProjectionMatrix();
   bgMat.uniforms.uInvProj.value.copy(camera.projectionMatrixInverse);
   bgMat.uniforms.uAspect.value = aspect;
   grain.material.uniforms.uAspect.value = aspect;
   const buf = renderer.getDrawingBufferSize(new THREE.Vector2());
   textCanvas.width = buf.x; textCanvas.height = buf.y;
+  overlayKey = "";
+  frame.w = aspect >= 16 / 9 ? buf.y * 16 / 9 : buf.x / frame.k;
+  frame.h = frame.w * 9 / 16;
+  frame.x = (buf.x - frame.w) / 2; frame.y = (buf.y - frame.h) / 2;
+  bgMat.uniforms.uFrame.value.set(buf.x / frame.w, buf.y / frame.h);
+  sphereMat.uniforms.uRes.value.copy(buf);
+  sphereMat.uniforms.uTan.value.set(Math.tan(camera.fov * DEG / 2) * aspect, Math.tan(camera.fov * DEG / 2));
 }
 addEventListener("resize", resize);
 resize();
@@ -1197,23 +1814,23 @@ resize();
 // ?t=12.6 freezes the film on one moment (handy for stills)
 const still = parseFloat(new URLSearchParams(location.search).get("t"));
 
-function frame() {
+function tickFrame() {
   clock.tick();
   const T = isNaN(still) ? clock.now() : still;
   const t = ((Math.max(0, T) % END) + END) % END;
   U.uTime.value = t;
   const info = update(t);
-  drawText(t, info);
+  drawOverlay(t, info);
   $("fill").style.width = (t / END * 100).toFixed(2) + "%";
   renderer.render(scene, camera);
   window.__filmStarted = true;
   if (recorder && recorder.state === "recording" && clock.now() >= END) recorder.stop();
-  if (isNaN(still) || ++stillFrames < 3) requestAnimationFrame(frame);
+  if (isNaN(still) || ++stillFrames < 3) requestAnimationFrame(tickFrame);
 }
 let stillFrames = 0;
 // Start once the serif is ready, but never wait on it for more than a second
-Promise.race([document.fonts.load(`400 60px "Newsreader"`), new Promise(r => setTimeout(r, 1000))])
-  .catch(() => {}).then(() => requestAnimationFrame(frame));
+Promise.race([document.fonts.load(`${WEIGHT} 60px "Newsreader"`), new Promise(r => setTimeout(r, 1000))])
+  .catch(() => {}).then(() => requestAnimationFrame(tickFrame));
 // Respect reduced motion: start paused on the opening frame
 if (matchMedia("(prefers-reduced-motion: reduce)").matches) togglePause();
 window.__stage = "waiting for the first frame";
