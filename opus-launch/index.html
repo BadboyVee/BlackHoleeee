@@ -65,7 +65,8 @@ THREE.ColorManagement.enabled = false; // palette hexes are used as display colo
    Timeline — every cut measured from the original film (20.05 s, 25 fps, 38 shots).
    Most shots are the same idea: the curved rim of a sphere seen from just above its surface,
    dressed in a different procedural material. The exceptions are the planet (opening and
-   titles) and the galloping horses, a hand-coloured phenakistiscope print drawn in 2D.
+   titles) and the galloping horse, a real horse rendered in Blender (the original's
+   hand-coloured phenakistiscope print, drawn in 2D, stands in if those frames can't load).
    pat: sphere material, bg: backdrop, pal: sphere palette, alpha: angular radius of the sphere
    (bigger = flatter horizon), rimY: rim height in the 16:9 frame [start, end] (0 = top),
    cx: where the top of the rim sits across the frame (0.5 = centre).
@@ -149,6 +150,9 @@ function riseAt(t) {
 ------------------------------------------------------------------------------------------- */
 // Phones get a lighter mesh and fewer pixels
 const MOBILE = matchMedia("(pointer: coarse)").matches || Math.min(screen.width, screen.height) < 700;
+// Exporting to a video file (?export) builds a shader program per shot, because software renderers
+// run every branch of the big shaders for every pixel
+const EXPORT = new URLSearchParams(location.search).has("export");
 let renderer;
 try {
   renderer = new THREE.WebGLRenderer({ antialias: !MOBILE, powerPreference: "high-performance" });
@@ -261,6 +265,7 @@ const U = {
    for the planet shots, the whole planet with a soft defocused edge and atmosphere.
 ------------------------------------------------------------------------------------------- */
 const bgMat = new THREE.ShaderMaterial({
+  defines: EXPORT ? { BG: 0 } : {},
   depthTest: false, depthWrite: false,
   uniforms: {
     ...U,
@@ -276,7 +281,8 @@ const bgMat = new THREE.ShaderMaterial({
     void main(){ vNdc = position.xy; gl_Position = vec4(position.xy, 0.0, 1.0); }`,
   fragmentShader: /* glsl */`
     uniform vec3 uA, uB, uC, uD; uniform float uSeed, uTime;
-    uniform int uBg; uniform vec3 uBgA, uBgB;
+    ${EXPORT ? "#define uBg BG" : "uniform int uBg;"}
+    uniform vec3 uBgA, uBgB;
     uniform mat4 uInvProj; uniform vec3 uCenterDir; uniform float uAlpha, uAspect;
     uniform int uGlowMode; uniform vec3 uGlowCol; uniform float uGlowK;
     uniform float uSoft, uHaze;
@@ -465,7 +471,7 @@ function capGeometry(nPhi, nS, phiSpan) {
 
 const SPHERE_COMMON = /* glsl */`
   uniform float uThetaR, uRimR, uMargin, uSpin, uScale, uDispAmp;
-  uniform int uDisp;
+  ${EXPORT ? "#define uDisp DISP" : "uniform int uDisp;"}
   const float HALF_PI = 1.5707963;
   vec3 rotZ(vec3 p, float a){ float c = cos(a), s = sin(a); return vec3(c*p.x - s*p.y, s*p.x + c*p.y, p.z); }
   // u: position along the rim, v: distance in from the rim, both in units of the rim radius
@@ -478,6 +484,7 @@ const SPHERE_COMMON = /* glsl */`
 `;
 
 const sphereMat = new THREE.ShaderMaterial({
+  defines: EXPORT ? { PAT: 0, DISP: 0 } : {},
   side: THREE.DoubleSide,
   extensions: { derivatives: true },
   uniforms: {
@@ -534,7 +541,7 @@ const sphereMat = new THREE.ShaderMaterial({
     }`,
   fragmentShader: /* glsl */`
     uniform vec3 uA, uB, uC, uD; uniform float uSeed, uTime;
-    uniform int uPat;
+    ${EXPORT ? "#define uPat PAT" : "uniform int uPat;"}
     uniform vec2 uRes, uTan; uniform vec3 uCDir; uniform float uCosA; uniform vec3 uBgBack;
     const float TANV = 0.3249197;          // tan(18 deg): half the height of the 16:9 frame
     // Face-on coordinates, as if the edge were photographed straight on like the originals:
@@ -1283,6 +1290,11 @@ function applyShot(i) {
   m.uPat.value = s.pat || 0;
   m.uDisp.value = s.disp || 0;
   m.uScale.value = s.scale || 1;
+  if (EXPORT) {
+    const d = sphereMat.defines, bd = bgMat.defines;
+    if (d.PAT !== m.uPat.value || d.DISP !== m.uDisp.value) { d.PAT = m.uPat.value; d.DISP = m.uDisp.value; sphereMat.needsUpdate = true; }
+    if (bd.BG !== b.uBg.value) { bd.BG = b.uBg.value; bgMat.needsUpdate = true; }
+  }
   col(s.bgA, m.uBgBack.value);
   rim.visible = !s.planet && !s.horses;
   drops.visible = !!s.drops;
@@ -1512,6 +1524,39 @@ function drawHound(ctx, f, jx, jy) {
   ctx.fillStyle = "#28304a"; ctx.fill();
   ctx.lineWidth = 2.4; ctx.strokeStyle = "#141824"; ctx.stroke();
   ctx.restore();
+}
+
+/* The horse as the film now shows it: a real horse at a gallop along the crest of a hill,
+   rendered in Blender (Cycles) one frame per film frame from a rigged scan (horse/blender).
+   PHOTO_GAIT is that gallop's footfalls, for the hoofbeats: the stride phase at which each hoof
+   lands, a stride every ten frames, the first frame of the shot at phase PHOTO_PHASE0. */
+const HORSE_SRC = Array.from({ length: 15 }, (_, i) => `horse/h${String(i + 1).padStart(2, "0")}.jpg`);
+const HORSE_PHOTOS = HORSE_SRC.map(src => { const im = new Image(); im.src = src; return im; });
+const photoReady = im => im.complete && im.naturalWidth > 0;
+const photosReady = () => HORSE_PHOTOS.every(photoReady);      // all or none, never a mix
+const PHOTO_GAIT = [{ on: 0, fore: false }, { on: .09, fore: false }, { on: .33, fore: true }, { on: .43, fore: true }];
+const PHOTO_PHASE0 = .62;
+// 16:9 and wider: fill the width. Narrower: keep the film's framing, nudged so the horse's head
+// stays in, and carry the sky up and the grass down past the frame's edges.
+function drawHorsePhoto(im) {
+  const W = textCanvas.width, H = textCanvas.height, iw = im.naturalWidth, ih = im.naturalHeight;
+  if (W / H >= 16 / 9) { const h = W * 9 / 16; tctx.drawImage(im, 0, (H - h) / 2, W, h); return; }
+  const x = frame.x - (1 - frame.k) * .075 * frame.w, b = Math.round(frame.w / 60);
+  tctx.drawImage(im, x, frame.y, frame.w, frame.h);
+  if (frame.y <= 0) return;
+  // above and below: the photo's edge rows, stretched and blurred, faded in over its edges
+  for (const top of [true, false]) {
+    const F = Math.round(frame.h * (top ? .04 : .15)), h = Math.ceil(frame.y) + F;
+    const c = document.createElement("canvas"); c.width = W; c.height = h;
+    const cx = c.getContext("2d");
+    cx.filter = `blur(${top ? b : 3 * b}px)`;
+    cx.drawImage(im, 0, top ? 0 : ih - 4, iw, 4, x - 8 * b, -8 * b, frame.w + 16 * b, h + 16 * b);
+    cx.filter = "none"; cx.globalCompositeOperation = "destination-in";
+    const g = cx.createLinearGradient(0, top ? h : 0, 0, top ? h - F : F);
+    g.addColorStop(0, "rgba(0,0,0,0)"); g.addColorStop(1, "#000");
+    cx.fillStyle = g; cx.fillRect(0, 0, W, h);
+    tctx.drawImage(c, 0, top ? 0 : H - h);
+  }
 }
 
 const HORSE_PHASE0 = 0;               // the first frame of the shot is f0 of the stride
@@ -1760,7 +1805,7 @@ function drawTitles(t, info) {
 let overlayKey = "";
 function drawOverlay(t, info) {
   const s = SHOTS[current];
-  const key = s.horses ? `h${info.frame}`
+  const key = s.horses ? `h${info.frame}:${+photosReady()}`
     : s.finale ? `f${t < T_CLAUDE ? 0 : 1}:${Math.round(info.rise * frame.h * 2)}`
     : s.word === W3 ? `s${current}:${Math.round(rimState.alpha * 2e3)}` : `s${current}`;   // only the bent word follows the moving rim
   if (key === overlayKey) return;
@@ -1768,8 +1813,10 @@ function drawOverlay(t, info) {
   const W = textCanvas.width, H = textCanvas.height;
   tctx.setTransform(1, 0, 0, 1, 0, 0);
   if (s.horses) {
-    tctx.fillStyle = "#fff"; tctx.fillRect(0, 0, W, H);        // white multiplies to nothing
-    drawHorses(info.frame);
+    const photos = photosReady();
+    textQuad.material.blending = photos ? THREE.NormalBlending : THREE.MultiplyBlending;
+    if (photos) { tctx.clearRect(0, 0, W, H); drawHorsePhoto(HORSE_PHOTOS[info.frame]); }
+    else { tctx.fillStyle = "#fff"; tctx.fillRect(0, 0, W, H); drawHorses(info.frame); }   // white multiplies to nothing
   } else {
     tctx.clearRect(0, 0, W, H);
     if (s.overlay === "threads") drawThreads();
@@ -1784,12 +1831,12 @@ function drawOverlay(t, info) {
    Sound: a small WebAudio score scheduled against the film's clock
 ------------------------------------------------------------------------------------------- */
 class Score {
-  constructor() {
-    const ctx = this.ctx = new AudioContext();
+  constructor(ctx = new AudioContext()) {
+    this.ctx = ctx;
     this.out = ctx.createGain(); this.out.gain.value = .9;
     const comp = ctx.createDynamicsCompressor();
     this.out.connect(comp); comp.connect(ctx.destination);
-    this.stream = ctx.createMediaStreamDestination(); comp.connect(this.stream);
+    if (ctx.createMediaStreamDestination) { this.stream = ctx.createMediaStreamDestination(); comp.connect(this.stream); }
     this.verb = ctx.createConvolver();
     const len = ctx.sampleRate * 3, ir = ctx.createBuffer(2, len, ctx.sampleRate);
     for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 3); }
@@ -1879,10 +1926,10 @@ class Score {
       this.tick(A(s.t), s.word === W3 ? .14 : .08, 2500 + (i * 977) % 4000);
       if (s.word === W3) this.pluck(A(s.t), penta[i % penta.length], .05);
     });
-    // the galloping horses: four beats a stride, a stride every eight frames
+    // the galloping horse: four beats a stride, a stride every ten frames
     const horses = SHOTS.find(s => s.horses);
-    for (let n = 0; n < 3; n++) for (const leg of LEGS) {
-      const tt = horses.t + ((leg.on - HORSE_PHASE0 + 1) % 1 + n) * 8 / 25;
+    for (let n = 0; n < 2; n++) for (const leg of PHOTO_GAIT) {
+      const tt = horses.t + ((leg.on - PHOTO_PHASE0 + 1) % 1 + n) * 10 / 25;
       if (tt < horses.end) this.clop(A(tt), leg.fore ? .16 : .2);
     }
     for (const w of [8.72, 10.68, 12.48]) this.thump(A(w), .35);
@@ -2026,6 +2073,23 @@ Promise.race([document.fonts.load(`${WEIGHT} 60px "Newsreader"`), new Promise(r 
   .catch(() => {}).then(() => requestAnimationFrame(tickFrame));
 // Respect reduced motion: start paused on the opening frame
 if (matchMedia("(prefers-reduced-motion: reduce)").matches) togglePause();
+// For exporting the film to a video file: draw the frame at any time, and render one pass of
+// the score offline
+window.__film = {
+  END,
+  frameAt(t, { titles = true } = {}) {
+    U.uTime.value = t;
+    drawOverlay(t, update(t));
+    textQuad.visible = titles;
+    renderer.render(scene, camera);
+  },
+  async score(rate = 48000) {
+    const ctx = new OfflineAudioContext(2, Math.ceil(rate * (END + 2)), rate);
+    new Score(ctx).loop(0);
+    const buf = await ctx.startRendering();
+    return [buf.getChannelData(0), buf.getChannelData(1)];
+  },
+};
 window.__stage = "waiting for the first frame";
 })();
 </script>
