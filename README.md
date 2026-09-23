@@ -7,8 +7,9 @@ any of them — every project is an `index.html` you can open directly.
 
 ### 🟧 [A Day in the Life of Clawd](clawd-life/)
 
-A 30-second, single-shot 3D life-sim of Clawd, the Claude Code mascot. It wakes up with the sun,
-commutes, presses computer, goes brazy, ships, dances, and walks home under the moon. The
+A 64-second, single-shot 3D life-sim of Clawd, the Claude Code mascot. In a little round town,
+Clawd hits the gym, ships code at Claude Code HQ, gets Employee of the Month at Anthropic HQ,
+and plays on the seesaw with its friend ChatGPT before walking home under the moon. The
 soundtrack is made only of recorded samples, and it's signed off by Opus 5.5.
 
 **▶ [Watch it](https://badboyvee.github.io/BlackHoleeee/clawd-life/)** · [source](clawd-life/)

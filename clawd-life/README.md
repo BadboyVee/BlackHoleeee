@@ -1,9 +1,10 @@
 # A Day in the Life of Clawd
 
-A 30-second, single-shot 3D animation of a day in the life of Clawd, the Claude Code mascot, built
-with Three.js. It wakes up with the sun, walks to work, presses computer, goes brazy, ships,
-dances, walks home under the moon and goes to bed. The day closes back at midnight, so it
-loops forever. It's signed off by Opus 5.5.
+A 64-second, single-shot 3D life-sim of Clawd, the Claude Code mascot, built with Three.js. Clawd
+lives in a little round town with a pond in the middle. In one continuous camera move it wakes up,
+hits the gym, ships code at Claude Code HQ, gets Employee of the Month at Anthropic HQ, hangs out
+with its friend ChatGPT at the park, and walks home under the moon. The day ends back at
+midnight, so it loops forever. It's signed off by Opus 5.5.
 
 **▶ [Watch it](https://badboyvee.github.io/BlackHoleeee/clawd-life/)** · or open
 [`index.html`](index.html) directly. It works offline: Three.js is vendored in
@@ -11,29 +12,33 @@ loops forever. It's signed off by Opus 5.5.
 
 ## The day
 
-| Time | Clock | What happens |
-| --- | --- | --- |
-| 0 – 5 s | 12:00 – 7:00 AM | Asleep under the moon, Zzz. The sun rises over the hills, birds start up, the alarm rings |
-| 5 – 7.5 s | 7:00 AM | Eyes pop open, "!", hops out of bed, big stretch |
-| 7.5 – 12 s | 7:30 – 10:00 AM | Commutes along the path, while a train passes behind the trees |
-| 12 – 16 s | 10 AM – 1 PM | Clocks in at Claude Code HQ. The monitor boots, then: `> BUILD SOMETHING AMAZING`, thinking, edits and diffs |
-| 16 – 18.5 s | 1 – 2:30 PM | **GO. BRAZY.** Tests fill up 48/48 |
-| 18.5 – 22.4 s | 2:30 – 6 PM | ✓ Shipped. Gong, fanfare, confetti, **BEST OF THE BEST**, "LESGO!!", and the dance |
-| 22.4 – 27 s | 6 – 9 PM | Sunset. Walks home as the street lamps come on and the stars come out. Hops into bed |
-| 27 – 30 s | 9 PM – midnight | Lullaby, "Goodnight, Clawd — Opus 5.5" |
+| Time | Clock | Where | What happens |
+| --- | --- | --- | --- |
+| 0 – 8.8 s | 12 – 8 AM | 🏠 Home | Asleep under the moon. Sunrise over the pond, birds, the alarm rings, "!", hops out of bed and stretches |
+| 8.8 – 19.8 s | 8 – 10 AM | 🏋️ Gym | Four barbell reps (+1 STR each), a treadmill sprint, "GAINS!" flex |
+| 19.8 – 32.6 s | 10 AM – 1 PM | 💻 Claude Code HQ | Presses computer: `> BUILD SOMETHING AMAZING`, diffs, **GO. BRAZY.**, 48/48 tests, ✓ **SHIPPED!** with confetti |
+| 32.6 – 44.3 s | 1 – 3 PM | 🏛️ Anthropic HQ | Glass doors slide open to "WELCOME, CLAWD!", then **Employee of the Month**: trophy, fanfare, applause, confetti, "LESGO!!", the dance, **BEST OF THE BEST** |
+| 44.3 – 55 s | 3 – 7 PM | 🌳 Park | ChatGPT waves ("YO CLAWD!" / "HEY GPT!"), they high-five ♥, ride the seesaw (WHEEE!), and watch the sunset from a bench. "GN GPT!" / "GN CLAWD!" |
+| 55 – 64 s | 7 PM – midnight | 🏠 Home | Walks home as the street lamps come on, hops into bed. Lullaby, "Goodnight, Clawd — Opus 5.5" |
 
-A small life-sim HUD tracks the in-game clock, what Clawd is doing, and its Energy and
-Vibes.
+A train loops the town on its outer track. ChatGPT dozes on the park bench overnight. A small
+life-sim HUD tracks the in-game clock, what Clawd is doing, and its **Energy**, **Vibes** and
+**Social** bars.
 
 ## How it's made
 
-- **One continuous camera move.** The camera follows a periodic Catmull-Rom spline through 16
-  keyed positions, so the shot never cuts and the end flows back into the start.
+- **One continuous camera move.** Each stop has its own keyed camera path, written in that
+  building's frame. During walks a follow-cam takes over. The shots cross-blend, so the camera
+  never cuts, and the last frame flows back into the first.
+- **The town is a ring.** Five stops sit around a circular path, each built in a local frame that
+  faces the pond. The walks go round the ring, so the day ends where it started.
 - **Everything is a pure function of time.** The pose, the sun and moon, the sky, the lights,
   the monitor contents, the confetti and the HUD are all computed from `t`, with no stored
   state. That's why `?t=12.8` shows an exact still and the video render is frame-perfect.
-- **The mascot** is built from its pixel grid: body, eyes, two arms and four legs, each on its
-  own pivot for walking, typing, stretching and dancing.
+- **Clawd** is built from its pixel grid: body, eyes, two arms and four legs, each on its own pivot
+  for walking, lifting, running, typing, flexing, dancing and seesawing.
+- **ChatGPT, Clawd's friend,** is a round teal buddy with an antenna. It's a character of our own,
+  not a logo.
 - **All text** uses a built-in 5×7 pixel font drawn to canvas, so it looks identical on every
   device and in the video.
 - **Day/night:** the sun and moon arcs drive a gradient sky shader (with twinkling stars), the
@@ -52,15 +57,20 @@ the timeline:
 | Sunrise | `roll.wav` |
 | Birds | `nature1.wav`, `nature2.wav` |
 | Alarm | `kling.wav` |
-| Hops | `pluck.wav`, pitched up |
-| Footsteps and keyboard clicks | single conga hits cut from `kongas.wav`, re-pitched |
+| Hops, seesaw bumps | `pluck.wav`, pitched up |
+| Footsteps, treadmill, keyboard clicks, high five | single conga hits cut from `kongas.wav`, re-pitched |
+| Barbell clanks | `glasses.wav`, played slow |
+| "+1 STR" dings | `kling.wav`, pitched up |
+| Flex | `gong.wav` |
 | Train | `train.wav` |
 | Computer powering on | `strom.wav` |
 | GO BRAZY frenzy | `wallewal.wav` |
+| Shipped | `gong.wav`, `sparcle.wav` |
+| Sliding doors | `soft.wav` |
+| Welcome jingle, lullaby | `untie.wav` |
+| Employee of the Month | `romans.wav`, `applause.wav` |
 | Dance beat | `kongas.wav` |
-| Shipped | `gong.wav`, `romans.wav`, `applause.wav` |
-| Sunset | `falling.wav` |
-| Lullaby | `untie.wav` |
+| Sunset | `theetone.wav`, `falling.wav` |
 
 Browsers only allow sound after a tap, so press **Sound on**.
 
@@ -73,13 +83,13 @@ Browsers only allow sound after a tap, so press **Sound on**.
 | `R` | Restart |
 | `H` | Hide the controls |
 | **Record** | Captures one loop with sound to `.webm` (standalone browser only) |
-| `?t=19.8` | Freezes on one moment |
+| `?t=48.4` | Freezes on one moment |
 
 ## Building
 
 ```sh
 tools/build-audio.sh                                  # mix → soundtrack.wav/.mp3 → soundtrack.js
-node tools/render-video.cjs clawd-life.mp4           # 1080p30 MP4 with sound (headless Chromium + ffmpeg)
+node tools/render-video.cjs clawd-life.mp4           # 1080p30 MP4 with sound (headless Chromium + ffmpeg, ~30 min)
 python3 tools/build-standalone.py                     # one self-contained .html
 ```
 
