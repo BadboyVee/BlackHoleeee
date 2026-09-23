@@ -49,7 +49,11 @@ stay large on a phone.
   watercolour and ink. Each leg is a two-bone chain solved by inverse kinematics along an
   eight-pose stride read off the print. The fore knees fold forward, the hocks fold back, and
   the neighbouring figures on the disc peek in at the edges.
-- **Beads and droplets** are an `InstancedMesh`, placed on the projected horizon.
+- **Beads and droplets** are an `InstancedMesh`, placed on the projected horizon. The red beads
+  sit where the original's do across the frame.
+- **A few details are drawn in 2D** over the frame, like the horses: the leather's threads and the
+  ink shot's pen-drawn grass. The collage's cut-paper shapes are traced from the original and laid
+  out where they were.
 - **Typography** is drawn into a canvas texture inside the WebGL frame. "discover" is laid out
   letter by letter along the projected horizon.
 - **Sound** (optional) is a small WebAudio score: pad chords per section, ticks on every cut,

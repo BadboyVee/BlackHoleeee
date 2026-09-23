@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet" />
 <style>
   [hidden]{ display:none !important; }
-  html,body{ margin:0; height:100%; overflow:hidden; background:#0f1216; color-scheme:dark; }
+  :root,body{ margin:0; height:100%; overflow:hidden; background:#0f1216; color-scheme:dark; }
   canvas{ display:block; position:fixed; inset:0; width:100%; height:100%; }
   #msg{ position:fixed; inset:0; display:flex; align-items:center; justify-content:center; padding:24px;
     text-align:center; font:400 17px/1.5 "Newsreader", Georgia, serif; color:#cfd6de; z-index:6; }
@@ -80,38 +80,38 @@ const SHOTS = [
   { t: 2.28, pat: 2, bg: 0, pal: ["#f2b04a","#d8801e","#3a1606","#5a1408"], bgA:"#040606", bgB:"#030404", alpha: 68.5, cx:.53, rimY:[.479,.475], glow:[1,"#ff5a1c",.22] },
   { t: 3.32, pat: 3, bg: 0, pal: ["#8d4f22","#d49a58","#8a3a22","#f4e8dc"], bgA:"#e4e4e4", bgB:"#d6d6d6", alpha: 53, cx:.54, rimY:[.482,.480], disp:3, amp:.006 },
   { t: 3.76, pat:32, bg: 0, pal: ["#ee3c14","#ff8036","#c9d860","#6a4a14"], bgA:"#31a696", bgB:"#2b9d8d", alpha: 66.5, cx:.51, rimY:[.494,.492] },
-  { t: 4.00, pat:33, bg: 0, pal: ["#1a2464","#f2f5fb","#4a2a6a","#7a98d8"], bgA:"#1b1519", bgB:"#140f12", alpha: 52, cx:.52, rimY:[.452,.440], glow:[1,"#c9b2da",.55] },
+  { t: 4.00, pat:33, bg: 0, pal: ["#22397a","#e6edf3","#3e2233","#3f8fa6"], bgA:"#1b1519", bgB:"#140f12", alpha: 52, cx:.52, rimY:[.452,.440], glow:[1,"#8a7a80",.35] },
   { t: 4.24, pat: 4, bg: 4, pal: ["#3f6f9f","#f2f5f7"], bgA:"#3b6a99", bgB:"#f2f5f7", alpha: 57, cx:.43, rimY:[.50,.50] },
   { t: 4.76, pat:34, bg: 0, pal: ["#f3f3f1","#121214","#b4b4b8","#77777d"], bgA:"#111113", bgB:"#0c0c0e", alpha: 52, cx:.50, rimY:[.497,.495] },
-  { t: 5.36, pat: 5, bg: 2, pal: ["#4a7426","#83a843","#cfe09a","#d8c060"], bgA:"#ecdcc4", alpha: 66, cx:.42, rimY:[.486,.484] },
-  { t: 5.88, pat:35, bg: 0, pal: ["#1c060c","#5a1624","#e2a8b2","#0e0206"], bgA:"#3fa4b8", bgB:"#3a9db1", alpha: 59, cx:.48, rimY:[.548,.544], disp:5, amp:.045 },
-  { t: 6.44, pat: 6, bg: 0, pal: ["#e2549a","#9e1c5c","#f590c0"], bgA:"#060a07", bgB:"#040604", alpha: 49, cx:.48, rimY:[.530,.525], drops:"red" },
-  { t: 7.04, pat: 7, bg: 0, pal: ["#dc9c88","#eab8a4","#1c3836","#35251f"], bgA:"#171717", bgB:"#141414", alpha: 44, cx:.53, rimY:[.490,.489], disp:3, amp:.004 },
-  { t: 7.56, pat:36, bg: 2, pal: ["#c4722a","#e6a452","#140e0a","#7a3e14"], bgA:"#cdb797", alpha: 58, cx:.54, rimY:[.502,.498], overlay:"threads" },
+  { t: 5.36, pat: 5, bg: 2, pal: ["#5f8a22","#94b83e","#cfe09a","#d8c060"], bgA:"#f7ead2", alpha: 66, cx:.42, rimY:[.486,.484] },
+  { t: 5.88, pat:35, bg: 0, pal: ["#1c060c","#5a1624","#d6a276","#0e0206"], bgA:"#3fa4b8", bgB:"#3a9db1", alpha: 56, cx:.50, rimY:[.530,.528], disp:5, amp:.032 },
+  { t: 6.44, pat: 6, bg: 0, pal: ["#c83a78","#8a1848","#e888b0"], bgA:"#060a07", bgB:"#040604", alpha: 49, cx:.48, rimY:[.530,.525], drops:"red" },
+  { t: 7.04, pat: 7, bg: 0, pal: ["#dc9c88","#eab8a4","#1c3836","#1e1a18"], bgA:"#171717", bgB:"#141414", alpha: 45, cx:.50, rimY:[.493,.492] },
+  { t: 7.56, pat:36, bg: 2, pal: ["#c4722a","#e6a452","#140e0a","#7a3e14"], bgA:"#d8c09f", alpha: 70, cx:.50, rimY:[.505,.502], roll: 5.5, overlay:"threads" },
   { t: 8.12, horses: true, bg:10, bgA:"#e2c992", bgB:"#ae9e46" },
   { t: 8.72, pat:37, bg:14, pal: ["#a4642e","#ecd2ac","#5a3c96","#2a1608"], bgA:"#1f1c1f", bgB:"#141214", alpha: 74.5, cx:.50, rimY:[.522,.518], word:W1, tw:.1146, ink:"#f6f2ec", ta:.92 },
   { t: 9.04, pat:12, bg: 0, pal: ["#e0461e","#98200e","#f58a58"], bgA:"#06070a", bgB:"#040506", alpha: 58, cx:.51, rimY:[.497,.493], word:W1, tw:.1266, ink:"#fff" },
   { t: 9.44, pat:38, bg:11, pal: ["#3ee6b0","#b4f070","#169c9c","#6a5a3a"], bgA:"#c02a78", bgB:"#a8a83a", alpha: 72, cx:.78, rimY:[.505,.500], word:W1, tw:.1380, tb:.486, ink:"#fff" },
   { t: 9.76, pat:14, bg: 1, pal: ["#f4f0e6","#111111"], bgA:"#060606", bgB:"#020202", alpha: 59, cx:.50, rimY:[.497,.495], word:W1, tw:.1510, ink:"#fff" },
   { t:10.20, pat:15, bg: 0, pal: ["#262a33","#4a515c"], bgA:"#131410", bgB:"#0e0f0c", alpha: 61.5, cx:.50, rimY:[.480,.477], word:W1, tw:.1656, ink:"#fff", glow:[2,"#ffffff",.9] },
-  { t:10.68, pat:16, bg: 7, pal: ["#2a0806","#7a1418"], bgA:"#e27a2e", bgB:"#b02a1c", alpha: 66, cx:.54, rimY:[.470,.468], word:W2, tw:.194, ink:"#fff", ta:.6 },
-  { t:11.00, pat:39, bg:15, pal: ["#120404","#b04818"], bgA:"#d9581c", bgB:"#1c0604", alpha: 71.5, cx:.46, rimY:[.537,.533], disp:1, amp:.02, word:W2, tw:.206, ink:"#fff", ta:.55 },
+  { t:10.68, pat:16, bg: 7, pal: ["#2a0a10","#b02a1c"], bgA:"#e27a2e", bgB:"#b02a1c", alpha: 66, cx:.54, rimY:[.470,.468], word:W2, tw:.194, ink:"#fff", ta:.6 },
+  { t:11.00, pat:39, bg:15, pal: ["#120404","#b04818"], bgA:"#c84a18", bgB:"#1c0604", alpha: 54, cx:.53, rimY:[.508,.506], disp:6, amp:.008, word:W2, tw:.206, tb:.47, ink:"#fff", ta:.55 },
   { t:11.40, pat:17, bg: 3, pal: ["#c8402a","#7a1a12","#ec9462"], bgA:"#384c6c", bgB:"#6b7d99", alpha: 74.5, cx:.53, rimY:[.490,.488], disp:3, amp:.004, word:W2, tw:.2156, ink:"#fff", ta:.88 },
   { t:11.72, pat:18, bg: 6, pal: ["#f040a0","#f4e640","#40e080","#8020c0"], alpha: 67, cx:.44, rimY:[.530,.530], word:W2, tw:.2255, ink:"#fff" },
-  { t:12.04, pat:19, bg: 0, pal: ["#090909","#f4f4ee"], bgA:"#050505", bgB:"#020202", alpha: 62, cx:.50, rimY:[.490,.490], disp:4, amp:.010, word:W2, tw:.2323, ink:"#fff" },
-  { t:12.48, pat:20, bg: 0, pal: ["#f6e6ef","#b0408e","#3a3a1a","#d8c060"], bgA:"#963a8c", bgB:"#98408e", alpha: 56, cx:.53, rimY:[.523,.521], word:W3, tw:.2995, ink:"#f3eee6" },
-  { t:12.76, pat:10, bg: 2, pal: ["#aecbf8","#3464dc"], bgA:"#a6c4f2", alpha: 62.5, cx:.52, rimY:[.520,.520], word:W3, tw:.3078, ink:"#f6f2ea", ta:.9 },
+  { t:12.04, pat:19, bg: 0, pal: ["#090909","#f4f4ee"], bgA:"#050505", bgB:"#020202", alpha: 63, cx:.52, rimY:[.522,.522], disp:4, amp:.016, word:W2, tw:.2323, tb:.466, ink:"#fff" },
+  { t:12.48, pat:20, bg: 0, pal: ["#f1e8cc","#b0408e","#2e3020","#e8d890"], bgA:"#963a8c", bgB:"#98408e", alpha: 56, cx:.53, rimY:[.523,.521], word:W3, tw:.2995, tb:.476, ink:"#f3eee6" },
+  { t:12.76, pat:10, bg: 2, pal: ["#abccff","#1f55d8"], bgA:"#abccff", alpha: 62.5, cx:.52, rimY:[.520,.520], word:W3, tw:.3078, ink:"#f6f2ea", ta:.9 },
   { t:13.00, pat:11, bg: 1, pal: ["#caa050","#553810"], bgA:"#0a0908", bgB:"#040303", alpha: 65, cx:.56, rimY:[.522,.514], disp:3, amp:.014, word:W3, tw:.3203, ink:"#f0ece4" },
-  { t:13.32, pat:23, bg: 0, pal: ["#f2f2ee","#6c6c74"], bgA:"#030303", bgB:"#000000", alpha: 65.5, cx:.52, rimY:[.530,.530], disp:1, amp:.07, word:W3, tw:.3214, ink:"#fff" },
+  { t:13.32, pat:23, bg: 0, pal: ["#f4efdf","#6c6c74"], bgA:"#030303", bgB:"#000000", alpha: 53, cx:.51, rimY:[.505,.505], disp:7, amp:.013, word:W3, tw:.3214, tb:.475, ink:"#fff" },
   { t:13.64, pat:40, bg:12, pal: ["#ece6d8","#9a9080","#4e4030"], bgA:"#8f7450", bgB:"#5c4632", alpha: 72.5, cx:.46, rimY:[.542,.540], word:W3, tw:.345, ink:"#f6f2ea", shadeText:[.47,.56,.5] },
   { t:13.92, pat:24, bg: 8, pal: ["#d9cdb6","#2e261e"], bgA:"#ecc944", bgB:"#d2a82c", alpha: 81, cx:.42, rimY:[.535,.535], word:W3, tw:.3583, ink:"#f6f0e4" },
-  { t:14.24, pat:25, bg: 2, pal: ["#2a50a0","#f0d030","#6a1a20","#3a8a4a"], bgA:"#f2eee4", alpha: 64.5, cx:.52, rimY:[.524,.524], word:W3, tw:.372, ink:"#111" },
-  { t:14.48, pat:26, bg: 2, pal: ["#eef2ee","#7ab8b0","#138a8a","#0a2a4a"], bgA:"#ece6de", alpha: 52, cx:.54, rimY:[.522,.522], word:W3, tw:.3833, ink:"#141414" },
+  { t:14.24, pat:25, bg: 2, pal: ["#2e5aa2","#f0d030","#6a1a20","#3a8a4a"], bgA:"#feffee", alpha: 72, cx:.46, rimY:[.503,.503], word:W3, tw:.372, tb:.47, ink:"#111" },
+  { t:14.48, pat:26, bg: 2, pal: ["#eef2ee","#7ab8b0","#138a8a","#0a2a4a"], bgA:"#f7ebe0", alpha: 54, cx:.52, rimY:[.503,.503], word:W3, tw:.3833, ink:"#141414", blur:6 },
   { t:14.76, pat:27, bg:16, pal: ["#140606","#c03a1a","#ff6a2a"], bgA:"#2e140c", bgB:"#1e0c08", alpha: 77.5, cx:.56, rimY:[.560,.560], word:W3, tw:.4026, ink:"#f4f0ea" },
-  { t:15.04, pat:28, bg: 2, pal: ["#f4f0ea","#d04040","#4050c0","#40a060"], bgA:"#f6f2ea", alpha: 52, cx:.50, rimY:[.545,.545], word:W3, tw:.4146, ink:"#141414" },
-  { t:15.32, pat:29, bg: 2, pal: ["#dccca6","#2a2218"], bgA:"#d8c396", alpha: 65, cx:.44, rimY:[.540,.540], word:W3, tw:.4266, ink:"#221c14", ta:.9 },
+  { t:15.04, pat:28, bg: 2, pal: ["#fffcf4","#d04040","#4050c0","#40a060"], bgA:"#fffcf4", alpha: 52, cx:.50, rimY:[.545,.545], word:W3, tw:.4146, ink:"#141414" },
+  { t:15.32, pat:29, bg: 2, pal: ["#e4ce9e","#1c140e"], bgA:"#e4ce9e", alpha: 50, cx:.54, rimY:[.532,.532], word:W3, tw:.4266, tb:.483, ink:"#221c14", ta:.9, blur:1.5, overlay:"ink" },
   { t:15.56, pat:30, bg: 0, pal: ["#fafafa","#7a7a7a"], bgA:"#0e0e0e", bgB:"#0a0a0a", alpha: 70, cx:.50, rimY:[.540,.540], disp:2, amp:.05, word:W3, tw:.4313, ink:"#f4f4f2" },
-  { t:15.76, pat:31, bg: 0, pal: ["#dc6432","#561208","#e8c090"], bgA:"#131313", bgB:"#0e0e0e", alpha: 77.5, cx:.42, rimY:[.535,.535], word:W3, tw:.4255, ink:"#efe8dc" },
+  { t:15.76, pat:31, bg: 0, pal: ["#c4501e","#561208","#e8c090"], bgA:"#131313", bgB:"#0e0e0e", alpha: 77.5, cx:.42, rimY:[.535,.535], word:W3, tw:.4255, ink:"#efe8dc" },
   { t:15.96, planet: true, finale: true },
 ];
 SHOTS.forEach((s, i) => {
@@ -311,8 +311,7 @@ const bgMat = new THREE.ShaderMaterial({
         col += step(0.9965, s) * 0.55 * hash21(g + 3.0);
         col += vec3(0.5, 0.46, 0.4) * smoothstep(0.78, 0.95, snoise(vec3(sp * 28.0, uSeed))) * 0.12;
       } else if (uBg == 2) {                // paper
-        col = uBgA * (0.95 + 0.05 * fbm(vec3(sp * 6.0, uSeed)));
-        col *= 0.985 + 0.015 * snoise(vec3(sp * vec2(40.0, 260.0), 3.0));
+        col = uBgA * (0.985 + 0.03 * fbm(vec3(sp * 6.0, uSeed))) * (0.99 + 0.01 * snoise(vec3(sp * vec2(40.0, 260.0), 3.0)));   // = paper() on the sphere
       } else if (uBg == 3) {                // denim twill
         float tw = sin((sp.x + sp.y) * 520.0);
         float n = snoise(vec3(sp * vec2(220.0, 26.0), 1.0));
@@ -486,7 +485,7 @@ const sphereMat = new THREE.ShaderMaterial({
     uPat: { value: 1 }, uThetaR: { value: .4 }, uRimR: { value: .4 }, uMargin: { value: .12 },
     uSpin: { value: 0 }, uScale: { value: 1 }, uDisp: { value: 0 }, uDispAmp: { value: 0 },
     uRes: { value: new THREE.Vector2(1, 1) }, uTan: { value: new THREE.Vector2(1, 1) },
-    uCDir: { value: new THREE.Vector3(0, -1, 0) }, uCosA: { value: .5 },
+    uCDir: { value: new THREE.Vector3(0, -1, 0) }, uCosA: { value: .5 }, uBgBack: { value: new THREE.Color() },
   },
   vertexShader: /* glsl */`
     uniform vec3 uA, uB, uC, uD; uniform float uSeed, uTime;
@@ -501,11 +500,23 @@ const sphereMat = new THREE.ShaderMaterial({
         return pow(max(s, 0.0), 1.4) + 0.35 * max(snoise(vec3(u * 38.0, v * 2.0, uSeed + 4.0)), 0.0);
       }
       if (uDisp == 3) return 0.5 + snoise(pn * 22.0) * 0.35 + snoise(pn * 60.0) * 0.2;           // grain
-      if (uDisp == 4) return pow(abs(sin(u * 36.0)), 0.6) + snoise(pn * 30.0) * 0.2;             // scallops
-      if (uDisp == 5) {                                                                           // rounded teeth
-        float k = u * 6.6, id = floor(k + 0.5), f = k - id;
-        float tooth = (1.0 - smoothstep(0.14, 0.3, abs(f))) * (0.55 + 0.45 * hash21(vec2(id, uSeed)));
-        return tooth + 0.22 * pow(abs(sin(u * 64.0)), 3.0) + snoise(pn * 20.0) * 0.06;
+      if (uDisp == 4) {                                                                           // lace scallops
+        float s = abs(sin(u * 42.0 + 1.1 * snoise(vec3(u * 4.0, 0.0, uSeed))));
+        return pow(s, 0.45) * (0.6 + 0.4 * snoise(vec3(u * 9.0, 0.0, uSeed + 3.0))) + snoise(pn * 30.0) * 0.05;
+      }
+      if (uDisp == 5) {                                                                           // round knobs, one every 0.2 rad
+        float k = u * 5.0 + 0.35, id = floor(k + 0.5), f = k - id;
+        float w = 0.26 + 0.06 * hash21(vec2(id, uSeed + 1.0));
+        float knob = sqrt(max(0.0, 1.0 - pow(abs(f) / w, 3.0)));
+        return knob * (0.6 + 0.4 * hash21(vec2(id, uSeed))) + 0.12 * max(0.0, snoise(vec3(u * 70.0, 0.0, uSeed))) + snoise(pn * 20.0) * 0.03;
+      }
+      if (uDisp == 6) {                                                                           // clods of soil
+        float c = 0.5 + 0.5 * snoise(vec3(u * 55.0, 0.0, uSeed));
+        return c * c + 0.4 * fbm(vec3(u * 12.0, 0.0, uSeed + 2.0)) + 0.2;
+      }
+      if (uDisp == 7) {                                                                           // fluted rock: rounded crests
+        float k = u * 5.4 + 0.2 * snoise(vec3(u * 3.0, 0.0, uSeed));
+        return pow(0.5 + 0.5 * cos(6.2832 * k), 0.7) + fbm(pn * 6.0) * 0.25 + snoise(pn * 30.0) * 0.06;
       }
       return 0.0;
     }
@@ -524,7 +535,7 @@ const sphereMat = new THREE.ShaderMaterial({
   fragmentShader: /* glsl */`
     uniform vec3 uA, uB, uC, uD; uniform float uSeed, uTime;
     uniform int uPat;
-    uniform vec2 uRes, uTan; uniform vec3 uCDir; uniform float uCosA;
+    uniform vec2 uRes, uTan; uniform vec3 uCDir; uniform float uCosA; uniform vec3 uBgBack;
     const float TANV = 0.3249197;          // tan(18 deg): half the height of the 16:9 frame
     // Face-on coordinates, as if the edge were photographed straight on like the originals:
     // fp is the pixel's place in the 16:9 frame (height 2, y up) and depth how far it lies
@@ -563,6 +574,16 @@ const sphereMat = new THREE.ShaderMaterial({
       vec3 grad = sign(det) * (dFdx(h) * r1 + dFdy(h) * r2);
       return normalize(abs(det) * n - grad);
     }
+    float sdBox(vec2 p, vec2 c, vec2 hs){ vec2 d = abs(p - c) - hs; return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0); }
+    // a blade of paper: fat in the middle, pointed at both ends
+    float sdBlade(vec2 p, vec2 a, vec2 b, float r){
+      vec2 pa = p - a, ba = b - a;
+      float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
+      return length(pa - ba * h) - r * pow(sin(3.1416 * h), 0.6) + 1.0;
+    }
+    void lay(inout vec3 col, vec3 c, float d){ col = mix(col, c, 1.0 - smoothstep(-1.0, 1.0, d)); }
+    // the paper of the backdrop, so a sheet drawn on the sphere meets it without a seam
+    vec3 paper(vec3 c, vec2 fp){ return c * (0.985 + 0.03 * fbm(vec3(fp * 6.0, uSeed))) * (0.99 + 0.01 * snoise(vec3(fp * vec2(40.0, 260.0), 3.0))); }
     // greek key: 6 wide x 5 tall, one bit per cell
     int keyRow(int y){
       if (y == 0) return 31; if (y == 1) return 17; if (y == 2) return 29; if (y == 3) return 1; return 63;
@@ -573,20 +594,34 @@ const sphereMat = new THREE.ShaderMaterial({
       vec2 fp; float dp; flatCoords(fp, dp);
       vec3 col = uA; float h = 0.0, spec = 0.0, shade = 0.8, bumpK = 0.004;
 
-      if (uPat == 1) {                       // a glassy rim full of bubbles, amber below it
+      if (uPat == 1) {                       // a glassy wall with one row of big bubbles under the rim, amber below it
         float n = fbm(pn * 2.0);
-        vec3 amber = mix(uB, uA, clamp(smoothstep(0.4, 0.95, v) + n * 0.2, 0.0, 1.0));
-        amber *= 0.9 + 0.1 * sin(v * 60.0 + n * 6.0);
-        float zone = 1.0 - smoothstep(0.34, 0.46, v + 0.03 * snoise(vec3(u * 8.0, 0.0, 2.0)));
-        vec3 glass = mix(vec3(0.6, 0.58, 0.55), uC, 0.3) * (0.78 + 0.3 * fbm(pn * 4.0));
-        vec3 c = voronoi(vec2(fp.x * 11.0, dp * 34.0) + uSeed);
-        float has = step(0.25, c.z) * (1.0 - smoothstep(0.045, 0.06, dp));
-        float ring = (1.0 - smoothstep(0.035, 0.09, abs(c.x - 0.3))) * has;
-        float core = (1.0 - smoothstep(0.18, 0.28, c.x)) * has;
-        glass = mix(glass, vec3(0.22, 0.2, 0.24), core * 0.55);
-        glass = mix(glass, vec3(0.95, 0.94, 0.9), ring * 0.8);
-        col = mix(amber, glass, zone * 0.88);
-        h = n * 0.3 + ring * 0.4; spec = 0.6;
+        vec3 amber = mix(uB, uA, clamp(smoothstep(0.25, 0.5, dp) * 0.4 + 0.5 - 0.5 * smoothstep(-1.4, 0.6, fp.x) + n * 0.2, 0.0, 1.0));
+        amber *= 0.95 + 0.05 * snoise(vec3(fp.x * 2.0, dp * 25.0, 3.0));
+        amber = mix(amber, vec3(1.0, 0.92, 0.55), (1.0 - smoothstep(0.002, 0.009, abs(dp - 0.46 - 0.02 * fp.x * fp.x))) * 0.8);   // a bright ring low down
+        float gz = 0.2 + 0.008 * snoise(vec3(fp.x * 2.0, 0.0, 4.0));                         // where the glass ends
+        vec3 glass = mix(vec3(0.46, 0.38, 0.3), uC, 0.2) * (0.8 + 0.3 * fbm(vec3(fp.x * 3.0, dp * 30.0, 2.0)));
+        glass *= 0.9 + 0.1 * snoise(vec3(fp.x * 1.5, dp * 90.0, 1.0));                   // streaks along the wall
+        glass = mix(glass, amber * 0.85, smoothstep(0.08, 0.2, dp) * 0.45);
+        glass = mix(glass, vec3(0.95, 0.9, 0.75), (1.0 - smoothstep(0.002, 0.008, abs(dp - gz + 0.012))) * 0.4);
+        float slot = fp.x / 0.3;                                                            // a bubble about every 8% of the width
+        for (int i = -1; i <= 1; i++) {
+          float id = floor(slot) + float(i);
+          float hs = hash21(vec2(id, 7.0)), hx = hash21(vec2(id, 3.0)), hy = hash21(vec2(id, 5.0));
+          vec2 c = vec2((id + 0.5 + 0.5 * (hx - 0.5)) * 0.3, 0.058 + 0.02 * (hy - 0.5));
+          vec2 rr = vec2(0.075 + 0.07 * hs, 0.027 + 0.02 * hs);                          // half width (fp), half height (frame heights)
+          vec2 d = vec2(fp.x - c.x, dp - c.y) / rr;
+          float r = length(d) * (1.0 + 0.12 * snoise(vec3(d * 1.5, id)));                 // not quite round
+          float inner = 1.0 - smoothstep(0.75, 1.0, r);
+          float lower = smoothstep(-0.2, 0.9, d.y);                                         // light gathers along the bottom
+          float edge = (1.0 - smoothstep(0.06, 0.18, abs(r - 0.9))) * (0.2 + 0.8 * lower);
+          float glint = exp(-dot(d - vec2(0.4, -0.55), d - vec2(0.4, -0.55)) / 0.05);
+          vec3 fill = hs > 0.6 && c.x < -0.9 ? vec3(0.6, 0.42, 0.4) : mix(vec3(0.12, 0.13, 0.19), vec3(0.36, 0.34, 0.38), lower);
+          glass = mix(glass, fill, inner * 0.75);
+          glass = mix(glass, vec3(1.0, 0.95, 0.82), clamp(edge + glint * 0.6, 0.0, 1.0) * 0.85);
+        }
+        col = mix(amber, glass, 1.0 - smoothstep(gz - 0.025, gz + 0.015, dp));
+        h = n * 0.3; spec = 0.5; shade = 0.35;
       } else if (uPat == 2) {                // amber liquid with dark specks
         float n = fbm(pn * 1.5);
         col = mix(uA, uB, clamp(smoothstep(0.0, 0.7, v) + n * 0.2, 0.0, 1.0));
@@ -599,17 +634,29 @@ const sphereMat = new THREE.ShaderMaterial({
         col = mix(col, uC * 0.7, clamp(spl + drip * 0.75, 0.0, 1.0));
         col = mix(col, uD, (1.0 - smoothstep(0.02, 0.1, v)) * 0.9);    // thin dark lip on the rim
         h = sp * 0.6 + n * 0.1 + spl * 0.5; spec = 0.4; shade = 0.4;
-      } else if (uPat == 3) {                // bread crust, one flake peeled back
+      } else if (uPat == 3) {                // bread crust, one flake torn back to the dark crumb, a white skin peeling on the right
         float n = fbm(pn * 3.0);
-        col = mix(uA, uB, smoothstep(-0.6, 0.7, n) * 0.8);
-        vec3 cc = voronoi(vec2(u * 150.0, v * 70.0) + uSeed);
-        float pore = 1.0 - smoothstep(0.08, 0.3, cc.x);
-        col *= 1.0 - pore * 0.55;
-        float edge = dp - 0.06 - 0.22 * (fp.x - 0.3) * (fp.x - 0.3) + 0.006 * snoise(vec3(fp.x * 5.0, 0.0, 3.0));
-        float inside = smoothstep(0.0, 0.004, edge) * step(-0.6, fp.x);
-        col = mix(col, uC * (0.8 + 0.3 * fbm(pn * 6.0)), inside);
-        col = mix(col, uD, (1.0 - smoothstep(0.002, 0.006, abs(edge))) * step(-0.6, fp.x) * 0.9);
-        h = n * 0.5 - pore * 0.5 - inside * 0.5; bumpK = 0.008;
+        col = mix(uA, uB, smoothstep(-0.6, 0.7, n) * 0.85);
+        col *= mix(0.62, 1.0, smoothstep(-1.7, 0.2, fp.x));                                // the left side falls into shadow
+        vec3 cc = voronoi(vec2(fp.x * 30.0, dp * 110.0) + uSeed);
+        float pore = (1.0 - smoothstep(0.18, 0.42, cc.x + 0.12 * snoise(pn * 40.0))) * step(0.15, cc.z);
+        col *= 1.0 - pore * 0.65;
+        // the tear, traced off the original: a long upper edge running down to the right, a steep left edge
+        float yU = -0.4576 - 0.238 * fp.x + 0.012 * snoise(vec3(fp.x * 6.0, 0.0, 3.0));
+        float xL = -0.444 + 1.684 * (fp.y + 1.0) + 0.015 * snoise(vec3(0.0, fp.y * 7.0, 5.0));
+        float t = -(fp.y + 0.568);
+        float xR = 0.64 - 0.214 * t + 4.355 * t * t;
+        float below = smoothstep(0.0, 0.006, yU - fp.y);
+        float crumb = below * smoothstep(0.0, 0.01, fp.x - xL);
+        float skin = crumb * smoothstep(-0.01, 0.02, fp.x - xR) * (1.0 - smoothstep(1.5, 1.62, fp.x));
+        col = mix(col, uC * (0.85 + 0.25 * fbm(pn * 6.0)), crumb);
+        col = mix(col, vec3(0.9, 0.86, 0.9) * (0.85 + 0.15 * fbm(vec3(fp * 8.0, 2.0))), skin * 0.9);
+        float edgeL = (1.0 - smoothstep(0.012, 0.035, abs(fp.x - xL))) * below;
+        float edgeU = (1.0 - smoothstep(0.004, 0.01, abs(fp.y - yU))) * step(-0.08, fp.x);
+        col = mix(col, uD, clamp(edgeL + edgeU * 0.9, 0.0, 1.0));
+        col = mix(col, vec3(0.97, 0.93, 0.8), (1.0 - smoothstep(0.001, 0.004, abs(dp - 0.033 - 0.004 * snoise(vec3(fp.x * 4.0, 0.0, 1.0)))))
+                  * smoothstep(-0.85, -0.75, fp.x) * (1.0 - smoothstep(0.1, 0.2, fp.x)) * 0.9);   // a thin white crack under the rim
+        h = n * 0.5 - pore * 0.5 * (1.0 - crumb) - crumb * 0.4; bumpK = 0.012;
       } else if (uPat == 4) {                // blueprint: the chalk arc on the rim, radial strokes below it
         col = uA * (0.9 + 0.1 * fbm(pn * 4.0));
         vec2 rq = vec2(fp.x + 0.25, fp.y + 3.0);           // the strokes radiate from a point far below
@@ -624,40 +671,48 @@ const sphereMat = new THREE.ShaderMaterial({
       } else if (uPat == 5) {                // leaf
         float n = fbm(pn * 2.0);
         col = mix(uA, uB, 0.5 + 0.5 * n);
-        float vn  = 1.0 - smoothstep(0.0, 0.05, abs(snoise(pn * 3.0 + 2.0)));
-        float vn2 = 1.0 - smoothstep(0.0, 0.08, abs(snoise(pn * 14.0 + 5.0)));
-        col = mix(col, uA * 0.55, vn * 0.6 + vn2 * 0.3);
+        float vn  = 1.0 - smoothstep(0.0, 0.03, abs(snoise(pn * 3.0 + 2.0)));
+        float vn2 = 1.0 - smoothstep(0.0, 0.06, abs(snoise(pn * 40.0 + 5.0)));
+        col = mix(col, uA * 0.6, vn * 0.45);
+        col = mix(col, mix(uC, uD, 0.4), vn2 * 0.35);                                        // the fine veins are paler than the leaf
         float streak = exp(-pow((u + 0.1 + 0.02 * snoise(vec3(v * 8.0, 0.0, 1.0))) / 0.022, 2.0)) * smoothstep(0.45, 0.55, v);
         col = mix(col, uD, streak * (0.7 + 0.3 * snoise(pn * 20.0)));
         col = mix(col, uA * 0.8, (1.0 - smoothstep(0.05, 0.2, v)) * 0.5);
         col *= 0.92 + 0.08 * snoise(pn * 90.0);
         h = vn * 0.4 + vn2 * 0.3; shade = 0.5;
-      } else if (uPat == 6) {                // pink gel
+      } else if (uPat == 6) {                // pink gel: a cream meniscus, paler just under it, a net of veins deep down
         float n = fbm(pn * 3.0);
-        col = mix(vec3(0.96, 0.8, 0.8), uA, smoothstep(0.006, 0.02, dp));
-        col = mix(col, uB, clamp(smoothstep(0.3, 0.9, v) + n * 0.2, 0.0, 1.0));
-        vec3 gc = voronoi(vec2(u * 30.0, v * 14.0));
-        col = mix(col, uC, (1.0 - smoothstep(0.02, 0.07, gc.y - gc.x)) * smoothstep(0.35, 0.6, v) * 0.35);
-        col *= 0.9 + 0.1 * snoise(pn * 70.0);
-        h = n * 0.3; spec = 0.3;
-      } else if (uPat == 7) {                // terracotta: chipped dark lip, then a greek-key band
-        col = uA * (0.8 + 0.3 * fbm(pn * 3.0));
-        float d0 = 0.34, d1 = 0.48, cellV = (d1 - d0) / 5.0, cellU = 0.0195;
-        float wear = smoothstep(-0.6, 0.2, snoise(pn * 12.0));
-        if (v > d0 && v < d1) {
-          int yy = int(floor((v - d0) / cellV));
-          int xx = int(mod(floor(u / cellU), 6.0));
+        col = mix(uA, uB, clamp(smoothstep(0.1, 0.45, dp) * 0.6 + n * 0.2, 0.0, 1.0));
+        col = mix(col, uC, (1.0 - smoothstep(0.02, 0.12, dp)) * 0.45);
+        vec3 gc = voronoi(vec2(fp.x * 9.0, fp.y * 7.0) + 0.3 * vec2(snoise(vec3(fp * 3.0, 1.0)), snoise(vec3(fp * 3.0, 4.0))));
+        float vein = (1.0 - smoothstep(0.02, 0.08, gc.y - gc.x)) * smoothstep(0.22, 0.4, dp);
+        col = mix(col, uC * 1.05, vein * 0.55);
+        col *= 0.92 + 0.08 * snoise(pn * 70.0);
+        col = mix(col, vec3(0.97, 0.88, 0.72), 1.0 - smoothstep(0.007, 0.015, dp + 0.003 * snoise(vec3(fp.x * 20.0, 0.0, 2.0))));
+        h = n * 0.3 + vein * 0.2; spec = 0.25;
+      } else if (uPat == 7) {                // terracotta: torn pink lip, a charred band, a greek-key band, a ring lower down
+        col = uA * (0.82 + 0.28 * fbm(pn * 3.0));
+        col = mix(col, uB, smoothstep(0.3, 0.8, snoise(vec3(fp * 14.0, 3.0))) * 0.25);
+        float wear = smoothstep(-0.95, -0.5, snoise(pn * 12.0));
+        float d0 = 0.14 + 0.01 * fp.x * fp.x, d1 = d0 + 0.1, cellV = (d1 - d0) / 5.0;
+        if (dp > d0 && dp < d1) {
+          int yy = int(floor((dp - d0) / cellV));
+          int xx = int(mod(floor(fp.x / 0.0445), 6.0));                                     // a key every 7.5% of the width
           float key = mod(floor(float(keyRow(yy)) / exp2(float(xx))), 2.0);   // bit xx, WebGL1-safe
-          col = mix(uB * (0.9 + 0.2 * fbm(pn * 5.0)), uC, key * wear);
+          col = mix(col, uC * (0.9 + 0.2 * fbm(pn * 5.0)), key * wear);
           h = key * 0.3;
         }
-        float border = (1.0 - smoothstep(cellV * 0.3, cellV * 0.5, abs(v - d0 + cellV * 0.8)))
-                     + (1.0 - smoothstep(cellV * 0.3, cellV * 0.5, abs(v - d1 - cellV * 0.8)))
-                     + (1.0 - smoothstep(0.004, 0.009, abs(v - 0.53)));
-        col = mix(col, uC, clamp(border, 0.0, 1.0) * wear);
-        float crust = 1.0 - smoothstep(0.022, 0.03, dp + 0.008 * snoise(vec3(fp.x * 14.0, 0.0, 1.0)));
-        col = mix(col, mix(uD, uC, 0.5) * (0.7 + 0.5 * fbm(pn * 9.0)), crust);
-        h += fbm(pn * 6.0) * 0.2 + crust * 0.4;
+        float line = (1.0 - smoothstep(cellV * 0.25, cellV * 0.45, abs(dp - d0 + cellV * 0.7)))
+                   + (1.0 - smoothstep(cellV * 0.3, cellV * 0.55, abs(dp - d1 - cellV * 0.8)))
+                   + (1.0 - smoothstep(0.004, 0.008, abs(dp - 0.384 - 0.03 * fp.x * fp.x)));
+        col = mix(col, uC, clamp(line, 0.0, 1.0) * wear);
+        float cb = 0.095 + 0.03 * smoothstep(0.2, -1.5, fp.x) - 0.05 * smoothstep(0.7, 1.3, fp.x) + 0.012 * snoise(vec3(fp.x * 6.0, 0.0, 1.0));
+        float charred = smoothstep(0.018, 0.026, dp) * (1.0 - smoothstep(cb - 0.006, cb + 0.004, dp));
+        col = mix(col, uD * (0.7 + 0.6 * fbm(pn * 9.0)), charred * 0.92);
+        col = mix(col, uB * 1.05, (1.0 - smoothstep(0.006, 0.02, dp)) * 0.5);                  // the lip catches the light
+        float jag = 0.012 * (0.5 + 0.5 * snoise(vec3(fp.x * 45.0, 0.0, 3.0))) * (0.6 + 0.4 * snoise(vec3(fp.x * 7.0, 0.0, 8.0)));
+        col = mix(col, uBgBack, 1.0 - smoothstep(0.0, 0.003, dp - jag));                     // a torn, crumbling edge
+        h += fbm(pn * 6.0) * 0.25 + charred * 0.3;
       } else if (uPat == 8) {                // parchment with a painted green ring
         col = uA * (0.9 + 0.12 * fbm(pn * 3.0));
         float b0 = 0.04, b1 = 0.2;
@@ -672,16 +727,17 @@ const sphereMat = new THREE.ShaderMaterial({
         float st = sin(u * 40.0 + n * 8.0) * 0.5 + 0.5;
         col = pal4(0.5 + 0.6 * n + 0.25 * st * step(0.1, v));
         h = n * 0.2; shade = 0.3;
-      } else if (uPat == 10) {               // crayon strokes on blue paper, running along the rim
-        col = uA * (0.95 + 0.08 * fbm(pn * 8.0));
+      } else if (uPat == 10) {               // crayon strokes on blue paper: a doubled stroke under the rim, another far below
+        col = paper(uA, fp);
         for (int i = 0; i < 3; i++) {
           float fi = float(i);
-          float d0 = fi < 0.5 ? 0.008 : fi < 1.5 ? 0.036 : 0.13;
-          float w = fi < 0.5 ? 0.034 : fi < 1.5 ? 0.028 : 0.042;
+          float d0 = fi < 0.5 ? 0.02 : fi < 1.5 ? 0.048 : 0.255;
+          float w = fi < 0.5 ? 0.03 : fi < 1.5 ? 0.024 : 0.045;
+          d0 += (fi < 1.5 ? 0.035 : 0.02) * fp.x * fp.x * (fp.x < 0.0 ? 1.0 : 0.6);
           float wob = 0.012 * snoise(vec3(fp.x * 1.4, fi, uSeed)) + 0.004 * snoise(vec3(fp.x * 6.0, fi, 2.0));
-          float s = 1.0 - smoothstep(w * 0.45, w, abs(dp - d0 - wob));
+          float s = 1.0 - smoothstep(w * 0.4, w, abs(dp - d0 - wob) + 0.006 * snoise(vec3(fp.x * 40.0, fi, 4.0)));
           float wax = smoothstep(-0.55, 0.3, snoise(vec3(fp.x * 60.0, dp * 500.0, fi * 3.0))) * (0.75 + 0.25 * snoise(vec3(fp.x * 6.0, fi, 9.0)));
-          col = mix(col, uB, s * wax * 0.92);
+          col = mix(col, uB, s * wax * 0.95);
         }
         shade = 0.0;
       } else if (uPat == 11) {               // golden moss
@@ -725,11 +781,18 @@ const sphereMat = new THREE.ShaderMaterial({
         spc = mix(spc, vec3(0.42, 0.28, 0.75), smoothstep(0.022, 0.038, dp));
         col = mix(col, spc, (1.0 - smoothstep(0.032, 0.06, dp)) * 0.9);
         shade = 0.4;
-      } else if (uPat == 16 || uPat == 39) { // dark ground against a sunset: 16 glows soft, 39 is a sharp ridge
+      } else if (uPat == 16 || uPat == 39) { // dark ground against a sunset: 16 melts into a crimson glow, 39 is a ridge of clods
         col = uA * (0.7 + 0.4 * fbm(pn * 4.0));
-        col *= 0.8 + 0.3 * smoothstep(-0.4, 0.8, snoise(vec3(fp.x * 40.0, dp * 4.0, 2.0)));
-        float soft = uPat == 39 ? 0.004 : 0.045;
-        col = mix(col, uB, exp(-max(dp, 0.0) / soft) * 0.85);
+        float streak = smoothstep(-0.2, 0.9, snoise(vec3(fp.x * 38.0, dp * (uPat == 16 ? 14.0 : 3.0), 2.0)));
+        if (uPat == 16) {
+          col *= 0.9 + 0.15 * streak;
+          col += uB * smoothstep(0.3, 0.9, streak) * exp(-dp / 0.14) * 0.3;                  // blurred glints under the horizon
+          col = mix(col, uB * 0.85, exp(-max(dp, 0.0) / 0.08));                               // no hard edge: the ground melts into the glow
+        } else {
+          col *= mix(1.0, 0.6 + 0.6 * clamp(vH, 0.0, 1.2), exp(-dp / 0.02));                                             // the tops of the clods catch more light
+          float rl = exp(-max(dp, 0.0) / 0.006) * (0.5 + 0.5 * smoothstep(-0.5, 0.8, snoise(vec3(fp.x * 60.0, 0.0, 5.0))));
+          col = mix(col, uB * 1.4, rl * smoothstep(0.5, 1.0, vH) * (1.0 - 0.7 * smoothstep(-0.2, 1.2, fp.x)));   // rim light on the tops of clods, strongest on the sunny left
+        }
         shade = 0.3;
       } else if (uPat == 17) {               // printed floral fabric
         vec3 w = pn * 2.0;
@@ -743,36 +806,59 @@ const sphereMat = new THREE.ShaderMaterial({
         float t = v * 6.0 + fbm(pn * 1.5) * 0.6 + sin(u * 10.0) * 0.05;
         col = pal4(fract(t));
         shade = 0.3;
-      } else if (uPat == 19) {               // lace: bright white mesh, solid petals and leaves, a few big holes
+      } else if (uPat == 19) {               // lace: a hexagonal net, motifs in close stitch outlined by a cord, rosettes, a torn hole
         vec2 q = vec2(fp.x, -2.0 * dp);
-        vec2 g = fract(q * vec2(95.0, 95.0) + vec2(0.5 * floor(q.y * 95.0), 0.0)) - 0.5;
-        float mesh = smoothstep(0.24, 0.34, length(g));                     // white threads between round holes
-        vec3 vr = voronoi(q * 7.0 + uSeed);
-        float petal = 1.0 - smoothstep(0.02, 0.06, abs(vr.x - 0.26 - 0.06 * snoise(vec3(q * 22.0, vr.z * 9.0))));
-        float leaf = (1.0 - smoothstep(0.15, 0.2, vr.x)) * step(0.6, vr.z);
-        float outline = 1.0 - smoothstep(0.015, 0.05, vr.y - vr.x);
-        float hole = (1.0 - smoothstep(0.12, 0.17, vr.x)) * step(vr.z, 0.18);   // a few torn-out holes
-        float lace = max(max(mesh * 0.8, petal * step(0.3, vr.z)), max(leaf, outline * 0.9)) * (1.0 - hole);
-        col = mix(uA, uB, clamp(lace, 0.0, 1.0) * (0.88 + 0.12 * snoise(pn * 40.0)));
+        vec2 gq = q * vec2(34.0, 39.0);
+        gq.x += 0.5 * mod(floor(gq.y), 2.0);
+        float net = smoothstep(0.3, 0.38, length(fract(gq) - 0.5));
+        vec2 mq = q * 3.2 + 0.6 * vec2(snoise(vec3(q * 2.5, 1.0)), snoise(vec3(q * 2.5, 6.0)));
+        vec3 vr = voronoi(mq + uSeed);
+        float edge = vr.y - vr.x;                                                           // 0 on a motif's boundary
+        float cord = 1.0 - smoothstep(0.02, 0.05, abs(edge - 0.09));
+        vec2 fq = q * vec2(68.0, 78.0);
+        fq.x += 0.5 * mod(floor(fq.y), 2.0);
+        float stitch = 0.55 + 0.45 * smoothstep(0.24, 0.34, length(fract(fq) - 0.5));      // close stitch: a finer, denser net
+        float lace = net * 0.75;
+        if (vr.z > 0.3 && vr.z < 0.78) lace = max(lace, smoothstep(0.1, 0.13, edge) * stitch);
+        if (vr.z >= 0.78 && vr.z < 0.9) {                                                  // a rosette: a dark heart, a ring of petals
+          lace *= smoothstep(0.17, 0.2, vr.x);
+          lace = max(lace, (1.0 - smoothstep(0.015, 0.03, abs(vr.x - 0.07))) * 0.9);
+          lace = max(lace, (1.0 - smoothstep(0.02, 0.045, abs(vr.x - 0.25))) * step(-0.2, snoise(vec3(mq * 7.0, 2.0))));
+        }
+        if (vr.z >= 0.9) lace *= smoothstep(0.22, 0.26, vr.x);                              // torn out
+        if (vr.z > 0.3) lace = max(lace, cord);
+        col = mix(uA, uB, clamp(lace, 0.0, 1.0) * (0.9 + 0.1 * snoise(pn * 40.0)));
         h = lace * 0.4; shade = 0.35;
-      } else if (uPat == 20) {               // agate: golden lip, glossy dark crust, scalloped purple line, pale inside
+      } else if (uPat == 20) {               // agate: glossy dark crust with a gold lip, quartz teeth under it, cream inside
         float wav = 0.012 * snoise(vec3(fp.x * 5.0, 0.0, uSeed)) + 0.005 * sin(fp.x * 38.0);
-        float cb = 0.065 + wav;                                 // where the crust ends
+        float cb = 0.07 + wav;                                                              // where the crust ends
         col = uA * (0.97 + 0.03 * snoise(pn * 20.0));
-        col = mix(col, uB * 1.15, smoothstep(0.0, 0.01, dp - cb) * (1.0 - smoothstep(0.01, 0.035, dp - cb)) * 0.35);
-        col = mix(col, uB, (1.0 - smoothstep(0.003, 0.008, abs(dp - cb - 0.007))) * 0.9);
-        col = mix(col, uB, (1.0 - smoothstep(0.006, 0.02, abs(dp - 0.17 - wav))) * 0.25);
+        col = mix(col, uB * 1.2, (1.0 - smoothstep(0.01, 0.05, abs(dp - 0.4 - 0.05 * fp.x * fp.x))) * 0.35);
+        float tx = fp.x * 9.0, tid = floor(tx);
+        float tl = (0.015 + 0.045 * hash21(vec2(tid, 3.0))) * step(0.35, hash21(vec2(tid, 9.0)));   // how far each tooth hangs, if at all
+        float tw = abs(fract(tx) - 0.5) * 2.0;
+        float tip = cb + tl * sqrt(max(0.0, 1.0 - tw * tw)) * (0.8 + 0.2 * snoise(vec3(fp.x * 40.0, 0.0, 6.0)));
+        float tooth = (1.0 - smoothstep(0.0, 0.01, dp - tip)) * step(cb, dp);
+        col = mix(col, mix(uB * 0.6, vec3(0.55, 0.48, 0.6), 0.5), tooth * 0.75);
+        float tEdge = (1.0 - smoothstep(0.0, 0.006, abs(dp - tip))) * step(cb, dp);
+        col = mix(col, uB, clamp(tEdge + 1.0 - smoothstep(0.003, 0.008, abs(dp - cb - 0.004)), 0.0, 1.0) * 0.9);
         float crust = 1.0 - smoothstep(cb - 0.002, cb + 0.002, dp);
         col = mix(col, uC * (0.7 + 0.6 * fbm(vec3(fp * 14.0, 1.0))), crust);
-        col = mix(col, uD, 1.0 - smoothstep(0.001, 0.006, dp));
+        float gloss = crust * smoothstep(0.55, 0.85, snoise(vec3(fp.x * 14.0, dp * 60.0, 4.0))) * (1.0 - smoothstep(0.0, 0.03, dp));
+        col = mix(col, uD * 1.1, max(gloss * 0.8, 1.0 - smoothstep(0.002, 0.008, dp)));
         h = crust * (0.3 + 0.4 * fbm(vec3(fp * 30.0, 2.0))); spec = crust * 0.8; shade = 0.5;
-      } else if (uPat == 23) {               // white rock
+      } else if (uPat == 23) {               // white rock, fluted: rounded crests, dark grooves slanting down to the right
         float n = fbm(pn * 6.0);
-        col = mix(uB, uA, 0.55 + 0.45 * n) * (0.85 + 0.15 * snoise(pn * 50.0));
-        float gx = abs(fract(fp.x * 1.2 + 0.25 * fbm(vec3(fp * 1.5, 3.0))) - 0.5);
-        float groove = (1.0 - smoothstep(0.02, 0.02 + 0.2 * smoothstep(0.01, 0.2, dp), gx)) * smoothstep(0.01, 0.06, dp);
-        col = mix(col * 1.08, vec3(0.1, 0.11, 0.13), groove * 0.85);
-        h = vH * 1.6 + n * 0.3 - groove * 0.5; bumpK = 0.03; shade = 1.0;
+        float k = u * 5.4 + 0.2 * snoise(vec3(u * 3.0, 0.0, uSeed)) + 1.0 * dp;           // follows the crests of the displacement
+        float c = fract(k + 0.5) - 0.5;                                                     // 0 on a crest, +-0.5 in a groove
+        float gw = 0.18 + 0.25 * smoothstep(0.0, 0.3, dp);                                  // grooves widen as they run down
+        float groove = (1.0 - smoothstep(gw * 0.35, gw, 0.5 - abs(c) + 0.05 * snoise(vec3(fp * 8.0, 2.0)))) * smoothstep(0.005, 0.05, dp);
+        float lit = 0.72 + 0.3 * cos(6.2832 * c) + 0.15 * sin(6.2832 * c);                  // crests lit from the left
+        col = mix(uB, uA, 0.6 + 0.4 * n) * lit;
+        float pit = smoothstep(0.3, 0.75, snoise(vec3(fp * 22.0, 1.0)) + 0.4 * snoise(vec3(fp * 60.0, 2.0))) * (0.35 + 0.65 * smoothstep(0.0, 0.3, dp));
+        col = mix(col, vec3(0.13, 0.13, 0.12), pit * 0.75);
+        col = mix(col, vec3(0.07, 0.08, 0.08) + 0.06 * n, groove * 0.9);
+        h = vH * 1.2 + n * 0.3 - groove * 0.4; bumpK = 0.02; shade = 0.45;
       } else if (uPat == 24) {               // weathered end grain: dense wavy contours, two blobs of paint
         float wv = 0.02 * fbm(vec3(fp.x * 1.6, 0.0, uSeed)) + 0.05 * exp(-fp.x * fp.x * 6.0) * smoothstep(0.1, 0.35, dp);
         float g = fract((dp - wv) * 30.0 + 0.9 * fbm(vec3(fp * 3.5, 1.0)) + 0.25 * snoise(vec3(fp * 14.0, 4.0)));
@@ -783,37 +869,61 @@ const sphereMat = new THREE.ShaderMaterial({
                          1.0 - smoothstep(0.8, 1.0, length((vec2(fp.x, dp) - vec2(0.2, 0.055)) / vec2(0.08, 0.018))));
         col = mix(col, vec3(0.95, 0.95, 0.93), blob);
         h = line * 0.3; shade = 0.4;
-      } else if (uPat == 25) {               // cut-paper collage: flat shapes on a blue sheet
-        vec2 q = vec2(fp.x, -2.0 * dp);
-        vec2 qq = q * vec2(2.4, 3.2) + 0.12 * vec2(snoise(vec3(q * 3.0, 1.0)), snoise(vec3(q * 3.0, 5.0)));
-        vec3 vr = voronoi(qq + uSeed);
-        float id = vr.z;
+      } else if (uPat == 25) {               // cut-paper collage: the original's shapes, where they were, on a blue sheet
+        vec2 C = vec2((fp.x / 3.5556 + 0.5) * 1280.0, ((0.5 - 0.5 * fp.y) * 1080.0 - 420.0) / 1.5);   // the original's pixels
+        C += 1.5 * vec2(snoise(vec3(C * 0.05, 1.0)), snoise(vec3(C * 0.05, 4.0)));                   // torn, not cut
         col = uA;
-        if (id > 0.45) col = id < 0.55 ? vec3(0.28, 0.09, 0.05) : id < 0.63 ? vec3(0.75, 0.08, 0.1) : id < 0.72 ? uD : id < 0.8 ? vec3(0.2, 0.16, 0.36) : id < 0.88 ? vec3(0.93, 0.47, 0.12) : vec3(0.95, 0.94, 0.9);
-        float inset = smoothstep(0.02, 0.05, vr.y - vr.x);
-        col = mix(uA, col, inset);
-        col = mix(col, vec3(0.97, 0.88, 0.48), 1.0 - smoothstep(0.8, 1.0, length((q - vec2(-0.55, -0.1)) / 0.1)));   // the yellow disc
-        if (id > 0.88) col = mix(col, vec3(0.3), step(0.85, fract((q.x * 0.6 + q.y) * 40.0 + snoise(vec3(q * 8.0, 2.0)))) * 0.6);   // pencil scribble
-        col *= 0.95 + 0.05 * snoise(pn * 60.0);
+        vec3 navy = vec3(0.1, 0.12, 0.25), plum = vec3(0.24, 0.18, 0.38);
+        lay(col, plum, max(C.x - 245.0, C.y - 185.0 - 24.0 * sin(C.x * 0.045)));
+        lay(col, vec3(0.27, 0.62, 0.36), min(min(sdBox(C, vec2(125.0, 264.0), vec2(125.0, 36.0)), sdBox(C, vec2(52.0, 350.0), vec2(53.0, 122.0))), length(C - vec2(205.0, 272.0)) - 50.0));
+        lay(col, navy, sdBlade(C, vec2(215.0, 322.0), vec2(165.0, 445.0), 26.0));
+        lay(col, vec3(0.3, 0.1, 0.05), min(min(sdBox(C, vec2(295.0, 300.0), vec2(45.0, 150.0)), sdBox(C, vec2(390.0, 340.0), vec2(140.0, 50.0))), sdBox(C, vec2(505.0, 278.0), vec2(45.0, 53.0))));
+        lay(col, vec3(0.96, 0.9, 0.55), length(C - vec2(460.0, 160.0)) - 68.0);
+        lay(col, vec3(0.16, 0.07, 0.07), sdBlade(C, vec2(598.0, 88.0), vec2(675.0, 445.0), 22.0));
+        lay(col, vec3(0.84, 0.1, 0.13), sdBlade(C, vec2(545.0, 95.0), vec2(640.0, 445.0), 42.0));
+        lay(col, vec3(0.24, 0.6, 0.35), sdBox(C, vec2(805.0, 190.0), vec2(62.0, 42.0)) - 50.0);
+        lay(col, navy, sdBlade(C, vec2(806.0, 262.0), vec2(818.0, 450.0), 13.0));
+        vec2 Cb = C - vec2(28.0 * sin(3.1416 * clamp((C.y - 268.0) / 177.0, 0.0, 1.0)), 0.0);
+        lay(col, vec3(0.94, 0.5, 0.18), sdBlade(Cb, vec2(850.0, 268.0), vec2(900.0, 445.0), 28.0));
+        lay(col, plum, max(max(125.0 - C.y, C.y - 215.0), max(920.0 + (215.0 - C.y) * 0.9 - C.x, C.x - 1150.0 + (215.0 - C.y) * 0.45)));
+        float wp = max(min(sdBox(C, vec2(1115.0, 328.0), vec2(155.0, 78.0)), sdBox(C, vec2(1215.0, 200.0), vec2(55.0, 52.0))),
+                       (1.0 - length((C - vec2(1120.0, 405.0)) / vec2(62.0, 85.0))) * 60.0);
+        float sc = abs(fract((C.x - C.y * 0.35 + 9.0 * sin(C.y * 0.045 + C.x * 0.01)) / 11.0) - 0.5) * 11.0;
+        float pen = (1.0 - smoothstep(0.4, 1.3, sc)) * smoothstep(-0.3, 0.3, snoise(vec3(C * vec2(0.012, 0.03), 3.0)));
+        lay(col, mix(vec3(0.95, 0.94, 0.9), vec3(0.38), pen * 0.7), wp);
+        lay(col, vec3(0.78, 0.55, 0.85), max(380.0 - C.y, length((C - vec2(490.0, 445.0)) / vec2(82.0, 64.0)) * 64.0 - 64.0));
+        lay(col, vec3(0.16, 0.36, 0.22), sdBlade(C, vec2(1090.0, 448.0), vec2(1145.0, 335.0), 32.0));
+        lay(col, navy, sdBlade(C, vec2(1095.0, 428.0), vec2(1290.0, 415.0), 16.0));
+        col *= 0.95 + 0.05 * snoise(vec3(C * 0.08, 2.0));
         shade = 0.0;
-      } else if (uPat == 26) {               // plant stem: fine cells, a ring of vascular bundles, dark skin
+      } else if (uPat == 26) {               // plant stem: dark skin, small cells under it, rings of bundles, big pale cells inside
         vec2 q = vec2(fp.x, -2.0 * dp);
-        vec3 c1 = voronoi(q * 24.0 + uSeed);
-        float wall = 1.0 - smoothstep(0.05, 0.14, c1.y - c1.x);
-        col = mix(uA, uB, wall * 0.9);
+        vec3 cS = voronoi(q * 30.0 + uSeed), cL = voronoi(q * 9.0 + uSeed + 5.0);
+        float wL = max(1.0 - smoothstep(0.06, 0.2, cL.y - cL.x), smoothstep(0.42, 0.6, cL.x) * 0.6);   // walls thicken into the corners: round cells
+        float wall = mix(1.0 - smoothstep(0.05, 0.16, cS.y - cS.x), wL, smoothstep(0.03, 0.2, dp));
+        col = mix(mix(uA, vec3(0.93, 0.96, 0.85), 0.35 * hash21(vec2(cL.z, 1.0))), uB, wall * 0.75);
+        float band = 1.0 - smoothstep(0.06, 0.13, dp + 0.02 * snoise(vec3(fp.x * 6.0, 0.0, 4.0)));   // a dark band of small bright cells
+        col = mix(col, mix(vec3(0.05, 0.12, 0.14), vec3(0.75, 0.95, 0.4), (1.0 - smoothstep(0.1, 0.25, cS.x)) * 0.8), band * 0.85);
         for (int r = 0; r < 2; r++) {
           float fr = float(r);
-          float sx = fr < 0.5 ? 2.8 : 2.0, cy = fr < 0.5 ? -0.07 : -0.3, rad = fr < 0.5 ? 0.09 : 0.12;
+          float sx = fr < 0.5 ? 2.2 : 1.6, cy = fr < 0.5 ? -0.26 : -0.58, rad = fr < 0.5 ? 0.13 : 0.14;
           float bid = floor(q.x * sx + fr * 0.5);
-          vec2 bc = vec2((fract(q.x * sx + fr * 0.5) - 0.5) / sx + 0.03 * (hash21(vec2(bid, fr)) - 0.5), q.y - cy - 0.04 * (hash21(vec2(bid, fr + 3.0)) - 0.5));
-          float br = length(bc) / rad;
-          float inB = 1.0 - smoothstep(0.85, 1.0, br);
-          vec3 cb = voronoi(bc * 70.0 + bid);
-          vec3 fill = mix(uC, vec3(0.75, 0.9, 0.4), step(0.6, cb.z)) * (0.7 + 0.3 * smoothstep(0.02, 0.1, cb.y - cb.x));
-          col = mix(col, fill, inB);
-          col = mix(col, uD, (1.0 - smoothstep(0.05, 0.14, abs(br - 1.0))) * 0.95);
+          vec2 bc = vec2((fract(q.x * sx + fr * 0.5) - 0.5) / sx + 0.05 * (hash21(vec2(bid, fr)) - 0.5), q.y - cy - 0.06 * (hash21(vec2(bid, fr + 3.0)) - 0.5));
+          bc.y *= 1.15;
+          float br = length(bc) / rad + 0.08 * snoise(vec3(bc * 20.0, bid));
+          vec3 fill = mix(vec3(0.08, 0.3, 0.3), vec3(0.35, 0.9, 0.75), smoothstep(0.8, 0.1, length(bc - vec2(0.0, 0.02)) / rad));
+          float ves = 9.0;                                                                   // vessels round the lower half of the bundle
+          for (int k = 0; k < 3; k++) {
+            float hk = hash21(vec2(bid * 7.0 + float(k), fr));
+            float a = 3.4 + float(k) * 1.1 + 0.5 * (hk - 0.5);
+            ves = min(ves, length(bc - vec2(cos(a), sin(a)) * vec2(0.07, 0.055) * (0.7 + 0.4 * hk) + vec2(0.0, 0.005)) / (0.02 + 0.016 * hk));
+          }
+          fill = mix(fill, vec3(0.97, 0.98, 0.82), 1.0 - smoothstep(0.8, 1.0, ves));
+          fill = mix(fill, vec3(0.1, 0.25, 0.2), (1.0 - smoothstep(0.08, 0.2, abs(ves - 1.1))) * 0.6);
+          col = mix(col, fill, 1.0 - smoothstep(0.9, 1.0, br));
+          col = mix(col, vec3(0.03, 0.1, 0.12), (1.0 - smoothstep(0.04, 0.12, abs(br - 0.95))) * 0.6);
         }
-        col = mix(col, uD, 1.0 - smoothstep(0.004, 0.01, dp));
+        col = mix(col, uD, 1.0 - smoothstep(0.004, 0.012, dp));
         h = wall * 0.3; shade = 0.2;
       } else if (uPat == 27) {               // dark dust sphere, ember rim
         float sp = smoothstep(0.55, 0.85, snoise(pn * 35.0));
@@ -823,32 +933,35 @@ const sphereMat = new THREE.ShaderMaterial({
         float mound = smoothstep(mt, mt + 0.006, dp);
         col = mix(col, uB * (0.75 + 0.6 * smoothstep(0.2, 0.9, snoise(pn * 80.0))), mound);
         h = sp * 0.3 + mound * 0.3;
-      } else if (uPat == 28) {               // ruled construction lines: a lattice of diagonals, a red V, arcs along the rim
-        col = uA * (0.97 + 0.03 * snoise(pn * 30.0));
-        vec2 q = fp - vec2(0.0, -0.09);                         // the top of the rim
+      } else if (uPat == 28) {               // ruled construction lines on white paper: uneven diagonals, a red V, arcs
+        col = paper(uA, fp);
+        vec2 q = fp - vec2(0.0, -0.09);                                                     // the top of the rim
         float ink = 0.0;
-        vec2 d1 = normalize(vec2(1.0, 1.25)), d2 = normalize(vec2(-1.0, 1.25));
-        float l1 = abs(fract(dot(q, vec2(d1.y, -d1.x)) / 0.2 + 0.5) - 0.5) * 0.2;
-        float l2 = abs(fract(dot(q, vec2(d2.y, -d2.x)) / 0.2 + 0.5) - 0.5) * 0.2;
-        ink = max(ink, (1.0 - smoothstep(0.0015, 0.0035, min(l1, l2))) * 0.85);
+        for (int f = 0; f < 2; f++) {
+          float ff = float(f);
+          float d = dot(q, normalize(vec2(1.25, f == 0 ? -1.0 : 1.0)));
+          float id = floor(d / 0.16), fr = d / 0.16 - id;
+          float hs = hash21(vec2(id, ff + 1.0));
+          float off = 0.2 + 0.6 * hs;                                                        // lines sit unevenly in their slots
+          float keep = step(0.2, hash21(vec2(id, ff + 7.0)));
+          ink = max(ink, (1.0 - smoothstep(0.0012, 0.003, abs(fr - off) * 0.16)) * keep * 0.85);
+          ink = max(ink, (1.0 - smoothstep(0.0012, 0.003, abs(fr - off - 0.08) * 0.16)) * step(0.72, hs) * 0.85);   // some come in pairs
+        }
         ink = max(ink, 1.0 - smoothstep(0.0015, 0.0035, abs(q.x)));
-        ink = max(ink, 1.0 - smoothstep(0.0015, 0.0035, abs(dp - 0.075)));
-        ink = max(ink, 1.0 - smoothstep(0.0015, 0.0035, abs(dp - 0.19)));
-        col = mix(col, vec3(0.12), ink);
+        ink = max(ink, 1.0 - smoothstep(0.0015, 0.0035, abs(dp - 0.277)));
+        ink = max(ink, 1.0 - smoothstep(0.0015, 0.0035, abs(dp - 0.47)));
+        col = mix(col, vec3(0.13), ink);
         float vr = min(abs(dot(q, vec2(0.781, 0.625))), abs(dot(q, vec2(0.781, -0.625))));   // the red V from the top
-        col = mix(col, uB, 1.0 - smoothstep(0.002, 0.004, vr));
-        col = mix(col, uC, 1.0 - smoothstep(0.002, 0.004, abs(dot(q - vec2(0.5, 0.0), vec2(0.781, 0.625)))));
-        col = mix(col, uD, (1.0 - smoothstep(0.002, 0.004, abs(dot(q + vec2(1.1, 0.0), vec2(0.781, -0.625))))) * 0.8);
-        col = mix(col, vec3(0.3), 1.0 - smoothstep(0.0, 0.004, dp));
+        col = mix(col, uB, 1.0 - smoothstep(0.003, 0.006, vr));
+        col = mix(col, uC, 1.0 - smoothstep(0.0025, 0.005, abs(dot(q - vec2(0.5, 0.0), vec2(0.781, 0.625)))));
+        col = mix(col, uD, (1.0 - smoothstep(0.0025, 0.005, abs(dot(q - vec2(1.3, 0.0), vec2(0.781, 0.625))))) * 0.8);
+        col = mix(col, vec3(0.3, 0.33, 0.2), 1.0 - smoothstep(0.0, 0.004, dp));
         shade = 0.0;
-      } else if (uPat == 29) {               // ink: a drawn horizon with scribbled grass standing up through it
-        col = uA * (0.9 + 0.12 * fbm(pn * 3.0));
-        float arcL = 1.0 - smoothstep(0.0015, 0.004, abs(dp - 0.03));
-        float s1 = abs(snoise(vec3(fp.x * 10.0, dp * 3.0, uSeed)));
-        float s2 = abs(snoise(vec3(fp.x * 24.0 + dp * 5.0, dp * 7.0, uSeed + 3.0)));
-        float strokes = (1.0 - smoothstep(0.03, 0.07, s1)) + (1.0 - smoothstep(0.02, 0.05, s2));
-        float dens = smoothstep(0.0, 0.015, dp) * (0.3 + 0.7 * exp(-fp.x * fp.x * 1.5)) * (0.5 + 0.5 * smoothstep(-0.4, 0.5, snoise(vec3(fp.x * 1.3, 0.0, 7.0))));
-        col = mix(col, uB, clamp(max(arcL, strokes * dens), 0.0, 1.0) * (0.75 + 0.25 * snoise(pn * 50.0)));
+      } else if (uPat == 29) {               // ink: the same paper as the sky and two pen lines for the horizon (the grass is drawn in 2D)
+        col = paper(uA, fp);
+        float d2 = 0.004 + 0.02 * (1.0 - smoothstep(-0.6, 1.3, fp.x));                      // the second line meets the first on the right
+        float arcL = max(1.0 - smoothstep(0.0012, 0.0032, abs(dp - 0.002)), 1.0 - smoothstep(0.001, 0.0028, abs(dp - d2)));
+        col = mix(col, uB, arcL * 0.9);
         shade = 0.0;
       } else if (uPat == 30) {               // white fur
         float f  = snoise(vec3(u * 260.0, v * 6.0, uSeed));
@@ -858,11 +971,14 @@ const sphereMat = new THREE.ShaderMaterial({
         h = f * 0.4; shade = 0.6;
       } else if (uPat == 31) {               // mushroom gills fanning down from a ragged cream cap edge
         vec2 rq = vec2(fp.x, fp.y + 4.0);
-        float a = atan(rq.x, rq.y) * 150.0 + 2.2 * fbm(vec3(fp * 3.0, 1.0));
+        float a = atan(rq.x, rq.y) * 190.0 + 2.2 * fbm(vec3(fp * 3.0, 1.0));
         float g = 0.5 + 0.5 * sin(a);
-        col = mix(uB, uA, smoothstep(0.02, 0.3, g)) * (0.8 + 0.3 * smoothstep(0.0, 0.25, dp)) * (0.8 + 0.3 * snoise(vec3(fp.x * 30.0, dp * 8.0, 2.0)));
-        float cap = 1.0 - smoothstep(0.006, 0.014, dp + 0.004 * snoise(vec3(fp.x * 40.0, 0.0, 2.0)));
+        col = mix(uB * 0.7, uA, smoothstep(0.05, 0.45, g)) * (0.8 + 0.3 * smoothstep(0.0, 0.25, dp)) * (0.85 + 0.25 * snoise(vec3(fp.x * 30.0, dp * 8.0, 2.0)));
+        col *= 0.85 + 0.25 * cos(a) * smoothstep(0.1, 0.5, g);                              // each gill lit on one face
+        float cap = 1.0 - smoothstep(0.018, 0.03, dp + 0.01 * snoise(vec3(fp.x * 30.0, 0.0, 2.0)) + 0.005 * snoise(vec3(fp.x * 110.0, 0.0, 5.0)));
         col = mix(col, uC * (0.8 + 0.3 * fbm(pn * 8.0)), cap);
+        float jag = 0.012 * (0.5 + 0.5 * snoise(vec3(fp.x * 30.0, 0.0, 7.0)));
+        col = mix(col, uBgBack, 1.0 - smoothstep(0.0, 0.003, dp - jag));                     // a ragged, torn edge
         h = g * 0.3;
       } else if (uPat == 32) {               // orange-red granules under a thin glassy skin
         float n = fbm(pn * 2.5);
@@ -874,43 +990,53 @@ const sphereMat = new THREE.ShaderMaterial({
         col = mix(col, mix(uC, col, 0.3), skin * 0.85);
         col = mix(col, uD, (1.0 - smoothstep(0.0, 0.06, v)) * 0.7);
         h = g * 0.25; spec = 0.35; shade = 0.35;
-      } else if (uPat == 33) {               // blue crackle glaze: a white worm-like network, sheen on the rim
-        float w1 = abs(snoise(pn * 40.0 + uSeed)), w2 = abs(snoise(pn * 90.0 + 3.0));
-        float net = (1.0 - smoothstep(0.05, 0.15, w1)) * 0.85 + (1.0 - smoothstep(0.04, 0.11, w2)) * 0.45;
-        float big = (1.0 - smoothstep(0.02, 0.07, abs(snoise(pn * 5.0 + 2.0)))) * smoothstep(0.05, 0.4, u);
-        float zone = smoothstep(0.1, 0.45, u + 0.2 * snoise(pn * 2.0));      // darker, purpler on the left
-        col = mix(uA, uD * 0.7, 0.35 + 0.3 * fbm(pn * 2.0));
-        col = mix(col, uC * 0.7, zone * 0.7);
-        col = mix(col, uB * 0.95, clamp(net * (1.0 - zone * 0.6) + big, 0.0, 1.0));
-        col = mix(col, mix(uD, vec3(0.85, 0.92, 0.95), 0.4), (1.0 - smoothstep(0.005, 0.06, dp)) * 0.45 * (1.0 - zone));
-        col = mix(col, vec3(0.97, 0.97, 1.0), (1.0 - smoothstep(0.04, 0.22, v)) * 0.92);
-        col += vec3(0.8, 0.85, 0.95) * exp(-u * u / 0.01 - pow(v - 0.86, 2.0) / 0.004) * 0.7;
-        h = net * 0.25 + big * 0.3; spec = 0.9; shade = 0.55;
+      } else if (uPat == 33) {               // crackle glaze: white labyrinth on blue, a maroon patch on the left, frosted rim
+        float w = snoise(pn * 40.0 + uSeed) + 0.35 * snoise(pn * 85.0 + 3.0);
+        float net = 1.0 - smoothstep(0.08, 0.2, abs(w));
+        vec2 cq = (fp - vec2(-1.14, -0.51)) / vec2(0.72, 0.36);
+        float cont = 1.0 - smoothstep(0.75, 1.0, length(cq) + 0.3 * fbm(vec3(fp * 3.0, 4.0)));
+        col = mix(uA, uD, clamp(smoothstep(-1.0, 1.5, fp.x) * 0.7 + 0.25 * fbm(pn * 2.0), 0.0, 1.0));
+        col = mix(col, uB, net * 0.88 * (1.0 - cont));
+        vec3 mar = uC * (0.8 + 0.4 * fbm(pn * 5.0));
+        mar = mix(mar, uA * 1.2, smoothstep(0.3, 0.7, snoise(pn * 14.0)) * 0.4);
+        mar = mix(mar, uB, clamp((1.0 - smoothstep(0.03, 0.1, abs(snoise(pn * 15.0 + 7.0)))) * smoothstep(-0.2, 0.4, snoise(pn * 4.0 + 2.0)) + smoothstep(0.55, 0.75, snoise(pn * 10.0 + 3.0)), 0.0, 1.0) * 0.9);   // white veins, here and there
+        col = mix(col, mar, cont);
+        col = mix(col, vec3(0.82, 0.95, 0.97), exp(-pow((fp.x + 0.1) / 0.5, 2.0) - pow((fp.y + 0.95) / 0.22, 2.0)) * 0.7);   // sheen low down
+        float frost = 1.0 - smoothstep(0.01, 0.075 + 0.04 * smoothstep(0.0, 1.5, fp.x), dp + 0.01 * snoise(vec3(fp.x * 5.0, 0.0, 2.0)));
+        col = mix(col, vec3(0.88, 0.93, 0.96), frost * 0.85);
+        h = net * 0.25; spec = 0.5; shade = 0.4;
       } else if (uPat == 34) {               // white stone with black, ink-like cavities
         vec3 w = pn * 2.4;
         float f = fbm(w + vec3(fbm(w * 1.7), fbm(w * 1.7 + 3.1), 0.0) * 1.3);
-        float band = smoothstep(0.18, 0.3, v) * (1.0 - smoothstep(0.5, 0.6, v));
-        float blk = smoothstep(0.12, 0.3, f) * band;
+        float band = smoothstep(0.18, 0.3, v) * (1.0 - smoothstep(0.5, 0.6, v))
+                   * (0.3 + 0.7 * max(exp(-pow((fp.x + 0.45) / 0.6, 2.0)), exp(-pow((fp.x - 1.1) / 0.45, 2.0))));
+        float blk = smoothstep(0.08, 0.32, f) * band;
         col = uA * (0.9 + 0.1 * fbm(pn * 6.0));
         col = mix(col, uC, smoothstep(-0.25, 0.35, f) * 0.5);
         col = mix(col, uD, smoothstep(0.05, 0.25, f) * band * 0.6);
         col = mix(col, uB, blk);
-        vec2 rc = vec2(fp.x + 0.95, -2.0 * dp + 0.95);        // a big round cell low on the left, like a cut fruit
-        float rr = length(rc);
-        float ring = 1.0 - smoothstep(0.01, 0.03, abs(rr - 0.34));
-        float fan = (1.0 - smoothstep(0.2, 0.33, rr)) * (0.5 + 0.5 * sin(atan(rc.y, rc.x) * 22.0 + fbm(pn * 4.0) * 2.0));
-        col = mix(col, uD, clamp(ring * 0.8 + fan * 0.35, 0.0, 1.0));
+        col = mix(col, uA * 0.85, (1.0 - smoothstep(0.02, 0.07, abs(snoise(w * 5.0 + f * 3.0)))) * blk * 0.6);   // filaments swirling in the pockets
+        float hol = exp(-pow((fp.x - 0.44) / 0.55, 2.0) - pow((fp.y + 0.62) / 0.22, 2.0)) * (0.6 + 0.6 * fbm(vec3(fp * 2.5, 3.0)));   // a smooth grey hollow right of centre
+        col = mix(col, mix(uD, uC, 0.5 + 0.5 * snoise(vec3(fp * 1.6, 5.0))), smoothstep(0.25, 0.7, hol) * 0.7);
+        float rr = length((fp - vec2(-0.69, -0.97)) / vec2(0.55, 0.42)) + 0.03 * snoise(vec3(fp * 6.0, 2.0));   // a big round cell, like a cut fruit
+        vec3 pulp = mix(uD, uC, 0.5 + 0.5 * fbm(vec3(fp * 4.0, 5.0)));
+        vec2 wq = fp * 3.0 + 0.8 * vec2(fbm(vec3(fp * 2.0, 1.0)), fbm(vec3(fp * 2.0, 4.0)));
+        pulp = mix(pulp, uA, smoothstep(0.0, 0.45, fbm(vec3(wq, 7.0))) * 0.7) * (0.8 + 0.2 * smoothstep(0.5, 0.9, rr));   // feathery white plumes
+        col = mix(col, pulp, 1.0 - smoothstep(0.9, 0.93, rr));
+        col = mix(col, uA * 1.03, 1.0 - smoothstep(0.03, 0.07, abs(rr - 0.97)));
         h = f * 0.35 - blk * 0.4; bumpK = 0.006; shade = 0.7;
-      } else if (uPat == 35) {               // dark maroon ribs rising into rounded teeth
-        float rib = 0.5 + 0.5 * sin(u * 64.0 + snoise(vec3(u * 6.0, v * 3.0, uSeed)) * 1.5);
+      } else if (uPat == 35) {               // dark maroon flutes rising into round knobs; crumbly and blotched lower down
+        float kk = u * 5.0 + 0.35, ff = kk - floor(kk + 0.5);                               // matches the knobs of the displacement
+        float rib = 0.5 + 0.5 * sin(u * 62.8 + 1.5 + snoise(vec3(u * 6.0, v * 3.0, uSeed)) * 1.2);
         float n = fbm(pn * 3.0);
-        col = mix(uA, uB, clamp(rib * 0.7 + n * 0.3, 0.0, 1.0));
-        col *= 0.75 + 0.35 * smoothstep(0.0, 0.8, vH);
-        col *= 0.65 + 0.5 * smoothstep(-0.6, 0.8, snoise(vec3(fp * 60.0, 1.0)));
-        float spot = smoothstep(0.45, 0.75, snoise(vec3(fp * 7.0, 2.0))) * smoothstep(0.05, 0.14, dp);
-        col = mix(col, uC, spot * (0.5 + 0.4 * snoise(pn * 30.0)));
-        col = mix(col, uD, (1.0 - rib) * 0.4);
-        h = rib * 0.4 + vH * 0.5 + snoise(vec3(fp * 90.0, 3.0)) * 0.3; shade = 0.45; bumpK = 0.01;
+        col = mix(uA, uB, clamp(rib * 0.6 + n * 0.3 + 0.1, 0.0, 1.0));
+        col = mix(col, uB * 1.6, smoothstep(0.75, 1.0, rib) * 0.2 * (1.0 - smoothstep(0.08, 0.14, dp)));
+        col *= 1.0 - smoothstep(0.2, 0.45, abs(ff)) * 0.6 * (1.0 - smoothstep(0.15, 0.4, dp));   // clefts between the knobs
+        float low = smoothstep(0.11, 0.14, dp + 0.015 * snoise(vec3(fp.x * 8.0, 0.0, 3.0)));
+        col *= mix(1.0, 0.65 + 0.5 * smoothstep(-0.6, 0.8, snoise(vec3(fp * 45.0, 1.0))), low);
+        float spot = smoothstep(0.35, 0.6, snoise(vec3(fp.x * 4.0, fp.y * 2.0, 2.0)) + 0.3 * snoise(vec3(fp * 22.0, 6.0))) * low * smoothstep(0.14, 0.24, dp);
+        col = mix(col, uC * (0.8 + 0.3 * snoise(pn * 30.0)), spot * 0.85);
+        h = rib * 0.4 + vH * 0.5 + snoise(vec3(fp * 90.0, 3.0)) * 0.3 * low; shade = 0.45; bumpK = 0.01;
       } else if (uPat == 36) {               // tan leather, a row of stitch holes along the edge
         float g = snoise(pn * 55.0), g2 = snoise(pn * 160.0);
         float n = fbm(pn * 2.0);
@@ -918,9 +1044,10 @@ const sphereMat = new THREE.ShaderMaterial({
         col *= 0.9 + 0.1 * g2;
         col = mix(col, uD, smoothstep(0.3, 0.8, snoise(pn * 4.0 + 6.0)) * 0.25);
         col = mix(col, uB * 1.12, (1.0 - smoothstep(0.02, 0.1, v)) * 0.6);
-        float along = u * 42.0;
-        vec2 hp = vec2((fract(along) - 0.5) / 42.0, v - 0.45 - 0.02 * sin(u * 5.0));
-        float hole = 1.0 - smoothstep(0.8, 1.2, length(hp / vec2(0.0034, 0.0045)));
+        float xf = fp.x / 3.5556 + 0.5;                                                     // across the frame, 0..1
+        float along = fp.x / 0.133;                                                          // a hole every 3.7% of the width
+        vec2 hp = vec2((fract(along) - 0.5) * 0.133, fp.y - 1.0 + 2.0 * (0.67 + 0.4 * (xf - 0.5) * (xf - 0.5)));
+        float hole = 1.0 - smoothstep(0.8, 1.2, length(hp / vec2(0.017, 0.012)));
         col = mix(col, uC, hole * step(0.15, hash21(vec2(floor(along), 1.0))));
         float ring2 = 1.0 - smoothstep(0.0, 0.006, abs(v - 0.78 - 0.01 * snoise(vec3(u * 5.0, 0.0, 1.0))));
         col = mix(col, uD, ring2 * 0.35);
@@ -995,10 +1122,12 @@ const dropMat = new THREE.ShaderMaterial({
       float sp = pow(max(dot(reflect(-L, n), V), 0.0), 50.0);
       vec3 col;
       if (uMode == 1) {
-        vec3 red = vec3(0.93, 0.3, 0.2), dark = vec3(0.55, 0.06, 0.05);
-        col = mix(red, dark, pow(f, 1.3)) * (0.82 + 0.25 * snoise(vP * 3.5 + uSeed));
-        col = mix(col, vec3(0.5, 0.14, 0.07), smoothstep(0.45, 0.8, snoise(vP * 6.0 + 2.0)) * 0.35);   // a little darker mottling inside
-        col += vec3(1.0, 0.6, 0.35) * 0.3 * pow(1.0 - f, 3.0) + sp * 0.9;
+        col = mix(vec3(0.95, 0.42, 0.15), vec3(0.55, 0.05, 0.05), smoothstep(-0.9, 0.3, n.y));   // orange low down where the light comes through
+        float mot = 0.65 * snoise(vP * 1.4 + uSeed) + 0.35 * snoise(vP * 3.5 + 4.0);
+        col = mix(col, vec3(0.28, 0.04, 0.03), smoothstep(0.1, 0.6, mot) * 0.55);             // dark mottles inside
+        col = mix(col, vec3(1.0, 0.72, 0.3), smoothstep(0.5, 0.8, -mot) * 0.3);
+        col *= 0.75 + 0.35 * (1.0 - f);
+        col += sp * 0.1;
       } else {
         col = mix(uA * 0.9, uC, pow(f, 1.6)) * (0.8 + 0.25 * max(dot(n, L), 0.0));
         col += sp * 1.2;
@@ -1037,7 +1166,7 @@ const grain = new THREE.Mesh(new THREE.PlaneGeometry(2, 2), new THREE.ShaderMate
     void main(){
       float g = hash(gl_FragCoord.xy + fract(uTime * 7.13) * 311.0);
       float vig = smoothstep(0.55, 1.45, length(vNdc * vec2(uAspect * 0.62, 1.0)));
-      gl_FragColor = vec4(vec3(g) * (1.0 - vig), 0.028 + vig * 0.12);
+      gl_FragColor = vec4(vec3(g) * (1.0 - vig), 0.028 + vig * 0.07);
     }`,
 }));
 grain.frustumCulled = false; grain.renderOrder = 11;
@@ -1089,6 +1218,8 @@ function mulberry(seed) {
 
 const dummy = new THREE.Object3D();
 const nrm = new THREE.Vector3();
+// The pink gel's beads, left to right, as in the original: place across the frame, radius in frame heights
+const BEADS = [[.023,.035],[.10,.09],[.217,.042],[.305,.08],[.444,.069],[.572,.094],[.663,.05],[.754,.078],[.873,.083],[.988,.028]];
 function layoutDrops(kind, seed) {
   if (!kind) { drops.count = 0; return; }
   const rnd = mulberry(seed + 1);
@@ -1100,14 +1231,24 @@ function layoutDrops(kind, seed) {
     nrm.copy(p).sub(rimState.center).normalize();
     dummy.position.copy(p).addScaledVector(nrm, r * out);
     dummy.scale.setScalar(r);
+    dummy.rotation.set(n * 1.3, n * 2.1, n * .7);          // so no two beads show the same mottling
     dummy.updateMatrix();
     drops.setMatrixAt(n++, dummy.matrix);
   };
   if (kind === "red") {
     dropMat.uniforms.uMode.value = 1;
-    // a string of translucent red beads of mixed sizes riding the rim, as in the original
-    const sizes = [.052, .03, .047, .036, .062, .027, .045, .033, .058, .024, .04, .05];
-    for (let i = 0; i < sizes.length; i++) put(Math.PI / 2 + (i / (sizes.length - 1) - .5) * 1.3 + (rnd() - .5) * .04, 0, px * sizes[i] * 1.5, .1);
+    // find the rim angle under each bead's place on screen, then sit the bead a little proud of the rim
+    const W = textCanvas.width, H = textCanvas.height, tab = [];
+    for (let j = 0; j <= 48; j++) {
+      const phi = Math.PI / 2 + 1.2 - j / 48 * 2.4 + rimState.spin;
+      tab.push([(toScreen(rimPoint(phi), W, H)[0] - frame.x) / frame.w, phi]);
+    }
+    for (const [bx, br] of BEADS) {
+      let j = 1;
+      while (j < tab.length - 1 && tab[j][0] < bx) j++;
+      const [x0, p0] = tab[j - 1], [x1, p1] = tab[j];
+      put(lerp(p0, p1, (bx - x0) / ((x1 - x0) || 1)), 0, px * br, .3);
+    }
   } else {
     dropMat.uniforms.uMode.value = 0;
     let phi = Math.PI / 2 - .75;
@@ -1142,6 +1283,7 @@ function applyShot(i) {
   m.uPat.value = s.pat || 0;
   m.uDisp.value = s.disp || 0;
   m.uScale.value = s.scale || 1;
+  col(s.bgA, m.uBgBack.value);
   rim.visible = !s.planet && !s.horses;
   drops.visible = !!s.drops;
   // the print is inked and painted onto its paper: multiply the overlay instead of laying it on top
@@ -1394,8 +1536,8 @@ function drawHorses(f) {
 ------------------------------------------------------------------------------------------- */
 const THREADS = [
   { col: "#d4303c", hi: "#f08088", w: 6.5, pts: [[755,525],[782,590],[815,636],[870,646],[912,652],[936,688],[952,722],[972,700],[990,668],[972,628],[952,580],[958,540],[986,470],[1015,420],[1046,392]] },
-  { col: "#3c4a2c", hi: "#6a7a50", w: 6, pts: [[560,736],[640,733],[700,730],[782,724]] },
-  { col: "#3c4a2c", hi: "#6a7a50", w: 6, pts: [[560,606],[600,588],[640,572]] },
+  { col: "#3c4a2c", hi: "#6a7a50", w: 6, pts: [[572,610],[550,660],[556,720],[600,762],[680,768],[768,762]] },
+  { col: "#3c4a2c", hi: "#6a7a50", w: 6, pts: [[1400,786],[1480,791],[1560,797],[1650,806]] },
 ];
 function drawThreads() {
   const s = frame.w / 1920;
@@ -1415,6 +1557,55 @@ function drawThreads() {
   // the green loop round a hole, right of centre
   tctx.beginPath(); tctx.ellipse(1155, 695, 27, 24, 0, 0, Math.PI * 2);
   tctx.lineWidth = 7; tctx.strokeStyle = "#3c4a2c"; tctx.stroke();
+  tctx.setTransform(1, 0, 0, 1, 0, 0);
+}
+
+// The ink shot's pen drawing: tall scribbled grass standing up through the horizon line,
+// thickest right of centre, a few loose strokes on the left, a knot of scribble on the right.
+// Frame pixels, and the same strokes every time.
+function drawInk() {
+  const s = frame.w / 1920, rnd = mulberry(7);
+  tctx.setTransform(s, 0, 0, s, frame.x, frame.y);
+  for (let i = 0; i < 6; i++) {                               // old stains
+    const x = rnd() * 1920, y = rnd() * 1080, r = 60 + rnd() * 160;
+    const g = tctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, "rgba(150,110,50,.16)"); g.addColorStop(1, "rgba(150,110,50,0)");
+    tctx.fillStyle = g; tctx.fillRect(x - r, y - r, r * 2, r * 2);
+  }
+  tctx.fillStyle = "rgba(60,40,20,.55)";
+  for (let i = 0; i < 260; i++) { tctx.beginPath(); tctx.arc(rnd() * 1920, rnd() * 1080, .8 + rnd() * rnd() * 3.5, 0, Math.PI * 2); tctx.fill(); }   // specks
+  tctx.fillStyle = tctx.strokeStyle = "#1c140e";
+  tctx.lineCap = "round"; tctx.lineJoin = "round";
+  // a pen stroke that swells a little along its length and ends in a fine point
+  const blade = (x0, y0, x1, y1, bend, w) => {
+    const mx = (x0 + x1) / 2 + bend, my = (y0 + y1) / 2;
+    const L = Math.hypot(x1 - x0, y1 - y0) || 1, ox = -(y1 - y0) / L * w / 2, oy = (x1 - x0) / L * w / 2;
+    tctx.beginPath();
+    tctx.moveTo(x0 - ox, y0 - oy);
+    tctx.quadraticCurveTo(mx - ox, my - oy, x1, y1);
+    tctx.quadraticCurveTo(mx + ox, my + oy, x0 + ox, y0 + oy);
+    tctx.fill();
+  };
+  for (let i = 0; i < 110; i++) {
+    const r = rnd();
+    const [x, top] = r < .62 ? [760 + rnd() * 760, 470 + rnd() * 300]
+      : r < .85 ? [260 + rnd() * 540, 640 + rnd() * 280]
+      : [1440 + rnd() * 470, 700 + rnd() * 250];
+    blade(x + (rnd() - .5) * 120, 1110, x + (rnd() - .5) * 140, top, (rnd() - .5) * 150, 2.5 + rnd() * rnd() * 9);
+  }
+  tctx.lineWidth = 3.5;
+  for (let i = 0; i < 14; i++) {                              // wavy strokes wandering up through the grass
+    const x0 = 560 + rnd() * 1000, top = 520 + rnd() * 360, amp = 15 + rnd() * 35, wl = 70 + rnd() * 110, ph = rnd() * 6;
+    tctx.beginPath();
+    for (let y = 1100; y >= top; y -= 8) tctx.lineTo(x0 + Math.sin(y / wl + ph) * amp + (1100 - y) * .12, y);
+    tctx.lineWidth = 2 + rnd() * 2.5; tctx.stroke();
+  }
+  for (let i = 0; i < 4; i++) {                               // the scribble on the right
+    let x = 1480 + rnd() * 80, y = 780 + rnd() * 60;
+    tctx.beginPath(); tctx.moveTo(x, y);
+    for (let k = 0; k < 9; k++) { x += (k % 2 ? -1 : 1) * (60 + rnd() * 90); y += 12 + rnd() * 30; tctx.lineTo(x, y); }
+    tctx.lineWidth = 3 + rnd() * 4; tctx.stroke();
+  }
   tctx.setTransform(1, 0, 0, 1, 0, 0);
 }
 
@@ -1496,6 +1687,7 @@ function drawWord(s) {
   tctx.globalAlpha = s.ta ?? 1;
   tctx.shadowColor = new THREE.Color(s.ink || "#fff").getHSL({}).l > .5 ? "rgba(0,0,0,.28)" : "rgba(0,0,0,0)";
   tctx.shadowBlur = 12 * frame.h / 1080;
+  if (s.blur) tctx.filter = `blur(${(s.blur * frame.h / 1080).toFixed(2)}px)`;   // the lens was focused on the surface, not the word
   if (s.word === W3) drawArchedWord(s.word, size, fy(s.tb ?? .49));
   else drawStraightWord(s.word, size, fy(s.tb ?? (s.word === W1 ? .473 : .477)));
   tctx.restore();
@@ -1581,6 +1773,7 @@ function drawOverlay(t, info) {
   } else {
     tctx.clearRect(0, 0, W, H);
     if (s.overlay === "threads") drawThreads();
+    if (s.overlay === "ink") drawInk();
     if (s.word) drawWord(s);
     else if (s.finale) drawTitles(t, info);
   }
