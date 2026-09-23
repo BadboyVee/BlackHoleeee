@@ -87,7 +87,7 @@ stay large on a phone.
 ## Video file
 
 [`export/`](export) renders the film to an MP4 you can post: 1920 × 1080, 25 fps, H.264 and
-AAC, 22.6 s long. It opens on a preview card: three of the film's shots side by side, with the
+AAC, 22.6 s long, about 26 MB (a two-pass encode at 9 Mbit/s). It opens on a preview card: three of the film's shots side by side, with the
 line split across them ("There’s" · "more to" · "discover."). That makes the card the video's
 thumbnail wherever it's posted. After 1.6 s it dissolves into the film. The card is also
 embedded in the file as cover art.
