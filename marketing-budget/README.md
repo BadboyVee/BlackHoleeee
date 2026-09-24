@@ -73,7 +73,12 @@ Run `src/build.sh` to regenerate both files. It needs:
 - Node with the packages in `src/package.json` (run `npm install` in `src/` first)
 - LibreOffice and poppler
 
-`src/sanitize_charts.py` rewrites the chart XML that pptxgenjs produces so that it follows the
-strict Office chart schema. PowerPoint 2013 refuses to open a deck without this step. Set
-`CHART_XSD` to the path of `dml-chart.xsd` (ISO/IEC 29500 transitional) to make the build fail
-if any chart is still invalid.
+PowerPoint 2013 rejects some of the XML that pptxgenjs writes, so the build cleans it up:
+
+- `src/sanitize_charts.py` puts every chart into the order the chart schema requires.
+- `src/finish_deck.py` keeps one paragraph-settings block per paragraph and adds the Fade
+  transitions and text shadows.
+
+Set `SCHEMA_DIR` to the ISO/IEC 29500 transitional schemas (`pml.xsd`, `sml.xsd`,
+`dml-chart.xsd`, ...) and `src/validate_strict.py` checks every part of both files. The build
+fails if any part is invalid.

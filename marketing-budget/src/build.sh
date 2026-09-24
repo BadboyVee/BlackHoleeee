@@ -31,11 +31,21 @@ python3 "$HERE/render_table_preview.py" "$TMP/raw.xlsx" "$TMP/table_preview.png"
 python3 "$HERE/export_slide_data.py" "$OUT/Marketing_Department_Budget.xlsx" "$TMP/slide_data.json"
 
 # 4. Slides; charts rewritten to the strict chart schema (PowerPoint 2013 rejects some of
-#    what pptxgenjs writes); then the embedded Excel table on slide 7. Set CHART_XSD to
-#    dml-chart.xsd (ISO/IEC 29500 transitional) to fail the build on any invalid chart.
+#    what pptxgenjs writes); then the embedded Excel table on slide 7.
 node "$HERE/build_deck.js" "$TMP/slide_data.json" "$TMP/table_preview.png" \
   "$TMP/table_size.json" "$TMP/deck.pptx"
 python3 "$HERE/sanitize_charts.py" "$TMP/deck.pptx" "$TMP/deck_clean.pptx" \
-  ${CHART_XSD:+--xsd "$CHART_XSD"}
+  ${SCHEMA_DIR:+--xsd "$SCHEMA_DIR/dml-chart.xsd"}
 python3 "$HERE/embed_excel_table.py" "$TMP/deck_clean.pptx" "$TMP/embed.xlsx" \
-  "$TMP/table_preview.png" "$TMP/table_size.json" "$OUT/Marketing_Department_Budget.pptx"
+  "$TMP/table_preview.png" "$TMP/table_size.json" "$TMP/deck_embedded.pptx"
+
+# 5. Fade transitions, PowerPoint's text shadow on the headline text, one paragraph-settings
+#    block per paragraph.
+python3 "$HERE/finish_deck.py" "$TMP/deck_embedded.pptx" "$OUT/Marketing_Department_Budget.pptx"
+
+# 6. Strict schema check of both files (set SCHEMA_DIR to the ISO/IEC 29500 transitional
+#    schemas: pml.xsd, sml.xsd, dml-main.xsd, dml-chart.xsd, ...).
+if [ -n "${SCHEMA_DIR:-}" ]; then
+  python3 "$HERE/validate_strict.py" "$SCHEMA_DIR" \
+    "$OUT/Marketing_Department_Budget.pptx" "$OUT/Marketing_Department_Budget.xlsx"
+fi
