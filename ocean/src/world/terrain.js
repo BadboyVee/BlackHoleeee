@@ -20,6 +20,7 @@ export class Terrain {
   constructor(island) {
     this.island = island;
     this.dataTexture = makeHalfDataTexture(island);
+    this.auxTexture = makeAuxTexture(island);
     this.geometry = createPatchGeometry('terrainPatch');
     const S = WORLD.size;
     this.selector = new PatchSelector(this.geometry, {
@@ -46,6 +47,11 @@ export class Terrain {
   }
   sampleLevel(xz) {
     return texture(this.dataTexture, xz.sub(this.origin).mul(this.invSize)).level(0);
+  }
+  /** TSL: world xz -> baked maps (drainage, erosion, sky visibility, tree cover), 0..1 each */
+  sampleAux(xz, level = null) {
+    const t = texture(this.auxTexture, xz.sub(this.origin).mul(this.invSize));
+    return level === null ? t : t.level(level);
   }
 
   _buildMinMax() {
@@ -120,6 +126,9 @@ export class Terrain {
     const h = data.x.add(this.microRelief(xz, data.x, detailW));
     mat.positionNode = vec3(xz.x, h, xz.y);
     this.vXZ = varying(xz, 'vTerrainXZ');
+    // the baked maps are smooth (1.6 m texels): fetch them per vertex, which
+    // also keeps the fragment stage under its 16 sampled-texture limit
+    this.vAux = varying(this.sampleAux(xz, 0), 'vTerrainAux');
     this.material = mat;
     return mat;
   }
@@ -137,22 +146,39 @@ export class Terrain {
     const hh = positionWorld.y;
     const sdf = dC.y;
 
+    // --- baked maps: where water gathers, what erosion did, how much sky
+    // the ground sees, where the trees stand
+    const aux = this.vAux;
+    const drain = aux.r.mul(255 / 12);                        // log2 catchment (texels)
+    const moist = smoothstep(3.5, 10.0, drain);
+    const eroded = aux.g.mul(255).sub(128).div(6);            // m, + laid down / - removed
+    const skyVis = aux.b;
+    const forestCov = aux.a;
+
     // --- material weights
     const n1 = fbm2(vXZ.mul(0.018), 3).mul(0.5).add(0.5);
     const n2 = fbm2(vXZ.mul(0.06).add(17.3), 3).mul(0.5).add(0.5);
     const beachZone = smoothstep(-75, -45, sdf).mul(smoothstep(5.0, 3.2, hh)).max(smoothstep(0.4, -0.4, hh));
-    const steep = smoothstep(0.28, 0.5, slope);
-    let wRock = max(steep, smoothstep(0.62, 0.75, n2).mul(smoothstep(0.12, 0.25, slope)));
+    // rock: faces too steep to hold soil, the scoured walls of the deepest
+    // gullies, crags on the summits and outcrops breaking through slopes
+    const steep = smoothstep(0.27, 0.4, slope);
+    const scour = smoothstep(-4.0, -8.0, eroded).mul(smoothstep(0.12, 0.22, slope));
+    const crag = smoothstep(96, 108, hh).mul(smoothstep(0.1, 0.2, slope));
+    const outcrop = smoothstep(0.64, 0.74, n2).mul(smoothstep(0.14, 0.24, slope)).mul(forestCov.mul(0.6).oneMinus());
+    let wRock = max(max(steep, scour.mul(0.85)), max(crag, outcrop));
     wRock = wRock.max(smoothstep(-0.3, -3.5, hh).mul(smoothstep(0.55, 0.75, n1)).mul(0.9));   // rocky seabed patches
     const wPeb = smoothstep(0.66, 0.78, n2).mul(beachZone).mul(smoothstep(0.05, 0.14, slope).max(smoothstep(-30, -18, sdf).mul(smoothstep(0.7, 0.85, n1)))).mul(0.9);
     const wSand = beachZone.mul(wRock.oneMinus());
     const inland = beachZone.oneMinus().mul(wRock.oneMinus());
-    // leaf litter where the trees are (same mask as tree placement, see
-    // core/noise.js forestMask; the western hill is wooded)
-    const forestMask = smoothstep(0.45, 0.62, n1.add(smoothstep(-60, -200, vXZ.x).mul(0.2)));
-    const wForest = inland.mul(forestMask);
-    const wGrass = inland.mul(forestMask.oneMinus());
-    const W = [wSand.mul(wPeb.oneMinus()), wRock, wGrass, wForest, wPeb];
+    // bare soil where slopes are too steep and dry for turf (landslip scars),
+    // on fresh deposits at the foot of gullies, and along the forest edge
+    const scar = smoothstep(0.17, 0.26, slope).mul(moist.oneMinus()).mul(smoothstep(0.55, 0.7, n1.add(n2.mul(0.3))));
+    const fan = smoothstep(0.8, 2.5, eroded).mul(0.7);
+    const wSoil = inland.mul(max(scar, fan)).mul(forestCov.mul(0.7).oneMinus());
+    // under the canopy: leaf litter; the rest is turf
+    const wForest = inland.mul(forestCov).mul(wSoil.oneMinus());
+    const wGrass = inland.mul(forestCov.oneMinus()).mul(wSoil.oneMinus());
+    const W = [wSand.mul(wPeb.oneMinus()), wRock, wGrass, wForest, wPeb, wSoil];
     // top-2 layers (pure expressions: this graph is built outside any Fn)
     let bestW = float(-1), bestL = int(0), secW = float(-1), secL = int(0);
     W.forEach((w, i) => {
@@ -164,7 +190,7 @@ export class Terrain {
       bestL = select(better, int(i), bestL);
       secW = nSecW; secL = nSecL;
     });
-    const tileOf = (l) => select(l.equal(int(0)), float(TERRAIN_TILE[0]), select(l.equal(int(1)), float(TERRAIN_TILE[1]), select(l.equal(int(2)), float(TERRAIN_TILE[2]), select(l.equal(int(3)), float(TERRAIN_TILE[3]), float(TERRAIN_TILE[4])))));
+    const tileOf = (l) => TERRAIN_TILE.slice(0, -1).reduceRight((acc, t, i) => select(l.equal(int(i)), float(t), acc), float(TERRAIN_TILE[TERRAIN_TILE.length - 1]));
     // biplanar for cliffs: side projection where steep
     const sideUV = select(abs(nBase.x).greaterThan(abs(nBase.z)), vec2(positionWorld.z, positionWorld.y.negate()), vec2(positionWorld.x, positionWorld.y.negate()));
     const useSide = steep.greaterThan(0.5);
@@ -195,6 +221,17 @@ export class Terrain {
     // macro variation hides any remaining repetition
     const macro = fbm2(vXZ.mul(0.004), 4).mul(0.5).add(0.5);
     albedo = albedo.mul(mix(0.82, 1.12, macro)).mul(mix(vec3(1.0, 0.97, 0.93), vec3(0.95, 1.0, 1.03), n1));
+    // turf follows the water: deep green in damp hollows, sun-bleached and
+    // yellower on dry, exposed ridges; leaf litter lies in the canopy's shade
+    const grassShare = wGrass.div(wa.add(wb).max(1e-3)).mul(select(bestL.equal(int(2)).or(secL.equal(int(2))), float(1), float(0)));
+    const dryness = moist.oneMinus().mul(smoothstep(0.93, 0.99, skyVis)).mul(smoothstep(0.35, 0.7, n1.add(macro.mul(0.4)).sub(0.2)));
+    const lush = vec3(0.78, 1.05, 0.72), dry = vec3(1.35, 1.12, 0.72);
+    const grassTint = mix(mix(vec3(1), lush, moist.mul(0.9)), dry, dryness.mul(0.85));
+    albedo = albedo.mul(mix(vec3(1), grassTint, grassShare));
+    // far away the canopy's shade stands in for tree shadows the far
+    // cascade cannot resolve; up close the real shadows do it
+    const farShade = smoothstep(45, 110, length(positionWorld.sub(cameraPosition)));
+    albedo = albedo.mul(mix(float(1), 0.72, forestCov.mul(inland).mul(farShade)));
 
     // --- shoreline: wet sand, swash film, rounded leading edge, foam
     const t = time;
@@ -237,7 +274,8 @@ export class Terrain {
 
     mat.colorNode = albedo;
     mat.roughnessNode = rough;
-    mat.aoNode = ao;
+    // cavity AO from the texture, terrain-scale sky visibility from the bake
+    mat.aoNode = ao.mul(mix(float(0.3), float(1), skyVis.pow(1.5)));
     mat.normalNode = transformNormalToView(nW);
     this.wetness = wet;
   }
@@ -245,6 +283,19 @@ export class Terrain {
   update(camera) {
     this.selector.update(camera, 2);
   }
+}
+
+// drainage, erosion, sky visibility, tree cover (see islandData.js)
+function makeAuxTexture(island) {
+  const N = WORLD.res;
+  const t = new THREE.DataTexture(island.aux, N, N, THREE.RGBAFormat, THREE.UnsignedByteType);
+  t.magFilter = THREE.LinearFilter;
+  t.minFilter = THREE.LinearMipmapLinearFilter;
+  t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
+  t.generateMipmaps = true;
+  t.needsUpdate = true;
+  t.name = 'island.aux';
+  return t;
 }
 
 function makeHalfDataTexture(island) {

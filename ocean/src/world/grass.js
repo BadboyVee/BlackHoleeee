@@ -13,12 +13,12 @@ import {
   cameraProjectionMatrix, varying, pow, select, positionWorld, If, abs,
 } from 'three/tsl';
 import { standard, staticVelocity } from '../render/materials.js';
-import { fbm2, vnoise2, hash22, hash21 } from '../render/tslnoise.js';
+import { vnoise2, hash22, hash21 } from '../render/tslnoise.js';
 import { env } from '../env.js';
 
 let GRID = 112;               // cells per side
-const CELL = 0.5;             // m
-const PER_CELL = 6;           // blade slots per cell
+const CELL = 0.45;            // m
+const PER_CELL = 10;          // blade slots per cell
 let COUNT = GRID * GRID * PER_CELL;
 
 export class Grass {
@@ -54,22 +54,29 @@ export class Grass {
       const hz = T.sampleLevel(xz.add(vec2(0, e))).x.sub(T.sampleLevel(xz.sub(vec2(0, e))).x);
       const slope = float(1).sub(normalize(vec3(hx.negate(), e * 2, hz.negate())).y);
       const beach = smoothstep(-75, -45, sdf).mul(smoothstep(5.0, 3.2, h)).max(smoothstep(0.4, -0.4, h));
-      const n1 = fbm2(xz.mul(0.018), 3).mul(0.5).add(0.5);
-      const forest = smoothstep(0.45, 0.62, n1.add(smoothstep(-60, -200, xz.x).mul(0.2)));
+      // baked maps: tree cover (the forest floor is litter, not turf) and
+      // drainage (lush, taller grass in damp hollows, short on dry ridges)
+      const aux = T.sampleAux(xz, 0);
+      const forest = aux.a;
+      const moist = smoothstep(3.5, 10.0, aux.r.mul(255 / 12));
       const steep = smoothstep(0.2, 0.34, slope);
-      let mask = float(1).sub(beach).mul(float(1).sub(steep)).mul(mix(float(1), float(0.25), forest));
+      let mask = float(1).sub(beach).mul(float(1).sub(steep)).mul(mix(float(1), float(0.2), forest));
       // tufts: patchy density so the carpet isn't uniform
       const tuft = smoothstep(0.25, 0.7, vnoise2(xz.mul(0.35)).mul(0.5).add(0.5).add(vnoise2(xz.mul(1.7)).mul(0.25)));
       mask = mask.mul(mix(float(0.35), float(1), tuft));
       // thin out with distance (keep the nearest slots)
       const dist = length(xz.sub(this.eye.xz));
-      const keepFrac = smoothstep(28, 10, dist).mul(0.8).add(0.2).mul(this.density);
-      const keep = mask.mul(select(slot.div(PER_CELL).lessThan(keepFrac), float(1), float(0))).mul(smoothstep(27.5, 24, dist));
+      const keepFrac = smoothstep(25, 8, dist).mul(0.75).add(0.25).mul(this.density);
+      const keep = mask.mul(select(slot.div(PER_CELL).lessThan(keepFrac), float(1), float(0))).mul(smoothstep(24.8, 21.5, dist));
       const r = hash22(worldCell.mul(3.1).add(slot.mul(11.3)));
-      const height = mix(0.28, 0.75, r.x).mul(mix(0.7, 1.15, tuft)).mul(keep).mul(smoothstep(0.1, 0.35, mask));
-      const width = mix(0.018, 0.03, r.y).mul(mix(float(1), float(1.8), smoothstep(12, 26, dist)));
+      // short turf with the odd taller seed stalk; lusher where it is damp
+      const stalk = select(r.x.greaterThan(0.94), float(1.9), float(1));
+      const height = mix(0.12, 0.42, r.x).mul(stalk).mul(mix(0.7, 1.15, tuft)).mul(mix(0.8, 1.25, moist)).mul(keep).mul(smoothstep(0.3, 0.6, mask));
+      const width = mix(0.008, 0.016, r.y).mul(mix(float(1), float(2.2), smoothstep(10, 24, dist)));
+      // dry, straw-coloured blades on dry ground (packed into the tint's integer part)
+      const dry = select(hash21(worldCell.mul(1.7).add(slot.mul(5.1))).lessThan(moist.oneMinus().mul(0.3).add(0.04)), float(1), float(0));
       this.blades.element(i).assign(vec4(xz.x, h, xz.y, r.x.mul(6.283).add(floor(r.y.mul(50)).mul(6.283))));
-      this.shape.element(i).assign(vec4(height, width, r.y.sub(0.5).mul(0.6), hash21(worldCell.add(slot))));
+      this.shape.element(i).assign(vec4(height, width, r.y.sub(0.5).mul(0.9), hash21(worldCell.add(slot)).mul(0.999).add(dry)));
     })().compute(COUNT, [64]);
 
     // blade: 3 segments, tapered, 7 vertices
@@ -114,11 +121,11 @@ export class Grass {
     // rounded blade normal: tilt across the width, facing up the bend
     const n = normalize(face.add(side.mul(local.x.mul(0.6))).add(vec3(0, 0.4, 0)));
     mat.normalNode = cameraViewMatrix.mul(vec4(n, 0)).xyz;
-    const tint = S.w;
+    const tint = fract(S.w), dry = floor(S.w);
     // real grass albedo (linear) tops out around 0.2 in green: brighter blades
     // would ring the player with a pale disc against the terrain's grass
-    const base = mix(vec3(0.045, 0.078, 0.022), vec3(0.065, 0.095, 0.03), tint);
-    const tip = mix(vec3(0.15, 0.2, 0.065), vec3(0.23, 0.22, 0.1), tint.mul(tint));
+    const base = mix(mix(vec3(0.03, 0.058, 0.015), vec3(0.048, 0.075, 0.021), tint), vec3(0.12, 0.1, 0.05), dry);
+    const tip = mix(mix(vec3(0.11, 0.16, 0.045), vec3(0.17, 0.2, 0.065), tint.mul(tint)), vec3(0.3, 0.26, 0.12), dry);
     const vt = varying(t, 'vGrassT');
     mat.colorNode = mix(base, tip, vt.pow(0.8));
     const V = normalize(positionWorld.sub(cameraPosition));

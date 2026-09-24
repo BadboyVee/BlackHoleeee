@@ -6,12 +6,13 @@ import { Ocean } from './ocean/ocean.js';
 import { WaterMaterial } from './ocean/waterMaterial.js';
 import { Shore } from './ocean/shore.js';
 import { bakeFoamTexture } from './ocean/foamTexture.js';
-import { bakeTerrainTextures } from './world/terrainTextures.js';
+import { bakeTerrainTextures, loadGroundImages } from './world/terrainTextures.js';
 import { Island, VILLAGE, REEF } from './world/island.js';
 import { Terrain } from './world/terrain.js';
 import { CollisionWorld } from './world/collision.js';
 import { Village } from './world/village.js';
 import { Vegetation } from './world/vegetation.js';
+import { Boulders } from './world/rocks.js';
 import { Grass } from './world/grass.js';
 import { Fish } from './life/fish.js';
 import { Whale } from './life/whale.js';
@@ -157,7 +158,7 @@ async function start() {
   // ---------------------------------------------------------------- world
   status('Shaping the island…', 0.22);
   await nextFrame();
-  const island = new Island(7);
+  const island = await Island.load();
   const terrain = new Terrain(island);
   scene.add(terrain.mesh);
   const collision = new CollisionWorld(island);
@@ -178,6 +179,7 @@ async function start() {
   await nextFrame();
   const foamTexture = bakeFoamTexture(renderer, TEST ? 512 : 1024);
   const terrainTextures = bakeTerrainTextures(renderer, TEST ? 512 : 1024);
+  await loadGroundImages(renderer, terrainTextures, TEST ? 512 : 1024);
   terrain.setupShading({ textures: terrainTextures, shore, foamTexture, time: env.time });
   const dbgLayer = query.get('layer');
   if (dbgLayer !== null) {
@@ -219,8 +221,11 @@ async function start() {
   const village = new Village({ scene, island, collision, terrain });
   status('Growing trees…', 0.55);
   await nextFrame();
-  const vegetation = new Vegetation({ scene, island, collision, terrain });
+  const vegetation = await Vegetation.create({ scene, island, collision, terrain });
+  const boulders = await Boulders.create({ scene, island, collision, textures: terrainTextures });
+  if (TEST) console.log('[veg] counts', JSON.stringify(vegetation.counts), 'boulders', boulders.counts);
   vegetation.update(camera);
+  boulders.update(camera);
   const grass = new Grass(renderer, { terrain, island, grid: TEST ? 56 : 112 });
   scene.add(grass.mesh);
   const whale = new Whale({ scene, spray, ocean, island });
@@ -270,8 +275,8 @@ async function start() {
   // reflections must ignore what lies behind the water surface
   water.preDepth = pipeline.preDepth;
 
-  Object.assign(app, { scene, camera, sky, ocean, water, shore, terrain, island, collision, probe, caustics, pipeline, composite, player, flashlight, droplets, input, sun, csm, wake, spray, surf, village, vegetation, grass, fish, whale, reefLife, birds, crabs, motes });
-  const hide = { grass: [grass.mesh], fish: fish.groups.map((g) => g.mesh), whale: [whale.mesh], veg: [vegetation.group], village: [village.group], boat: [boat.group], spray: [spray.mesh], reef: [reefLife.group], birds: [birds.mesh, birds.beaks], crabs: [crabs.mesh], motes: [motes.mesh] };
+  Object.assign(app, { scene, camera, sky, ocean, water, shore, terrain, island, collision, probe, caustics, pipeline, composite, player, flashlight, droplets, input, sun, csm, wake, spray, surf, village, vegetation, boulders, grass, fish, whale, reefLife, birds, crabs, motes });
+  const hide = { grass: [grass.mesh], fish: fish.groups.map((g) => g.mesh), whale: [whale.mesh], veg: [vegetation.group, boulders.group], village: [village.group], boat: [boat.group], spray: [spray.mesh], reef: [reefLife.group], birds: [birds.mesh, birds.beaks], crabs: [crabs.mesh], motes: [motes.mesh] };
   for (const [k, list] of Object.entries(hide)) if (!on(k)) for (const o of list) o.visible = false;
 
   // ---------------------------------------------------------------- places
@@ -346,6 +351,7 @@ async function start() {
   // pipelines of all passes (prepass, MRT scene pass, shadows) compile behind
   // the loading screen instead of stalling the first seconds of play
   vegetation.prime(true);
+  boulders.prime(true);
   for (let i = 0; i < 3; i++) {
     probe.update(camera); grass.update(camera, player); spray.update(0.016); surf.update(0.016); wake.update(0.016, boat.pos);
     composite.update(renderer); post.update(renderer, 0.016, 0); droplets.render();
@@ -353,7 +359,9 @@ async function start() {
     await nextFrame();
   }
   vegetation.prime(false);
+  boulders.prime(false);
   vegetation.update(camera);
+  boulders.update(camera);
   $('loader').classList.add('done');
 
   const timer = new THREE.Timer();
@@ -425,7 +433,7 @@ async function start() {
     if (on('surf')) surf.update(dt);
     if (on('spray')) spray.update(dt);
     terrain.update(camera);
-    if (on('veg')) vegetation.update(camera);
+    if (on('veg')) { vegetation.update(camera); boulders.update(camera); }
     if (on('grass')) grass.update(camera, player);
     if (on('fish')) fish.update(dt, time, player.mode === 'swim' || under ? camera.position : boat.pos, on('whale') ? whale.body : null);
     if (on('whale')) whale.update(dt, time, camera.position);

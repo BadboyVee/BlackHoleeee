@@ -4,9 +4,15 @@
 //
 //   0 sand      2 m tile: wind ripples, lumps, shell grit, mineral speckle
 //   1 rock      4 m tile: fractured basalt, strata, lichen, cracks
-//   2 grass     3 m tile: short turf over soil
-//   3 forest    3 m tile: leaf litter, twigs, soil
+//   2 grass     2 m tile: short turf over soil
+//   3 forest    2 m tile: leaf litter, twigs, soil
 //   4 pebbles   2 m tile: rounded beach cobbles in sand
+//   5 soil      2 m tile: red-brown volcanic soil, clods, grit, a few stones
+//
+// Sand and pebbles are baked here on the GPU; rock, grass, forest floor and
+// soil are modelled and rendered in Blender (tools/blender/ground.py) and
+// copied into their layers by loadGroundImages (the procedural versions
+// below stay as the fallback and for the first frames).
 
 import * as THREE from 'three/webgpu';
 import {
@@ -16,8 +22,8 @@ import {
 import { makeStorage } from '../render/bake.js';
 import { fbmP, voronoiP, gnoiseP, vnoiseP, hash21 } from '../render/tslnoise.js';
 
-export const TERRAIN_LAYERS = { sand: 0, rock: 1, grass: 2, forest: 3, pebbles: 4 };
-export const TERRAIN_TILE = [2.0, 4.0, 3.0, 3.0, 2.0];
+export const TERRAIN_LAYERS = { sand: 0, rock: 1, grass: 2, forest: 3, pebbles: 4, soil: 5 };
+export const TERRAIN_TILE = [2.0, 4.0, 2.0, 2.0, 2.0, 2.0];
 
 const lum = (c) => dot(c, vec3(0.2126, 0.7152, 0.0722));
 
@@ -142,6 +148,29 @@ const MATS = [
     },
     normalStrength: 6,
   },
+  // ---------------------------------------------------------------- soil
+  {
+    height: (uv) => {
+      const clods = fbmP(uv, [6, 6], 5).mul(0.5).add(0.5);
+      const stones = voronoiP(uv.mul(14), vec2(14, 14));
+      const isStone = smoothstep(0.82, 0.9, stones.z);
+      const stoneBump = smoothstep(0.34, 0.08, stones.x).mul(isStone);
+      const cw = fbmP(uv, [3, 3], 3).mul(0.08);
+      const cells = voronoiP(uv.mul(6).add(cw), vec2(6, 6));
+      const crack = smoothstep(0.0, 0.03, cells.y.sub(cells.x));
+      const grit = vnoiseP(uv.mul(300), vec2(300, 300));
+      const h = clods.mul(0.5).add(stoneBump.mul(0.45)).add(grit.mul(0.06)).mul(crack.mul(0.3).add(0.7));
+      return vec4(h, stoneBump, grit, crack);
+    },
+    shade: (uv, t, ao) => {
+      const tone = fbmP(uv.add(0.33), [4, 4], 3).mul(0.5).add(0.5);
+      let c = mix(vec3(0.15, 0.085, 0.05), vec3(0.23, 0.14, 0.085), tone);   // weathered volcanic soil
+      c = mix(c, vec3(0.26, 0.24, 0.21), smoothstep(0.1, 0.5, t.y));          // stones
+      c = c.mul(mix(0.85, 1.1, t.z)).mul(t.w.mul(0.45).add(0.55));
+      return vec4(c.mul(ao), mix(0.88, 0.7, t.y));
+    },
+    normalStrength: 5,
+  },
 ];
 
 export function bakeTerrainTextures(renderer, size = 1024) {
@@ -184,4 +213,44 @@ export function bakeTerrainTextures(renderer, size = 1024) {
     renderer.compute(k2);
   });
   return { albedo, normal, layers: L };
+}
+
+/**
+ * Replaces the rock, grass, forest-floor and soil layers with the Blender
+ * renders in assets/terrain (<name>_c: albedo + roughness, <name>_n: normal
+ * xy, height, AO). Their normal y points up the image, the baked layers'
+ * down the rows: flipped while copying.
+ */
+export async function loadGroundImages(renderer, textures, size) {
+  const base = new URL('../../assets/terrain/', import.meta.url);
+  const loader = new THREE.TextureLoader();
+  const load = async (name, srgb) => {
+    const t = await loader.loadAsync(new URL(name, base).href);
+    t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+    t.flipY = false;
+    t.generateMipmaps = false;
+    t.minFilter = THREE.LinearFilter;
+    return t;
+  };
+  const layers = { rock: 1, grass: 2, forest: 3, soil: 5 };
+  await Promise.all(Object.entries(layers).map(async ([name, layer]) => {
+    let c, n;
+    try {
+      [c, n] = await Promise.all([load(`${name}_c.webp`, true), load(`${name}_n.webp`, false)]);
+    } catch (e) {
+      console.warn(`terrain: ${name} textures missing, keeping the procedural layer`);
+      return;
+    }
+    const k = Fn(() => {
+      const S = uint(size);
+      const x = instanceIndex.mod(S), y = instanceIndex.div(S);
+      const uv = vec2(float(x), float(y)).add(0.5).div(size);
+      const ca = texture(c, uv).level(0);
+      const na = texture(n, uv).level(0);
+      textureStore(storageTexture(textures.albedo).depth(int(layer)), uvec2(x, y), clamp(ca, 0, 1));
+      textureStore(storageTexture(textures.normal).depth(int(layer)), uvec2(x, y), clamp(vec4(na.x, float(1).sub(na.y), na.z, na.w), 0, 1));
+    })().compute(size * size, [64]);
+    renderer.compute(k);
+    c.dispose(); n.dispose();
+  }));
 }

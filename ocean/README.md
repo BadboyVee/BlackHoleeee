@@ -63,15 +63,25 @@ float and bob with the waves; once you dive you stay at the depth you choose.
   bases, eroded tops), cirrus, a baked cloud-shadow map, aerial perspective and god rays.
 
 **World**
-- Procedural island with sandy bay, sandbar, rocky headlands and a reef. The terrain uses baked
-  PBR material arrays with anti-tiling, and wind ripples appear only where they belong.
+- An island with a sandy bay, sandbar, rocky headlands and a reef, rising to an old volcanic
+  massif: a ridge spine between two summits whose flanks are carved by baked stream-power
+  (river incision) and droplet (rill) erosion into branching valleys and sharp spurs. The bake
+  also records drainage, erosion, sky visibility and tree cover; the terrain shader uses them
+  for damp green hollows, sun-bleached ridges, rock on crags and scoured gullies, soil scars,
+  leaf litter under the canopy and terrain-scale ambient occlusion.
+- Ground materials (turf, leaf litter, basalt, volcanic soil) are real geometry modelled and
+  rendered in Blender, tiled with anti-tiling; wind ripples appear only where they belong.
 - Fishing village: cottages, a timber pier with a T-head and chain-hung lanterns that swing,
   a boat shed, a fish market with a swaying sign, nets, upturned dinghies, crates, pots, buoys,
   rocks and driftwood along the wrack line. Lamps and windows light up at dusk.
-- Palms line the berm; broadleaf trees, pines and shrubs grow in woods that stand on leaf
-  litter (tree placement and the terrain share one forest mask), densest on the western hill.
-  Everything sways in the wind and cross-fades between LODs with a temporal dither. Grass
-  blades lean away from your feet.
+- Vegetation modelled in Blender: tropical canopy trees, tiered umbrella trees, ironwoods,
+  coconut palms, shrubs and ferns, grown from branch skeletons and dressed with twig and frond
+  cards rendered from modelled leaves. Woods follow the baked tree cover (valleys wooded,
+  ridges open), with scrub on the forest edges and ferns under the canopy. Two mesh LODs and
+  octahedral impostors per tree let the whole massif be forested; LODs cross-fade with a
+  temporal dither that never overlaps or leaves holes. Branches bend by painted flexibility,
+  cards flutter, crowns darken inside and glow when backlit. Grass blades lean away from your
+  feet.
 - A lobster boat with buoyancy computed on the rendered waves, rudder and prop physics, bow
   spray, a helm with instruments, and a cab light at night.
 - Life: fish schools (GPU boids) over the reef, a humpback whale that surfaces, blows, dives
@@ -105,7 +115,13 @@ src/main.js              startup, frame loop, UI glue
 src/ocean/               FFT, spectrum, mesh, water material, shore model, surf, wake,
                          probe, caustics, underwater light
 src/sky/                 atmosphere LUTs, cloud noise, sky + clouds + shadows
-src/world/               island, terrain, materials, village, vegetation, grass, collision
+src/world/               island (+ islandShape/erosion/islandData: the baked heightfield),
+                         terrain, materials, village, vegetation, grass, collision
+tools/bake-island.mjs    bakes assets/terrain/island.bin.gz (node tools/bake-island.mjs)
+tools/blender/           plant, leaf-card, impostor and ground-texture generators; run with
+                         Blender's Python module (pip install bpy), e.g.
+                         python tools/blender/leaves.py && python tools/blender/trees.py &&
+                         python tools/blender/impostors.py && python tools/blender/ground.py
 src/boat/                boat model and physics
 src/life/                fish, whale, reef, birds, crabs and motes
 src/player/              input, first-person controller, flashlight

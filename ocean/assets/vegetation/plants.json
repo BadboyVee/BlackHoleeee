@@ -1,0 +1,178 @@
+{
+ "broad": {
+  "atlas": "broad",
+  "variants": [
+   {
+    "height": 14.91,
+    "lod0_bark_verts": 7963,
+    "lod0_leaves_verts": 7500,
+    "lod0_cards": 1250,
+    "lod1_bark_verts": 1009,
+    "lod1_leaves_verts": 2478,
+    "lod1_cards": 413
+   },
+   {
+    "height": 12.83,
+    "lod0_bark_verts": 7592,
+    "lod0_leaves_verts": 7386,
+    "lod0_cards": 1231,
+    "lod1_bark_verts": 910,
+    "lod1_leaves_verts": 2454,
+    "lod1_cards": 409
+   },
+   {
+    "height": 14.47,
+    "lod0_bark_verts": 8445,
+    "lod0_leaves_verts": 7608,
+    "lod0_cards": 1268,
+    "lod1_bark_verts": 1172,
+    "lod1_leaves_verts": 2532,
+    "lod1_cards": 422
+   },
+   {
+    "height": 12.65,
+    "lod0_bark_verts": 8319,
+    "lod0_leaves_verts": 8232,
+    "lod0_cards": 1372,
+    "lod1_bark_verts": 986,
+    "lod1_leaves_verts": 2784,
+    "lod1_cards": 464
+   }
+  ]
+ },
+ "umbrella": {
+  "atlas": "broad",
+  "variants": [
+   {
+    "height": 12.77,
+    "lod0_bark_verts": 11265,
+    "lod0_leaves_verts": 13422,
+    "lod0_cards": 2237,
+    "lod1_bark_verts": 1032,
+    "lod1_leaves_verts": 4476,
+    "lod1_cards": 746
+   },
+   {
+    "height": 11.46,
+    "lod0_bark_verts": 11719,
+    "lod0_leaves_verts": 14532,
+    "lod0_cards": 2422,
+    "lod1_bark_verts": 1019,
+    "lod1_leaves_verts": 4884,
+    "lod1_cards": 814
+   }
+  ]
+ },
+ "palm": {
+  "atlas": "palm",
+  "variants": [
+   {
+    "height": 8.21,
+    "lod0_bark_verts": 403,
+    "lod0_leaves_verts": 858,
+    "lod0_cards": 22,
+    "lod1_bark_verts": 145,
+    "lod1_leaves_verts": 294,
+    "lod1_cards": 26
+   },
+   {
+    "height": 8.88,
+    "lod0_bark_verts": 529,
+    "lod0_leaves_verts": 1014,
+    "lod0_cards": 26,
+    "lod1_bark_verts": 145,
+    "lod1_leaves_verts": 273,
+    "lod1_cards": 24
+   },
+   {
+    "height": 12.26,
+    "lod0_bark_verts": 571,
+    "lod0_leaves_verts": 975,
+    "lod0_cards": 25,
+    "lod1_bark_verts": 145,
+    "lod1_leaves_verts": 273,
+    "lod1_cards": 24
+   },
+   {
+    "height": 12.07,
+    "lod0_bark_verts": 529,
+    "lod0_leaves_verts": 936,
+    "lod0_cards": 24,
+    "lod1_bark_verts": 145,
+    "lod1_leaves_verts": 315,
+    "lod1_cards": 27
+   }
+  ]
+ },
+ "ironwood": {
+  "atlas": "needle",
+  "variants": [
+   {
+    "height": 13.87,
+    "lod0_bark_verts": 2091,
+    "lod0_leaves_verts": 3324,
+    "lod0_cards": 554,
+    "lod1_bark_verts": 1146,
+    "lod1_leaves_verts": 1662,
+    "lod1_cards": 554
+   },
+   {
+    "height": 15.05,
+    "lod0_bark_verts": 2781,
+    "lod0_leaves_verts": 4224,
+    "lod0_cards": 704,
+    "lod1_bark_verts": 1494,
+    "lod1_leaves_verts": 2112,
+    "lod1_cards": 704
+   }
+  ]
+ },
+ "shrub": {
+  "atlas": "shrub",
+  "variants": [
+   {
+    "height": 2.54,
+    "lod0_bark_verts": 1490,
+    "lod0_leaves_verts": 888,
+    "lod0_cards": 148,
+    "lod1_leaves_verts": 444,
+    "lod1_cards": 148
+   },
+   {
+    "height": 2.28,
+    "lod0_bark_verts": 1105,
+    "lod0_leaves_verts": 744,
+    "lod0_cards": 124,
+    "lod1_leaves_verts": 372,
+    "lod1_cards": 124
+   },
+   {
+    "height": 2.11,
+    "lod0_bark_verts": 785,
+    "lod0_leaves_verts": 552,
+    "lod0_cards": 92,
+    "lod1_leaves_verts": 276,
+    "lod1_cards": 92
+   }
+  ]
+ },
+ "fern": {
+  "atlas": "fern",
+  "variants": [
+   {
+    "height": 0.73,
+    "lod0_leaves_verts": 297,
+    "lod0_cards": 11,
+    "lod1_leaves_verts": 162,
+    "lod1_cards": 11
+   },
+   {
+    "height": 1.02,
+    "lod0_leaves_verts": 324,
+    "lod0_cards": 12,
+    "lod1_leaves_verts": 162,
+    "lod1_cards": 12
+   }
+  ]
+ }
+}

@@ -1,0 +1,44 @@
+{
+ "broad": {
+  "width": 1.44,
+  "height": 1.44,
+  "coverage": 0.29174232482910156,
+  "cells": [
+   2,
+   2
+  ],
+  "cell": 0.72
+ },
+ "shrub": {
+  "width": 1.0,
+  "height": 1.0,
+  "coverage": 0.2657938003540039,
+  "cells": [
+   2,
+   2
+  ],
+  "cell": 0.5
+ },
+ "palm": {
+  "width": 1.05,
+  "height": 1.05,
+  "coverage": 0.34839439392089844,
+  "length": 4.2
+ },
+ "fern": {
+  "width": 0.6,
+  "height": 0.6,
+  "coverage": 0.40868377685546875,
+  "length": 1.2
+ },
+ "needle": {
+  "width": 1.2,
+  "height": 0.6,
+  "coverage": 0.28607940673828125,
+  "cells": [
+   2,
+   1
+  ],
+  "cell": 0.6
+ }
+}
