@@ -79,7 +79,9 @@ export class Pipeline {
     scenePass.name = 'scene';
     const auxNode = Fn((inputs, builder) => {
       const m = builder.material;
-      if (m && m.isWaterMaterial) return vec4(select(frontFacing, float(1), float(0.5)), 0.55, 0, 0);
+      // (the waves carry motion vectors; reactivity covers the glitter and
+      // foam patterns that travel at the phase speed, not with the water)
+      if (m && m.isWaterMaterial) return vec4(select(frontFacing, float(1), float(0.5)), 0.35, 0, 0);
       if (m && m.userData && m.userData.reactive) return vec4(0, m.userData.reactive, 0, 0);
       return vec4(0);
     })();

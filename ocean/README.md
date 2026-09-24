@@ -40,7 +40,10 @@ float and bob with the waves; once you dive you stay at the depth you choose.
   heights, per ray) takes each wave through steepening, curl, plunge and bore on the sandbar
   and the beach. Keyframed breaker profiles give the lip and falling sheet. Swash runs up the
   sand with a rounded leading edge and leaves wet sand and stranded foam behind.
-- Surf: whitewater persists behind broken bores. Spray is thrown from where the lip hits the
+- Surf: whitewater persists behind broken bores in a GPU foam field. Each passing bore
+  pushes it shoreward and slow eddies stretch it into streaks. Fresh whitewater is a dense
+  blanket that opens into lace within seconds, and the water under foam turns milky
+  turquoise. The roller of a broken wave boils. Spray is thrown from where the lip hits the
   water, not from the crest.
 - Wake: an interactive iWave height field follows the boat and gives a real Kelvin wake. It
   runs into the beach, soaks into the surf zone and breaks into foam.
@@ -70,12 +73,16 @@ float and bob with the waves; once you dive you stay at the depth you choose.
 - A lobster boat with buoyancy computed on the rendered waves, rudder and prop physics, bow
   spray, a helm with instruments, and a cab light at night.
 - Life: fish schools (GPU boids) over the reef, a humpback whale that surfaces, blows, dives
-  and breaches, gulls, ghost crabs that scuttle off and dig in, and motes in the sunlight.
+  and breaches with a knot of pilot fish riding ahead of its head, gulls, ghost crabs that
+  scuttle off and dig in, and motes in the sunlight.
 
 **Rendering**
 - Frame graph: depth/normal/velocity prepass → GTAO and screen-space contact shadows →
-  HDR scene with CSM shadows and sky IBL → water/volume composite → TAA → motion blur and god
-  rays → bloom → lens flare, vignette, grain → ACES.
+  HDR scene with CSM shadows and sky IBL → water/volume composite → TAA → sharpening, motion
+  blur and god rays → bloom → lens flare, vignette, grain → ACES.
+- Motion vectors for everything that moves: the waves (last frame's FFT displacement and
+  breaker profile), fish, birds and the boat. TAA reprojects them instead of dragging ghosts
+  behind crests. A reactive mask covers what vectors can't describe (spray, glints).
 
 **Sound**
 - Real recordings only (see `assets/audio/CREDITS.md`). Surf fades with distance to the shore

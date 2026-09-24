@@ -38,6 +38,8 @@ export class Spray {
     this.dt = uniform(0);
     this.wind = uniform(new THREE.Vector3(2, 0, 1));
     this.batchN = 0;
+    this.pixelAngle = uniform(0.001);
+    this._size = new THREE.Vector2();
     this._build();
   }
 
@@ -107,11 +109,17 @@ export class Spray {
     const speed = length(vv);
     const dirS = select(speed.greaterThan(1e-3), vv.div(speed), vec2(0, 1));
     const stretch = min(speed.mul(0.012).div(size.max(0.005)), 3.0).mul(select(mist, float(0), float(1)));
+    // drops smaller than a pixel are drawn ~1.5 px wide with the same total
+    // coverage (fainter), so distant spray reads as a veil of fine drops
+    // instead of flickering in and out
+    const r0 = size.mul(grow);
+    const rEff = max(r0, this.pixelAngle.mul(viewPos.z.negate()).mul(0.75));
+    const cover = r0.div(rEff);
     const c = positionGeometry.xy;
     const along = dot(c, dirS);
-    const offs = c.add(dirS.mul(along.mul(stretch))).mul(size.mul(grow)).mul(select(alive, float(1), float(0)));
+    const offs = c.add(dirS.mul(along.mul(stretch))).mul(rEff).mul(select(alive, float(1), float(0)));
     mat.vertexNode = cameraProjectionMatrix.mul(vec4(viewPos.xy.add(offs), viewPos.z, 1));
-    const vFade = varying(fade.mul(select(alive, float(1), float(0))), 'vSprayFade');
+    const vFade = varying(fade.mul(select(alive, float(1), float(0))).mul(cover.mul(cover)), 'vSprayFade');
     const vMist = varying(select(mist, float(1), float(0)), 'vSprayMist');
     const vWorld = varying(P.xyz, 'vSprayPos');
     const q = uv().mul(2).sub(1);
@@ -125,6 +133,11 @@ export class Spray {
     mat.colorNode = sun.add(sky).mul(mix(float(1), float(0.8), vMist));
     mat.opacityNode = disc.mul(vFade).mul(mix(float(0.85), float(0.22), vMist));
     this.mesh = new THREE.Mesh(g, mat);
+    this.mesh.onBeforeRender = (renderer, scene, camera) => {
+      // angular size of a pixel (m per m of distance) for the drop size floor
+      const h = renderer.getDrawingBufferSize(this._size).y || 1;
+      this.pixelAngle.value = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov || 50) / 2) / h;
+    };
     this.mesh.frustumCulled = false;
     this.mesh.renderOrder = 30;
     this.mesh.layers.set(3); // LAYER_NO_PREPASS
@@ -155,6 +168,9 @@ export class Spray {
 
   update(dt) {
     this.dt.value = Math.min(dt, 0.05);
+    // mist drifts with the wind
+    const ws = env.windSpeed.value * 0.7;
+    this.wind.value.set(env.windDir.value.x * ws, 0, env.windDir.value.y * ws);
     if (this.batchN > 0) {
       this.batchAttr.needsUpdate = true;
       this.batchCount.value = this.batchN;

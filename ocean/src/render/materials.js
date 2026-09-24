@@ -32,6 +32,37 @@ export function staticVelocity(material) {
   return material;
 }
 
+/**
+ * Vertex deformation in the geometry's own frame, applied *before* instancing
+ * (three.js applies a plain positionNode after the instance transform and so
+ * replaces it). The deformed shape also stands in for the previous frame's,
+ * so moving instances still get true motion vectors while the animation
+ * itself reads as static.
+ */
+export function deform(material, node) {
+  const setupPosition = material.setupPosition;
+  material.setupPosition = function (builder) {
+    positionLocal.assign(node);
+    if (builder.needsPreviousData()) positionPrevious.assign(node);
+    return setupPosition.call(this, builder);
+  };
+  return material;
+}
+
+/**
+ * Previous-frame position (same space as positionNode) for materials that
+ * place their vertices themselves, so the velocity buffer sees real motion.
+ */
+export function previousPosition(material, node) {
+  const setupPosition = material.setupPosition;
+  material.setupPosition = function (builder) {
+    const r = setupPosition.call(this, builder);
+    if (builder.needsPreviousData()) positionPrevious.assign(node);
+    return r;
+  };
+  return material;
+}
+
 export function standard(params = {}) {
   const m = new THREE.MeshStandardNodeMaterial(params);
   return prepassAware(m);

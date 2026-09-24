@@ -12,7 +12,7 @@ import {
   smoothstep, clamp, max, min, length, normalize, dot, attribute, positionGeometry, cameraPosition, cameraViewMatrix,
   cameraProjectionMatrix, varying, pow, select, positionWorld, If, abs,
 } from 'three/tsl';
-import { standard } from '../render/materials.js';
+import { standard, staticVelocity } from '../render/materials.js';
 import { fbm2, vnoise2, hash22, hash21 } from '../render/tslnoise.js';
 import { env } from '../env.js';
 
@@ -110,17 +110,20 @@ export class Grass {
       .add(vec3(0, t.mul(H).mul(float(1).sub(curve.mul(bend).mul(0.35))), 0))
       .add(bendDir.mul(curve.mul(bend).mul(H).mul(0.7)));
     mat.positionNode = p;
+    staticVelocity(mat);   // blades are anchored; their bending is slow
     // rounded blade normal: tilt across the width, facing up the bend
     const n = normalize(face.add(side.mul(local.x.mul(0.6))).add(vec3(0, 0.4, 0)));
     mat.normalNode = cameraViewMatrix.mul(vec4(n, 0)).xyz;
     const tint = S.w;
-    const base = mix(vec3(0.16, 0.22, 0.08), vec3(0.2, 0.25, 0.1), tint);
-    const tip = mix(vec3(0.46, 0.56, 0.22), vec3(0.62, 0.6, 0.3), tint.mul(tint));
+    // real grass albedo (linear) tops out around 0.2 in green: brighter blades
+    // would ring the player with a pale disc against the terrain's grass
+    const base = mix(vec3(0.045, 0.078, 0.022), vec3(0.065, 0.095, 0.03), tint);
+    const tip = mix(vec3(0.15, 0.2, 0.065), vec3(0.23, 0.22, 0.1), tint.mul(tint));
     const vt = varying(t, 'vGrassT');
     mat.colorNode = mix(base, tip, vt.pow(0.8));
     const V = normalize(positionWorld.sub(cameraPosition));
     const back = pow(max(dot(V, env.sunDir), 0), 4);
-    mat.emissiveNode = tip.mul(tip).mul(env.sunColor).mul(back.mul(vt).mul(0.05));
+    mat.emissiveNode = tip.mul(env.sunColor).mul(back.mul(vt).mul(0.06));
     mat.userData.noContactShadow = true;
     mat.aoNode = mix(float(0.45), float(1), vt);
     this.mesh = new THREE.Mesh(g, mat);

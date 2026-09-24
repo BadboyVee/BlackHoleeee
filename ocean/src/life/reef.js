@@ -9,11 +9,11 @@
 
 import * as THREE from 'three/webgpu';
 import {
-  attribute, positionGeometry, positionLocal, positionWorld, vec2, vec3, float, sin, cos, mix, smoothstep, clamp,
+  attribute, positionGeometry, positionWorld, vec2, vec3, float, sin, cos, mix, smoothstep, clamp,
   max, normalWorld, abs, exp, fract,
 } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { standard } from '../render/materials.js';
+import { standard, deform } from '../render/materials.js';
 import { fbm2, vnoise2, voronoi2, gnoise2 } from '../render/tslnoise.js';
 import { env } from '../env.js';
 
@@ -164,24 +164,26 @@ export class Reef {
       if (t.sway) {
         // surge: horizontal back-and-forth growing with height above the base
         const surge = sin(env.time.mul(0.9).add(cd.w)).mul(t.sway).mul(p.y.max(0).mul(p.y.max(0)).mul(2.5));
-        mat.positionNode = vec3(p.x.add(surge.mul(0.7)), p.y, p.z.add(surge.mul(0.5)));
+        deform(mat, vec3(p.x.add(surge.mul(0.7)), p.y, p.z.add(surge.mul(0.5))));
       }
       let col = cd.rgb;
       if (t.brain) {
         // meandering grooves
-        const v = voronoi2(positionLocal.xz.mul(9).add(positionLocal.y.mul(4)));
+        // (patterns live in the coral's own frame: positionLocal is already
+        // instance-transformed, i.e. world space)
+        const v = voronoi2(positionGeometry.xz.mul(9).add(positionGeometry.y.mul(4)));
         const groove = smoothstep(0.04, 0.12, v.y.sub(v.x));
         col = col.mul(mix(float(0.55), float(1.05), groove));
       }
       if (t.lace) {
-        const q = positionLocal.xy.mul(34);
+        const q = positionGeometry.xy.mul(34);
         const cells = voronoi2(q);
-        mat.opacityNode = smoothstep(0.1, 0.06, cells.y.sub(cells.x)).add(smoothstep(0.05, 0.03, positionLocal.y.sub(0.08)));
+        mat.opacityNode = smoothstep(0.1, 0.06, cells.y.sub(cells.x)).add(smoothstep(0.05, 0.03, positionGeometry.y.sub(0.08)));
         mat.alphaTest = 0.5;
         mat.userData.noAO = true;
       }
       // polyps / grain
-      col = col.mul(vnoise2(positionLocal.xz.mul(40).add(positionLocal.y.mul(30))).mul(0.25).add(0.85));
+      col = col.mul(vnoise2(positionGeometry.xz.mul(40).add(positionGeometry.y.mul(30))).mul(0.25).add(0.85));
       mat.colorNode = col;
       const mesh = new THREE.InstancedMesh(t.geo, mat, list.length);
       const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), pos = new THREE.Vector3();

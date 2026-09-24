@@ -105,6 +105,8 @@ export function buildSettings(app) {
   panel.slider(gfx, { id: 'bloom', label: 'Bloom', min: 0, max: 0.5, step: 0.005, value: pipeline.bloomPass.strength.value, format: (v) => v.toFixed(3),
     onInput: (v) => { pipeline.bloomPass.strength.value = v; } });
   if (app.post) {
+    panel.slider(gfx, { id: 'sharpen', label: 'Sharpen', min: 0, max: 1, step: 0.01, value: app.post.sharpen.value, format: (v) => v.toFixed(2),
+      onInput: (v) => { app.post.sharpen.value = v; } });
     panel.slider(gfx, { id: 'mblur', label: 'Motion blur', min: 0, max: 1, step: 0.01, value: app.post.motionBlur.value, format: (v) => v.toFixed(2),
       onInput: (v) => { app.post.motionBlur.value = v; } });
     panel.slider(gfx, { id: 'flare', label: 'Lens flare', min: 0, max: 2, step: 0.01, value: app.post.flare.value, format: (v) => v.toFixed(2),

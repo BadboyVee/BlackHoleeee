@@ -15,7 +15,7 @@ import {
   positionLocal, hash, varying, uv, fract, exp, pow, cameraViewMatrix,
 } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { standard } from '../render/materials.js';
+import { standard, previousPosition } from '../render/materials.js';
 import { hash21, vnoise2 } from '../render/tslnoise.js';
 import { env } from '../env.js';
 
@@ -83,19 +83,27 @@ const SPECIES = [
   { name: 'jacks', count: 520, L: 0.28, depth: 0.2, width: 0.09, tail: 0.3, deep: false, speed: 1.3, schools: 3, radius: 5, spread: 110, colors: [[0.12, 0.2, 0.26], [0.72, 0.76, 0.78]], metal: 0.65, stripes: 0.0, rough: 0.28, yRange: [-7, -1.5] },
   // yellow-and-blue reef fish, small loose groups over the coral
   { name: 'reef', count: 180, L: 0.2, depth: 0.42, width: 0.08, tail: 0.24, deep: true, speed: 0.55, schools: 9, radius: 3, spread: 70, colors: [[0.06, 0.12, 0.35], [0.95, 0.72, 0.1]], metal: 0.05, stripes: 1.0, rough: 0.45, yRange: [-6, -1.2] },
+  // pilot fish that ride the whale's pressure wave, just ahead of its head
+  { name: 'pilot', follow: true, count: 64, L: 0.3, depth: 0.24, width: 0.09, tail: 0.3, deep: false, speed: 3.0, schools: 1, radius: 2.5, spread: 1, colors: [[0.1, 0.16, 0.24], [0.62, 0.68, 0.74]], metal: 0.5, stripes: 0.9, rough: 0.32, yRange: [-15, -1.4] },
   // a few bigger fish (grouper / snapper) near the bottom
   { name: 'snapper', count: 24, L: 0.75, depth: 0.28, width: 0.12, tail: 0.24, deep: false, speed: 0.7, schools: 4, radius: 5, spread: 80, colors: [[0.32, 0.12, 0.1], [0.8, 0.52, 0.42]], metal: 0.15, stripes: 0.3, rough: 0.4, yRange: [-10, -2.5] },
 ];
 
 export class Fish {
-  constructor(renderer, { scene, terrain, reef, extraAnchors = [] }) {
+  constructor(renderer, { scene, terrain, reef, extraAnchors = [], escortStart = null }) {
     this.renderer = renderer;
     this.terrain = terrain;
     this.groups = [];
     this.flee = uniform(new THREE.Vector3(0, -1000, 0));
+    // the whale's body (a capsule, head to flukes) that every fish keeps clear of
+    this.avoidA = uniform(new THREE.Vector3(0, -1000, 0));
+    this.avoidB = uniform(new THREE.Vector3(0, -1000, 1));
+    this.avoidR = uniform(1.5);
     this.dt = uniform(0);
     this.time = uniform(0);
-    for (const sp of SPECIES) this.groups.push(this._species(sp, reef, scene, extraAnchors));
+    this._fwd = new THREE.Vector3();
+    const escort = escortStart ? { x: escortStart.x, z: escortStart.z } : reef;
+    for (const sp of SPECIES) this.groups.push(this._species(sp, sp.follow ? escort : reef, scene, extraAnchors));
   }
 
   _species(sp, reef, scene, extraAnchors) {
@@ -161,6 +169,12 @@ export class Fish {
       const fl = length(df);
       const scare = smoothstep(4.5, 1.2, fl);
       steer.addAssign(normalize(df.add(vec3(0, 1e-3, 0))).mul(scare.mul(6)));
+      // keep clear of the whale
+      const ab = this.avoidB.sub(this.avoidA);
+      const tq = clamp(dot(p.xyz.sub(this.avoidA), ab).div(dot(ab, ab).max(1e-4)), 0, 1);
+      const dw = p.xyz.sub(this.avoidA.add(ab.mul(tq)));
+      const dwl = length(dw);
+      steer.addAssign(dw.div(dwl.max(1e-3)).mul(smoothstep(this.avoidR.add(1.5), this.avoidR, dwl).mul(6)));
       // integrate with a speed that rises when scared, never stopping
       const dt = this.dt;
       const nv = v.xyz.add(steer.mul(dt).mul(sp.speed * 1.6)).toVar();
@@ -192,6 +206,8 @@ export class Fish {
     const up = cross(f, right);
     const world = P.xyz.add(f.mul(local.x)).add(up.mul(local.y)).add(right.mul(local.z).negate());
     mat.positionNode = world;
+    // where it was last frame, for the velocity buffer (TAA, motion blur)
+    previousPosition(mat, world.sub(V.xyz.mul(this.dt)));
     const n = normalGeometry;
     const nW = normalize(f.mul(n.x).add(up.mul(n.y)).add(right.mul(n.z).negate()));
     mat.normalNode = cameraViewMatrix.mul(vec4(nW, 0)).xyz;
@@ -216,13 +232,29 @@ export class Fish {
     return { sp, kernel, targetU, anchors, mesh, wander: anchors.map(() => ({ a: Math.random() * 6, r: Math.random() })) };
   }
 
-  update(dt, time, flee) {
+  /** follow: the whale ({ pos, heading, pitch, length }) or null */
+  update(dt, time, flee, follow = null) {
     this.dt.value = Math.min(dt, 0.05);
     this.time.value = time;
     this.flee.value.copy(flee);
+    if (follow) {
+      const f = this._fwd.set(Math.sin(follow.heading) * Math.cos(follow.pitch), Math.sin(follow.pitch), -Math.cos(follow.heading) * Math.cos(follow.pitch));
+      this.avoidA.value.copy(follow.pos).addScaledVector(f, follow.length * 0.4);
+      this.avoidB.value.copy(follow.pos).addScaledVector(f, -follow.length * 0.42);
+    }
     if (dt <= 0) return;
     for (const g of this.groups) {
       const { sp } = g;
+      if (sp.follow) {
+        if (!follow) continue;
+        // a loose knot just ahead of and below the whale's head, drifting side to side
+        const f = this._fwd;
+        const t = g.targetU[0].value;
+        t.set(this.avoidA.value.x + f.x * 2.5 - f.z * Math.sin(time * 0.31) * 2.5, 0, this.avoidA.value.z + f.z * 2.5 + f.x * Math.sin(time * 0.31) * 2.5, 0);
+        t.y = THREE.MathUtils.clamp(this.avoidA.value.y - 1.6, sp.yRange[0] + 1, sp.yRange[1] - 1);
+        this.renderer.compute(g.kernel);
+        continue;
+      }
       g.anchors.forEach((a, k) => {
         const w = g.wander[k];
         w.a += dt * 0.07 * (0.5 + w.r);

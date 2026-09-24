@@ -193,7 +193,7 @@ async function start() {
   const surf = new Surf(renderer, { ocean, shore, terrain, island, spray, time: env.time, slices: TEST ? 32 : 4 });
   ocean.surf = surf;
   const water = new WaterMaterial({ ocean, terrain, sky, shore, foamTexture });
-  water.debugShore = query.has('waterDebug');
+  water.debugShore = query.has('waterDebug') ? (+query.get('waterDebug') || 1) : 0;
   const waterMesh = new THREE.Mesh(ocean.geometry, water);
   waterMesh.frustumCulled = false;
   waterMesh.renderOrder = 10;
@@ -223,8 +223,8 @@ async function start() {
   vegetation.update(camera);
   const grass = new Grass(renderer, { terrain, island, grid: TEST ? 56 : 112 });
   scene.add(grass.mesh);
-  const fish = new Fish(renderer, { scene, terrain, reef: REEF });
-  const whale = new Whale({ scene, spray, ocean });
+  const whale = new Whale({ scene, spray, ocean, island });
+  const fish = new Fish(renderer, { scene, terrain, reef: REEF, escortStart: whale.pos });
   const reefLife = new Reef({ scene, island, reef: REEF, collision });
   const birds = new Birds({ scene });
   const crabs = new Crabs({ scene, island });
@@ -267,6 +267,8 @@ async function start() {
   pipeline.post.push(droplets.node());
   pipeline.finals = [post.finalNode()];
   pipeline.build();
+  // reflections must ignore what lies behind the water surface
+  water.preDepth = pipeline.preDepth;
 
   Object.assign(app, { scene, camera, sky, ocean, water, shore, terrain, island, collision, probe, caustics, pipeline, composite, player, flashlight, droplets, input, sun, csm, wake, spray, surf, village, vegetation, grass, fish, whale, reefLife, birds, crabs, motes });
   const hide = { grass: [grass.mesh], fish: fish.groups.map((g) => g.mesh), whale: [whale.mesh], veg: [vegetation.group], village: [village.group], boat: [boat.group], spray: [spray.mesh], reef: [reefLife.group], birds: [birds.mesh, birds.beaks], crabs: [crabs.mesh], motes: [motes.mesh] };
@@ -420,7 +422,7 @@ async function start() {
     terrain.update(camera);
     if (on('veg')) vegetation.update(camera);
     if (on('grass')) grass.update(camera, player);
-    if (on('fish')) fish.update(dt, time, player.mode === 'swim' || under ? camera.position : boat.pos);
+    if (on('fish')) fish.update(dt, time, player.mode === 'swim' || under ? camera.position : boat.pos, on('whale') ? whale.body : null);
     if (on('whale')) whale.update(dt, time, camera.position);
     if (on('birds')) birds.update(realDt, performance.now() / 1000);
     if (on('crabs')) crabs.update(realDt, player);
@@ -433,7 +435,7 @@ async function start() {
       boat: boat.pos, boatSpeed: Math.abs(boat.speed), whale: whale.pos,
     });
     probe.update(camera);
-    caustics.update();
+    caustics.update(camera);
     sky.update(dt, camera, time);
     sky.updateEnvironment();
     composite.update(renderer);
@@ -470,6 +472,7 @@ async function start() {
     player.update(0);
   };
   debug.setSun = setSun;
+  debug.prewarmSurf = (seconds = 16, step = 0.25) => surf.prewarm(seconds, step, time);
 }
 
 start().catch((e) => {

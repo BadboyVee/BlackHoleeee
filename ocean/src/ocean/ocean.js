@@ -70,6 +70,17 @@ export class Ocean {
     return d;
   }
 
+  /** TSL: last frame's summed cascade displacement (for motion vectors). */
+  displacementPrevious(xz, spacing = null) {
+    let d = vec3(0);
+    this.lengthScales.forEach((L, c) => {
+      let s = texture(this.fft.previous[c], xz.div(L));
+      if (spacing) s = s.level(max(log2(spacing.div(L / OCEAN_SIZE)), 0));
+      d = d.add(s.xyz.mul(this.cascadeWeights[c]));
+    });
+    return d;
+  }
+
   /** TSL: summed derivatives (dDy/dx, dDy/dz, dDx/dx, dDz/dz) and foam. */
   derivatives(xz) {
     let d = vec4(0);
@@ -104,22 +115,29 @@ export class Ocean {
    */
   surface(xz, spacing, shore, timeNode, { wakeScale = null } = {}) {
     let disp = this.displacement(xz, spacing);
+    const out = { fftRaw: disp, fftScale: vec3(1) };
     let fftFoam = this.foamAt(xz, spacing);
     if (timeNode) {
       const bl = this._blobs(xz, timeNode);
       disp = disp.add(vec3(0, bl.dy, 0));
       fftFoam = fftFoam.add(bl.foam);
     }
-    const out = {};
     let y;
     if (shore) {
       const st = shore.state(xz, timeNode, true);
       // wind chop dies down in the shallows; the shore swell takes over
       const fftAtten = smoothstep(0.25, 6.0, st.depth).mul(smoothstep(-2, 3, st.sdf));
-      disp = disp.mul(vec3(fftAtten, mix(0.25, 1, fftAtten).mul(smoothstep(-3, 0.5, st.sdf)), fftAtten));
+      out.fftScale = vec3(fftAtten, mix(0.25, 1, fftAtten).mul(smoothstep(-3, 0.5, st.sdf)), fftAtten);
+      disp = disp.mul(out.fftScale);
       fftFoam = fftFoam.mul(fftAtten);
       const br = shore.breaker(st, true);
       disp = disp.add(br.disp);
+      // the roller of a broken wave boils: lumpy relief where it churns
+      // (faded out where the mesh is too coarse to carry it)
+      const rough = br.foam.mul(smoothstep(1.9, 2.4, st.beta)).mul(st.H).mul(0.13)
+        .mul(spacing ? smoothstep(1.6, 0.6, spacing) : float(1));
+      disp = disp.add(vec3(0, shore.turbulence(xz, timeNode).mul(rough), 0));
+      out.roughAmp = rough;
       if (this.wake) {
         // interactive wake waves (boats) ride on top of everything else
         const wk = this.wake.sample(xz);
@@ -155,7 +173,7 @@ export class Ocean {
    * Vertex stage: patch grid -> morphed world xz -> displaced world position,
    * plus the varyings the water shader needs.
    */
-  buildVertex(shore = null, timeNode = null) {
+  buildVertex(shore = null, timeNode = null, dtNode = null) {
     const patch = attribute('oceanPatch', 'vec4');
     const g = positionGeometry.xz;
     const origin = patch.xy, spacing = patch.z, morphEnd = patch.w;
@@ -181,10 +199,14 @@ export class Ocean {
         const sRel = st.psi.mul(st.lambda).div(st.H.max(0.05));
         const curling = smoothstep(0.7, 1.1, st.beta).mul(smoothstep(2.35, 2.05, st.beta)).mul(smoothstep(4.0, 1.0, abs(sRel.add(0.4))));
         const face = max(curling, smoothstep(0.05, 0.4, br.thin));
-        // old whitewater thins into drifting patches and streaks (never a flat sheet)
+        // fresh whitewater is a dense blanket; within seconds it opens into
+        // lace, and old foam survives only in drifting patches and streaks
+        const sf = this.surf.sample(xz);
         const drift = xz.add(st.fwd.mul(timeNode.mul(0.4)));
-        const breakup = gnoise2(drift.mul(0.18)).mul(0.5).add(gnoise2(drift.mul(0.61).add(3.7)).mul(0.3)).add(0.55);
-        const persistent = min(this.surf.sample(xz), 1.0).mul(clamp(breakup, 0.15, 1.0)).mul(0.85);
+        const nb = gnoise2(drift.mul(0.16)).mul(0.65).add(gnoise2(drift.mul(0.53).add(3.7)).mul(0.35));
+        const breakup = smoothstep(-0.5, 0.3, nb);
+        const density = mix(float(0.45), float(1.05), sf.y);
+        const persistent = min(sf.x, 1.0).mul(density).mul(mix(0.35, 1.0, breakup));
         shoreFoam = max(shoreFoam, persistent.mul(select(onLand, float(0), float(1))).mul(float(1).sub(face)));
       }
       out.shoreFoam = varying(shoreFoam, 'vShoreFoam');
@@ -195,6 +217,7 @@ export class Ocean {
       out.swash = varying(select(onLand, sw.thick, float(1)), 'vSwash');
       out.fftAtten = varying(fftAtten, 'vFftAtten');
       out.depth = varying(st.depth, 'vWaterDepth');
+      out.roughAmp = varying(srf.roughAmp, 'vRoughAmp');
       if (srf.wake) {
         out.wakeSlope = varying(srf.wake.yz, 'vWakeSlope');
         out.wakeFoam = varying(srf.wake.w, 'vWakeFoam');
@@ -206,6 +229,22 @@ export class Ocean {
     if (srf.prepassY) {
       const pre = vec3(xz.x.add(disp.x), srf.prepassY.sub(curvature), xz.y.add(disp.z));
       out.position = Fn((inputs, builder) => (builder.context.prepass === true ? pre : position))();
+      if (dtNode) {
+        // last frame's position for the velocity buffer: the waves travel
+        // metres a second and TAA would drag ghosts behind crests and smear
+        // glints (the wake counts as static; the reactive TAA mask covers it)
+        const tPrev = timeNode.sub(dtNode);
+        const stP = shore.state(xz, tPrev, true);
+        const brP = shore.breaker(stP, true);
+        const roughP = brP.foam.mul(smoothstep(1.9, 2.4, stP.beta)).mul(stP.H).mul(0.13).mul(smoothstep(1.6, 0.6, effSpacing));
+        const dispP = brP.disp.add(vec3(0, shore.turbulence(xz, tPrev).mul(roughP), 0));
+        const dispNow = srf.br.disp.add(vec3(0, shore.turbulence(xz, timeNode).mul(srf.roughAmp), 0));
+        // and the wind waves, from last frame's FFT displacement
+        const fftDelta = srf.fftRaw.sub(this.displacementPrevious(xz, effSpacing)).mul(srf.fftScale);
+        const near = smoothstep(0.6, 2.2, length(xz.sub(this.eyeXZ))).max(this.nearFadeOff);
+        const delta = dispNow.sub(dispP).add(fftDelta).mul(vec3(near, 1, near)).mul(select(srf.onLand, float(0), float(1)));
+        out.prevPosition = pre.sub(delta);
+      }
     } else {
       out.position = position;
     }

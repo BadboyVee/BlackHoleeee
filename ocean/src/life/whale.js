@@ -1,5 +1,6 @@
-// A humpback whale that cruises the outer bay, surfaces to blow, shows its
-// flukes as it dives, and now and then breaches.
+// A humpback whale that cruises the deep water off the bay (keeping clear of
+// the bottom), surfaces to blow, shows its flukes as it dives, and now and
+// then breaches.
 //
 // Model: lofted body (flat-topped rostrum, throat pleats, dorsal hump + fin),
 // long pectoral flippers with a knobbly leading edge, swept flukes with a
@@ -13,7 +14,7 @@ import {
   uniform, normalize, varying, fract, floor, dot, length, select, pow, positionWorld, cameraViewMatrix, transformNormalToView,
 } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { standard } from '../render/materials.js';
+import { standard, staticVelocity } from '../render/materials.js';
 import { fbm2, vnoise2, voronoi2, hash21, gnoise2 } from '../render/tslnoise.js';
 import { env } from '../env.js';
 
@@ -138,9 +139,10 @@ function dorsalGeometry() {
 }
 
 export class Whale {
-  constructor({ scene, spray = null, ocean = null }) {
+  constructor({ scene, spray = null, ocean = null, island = null }) {
     this.spray = spray;
     this.ocean = ocean;
+    this.island = island;
     const parts = [bodyGeometry(), flipperGeometry(1), flipperGeometry(-1), flukeGeometry(), dorsalGeometry()];
     const clean = parts.map((g) => { for (const k of Object.keys(g.attributes)) if (!['position', 'normal', 'uv', 'bodyT', 'part'].includes(k)) g.deleteAttribute(k); return g; });
     this.geometry = mergeGeometries(clean);
@@ -155,12 +157,11 @@ export class Whale {
     this.mesh.frustumCulled = false;
     this.mesh.name = 'whale';
     scene.add(this.mesh);
-    // behaviour
-    this.route = [];
-    for (let k = 0; k < 10; k++) {
-      const a = -0.9 + k / 10 * 1.8;
-      this.route.push(new THREE.Vector3(Math.sin(a) * 520, 0, -300 + Math.cos(a) * 520 + 90 * Math.sin(k * 2.1)));
-    }
+    // behaviour: a loop through the 15-45 m water off the mouth of the bay
+    // (the bay itself is too shallow for a 13 m whale), close in to the
+    // western headland where the shelf drops away
+    this.route = [[-600, 120], [-520, 330], [-300, 460], [-60, 470], [200, 470], [430, 400], [560, 260], [470, 520], [150, 560], [-250, 540]]
+      .map(([x, z]) => new THREE.Vector3(x, 0, z));
     this.pos = this.route[0].clone(); this.pos.y = -9;
     this.heading = 0;
     this.pitch = 0; this.roll = 0;
@@ -172,7 +173,9 @@ export class Whale {
   }
 
   _material() {
-    const m = standard({ roughness: 0.62, metalness: 0 });
+    // the body's motion comes from the object transform; the fluke stroke
+    // itself is reported as static
+    const m = staticVelocity(standard({ roughness: 0.62, metalness: 0 }));
     const tAttr = attribute('bodyT', 'float'), part = attribute('part', 'float');
     const g = positionGeometry;
     // --- deformation: vertical travelling wave from mid-body to the flukes
@@ -234,7 +237,13 @@ export class Whale {
     const target = this.route[this.wp];
     const flat = new THREE.Vector3(target.x - this.pos.x, 0, target.z - this.pos.z);
     if (flat.length() < 40) this.wp = (this.wp + 1) % this.route.length;
-    const want = Math.atan2(flat.x, -flat.z);
+    let want = Math.atan2(flat.x, -flat.z);
+    // keep to deep water: if the bottom ahead shoals, bear toward the deeper side
+    const depthAt = (h, d) => (this.island ? -this.island.heightAt(this.pos.x + Math.sin(h) * d, this.pos.z - Math.cos(h) * d) : 99);
+    if (depthAt(want, 60) < 15) {
+      const l = depthAt(want - 0.6, 60), r = depthAt(want + 0.6, 60);
+      want += l > r ? -0.6 : 0.6;
+    }
     const dh = Math.atan2(Math.sin(want - this.heading), Math.cos(want - this.heading));
     this.heading += THREE.MathUtils.clamp(dh, -0.08 * dt, 0.08 * dt);
     this.stateT += dt;
@@ -270,6 +279,9 @@ export class Whale {
       this.roll *= Math.exp(-dt * 0.6);
       if (this.stateT > 12) { this.state = 'cruise'; this.nextBreach = 120 + Math.random() * 90; this.nextBreath = 30; this.roll = 0; }
     }
+    // never deeper than the seabed allows (body half-height + clearance)
+    const floorY = -Math.max(depthAt(this.heading, 0) - 3.2, 1.2);
+    targetY = Math.max(targetY, floorY);
     if (s !== 'breach') {
       this.pos.y += (targetY - this.pos.y) * (1 - Math.exp(-dt * 0.25));
       pitchWant += THREE.MathUtils.clamp((targetY - this.pos.y) * 0.04, -0.3, 0.3);
@@ -285,6 +297,11 @@ export class Whale {
     this.flip.value = Math.sin(time * 0.35) * 0.18 + (s === 'breach' ? Math.sin(time * 2.1) * 0.6 : 0);
     this.wet.value = THREE.MathUtils.clamp(this.pos.y + 1.2, 0, 1);
     this._pose(time);
+  }
+
+  /** the body as the fish see it */
+  get body() {
+    return { pos: this.pos, heading: this.heading, pitch: this.pitch, length: L };
   }
 
   _pose() {

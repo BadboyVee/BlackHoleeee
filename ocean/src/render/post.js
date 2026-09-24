@@ -1,4 +1,9 @@
-// Camera effects: motion blur, crepuscular rays, lens flare, vignette, grain.
+// Camera effects: sharpening, motion blur, crepuscular rays, lens flare,
+// vignette, grain.
+//
+//  sharpen      contrast-adaptive (CAS-style) 5-tap sharpen of the TAA
+//               output: restores the crispness temporal AA averages away,
+//               backing off where local contrast is already high
 //
 //  motion blur  8 taps along the prepass velocity (camera + object motion),
 //               shutter set by the panel; skipped where nothing moves
@@ -22,6 +27,7 @@ export class Post {
   constructor({ camera, sky }) {
     this.camera = camera;
     this.sky = sky;
+    this.sharpen = uniform(0.5);
     this.motionBlur = uniform(0.45);
     this.flare = uniform(1);
     this.vignette = uniform(0.35);
@@ -49,6 +55,18 @@ export class Post {
     return (color, ctx) => Fn(() => {
       const uv = screenUV;
       const col = vec3(color.rgb).toVar();
+      // ---- contrast-adaptive sharpening (weights from tone-compressed luma)
+      If(this.sharpen.greaterThan(0.001), () => {
+        const px = vec2(1).div(ctx.resolution);
+        const n = ctx.postTexture.sample(uv.sub(vec2(0, px.y))).rgb, s = ctx.postTexture.sample(uv.add(vec2(0, px.y))).rgb;
+        const e = ctx.postTexture.sample(uv.add(vec2(px.x, 0))).rgb, w = ctx.postTexture.sample(uv.sub(vec2(px.x, 0))).rgb;
+        const tl = (c) => { const l = luminance(c); return l.div(l.add(1)); };
+        const lc = tl(col), ln = tl(n), ls = tl(s), le = tl(e), lw = tl(w);
+        const mn = min(min(min(ln, ls), min(le, lw)), lc), mx = max(max(max(ln, ls), max(le, lw)), lc);
+        const amp = clamp(min(mn, float(1).sub(mx)).div(max(mx, 1e-4)), 0, 1).sqrt();
+        const k = amp.mul(this.sharpen.mul(0.15)).negate();
+        col.assign(max(col.add(n.add(s).add(e).add(w).mul(k)).div(k.mul(4).add(1)), vec3(0)));
+      });
       // ---- motion blur
       const vel = ctx.velocity.sample(uv).xy.mul(vec2(0.5, -0.5)).mul(this.motionBlur).toVar();
       const vlen = length(vel.mul(ctx.resolution));
@@ -114,7 +132,7 @@ export class Post {
           const burst = pow(abs(cos(ang.mul(3))), 60).add(pow(abs(cos(ang.mul(3).add(0.52))), 90).mul(0.6))
             .mul(exp(r.mul(-9))).mul(0.35).add(exp(r.mul(-40)).mul(0.6));
           // halo ring
-          const halo = smoothstep(0.02, 0.0, abs(r.sub(0.36))).mul(0.06);
+          const halo = smoothstep(0.02, 0.0, abs(r.sub(0.36))).mul(0.035);
           const hueRing = vec3(smoothstep(0.34, 0.37, r), smoothstep(0.35, 0.36, r).mul(smoothstep(0.37, 0.355, r)), smoothstep(0.38, 0.35, r));
           // ghosts along the axis through the centre, hexagonal with dispersion
           const axis = vec2(0.5).sub(s);
@@ -132,7 +150,7 @@ export class Post {
             });
             ghosts = ghosts.add(vec3(ch[0], ch[1], ch[2]).mul(amp));
           }
-          const flareCol = sunC.mul(burst.add(halo)).add(hueRing.mul(halo).mul(4)).add(ghosts.mul(vec3(0.9, 0.95, 1.0)).mul(0.035));
+          const flareCol = sunC.mul(burst.add(halo)).add(hueRing.mul(halo).mul(1.2)).add(ghosts.mul(vec3(0.9, 0.95, 1.0)).mul(0.035));
           col.addAssign(flareCol.mul(k).mul(luminance(env.sunColor).mul(0.35)));
         });
       });

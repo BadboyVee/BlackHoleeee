@@ -8,7 +8,7 @@
 import * as THREE from 'three/webgpu';
 import { attribute, positionGeometry, vec3, float, sin, cos, mix, select, abs, max, clamp } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { standard } from '../render/materials.js';
+import { standard, deform } from '../render/materials.js';
 
 function tag(g, seg, side) {
   const n = g.attributes.position.count;
@@ -69,13 +69,13 @@ export class Birds {
     const r2y = ox.mul(sin(a1.add(a2))).add(oy.mul(cos(a1.add(a2)))).add(tip.y);
     const isInner = w.x.greaterThan(0.5).and(w.x.lessThan(1.5));
     const isOuter = w.x.greaterThan(1.5).and(w.x.lessThan(2.5));
-    mat.positionNode = vec3(select(isOuter, r2x, select(isInner, r1x, p.x)), select(isOuter, r2y, select(isInner, r1y, p.y)), p.z);
+    // (folded in the bird's own frame, before the instance transform)
+    deform(mat, vec3(select(isOuter, r2x, select(isInner, r1x, p.x)), select(isOuter, r2y, select(isInner, r1y, p.y)), p.z));
     // plumage: white body/head, grey mantle and wings, black wing tips
     const wingTop = mix(vec3(0.55, 0.57, 0.6), vec3(0.04, 0.04, 0.05), select(isOuter, clamp(abs(p.x).sub(0.5).div(0.14), 0, 1), float(0)));
     mat.colorNode = select(w.x.greaterThan(0.5), wingTop, vec3(0.92, 0.92, 0.9));
     this.mesh = new THREE.InstancedMesh(g.body, mat, count);
     const beakMat = standard({ color: 0xe8b830, roughness: 0.5 });
-    beakMat.positionNode = positionGeometry;
     this.beaks = new THREE.InstancedMesh(g.beak, beakMat, count);
     for (const m of [this.mesh, this.beaks]) { m.castShadow = true; m.frustumCulled = false; scene.add(m); }
     this.birds = [];

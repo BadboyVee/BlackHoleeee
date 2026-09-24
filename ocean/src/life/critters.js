@@ -12,7 +12,7 @@ import {
   positionWorld, Fn, instancedArray, varying,
 } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { standard } from '../render/materials.js';
+import { standard, deform } from '../render/materials.js';
 import { env } from '../env.js';
 
 function crabGeometry() {
@@ -55,7 +55,9 @@ export class Crabs {
     const p = positionGeometry;
     const isLeg = leg.greaterThan(0.5).and(leg.lessThan(8.5));
     const lift = sin(cd.x.add(leg.mul(1.7))).mul(0.012).max(0).mul(select(isLeg, float(1), float(0)));
-    mat.positionNode = vec3(p.x, p.y.add(lift), p.z).mul(cd.y.mul(0.3).add(0.7)).sub(vec3(0, float(1).sub(cd.y).mul(0.08), 0));
+    // leg lift in the crab's own frame; shrinking and sinking into the sand
+    // happen in the instance matrix, so the shadow goes with it
+    deform(mat, vec3(p.x, p.y.add(lift), p.z));
     mat.colorNode = select(leg.greaterThan(8.5), vec3(0.02), mix(vec3(0.78, 0.7, 0.56), vec3(0.62, 0.55, 0.43), select(isLeg, float(1), float(0))));
     mat.opacityNode = cd.y;
     mat.alphaTest = 0.02;
@@ -108,8 +110,9 @@ export class Crabs {
         if (c.fade <= 0) { c.state = 'hidden'; c.hidden = 8 + Math.random() * 20; }
       }
       const y = this.island.heightAt(c.x, c.z);
-      p.set(c.x, y, c.z);
+      p.set(c.x, y - (1 - c.fade) * 0.08, c.z);
       q.setFromAxisAngle(up, c.yaw);
+      s.setScalar(c.state === 'hidden' ? 0 : c.fade * 0.3 + 0.7);
       this.m4.compose(p, q, s);
       this.mesh.setMatrixAt(i, this.m4);
       this.data.setXY(i, c.phase, c.fade);

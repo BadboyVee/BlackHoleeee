@@ -101,9 +101,11 @@ class WaterLightingModel extends THREE.LightingModel {
     const Lw = s.lightWorld(L);
     const backlit = pow(dot(s.vWorld.negate(), normalize(vec3(Lw.x, Lw.y.mul(0.2), Lw.z))).max(0), 4.0);
     const sss = s.sssColor.mul(backlit).mul(s.crest).mul(s.Fview.oneMinus()).mul(noFoam).mul(above).mul(isSun ? 1 : 0.3);
+    // sunlight scattered back out of the bubble cloud under foam
+    const bubbles = s.bubbleColor.mul(s.aer).mul(NdotL.mul(0.6).add(0.4)).mul(Tin).mul(s.Tview).mul(noFoam);
     // foam: rough diffuse with a little forward-scatter translucency
     const foamLit = NdotL.mul(0.8).add(0.2).mul(s.foam).mul(s.foamAlbedo).mul(1 / Math.PI);
-    reflectedLight.directDiffuse.addAssign(lightColor.mul(scatter.add(sss).add(foamLit)));
+    reflectedLight.directDiffuse.addAssign(lightColor.mul(scatter.add(sss).add(foamLit).add(bubbles)));
 
     // underwater side: the sun seen through the surface (Snell's window glow)
     const below = above.oneMinus();
@@ -141,7 +143,7 @@ export class WaterMaterial extends THREE.NodeMaterial {
     this.sssStrength = uniform(1);
     this.glare = uniform(0.8);        // sun glitter strength
     this.glareKnee = uniform(24);     // soft-clip knee (scene radiance units)
-    const v = ocean.buildVertex(shore, env.time);
+    const v = ocean.buildVertex(shore, env.time, env.dt);
     this.v = v;   // varyings appear on v once the vertex stage is built
     this.positionNode = v.position;
     this.name = 'water';
@@ -181,7 +183,7 @@ export class WaterMaterial extends THREE.NodeMaterial {
 
   setupPosition(builder) {
     const r = super.setupPosition(builder);
-    if (builder.needsPreviousData()) positionPrevious.assign(positionLocal);
+    if (builder.needsPreviousData()) positionPrevious.assign(this.v.prevPosition ?? positionLocal);
     return r;
   }
 
@@ -201,13 +203,28 @@ export class WaterMaterial extends THREE.NodeMaterial {
     let base = vec3(0, 1, 0);
     let aboveBool = frontFacing;
     if (v.shoreNormal) {
-      slope = slope.mul(v.fftAtten.mul(0.8).add(0.2));
+      // shallow-water swell carries less wind chop, but its faces keep some texture
+      slope = slope.mul(v.fftAtten.mul(0.6).add(0.4));
       foam = foam.add(v.shoreFoam.mul(1.05));
       base = normalize(v.shoreNormal);
       // overturned lip: its triangles flip winding but it is still seen from air
       // inside a breaking crest winding flips where the lip overturns: from
       // the air every face there is seen from above the water
       aboveBool = frontFacing.or(v.breakZone.greaterThan(0.01).and(env.cameraUnderwater.lessThan(0.5)));
+    }
+    if (v.roughAmp) {
+      // the boiling roller of a broken wave (same relief as the mesh, but
+      // resolved per pixel)
+      const amp = v.roughAmp;
+      const tslope = vec2(0).toVar('rollerSlope');
+      If(amp.greaterThan(0.003), () => {
+        const e = 0.15;
+        const h0 = this.shore.turbulence(xz, env.time);
+        const hx = this.shore.turbulence(xz.add(vec2(e, 0)), env.time);
+        const hz = this.shore.turbulence(xz.add(vec2(0, e)), env.time);
+        tslope.assign(vec2(hx.sub(h0), hz.sub(h0)).mul(amp.div(e)));
+      });
+      slope = slope.add(tslope);
     }
     if (v.wakeSlope) {
       slope = slope.add(v.wakeSlope);
@@ -219,12 +236,16 @@ export class WaterMaterial extends THREE.NodeMaterial {
     // detail slopes perturb the (possibly curled) base surface
     const nUp = normalize(base.add(vec3(slope.x.negate(), 0, slope.y.negate()).mul(base.y.abs().max(0.35)))).toVar('waterN');
     const above = select(aboveBool, float(1), float(0)).toVar('waterAbove');
-    const nWorld = select(aboveBool, nUp, nUp.negate()).toVar('waterNWorld');
+    const vWorld = normalize(cameraPosition.sub(positionWorld)).toVar('waterV');
+    // a visible surface faces the eye, but detail normals can tilt away at
+    // silhouettes (crests seen from behind, the lip): bend them back, or the
+    // pixel reflects the sea below the horizon and draws a black seam
+    const nRaw = select(aboveBool, nUp, nUp.negate());
+    const nWorld = normalize(nRaw.add(vWorld.mul(max(float(0.04).sub(dot(nRaw, vWorld)), 0)))).toVar('waterNWorld');
     s.above = above;
     s.nWorld = nWorld;
     s.nView = transformNormalToView(nWorld).toVar('waterNView');
     s.vView = positionViewDirection;
-    const vWorld = normalize(cameraPosition.sub(positionWorld)).toVar('waterV');
     s.vWorld = vWorld;
     s.lightWorld = (Lview) => normalize(cameraViewMatrix.transpose().mul(vec4(Lview, 0)).xyz);
 
@@ -244,21 +265,29 @@ export class WaterMaterial extends THREE.NodeMaterial {
     // never tiles; coverage retreats from the texture's low "fill order"
     // values first, so decaying foam thins into lace and filaments
     const drift = env.windDir.mul(env.time.mul(0.12));
-    const fA = texture(this.foamTexture, xz.add(drift).div(3.1));
-    const rot = vec2(xz.x.mul(0.8).sub(xz.y.mul(0.6)), xz.x.mul(0.6).add(xz.y.mul(0.8)));
+    // a slow warp of the lookups so the lace never reads as a lattice
+    const wq = xz.mul(0.07);
+    const fx = xz.add(vec2(vnoise2(wq), vnoise2(wq.add(vec2(5.3, -2.1)))).sub(0.5).mul(1.8));
+    const fA = texture(this.foamTexture, fx.add(drift).div(3.1));
+    const rot = vec2(fx.x.mul(0.8).sub(fx.y.mul(0.6)), fx.x.mul(0.6).add(fx.y.mul(0.8)));
     const fB = texture(this.foamTexture, rot.sub(drift.mul(0.6)).div(4.7).add(0.37));
     const order = max(fA.x, fB.x.mul(0.92));
-    const amount = clamp(foam.mul(this.foamScale), 0, 1.6);
-    const edge = float(0.18);
+    const amount = clamp(foam.mul(this.foamScale), 0, 1.6).toVar('waterFoamAmount');
+    // thin, old lace has soft edges; dense foam is crisp
+    const edge = mix(float(0.3), float(0.16), smoothstep(0.2, 1.0, amount));
     // even dense foam keeps bubble holes and lace (threshold only reaches 0 at 1.2)
     const thr = float(1).sub(amount.mul(0.82));
     const coverage = smoothstep(thr, thr.add(edge), order);
-    const foamC = clamp(coverage.mul(smoothstep(0.03, 0.25, amount)), 0, 1).mul(above).toVar('waterFoam');
+    // lace is a film of bubbles the water shows through
+    const opacity = mix(float(0.6), float(1), smoothstep(0.25, 0.9, amount));
+    const foamC = clamp(coverage.mul(smoothstep(0.03, 0.25, amount)).mul(opacity), 0, 1).mul(above).toVar('waterFoam');
     s.foam = foamC;
     // dense foam is bright; thin lace and bubble rims pick up a little water tint
     const fine = mix(fA.y, fB.y, 0.5);
-    s.foamAlbedo = mix(vec3(0.62, 0.74, 0.76), vec3(0.93, 0.95, 0.96), clamp(order.mul(0.7).add(fine.mul(0.3)).add(amount.mul(0.2)), 0, 1));
     s.foamHeight = mix(fA.z, fB.z, 0.5);
+    // bubbly relief: clumps catch the light, the gaps between them are shaded
+    const cavity = mix(float(0.7), float(1.04), s.foamHeight);
+    s.foamAlbedo = mix(vec3(0.62, 0.74, 0.76), vec3(0.93, 0.95, 0.96), clamp(order.mul(0.7).add(fine.mul(0.3)).add(amount.mul(0.2)), 0, 1)).mul(cavity);
 
     // ---- view fresnel
     const NdotV = dot(nWorld, vWorld).max(1e-4);
@@ -270,10 +299,15 @@ export class WaterMaterial extends THREE.NodeMaterial {
     // beam attenuation c = a + b governs what we see *through* the water;
     // the colour of the water body itself comes from backscatter b_b
     // (Gordon et al.: R_rs ~ 0.095 b_b / (a + b_b)).
+    // bubbles mixed down under foam: the water loses clarity and the bubble
+    // cloud scatters light back out, a pale aqua halo round whitecaps and bores
+    const aer = smoothstep(0.05, 1.0, amount).mul(above);
     const a = env.waterAbsorption;
-    const c = a.add(env.waterScattering);
-    const bb = env.waterBackscatter.add(env.particleBackscatter);
+    const c = a.add(env.waterScattering).add(aer.mul(0.9));
+    const bb = env.waterBackscatter.add(env.particleBackscatter).add(aer.mul(0.01));
     s.c = c;
+    s.aer = aer;
+    s.bubbleColor = vec3(0.5, 0.82, 0.8).mul(0.3 / Math.PI);
     const tDir = refract(vWorld.negate(), nUp, 1 / IOR);
     const muView = abs(tDir.y).max(0.05);
     const sunW = env.sunDir;
@@ -301,7 +335,10 @@ export class WaterMaterial extends THREE.NodeMaterial {
     if (builder.context.prepass === true) return vec3(0);
     const s = this._setupShared(builder);
     const lit = super.setupLighting(builder);
-    if (this.debugShore && this.v.debug) return this.v.debug.mul(3);
+    // debug views: 1 breaker state (beta, shore foam, thin sheet),
+    // 2 facing (above, front face, break zone)
+    if (this.debugShore === 1 && this.v.debug) return this.v.debug.mul(3);
+    if (this.debugShore === 2) return vec3(s.above, select(frontFacing, float(1), float(0)), this.v.breakZone ?? float(0));
     return lit.add(this._indirect(builder, s));
   }
 
@@ -310,13 +347,17 @@ export class WaterMaterial extends THREE.NodeMaterial {
     const sky = this.sky;
     // ------------------------------------------------ reflection
     const R = reflect(s.vWorld.negate(), s.nWorld).toVar('waterR');
-    const Rup = normalize(vec3(R.x, max(R.y, 0.004), R.z));
+    // rays that dip below the horizon land on other waves, which at that
+    // grazing angle mirror the sky themselves: weight the water body by
+    // their Fresnel (grazing -> sky, steep -> body) instead of going dark,
+    // which would draw black seams along silhouetted crests
+    const Rm = normalize(vec3(R.x, max(abs(R.y), 0.004), R.z));
     const lod = clamp(log2(s.alpha.mul(1400)), 0, 7);
-    const skyRefl = sky.sample(Rup, lod).rgb;
-    // rays that dip below the horizon mostly see other waves: darken
-    const horizonOcc = smoothstep(-0.06, 0.03, R.y);
-    const deepCol = s.ambientScatter.mul(1.2);
-    let refl = mix(deepCol, skyRefl, horizonOcc).toVar('waterRefl');
+    const skyRefl = sky.sample(Rm, lod).rgb;
+    const Fsec = select(R.y.lessThan(0), fresnelExact(clamp(R.y.negate(), 1e-3, 1), IOR), float(1));
+    // what those rays find: the sun- and sky-lit body of another wave
+    const deepCol = s.ambientScatter.mul(1.2).add(env.sunColor.mul(s.scatterResponse).mul(0.6));
+    let refl = mix(deepCol, skyRefl, Fsec).toVar('waterRefl');
     // screen-space reflections of local geometry (boat, pier, rocks)
     const ssr = this._ssr(R);
     refl.assign(mix(refl, ssr.rgb, ssr.a));
@@ -372,7 +413,7 @@ export class WaterMaterial extends THREE.NodeMaterial {
     const Tpath = exp(s.c.negate().mul(pathLen)).toVar('waterTpath');
     s.bodyOpacity = Tpath.oneMinus();
     // sky-lit part of the body colour here; the sun part is a direct light
-    s.refracted = scene2.mul(Tpath).add(s.ambientScatter.mul(s.bodyOpacity)).toVar('waterRefr');
+    s.refracted = scene2.mul(Tpath).add(s.ambientScatter.mul(s.bodyOpacity)).add(env.skyIrradiance.mul(s.bubbleColor).mul(s.aer)).toVar('waterRefr');
   }
 
   // looking up from below: objects above the water through the window
@@ -407,9 +448,17 @@ export class WaterMaterial extends THREE.NodeMaterial {
         const rayZ = p.z.negate();
         const diff = rayZ.sub(sceneZ);
         If(diff.greaterThan(0).and(diff.lessThan(stepLen.mul(1.5).add(0.3))), () => {
-          hit.assign(1);
-          hitUV.assign(uv);
-          Break();
+          // the opaque depth also holds whatever is under the water (the
+          // submerged part of a pile seen through the surface): the
+          // reflected ray can't see that, keep marching past it
+          const seen = this.preDepth
+            ? perspectiveDepthToViewZ(this.preDepth.sample(uv).r, cameraNear, cameraFar).negate().greaterThan(sceneZ.sub(0.15))
+            : null;
+          If(seen ?? float(1).greaterThan(0), () => {
+            hit.assign(1);
+            hitUV.assign(uv);
+            Break();
+          });
         });
       });
       If(hit.greaterThan(0.5), () => {

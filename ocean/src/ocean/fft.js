@@ -10,6 +10,7 @@
 // Output per cascade (rgba16f, mipmapped, repeat-wrapped):
 //    displacement  (Dx, Dy, Dz, foam)
 //    derivatives   (dDy/dx, dDy/dz, dDx/dx, dDz/dz)
+//    previous      last frame's displacement (motion vectors for TAA)
 
 import * as THREE from 'three/webgpu';
 import {
@@ -48,12 +49,17 @@ export class OceanFFT {
     this.data = storage(this.dataAttr, 'vec4', count * 2);
     this.foamAttr = new THREE.StorageBufferAttribute(new Float32Array(count), 1);
     this.foam = storage(this.foamAttr, 'float', count);
+    // the displacement written last frame, handed on as the "previous" texture
+    this.lastAttr = new THREE.StorageBufferAttribute(new Float32Array(count * 4), 4);
+    this.last = storage(this.lastAttr, 'vec4', count);
 
     this.displacement = [];
     this.derivatives = [];
+    this.previous = [];
     for (let c = 0; c < C; c++) {
       this.displacement.push(makeTarget(N, `ocean.disp${c}`));
       this.derivatives.push(makeTarget(N, `ocean.deriv${c}`));
+      this.previous.push(makeTarget(N, `ocean.dispPrev${c}`));
     }
 
     this._buildKernels();
@@ -158,6 +164,7 @@ export class OceanFFT {
     for (let c = 0; c < C; c++) {
       const dispTex = this.displacement[c];
       const derivTex = this.derivatives[c];
+      const prevTex = this.previous[c];
       const kernel = Fn(() => {
         const i = instanceIndex;
         const x = i.mod(N), y = i.div(N);
@@ -176,7 +183,10 @@ export class OceanFFT {
         const f = max(decayed, fresh).toVar();
         this.foam.element(fi).assign(f);
         const coord = uvec2(x, y);
-        textureStore(dispTex, coord, vec4(s0.x.mul(lambda), s0.z, s0.y.mul(lambda), f));
+        const disp = vec4(s0.x.mul(lambda), s0.z, s0.y.mul(lambda), f).toVar();
+        textureStore(prevTex, coord, this.last.element(fi));
+        this.last.element(fi).assign(disp);
+        textureStore(dispTex, coord, disp);
         textureStore(derivTex, coord, vec4(s1.x, s1.y, dxx, dzz));
       })().compute(NN, [64]);
       this.assembleKernels.push(kernel);

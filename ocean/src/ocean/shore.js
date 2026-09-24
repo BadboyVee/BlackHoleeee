@@ -104,13 +104,14 @@ export class Shore {
     // extend onto land: each land texel inherits the arrival phase of the
     // nearest wet shoreline (processed in order of distance from the sea)
     const sdf = this.island.sdf;
-    const landIdx = [];
-    for (let k = 0; k < N * N; k++) if (!sea[k] || !isFinite(tau[k])) landIdx.push(k);
-    landIdx.sort((a, b) => sdf[b] - sdf[a]);
+    const keys = [];
+    for (let k = 0; k < N * N; k++) if (!sea[k] || !isFinite(tau[k])) keys.push(Math.floor((2000 - Math.max(-2000, Math.min(2000, sdf[k]))) * 256) * 2097152 + k);
+    const landIdx = new Float64Array(keys).sort();   // nearest the sea first
     const known = new Uint8Array(N * N);
     for (let k = 0; k < N * N; k++) known[k] = sea[k] && isFinite(tau[k]) ? 1 : 0;
     for (let pass = 0; pass < 2; pass++) {
-      for (const k of landIdx) {
+      for (const key of landIdx) {
+        const k = key % 2097152;
         if (known[k]) continue;
         const i = k % N, j = (k / N) | 0;
         let acc = 0, n = 0;
@@ -149,10 +150,12 @@ export class Shore {
   // Breaking progress along each wave ray. A wave that starts breaking goes
   // on through curl -> plunge -> bore over a few wave heights of travel even
   // if the water deepens a little (bar -> trough), and only reforms after a
-  // longer stretch of deeper water. For every surf-zone texel we march the
-  // ray upstream through the refraction field, then replay the wave toward
-  // the texel accumulating distance-since-onset in wave heights. Done for
-  // four deep-water heights (RGBA); state() interpolates by the crest's.
+  // longer stretch of deeper water. Rays run down the travel-time gradient,
+  // so visiting texels in order of arrival time means the point one texel
+  // upstream is always done already: each texel takes the progress found
+  // there (bilinear, over finished texels only) and advances it by its own
+  // step - one pass instead of marching every ray back to deep water. Done
+  // for four deep-water heights (RGBA); state() interpolates by the crest's.
   _buildBreakField() {
     const N = WORLD.res, TEX = WORLD.size / N;
     const { height, sdf } = this.island;
@@ -161,50 +164,59 @@ export class Shore {
     const out = new Uint16Array(N * N * 4);
     const toH = THREE.DataUtils.toHalfFloat;
     const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
-    const pathD = new Float32Array(256), pathS = new Float32Array(256);
-    const at = (x, z) => {
-      const i = Math.min(N - 2, Math.max(1, Math.round((x - WORLD.originX) / TEX - 0.5)));
-      const j = Math.min(N - 2, Math.max(1, Math.round((z - WORLD.originZ) / TEX - 0.5)));
-      return j * N + i;
-    };
-    for (let j = 1; j < N - 1; j++) {
-      for (let i = 1; i < N - 1; i++) {
-        const k = j * N + i;
-        if (sdf[k] < -8 || sdf[k] > 260) continue;
-        // march upstream (against the travel direction = -grad tau)
-        let x = WORLD.originX + (i + 0.5) * TEX, z = WORLD.originZ + (j + 0.5) * TEX;
-        let n = 0;
-        for (; n < 200; n++) {
-          const q = at(x, z);
-          const D = -height[q];
-          pathD[n] = Math.max(D, 0.04); pathS[n] = sdf[q];
-          if (D > 7 || sdf[q] > 280) { n++; break; }
-          const gx = tau[q + 1] - tau[q - 1], gz = tau[q + N] - tau[q - N];
-          const gl = Math.hypot(gx, gz);
-          if (gl < 1e-9) { n++; break; }
-          x -= gx / gl * TEX; z -= gz / gl * TEX;
+    // every texel a surf-zone ray can pass through, sorted by arrival time
+    const keys = [];
+    for (let j = 1; j < N - 1; j++) for (let i = 1; i < N - 1; i++) {
+      const k = j * N + i;
+      if (sdf[k] >= -8 && sdf[k] <= 285) keys.push(Math.floor(tau[k] * 4096) * 2097152 + k);
+    }
+    const order = new Float64Array(keys).sort();
+    const P = new Float32Array(N * N * 4);
+    const done = new Uint8Array(N * N);
+    const up = new Float32Array(4);
+    for (let n = 0; n < order.length; n++) {
+      const k = order[n] % 2097152;
+      const i = k % N, j = (k / N) | 0;
+      const depth = -height[k], S = sdf[k];
+      up.fill(0);
+      const gx = tau[k + 1] - tau[k - 1], gz = tau[k + N] - tau[k - N];
+      const gl = Math.hypot(gx, gz);
+      // rays start in deep water (> 7 m) or far offshore
+      if (depth <= 7 && S <= 280 && gl > 1e-9) {
+        const x = i - gx / gl, z = j - gz / gl;
+        const i0 = Math.floor(x), j0 = Math.floor(z), fx = x - i0, fz = z - j0;
+        let wsum = 0;
+        for (let b = 0; b < 4; b++) {
+          const ii = i0 + (b & 1), jj = j0 + (b >> 1);
+          if (ii < 0 || jj < 0 || ii >= N || jj >= N) continue;
+          const q = jj * N + ii;
+          if (!done[q]) continue;
+          const w = ((b & 1) ? fx : 1 - fx) * ((b >> 1) ? fz : 1 - fz);
+          wsum += w;
+          for (let c = 0; c < 4; c++) up[c] += P[q * 4 + c] * w;
         }
-        for (let c = 0; c < 4; c++) {
-          const Hd = CLASSES[c];
-          let P = 0, r = 0;
-          for (let m = n - 1; m >= 0; m--) {
-            const D = pathD[m];
-            const shoal = Math.min(Math.max(Math.pow(9 / Math.max(D, 0.3), 0.25), 1), 1.75);
-            const fade = smooth(240, 120, pathS[m]) * smooth(-1, 1.5, pathS[m]);
-            const H0 = Hd * shoal * fade;
-            r = H0 / D;
-            const step = TEX / Math.max(H0, 0.12);           // metres of travel in wave heights
-            if (r > 0.72) P += step;
-            else if (r < 0.5 && P < 5.5) P = Math.max(P - step * 0.35, 0);   // reforms in deeper water (bores keep going)
-          }
-          // beta: steepening before onset, then curl (to impact at ~3 H), then bore
-          let beta;
-          if (P <= 0) beta = 0.9 * Math.min(1, Math.pow(r / 0.72, 3));
-          else if (P < 3) beta = 0.9 + (P / 3) * 1.35;
-          else beta = Math.min(3.2, 2.25 + (P - 3) / 4 * 0.95);
-          out[k * 4 + c] = toH(beta);
-        }
+        if (wsum > 1e-6) for (let c = 0; c < 4; c++) up[c] /= wsum;
       }
+      const D = Math.max(depth, 0.04);
+      const shoal = Math.min(Math.max(Math.pow(9 / Math.max(D, 0.3), 0.25), 1), 1.75);
+      const fade = smooth(240, 120, S) * smooth(-1, 1.5, S);
+      for (let c = 0; c < 4; c++) {
+        const H0 = CLASSES[c] * shoal * fade;
+        const r = H0 / D;
+        const step = TEX / Math.max(H0, 0.12);           // metres of travel in wave heights
+        let p = up[c];
+        if (r > 0.72) p += step;
+        else if (r < 0.5 && p < 5.5) p = Math.max(p - step * 0.35, 0);   // reforms in deeper water (bores keep going)
+        P[k * 4 + c] = p;
+        if (S < -8 || S > 260) continue;
+        // beta: steepening before onset, then curl (to impact at ~3 H), then bore
+        let beta;
+        if (p <= 0) beta = 0.9 * Math.min(1, Math.pow(r / 0.72, 3));
+        else if (p < 3) beta = 0.9 + (p / 3) * 1.35;
+        else beta = Math.min(3.2, 2.25 + (p - 3) / 4 * 0.95);
+        out[k * 4 + c] = toH(beta);
+      }
+      done[k] = 1;
     }
     const t = new THREE.DataTexture(out, N, N, THREE.RGBAFormat, THREE.HalfFloatType);
     t.magFilter = THREE.LinearFilter;
@@ -322,6 +334,16 @@ export class Shore {
     const foam = p.z.mul(w);
     const thin = p.w.mul(w);
     return { disp, slope, foam, thin, normalFwd: nf, normalUp: nu, flipped };
+  }
+
+  /**
+   * Relief of a broken wave's roller (per metre of wave height): a churning,
+   * lumpy mass rather than a smooth sheet. World-anchored so it boils in
+   * place as the bore runs through; shared by the mesh and the pixel normal.
+   */
+  turbulence(xz, time) {
+    const q = xz.mul(0.85).add(vec2(time.mul(0.35), time.mul(-0.22)));
+    return gnoise2(q).mul(0.62).add(gnoise2(q.mul(2.3).add(vec2(time.mul(-0.6), 4.1))).mul(0.3));
   }
 
   /**

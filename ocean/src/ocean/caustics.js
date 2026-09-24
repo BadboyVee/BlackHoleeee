@@ -11,6 +11,7 @@ import * as THREE from 'three/webgpu';
 import {
   Fn, attribute, uniform, vec2, vec3, vec4, float, texture, normalize, refract, varying, dFdx, dFdy,
   length, cross, clamp, instanceIndex, positionGeometry, exp, mix, max, smoothstep, log2, fract, min,
+  cameraPosition,
 } from 'three/tsl';
 import { env } from '../env.js';
 
@@ -31,6 +32,8 @@ export class Caustics {
     });
     this.target.texture.name = 'caustics';
     this.intensity = uniform(1);
+    this.pixelAngle = uniform(0.0015);   // metres per pixel per metre of distance
+    this._size = new THREE.Vector2();
     this._build();
   }
 
@@ -88,8 +91,9 @@ export class Caustics {
     this.cam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
   }
 
-  update() {
+  update(camera = null) {
     const r = this.renderer;
+    if (camera) this.pixelAngle.value = 2 * Math.tan(THREE.MathUtils.degToRad(camera.fov) / 2) / Math.max(r.getDrawingBufferSize(this._size).y, 1);
     const prev = r.getRenderTarget();
     const prevClear = r.getClearColor(new THREE.Color());
     const prevAlpha = r.getClearAlpha();
@@ -110,7 +114,11 @@ export class Caustics {
     const t0 = refract(sunDown, vec3(0, 1, 0), 1 / 1.333);
     const shift = t0.xz.mul(depth.sub(FOCUS)).div(t0.y.negate().max(0.2));
     const p = pWorld.xz.sub(shift);
-    const blur = log2(float(1).add(max(depth.sub(FOCUS), 0).mul(0.9)).add(max(float(FOCUS).sub(depth), 0).mul(1.8))).add(0.4);
+    const defocus = log2(float(1).add(max(depth.sub(FOCUS), 0).mul(0.9)).add(max(float(FOCUS).sub(depth), 0).mul(1.8))).add(0.4);
+    // never finer than a screen pixel (derivative-free, so it is safe in any
+    // lighting branch): distant seabed averages out instead of aliasing
+    const footprint = length(cameraPosition.sub(pWorld)).mul(this.pixelAngle).mul(1.6);
+    const blur = max(defocus, log2(footprint.div(this.L / SIZE)));
     const c1 = texture(this.target.texture, p.div(this.L)).level(blur).r;
     const q = vec2(p.x.mul(0.8).sub(p.y.mul(0.6)), p.x.mul(0.6).add(p.y.mul(0.8)));
     const c2 = texture(this.target.texture, q.div(this.L * 1.37).add(0.31)).level(blur).r;

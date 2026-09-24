@@ -10,12 +10,12 @@
 
 import * as THREE from 'three/webgpu';
 import {
-  Fn, attribute, positionLocal, positionWorld, vec2, vec3, vec4, float, sin, cos, mix, smoothstep, clamp, max,
+  Fn, attribute, positionLocal, positionGeometry, positionWorld, vec2, vec3, vec4, float, sin, cos, mix, smoothstep, clamp, max,
   dot, normalize, screenCoordinate, floor, fract, uniform, Discard, If, texture, uv, cameraPosition, pow, instanceIndex,
-  instancedArray, uint, int, select, length, abs, mod,
+  instancedArray, uint, int, select, length, abs, mod, log2, dFdx, dFdy,
 } from 'three/tsl';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
-import { standard } from '../render/materials.js';
+import { standard, staticVelocity } from '../render/materials.js';
 import { fbm2, vnoise2, hash21 } from '../render/tslnoise.js';
 import { env } from '../env.js';
 import { VILLAGE } from './island.js';
@@ -72,7 +72,7 @@ function frondTexture() {
       for (const s of [-1, 1]) {
         const shade = 0.75 + rnd() * 0.35;
         g.strokeStyle = `rgb(${(58 + rnd() * 20) * shade | 0},${(92 + rnd() * 30) * shade | 0},${(34 + rnd() * 14) * shade | 0})`;
-        g.lineWidth = 4 + rnd() * 2;
+        g.lineWidth = 6 + rnd() * 3;
         g.beginPath(); g.moveTo(x, H / 2);
         const ex = x + len * 0.55, ey = H / 2 + s * len;
         g.quadraticCurveTo(x + len * 0.15, H / 2 + s * len * 0.6, ex + (rnd() - 0.5) * 10, ey);
@@ -88,15 +88,24 @@ function needleTexture() {
   return canvasTex(256, 256, (g, W, H) => {
     g.clearRect(0, 0, W, H);
     const rnd = rndGen(5);
+    // a dense, dark core of needles along the twig (it is what a branch
+    // reads as from a distance), then loose needles fanning out of it
+    g.fillStyle = 'rgb(24,48,28)';
+    g.beginPath();
+    g.moveTo(W * 0.1, H / 2);
+    g.quadraticCurveTo(W * 0.45, H * 0.26, W * 0.95, H * 0.47);
+    g.lineTo(W * 0.95, H * 0.53);
+    g.quadraticCurveTo(W * 0.45, H * 0.74, W * 0.1, H / 2);
+    g.fill();
     g.strokeStyle = 'rgb(70,55,40)'; g.lineWidth = 4;
     g.beginPath(); g.moveTo(W * 0.1, H / 2); g.lineTo(W * 0.95, H / 2); g.stroke();
-    for (let i = 0; i < 260; i++) {
+    for (let i = 0; i < 420; i++) {
       const t = rnd();
       const x = W * (0.1 + t * 0.85), y = H / 2;
       const a = (rnd() - 0.5) * 2.4 + (rnd() < 0.5 ? Math.PI * 0.35 : -Math.PI * 0.35);
       const len = 30 + rnd() * 40 * (1 - t * 0.5);
       const sh = 0.7 + rnd() * 0.4;
-      g.strokeStyle = `rgb(${34 * sh | 0},${70 * sh | 0},${40 * sh | 0})`; g.lineWidth = 1.6;
+      g.strokeStyle = `rgb(${34 * sh | 0},${70 * sh | 0},${40 * sh | 0})`; g.lineWidth = 2.2;
       g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.cos(a) * len, y + Math.sin(a) * len); g.stroke();
     }
   });
@@ -306,6 +315,11 @@ function shrubVariant(seed) {
 }
 
 // ------------------------------------------------------------------ materials
+// the cross-fade dither pattern shifts every frame so TAA averages it into a
+// smooth blend instead of holding a fixed checkerboard
+const ditherShift = uniform(new THREE.Vector2());
+let ditherFrame = 0;
+
 const bayer4 = (p) => {
   // 4x4 ordered-dither threshold in [0, 1)
   const x = mod(floor(p.x), 4), y = mod(floor(p.y), 4);
@@ -333,14 +347,17 @@ function makeMaterials(kind, leafTex) {
   // per-instance: data = (phase, height, fade, lodSign); wind works in local space
   const data = attribute('vegData', 'vec4');
   const phase = data.x, H = data.y, fade = data.z;
-  const hf = clamp(positionLocal.y.div(H.max(0.5)), 0, 1.2);
+  // height fraction up the tree, from the tree's own geometry (positionLocal
+  // is already instance-transformed, i.e. includes the ground height)
+  const hf = clamp(positionGeometry.y.div(H.max(0.5)), 0, 1.2);
   const dither = (m) => {
     m.maskNode = Fn(() => {
-      const keep = fade.greaterThan(bayer4(screenCoordinate.xy));
+      const keep = fade.greaterThan(bayer4(screenCoordinate.xy.add(ditherShift)));
       return keep;
     })();
   };
-  const bark = standard({ roughness: 0.92, metalness: 0 });
+  // (wind sway is slow: report the trees as static to the velocity buffer)
+  const bark = staticVelocity(standard({ roughness: 0.92, metalness: 0 }));
   const p = positionLocal;
   const ridges = fbm2(vec2(p.x.add(p.z).mul(kind === 'palm' ? 1.5 : 3.0), p.y.mul(kind === 'palm' ? 7.5 : 1.2)), 4).mul(0.5).add(0.5);
   const barkCol = kind === 'palm' ? vec3(0.44, 0.39, 0.32) : kind === 'pine' ? vec3(0.36, 0.25, 0.18) : vec3(0.33, 0.29, 0.25);
@@ -350,14 +367,25 @@ function makeMaterials(kind, leafTex) {
   bark.alphaTest = 0.0;
   dither(bark);
 
-  const leaf = standard({ roughness: 0.78, metalness: 0, side: THREE.DoubleSide, map: leafTex, alphaTest: 0.45, transparent: false });
+  const leaf = staticVelocity(standard({ roughness: 0.78, metalness: 0, side: THREE.DoubleSide, map: leafTex, alphaTest: 0.45, transparent: false }));
   leaf.positionNode = positionLocal.add(windOffset(hf, H, phase, kind === 'palm' ? 0.05 : 0.035));
   // backlight through thin leaves (view toward the sun)
   const V = normalize(positionWorld.sub(cameraPosition));
   const back = pow(max(dot(V, env.sunDir), 0), 3);
   const tex = texture(leafTex);
-  leaf.emissiveNode = tex.rgb.mul(tex.rgb).mul(env.sunColor).mul(back.mul(0.09).add(0.004));
-  leaf.colorNode = tex.rgb.mul(mix(float(0.85), float(1.1), vnoise2(positionWorld.xz.mul(0.07)).mul(0.5).add(0.5)));
+  // canvas textures keep black under transparent texels, so mip levels are
+  // effectively premultiplied: divide it back out (no dark fringes)
+  const rgb = clamp(tex.rgb.div(max(tex.a, 0.05)), 0, 1);
+  leaf.emissiveNode = rgb.mul(rgb).mul(env.sunColor).mul(back.mul(0.09).add(0.004));
+  leaf.colorNode = rgb.mul(mix(float(0.85), float(1.1), vnoise2(positionWorld.xz.mul(0.07)).mul(0.5).add(0.5)));
+  // A colorNode replaces the map, alpha included: cut the cards out
+  // explicitly. Averaged mips lose coverage, so boost alpha with the mip
+  // level or distant crowns thin out to nothing.
+  const texel = uv().mul(vec2(leafTex.image.width, leafTex.image.height));
+  const mip = max(log2(max(length(dFdx(texel)), length(dFdy(texel)))), 0);
+  // (thin palm leaflets and pine needles lose coverage fastest)
+  const mipBoost = kind === 'palm' ? 0.55 : kind === 'pine' ? 0.45 : 0.3;
+  leaf.opacityNode = tex.a.mul(mip.mul(mipBoost).add(1));
   dither(leaf);
   leaf.userData.noContactShadow = true;
   return { bark, leaf };
@@ -479,6 +507,8 @@ export class Vegetation {
 
   /** assign instances to LODs with dithered cross-fades (every few frames) */
   update(camera) {
+    ditherFrame = (ditherFrame + 1) % 16;
+    ditherShift.value.set(BAYER_WALK[ditherFrame] % 4, Math.floor(BAYER_WALK[ditherFrame] / 4));
     if (this.primed) return;
     if (this.frame++ % 3 !== 0) return;
     const cx = camera.position.x, cz = camera.position.z;
@@ -509,5 +539,8 @@ export class Vegetation {
     }
   }
 }
+
+// visit the 16 pattern offsets in an order that spreads successive thresholds
+const BAYER_WALK = [0, 10, 2, 8, 5, 15, 7, 13, 1, 11, 3, 9, 4, 14, 6, 12];
 
 function smoothstepJS(a, b, x) { const t = Math.min(Math.max((x - a) / (b - a), 0), 1); return t * t * (3 - 2 * t); }

@@ -132,7 +132,7 @@ export class Sky {
   // Cumulus fields (Schneider's Nubis recipe, tuned for broad, low clouds):
   //  weather map (40 km tile)  -> coverage + local cloud-top height
   //  height gradient           -> flat condensation base, rounded tops
-  //  Perlin-Worley shape (~1 km cells, isotropic), eroded by Worley fBm
+  //  Perlin-Worley shape (~2 km cells, squashed vertically), eroded by Worley fBm
   //  Worley detail (~30-200 m) -> smooth wispy bases, cauliflower tops
   _cloudDensity(pWorld, h, detail) {
     // pWorld: km (x,z horizontal, y altitude above ground)
@@ -147,7 +147,9 @@ export class Sky {
     // flat condensation base; the threshold rises with height so only the
     // strongest cores reach the local top (domed, separate towers)
     const grad = smoothstep(0.0, 0.05, hf).mul(smoothstep(1.0, 0.12, ht));
-    const s = sampleAtlas(shape, this.noise.shapeInfo, pWorld.add(wind).mul(vec3(1, 1.25, 1)).div(7.0));
+    // ~2 km cells: broad cumulus (a squashed vertical period keeps domes
+    // inside the thin layer; much wider cells merge into stratocumulus slabs)
+    const s = sampleAtlas(shape, this.noise.shapeInfo, pWorld.add(wind).mul(vec3(1, 1.6, 1)).div(8.5));
     const lowFbm = s.g.mul(0.625).add(s.b.mul(0.25)).add(s.a.mul(0.125));
     // the eroded Perlin-Worley only spans ~0.72..0.92 (measured with
     // debugNoiseStats); stretch it to 0..1 so coverage has something to cut
@@ -161,7 +163,10 @@ export class Sky {
       const erosion = mix(0.14, 0.45, smoothstep(0.05, 0.7, ht));
       dens = clamp(remap(dens, dMod.mul(erosion), float(1), float(0), float(1)), 0, 1);
     }
-    return dens.mul(smoothstep(0.0, 0.5, cov).mul(0.6).add(0.4));
+    // real cumulus are optically thick right up to a crisp edge: compress the
+    // km-scale density ramp of the base shape (and the eroded detail with it)
+    // into a short transition instead of a soft, marshmallow falloff
+    return smoothstep(0.0, 0.3, dens).mul(smoothstep(0.0, 0.5, cov).mul(0.6).add(0.4));
   }
 
   // weather-map value -> local cloud coverage. Even in the cloudiest parts of
