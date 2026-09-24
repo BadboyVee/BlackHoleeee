@@ -39,8 +39,7 @@ python3 "$HERE/sanitize_charts.py" "$TMP/deck.pptx" "$TMP/deck_clean.pptx" \
 python3 "$HERE/embed_excel_table.py" "$TMP/deck_clean.pptx" "$TMP/embed.xlsx" \
   "$TMP/table_preview.png" "$TMP/table_size.json" "$TMP/deck_embedded.pptx"
 
-# 5. Fade transitions, PowerPoint's text shadow on the headline text, one paragraph-settings
-#    block per paragraph.
+# 5. One paragraph-settings block per paragraph, and a Fade transition on every slide.
 python3 "$HERE/finish_deck.py" "$TMP/deck_embedded.pptx" "$OUT/Marketing_Department_Budget.pptx"
 
 # 6. Strict schema check of both files (set SCHEMA_DIR to the ISO/IEC 29500 transitional

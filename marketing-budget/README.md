@@ -77,7 +77,7 @@ PowerPoint 2013 rejects some of the XML that pptxgenjs writes, so the build clea
 
 - `src/sanitize_charts.py` puts every chart into the order the chart schema requires.
 - `src/finish_deck.py` keeps one paragraph-settings block per paragraph and adds the Fade
-  transitions and text shadows.
+  transitions.
 
 Set `SCHEMA_DIR` to the ISO/IEC 29500 transitional schemas (`pml.xsd`, `sml.xsd`,
 `dml-chart.xsd`, ...) and `src/validate_strict.py` checks every part of both files. The build
