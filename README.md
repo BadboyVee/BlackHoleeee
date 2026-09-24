@@ -19,6 +19,16 @@ A procedural BMW M5 CS model rendered in a studio lighting setup.
 
 **▶ [View it](https://badboyvee.github.io/BlackHoleeee/bmw-m5-cs/)** · [source](bmw-m5-cs/)
 
+## Documents
+
+### 📊 [Marketing Department Budget](marketing-budget/)
+
+An Excel budget for the marketing department's four units (Advertising, Marketing, Public
+Relations and e-Business), with SUM totals and AVERAGE figures. It comes with a PowerPoint deck
+that presents each unit and has the budget table embedded from Excel.
+
+**[Excel workbook](marketing-budget/Marketing_Department_Budget.xlsx)** · **[PowerPoint deck](marketing-budget/Marketing_Department_Budget.pptx)** · [details](marketing-budget/)
+
 ## Hosting
 
 `netlify.toml` publishes `bmw-m5-cs/` as the Netlify site root. GitHub Pages serves the whole
