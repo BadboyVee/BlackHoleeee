@@ -56,16 +56,28 @@ export class WaterProbe {
   }
 
   /** Set up to MAX_QUERIES (x, z) points; results are available one or two frames later. */
-  setQueries(points) {
-    this.numQueries = Math.min(points.length, MAX_QUERIES);
-    for (let k = 0; k < this.numQueries; k++) {
-      this.queryData[k * 4] = points[k][0];
-      this.queryData[k * 4 + 1] = points[k][1];
-    }
-    this.queryAttr.needsUpdate = true;
+  setQueries(points, base = 0) {
+    for (let k = 0; k < points.length && base + k < MAX_QUERIES; k++) this.setQuery(base + k, points[k][0], points[k][1]);
+  }
+
+  /** query slot k samples the water at (x, z); read it with query(k) */
+  setQuery(k, x, z) {
+    this.queryData[k * 4] = x;
+    this.queryData[k * 4 + 1] = z;
+    this.numQueries = Math.max(this.numQueries, k + 1);
+    this.queryDirty = true;
+  }
+
+  /** reserve n consecutive query slots, returns the first index */
+  allocQueries(n) {
+    const base = this.nextQuery || 0;
+    if (base + n > MAX_QUERIES) throw new Error('WaterProbe: out of query slots');
+    this.nextQuery = base + n;
+    return base;
   }
 
   update(camera) {
+    if (this.queryDirty) { this.queryAttr.needsUpdate = true; this.queryDirty = false; }
     const S = PROBE_SPACING;
     const ox = Math.floor(camera.position.x / S) * S - S;
     const oz = Math.floor(camera.position.z / S) * S - S;

@@ -1,5 +1,5 @@
 import * as THREE from 'three/webgpu';
-import { positionWorld } from 'three/tsl';
+import { positionWorld, texture, float, exp, length, max, select } from 'three/tsl';
 import { CSMShadowNode } from 'three/addons/csm/CSMShadowNode.js';
 import { Sky } from './sky/sky.js';
 import { Ocean } from './ocean/ocean.js';
@@ -7,18 +7,25 @@ import { WaterMaterial } from './ocean/waterMaterial.js';
 import { Shore } from './ocean/shore.js';
 import { bakeFoamTexture } from './ocean/foamTexture.js';
 import { bakeTerrainTextures } from './world/terrainTextures.js';
-import { Island } from './world/island.js';
+import { Island, VILLAGE, REEF } from './world/island.js';
 import { Terrain } from './world/terrain.js';
+import { CollisionWorld } from './world/collision.js';
 import { Pipeline } from './render/pipeline.js';
 import { Composite } from './render/composite.js';
+import { LensDroplets } from './render/droplets.js';
 import { WaterProbe } from './ocean/probe.js';
 import { Caustics } from './ocean/caustics.js';
 import { underwaterSun, underwaterAmbient } from './ocean/underwaterLight.js';
+import { Input } from './player/input.js';
+import { Player } from './player/player.js';
+import { Flashlight } from './player/flashlight.js';
+import { buildSettings } from './ui/settings.js';
 import { env } from './env.js';
 
 const $ = (id) => document.getElementById(id);
 const status = (t, p) => { $('loader-status').textContent = t; if (p !== undefined) $('loader-fill').style.width = `${Math.round(p * 100)}%`; };
 const query = new URLSearchParams(location.search);
+const TEST = query.has('test');
 
 const debug = window.__ocean = { ready: false, frame: 0 };
 let frameWaiters = [];
@@ -42,11 +49,26 @@ if (typeof GPUTexture !== 'undefined') {
 if (query.has('trace')) THREE.Node.captureStackTrace = true;
 const nextFrame = () => new Promise((r) => requestAnimationFrame(() => r()));
 
+// time of day -> sun position (a simple arc: rises in the east, noon to the south)
+const MAX_SUN_EL = 62;
+function sunFromHour(h) {
+  const day = (h - 6) / 12;                     // 0 at sunrise, 1 at sunset
+  const el = MAX_SUN_EL * Math.sin(Math.PI * day);
+  const az = (90 + day * 180 + 360 * 4) % 360;
+  return { el: Math.max(-14, el), az };
+}
+function hourFromSun(el, az) {
+  const day = ((az - 90 + 360) % 360) / 180;
+  return 6 + Math.min(day, 1.15) * 12;
+}
+
 async function start() {
   if (!navigator.gpu) throw new Error('WebGPU is not available in this browser. Try a recent Chrome, Edge or Safari.');
   status('Initialising WebGPU…', 0.04);
   const renderer = new THREE.WebGPURenderer({ antialias: false, powerPreference: 'high-performance' });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, query.has('test') ? 1 : 1.5));
+  const app = { renderer, resolutionScale: 1, daySpeed: 0, exposureBias: 0.55 };
+  const pixelRatio = () => (TEST ? 1 : Math.min(window.devicePixelRatio || 1, 1.25) * app.resolutionScale);
+  renderer.setPixelRatio(pixelRatio());
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = 0.55;
@@ -55,7 +77,7 @@ async function start() {
   $('app').appendChild(renderer.domElement);
   await renderer.init();
   renderer.onDeviceLost = (info) => {
-    console.error(`WebGPU device lost at frame ${debug.frame} (${performance.now().toFixed(0)} ms): ${info.message || info.reason}`);
+    console.error(`WebGPU device lost at frame ${debug.frame}: ${info.message || info.reason}`);
     debug.deviceLost = info.message || String(info.reason);
   };
 
@@ -66,7 +88,7 @@ async function start() {
 
   // ---------------------------------------------------------------- sky
   status('Building sky…', 0.1);
-  const sky = new Sky(renderer, { test: query.has('test'), panoWidth: +(query.get('pano') || (query.has('test') ? 1024 : 4096)) });
+  const sky = new Sky(renderer, { test: TEST, panoWidth: +(query.get('pano') || (TEST ? 1024 : 4096)) });
   await sky.init();
   scene.backgroundNode = sky.backgroundNode();
   scene.environment = sky.envTarget.texture;
@@ -87,6 +109,7 @@ async function start() {
   scene.add(hemi);
 
   const setSun = (el, az) => {
+    app.sunEl = el; app.sunAz = az;
     sky.setSun(el, az);
     const d = sky.sunDirection.value;
     env.sunDir.value.copy(d);
@@ -106,7 +129,9 @@ async function start() {
     hemi.intensity = 1;
     sky.envAge = 1e9; // refresh the environment on the next frame
   };
+  app.setSun = setSun;
   setSun(+(query.get('sunEl') || 16), +(query.get('sunAz') || 205));
+  app.hour = hourFromSun(app.sunEl, app.sunAz);
 
   // ---------------------------------------------------------------- world
   status('Shaping the island…', 0.22);
@@ -114,6 +139,7 @@ async function start() {
   const island = new Island(7);
   const terrain = new Terrain(island);
   scene.add(terrain.mesh);
+  const collision = new CollisionWorld(island);
 
   status('Building wave spectrum…', 0.35);
   const oceanParams = {
@@ -129,8 +155,8 @@ async function start() {
   const shore = new Shore(island, terrain);
   status('Baking materials…', 0.48);
   await nextFrame();
-  const foamTexture = bakeFoamTexture(renderer, query.has('test') ? 512 : 1024);
-  const terrainTextures = bakeTerrainTextures(renderer, query.has('test') ? 512 : 1024);
+  const foamTexture = bakeFoamTexture(renderer, TEST ? 512 : 1024);
+  const terrainTextures = bakeTerrainTextures(renderer, TEST ? 512 : 1024);
   terrain.setupShading({ textures: terrainTextures, shore, foamTexture, time: env.time });
   const dbgLayer = query.get('layer');
   if (dbgLayer !== null) {
@@ -151,17 +177,85 @@ async function start() {
   probe.noReadback = query.has('noreadback');
   const caustics = new Caustics(renderer, ocean);
 
+  // ---------------------------------------------------------------- player
+  const input = new Input(renderer.domElement, { ignore: (e) => !!e.target.closest?.('#panel') });
+  const player = new Player({ camera, input, collision, probe, queryIndex: probe.allocQueries(1) });
+  const flashlight = new Flashlight(scene);
+  // the torch casts no shadow map; a constant shadow node makes three.js run
+  // the shadow hook so the pipeline can attenuate its light through water
+  flashlight.light.castShadow = true;
+  flashlight.light.shadow.shadowNode = float(1);
+  const droplets = new LensDroplets(renderer);
+
   // ---------------------------------------------------------------- pipeline
   const pipeline = new Pipeline({ renderer, scene, camera, sun });
   pipeline.sunShadowTerms.push(() => sky.cloudShadow(positionWorld));
   pipeline.sunShadowTerms.push((builder) => (builder.material.isWaterMaterial || builder.material.userData.noUnderwater ? null : underwaterSun(ocean, caustics)));
   pipeline.aoTerms.push((builder) => (builder.material.userData.noUnderwater ? null : underwaterAmbient(ocean)));
+  pipeline.lightShadowTerms.push({
+    light: flashlight.light,
+    fn: (builder) => {
+      if (builder.material.isWaterMaterial) return null;
+      // torch light travels through water: the whole way when the torch is
+      // under water, only the submerged part when it shines in from above
+      const c = env.waterAbsorption.add(env.waterScattering);
+      const d = length(positionWorld.sub(env.flashlightPos));
+      const submergedPath = select(env.cameraUnderwater.greaterThan(0.5), d, max(positionWorld.y.negate(), 0).mul(1.3));
+      return exp(c.negate().mul(submergedPath));
+    },
+  });
   const composite = new Composite({ camera, probe, sky, renderer });
   pipeline.composites.push(composite.node());
+  pipeline.ctxExtra = { dropletTexture: texture(droplets.target.texture) };
+  pipeline.post.push(droplets.node());
   pipeline.build();
+
+  Object.assign(app, { scene, camera, sky, ocean, water, shore, terrain, island, collision, probe, caustics, pipeline, composite, player, flashlight, droplets, input, sun, csm });
+
+  // ---------------------------------------------------------------- places
+  const places = {
+    beach: () => player.spawn(72, -3, 140, -4),
+    pier: () => player.spawn(VILLAGE.pierX, VILLAGE.pierZ1 - 6, 200, -2),
+    reef: () => { player.setView(REEF.x + 30, 0.3, REEF.z - 30, 225, -12); player.setMode('swim'); },
+    boat: () => (app.boat ? app.boat.boardFromMenu(player) : places.pier()),
+  };
+  app.teleport = (k) => { places[k]?.(); };
+  if (query.get('spawn') === 'fly') player.setView(40, 2.4, 20, 20, -2);
+  else places.beach();
+
+  // ---------------------------------------------------------------- ui
+  const panel = buildSettings(app);
+  panel.onToggle = (open) => { if (open) input.unlock(); };
+  const hint = $('hint'), badge = $('mode-badge'), crosshair = $('crosshair');
+  const setHint = (html) => { hint.innerHTML = html; hint.hidden = !html; };
+  const lockHint = 'Click to look around · <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move · <kbd>Tab</kbd> settings';
+  setHint(TEST ? '' : lockHint);
+  input.onLockChange = (locked) => {
+    crosshair.hidden = !locked;
+    setHint(locked ? '' : lockHint);
+    if (locked && panel.open) panel.toggle(false);
+  };
+  let badgeTimer = 0;
+  const showBadge = (text) => { badge.textContent = text; badge.hidden = false; badge.style.opacity = 1; badgeTimer = 2.2; };
+  const modeNames = { walk: 'On foot', swim: 'Swimming', fly: 'Free fly', boat: 'Boat' };
+  player.on('mode', (m) => { if (!TEST) showBadge(modeNames[m] || m); panel.get('mode')?.set(m === 'fly' ? 'fly' : 'walk'); });
+
+  const onResize = () => {
+    renderer.setPixelRatio(pixelRatio());
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    const s = renderer.getDrawingBufferSize(new THREE.Vector2());
+    droplets.resize(s.x, s.y);
+  };
+  app.onResize = onResize;
+  addEventListener('resize', onResize);
+  onResize();
 
   // ---------------------------------------------------------------- warm up
   status('Compiling shaders…', 0.6);
+  player.update(0);
+  camera.updateMatrixWorld();
   ocean.update(0.016, 0, camera);
   terrain.update(camera);
   sky.update(0.016, camera, 0);
@@ -176,15 +270,51 @@ async function start() {
   let frozen = query.has('freeze');
   debug.setTime = (t, freeze = true) => { time = t; frozen = freeze; };
   let fpsAcc = 0, fpsFrames = 0;
+  let wasUnder = false, underTime = 0;
+  let lastSunKey = '';
   renderer.setAnimationLoop(() => {
     timer.update();
-    const dt = frozen ? 0 : Math.min(timer.getDelta(), 0.1);
+    const realDt = Math.min(timer.getDelta(), 0.1);
+    const dt = frozen ? 0 : realDt;
     time += dt;
     env.time.value = time;
     env.dt.value = dt;
+
+    // --- time of day
+    if (app.daySpeed > 0) {
+      app.hour = (app.hour + realDt * app.daySpeed / 60) % 24;
+      const s = sunFromHour(app.hour);
+      const key = `${s.el.toFixed(2)}|${s.az.toFixed(2)}`;
+      if (key !== lastSunKey) {
+        lastSunKey = key;
+        setSun(s.el, s.az);
+        panel.get('sunEl')?.set(s.el); panel.get('sunAz')?.set(s.az);
+      }
+    }
+    // darker scenes get a little more exposure (eyes adapt at dusk and night)
+    const adapt = THREE.MathUtils.lerp(1, 2.6, env.nightFactor.value) * THREE.MathUtils.lerp(1, 1.35, THREE.MathUtils.smoothstep(12 - app.sunEl, 0, 12));
+    renderer.toneMappingExposure = app.exposureBias * adapt;
+
+    // --- player + interaction
+    if (input.pressed('Tab')) panel.toggle();
+    if (input.pressed('KeyF')) { flashlight.toggle(); panel.get('torch')?.set(flashlight.on); }
+    player.update(realDt);
+    app.boat?.update(dt, time);
+    flashlight.update(camera, realDt);
+
+    // --- water state at the eye
+    camera.updateMatrixWorld();
     const eyeWater = probe.eyeHeight(camera);
-    env.cameraUnderwater.value = camera.position.y < eyeWater ? 1 : 0;
+    const under = camera.position.y < eyeWater;
+    env.cameraUnderwater.value = under ? 1 : 0;
+    env.cameraDepth.value = eyeWater - camera.position.y;
     composite.eyeWaterHeight.value = eyeWater;
+    composite.flashIntensity.value = flashlight.light.intensity;
+    underTime = under ? underTime + realDt : underTime;
+    if (wasUnder && !under) { droplets.splash(THREE.MathUtils.clamp(underTime / 1.2, 0.25, 1)); underTime = 0; }
+    wasUnder = under;
+    droplets.update(realDt, under);
+
     ocean.update(dt, time, camera, eyeWater);
     terrain.update(camera);
     probe.update(camera);
@@ -192,27 +322,35 @@ async function start() {
     sky.update(dt, camera, time);
     sky.updateEnvironment();
     composite.update(renderer);
+    droplets.render();
     pipeline.render();
-    fpsAcc += dt; fpsFrames++;
+
+    // --- hud
+    if (badgeTimer > 0) {
+      badgeTimer -= realDt;
+      if (badgeTimer <= 0.6) badge.style.opacity = Math.max(0, badgeTimer / 0.6);
+      if (badgeTimer <= 0) badge.hidden = true;
+    }
+    fpsAcc += realDt; fpsFrames++;
     if (fpsAcc > 0.5) {
       $('fps-value').textContent = Math.round(fpsFrames / fpsAcc);
       $('fps-ms').textContent = `${(fpsAcc / fpsFrames * 1000).toFixed(1)} ms`;
       fpsAcc = 0; fpsFrames = 0;
     }
+    input.endFrame();
     debug.frame++;
     debug.ready = debug.frame > 2;
     frameWaiters = frameWaiters.filter((w) => (--w.left <= 0 ? (w.res(), false) : true));
   });
 
   // ---------------------------------------------------------------- debug hooks
-  Object.assign(debug, { renderer, scene, camera, sky, ocean, terrain, island, water, pipeline, sun, csm, env, shore, probe, composite, caustics });
-  debug.stats = () => ({ frame: debug.frame, oceanPatches: ocean.selector.count, terrainPatches: terrain.selector.count, hs: +ocean.fft.stats.hs.toFixed(2) });
+  Object.assign(debug, app, { app });
+  debug.stats = () => ({ frame: debug.frame, oceanPatches: ocean.selector.count, terrainPatches: terrain.selector.count, hs: +ocean.fft.stats.hs.toFixed(2), mode: player.mode });
   // yaw: 0 = north (-z), 90 = east (+x)
   debug.look = (yaw, pitch, x, y, z) => {
-    if (x !== undefined) camera.position.set(x, y, z);
-    const yr = THREE.MathUtils.degToRad(yaw), pr = THREE.MathUtils.degToRad(pitch);
-    const d = new THREE.Vector3(Math.sin(yr) * Math.cos(pr), Math.sin(pr), -Math.cos(yr) * Math.cos(pr));
-    camera.lookAt(camera.position.clone().add(d));
+    if (x === undefined) { x = player.eye.x; y = player.eye.y; z = player.eye.z; }
+    player.setView(x, y, z, yaw, pitch);
+    player.update(0);
   };
   debug.setSun = setSun;
 }

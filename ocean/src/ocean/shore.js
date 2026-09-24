@@ -145,6 +145,15 @@ export class Shore {
     return t;
   }
 
+  /** change the swell period: the refraction field depends on it (k(D, T)) */
+  setPeriod(T) {
+    this.period.value = T;
+    const t = this._buildPhaseField(T);
+    this.phaseTexture.image.data.set(t.image.data);
+    this.phaseTexture.needsUpdate = true;
+    t.dispose();
+  }
+
   /** CPU travel-time lookup (cycles from the open ocean) */
   tauAt(x, z) {
     const N = WORLD.res, TEX = WORLD.size / N;

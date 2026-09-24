@@ -26,6 +26,7 @@ export class Pipeline {
     this.camera = camera;
     this.sun = sun;
     this.sunShadowTerms = [];   // (builder) => float node, multiplied into the sun's shadow
+    this.lightShadowTerms = []; // { light, fn: (builder) => node } for any other light
     this.aoTerms = [];          // (builder) => float node, multiplied into indirect light
     this.composites = [];       // (color, ctx) => color, run in HDR before TAA
     this.post = [];             // (color, ctx) => color, after TAA before tonemapping
@@ -101,6 +102,11 @@ export class Pipeline {
           }
           for (const t of self.sunShadowTerms) { const n = t(builder); if (n) s = s.mul(n); }
         }
+        for (const t of self.lightShadowTerms) {
+          if (t.light !== lightNode.light) continue;
+          const n = t.fn(builder);
+          if (n) s = s ? s.mul(n) : n;
+        }
         return s;
       },
     });
@@ -118,6 +124,8 @@ export class Pipeline {
     const taaPass = this.taaPass = traa(color, preDepth, preVelocity, camera);
     taaPass.useSubpixelCorrection = false;
     color = taaPass;
+    ctx.postTexture = taaPass.getTextureNode();
+    Object.assign(ctx, this.ctxExtra || {});
 
     for (const p of this.post) color = p(color, ctx);
 
