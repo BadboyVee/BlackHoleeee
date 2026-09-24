@@ -33,8 +33,8 @@ export class Flashlight {
     const right = new THREE.Vector3().crossVectors(fwd, camera.up).normalize();
     const pos = this.light.position.copy(camera.position).addScaledVector(right, 0.16).add(new THREE.Vector3(0, -0.12, 0));
     this.light.target.position.copy(pos).addScaledVector(this.dir, 10);
+    // (always in the scene: toggling visibility would recompile every material)
     this.light.intensity = this.power * this.level;
-    this.light.visible = this.level > 0;
     env.flashlight.value = this.level > 0 ? 1 : 0;
     env.flashlightPos.value.copy(pos);
     env.flashlightDir.value.copy(this.dir);

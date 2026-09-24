@@ -5,6 +5,15 @@ any of them — every project is an `index.html` you can open directly.
 
 ## Projects
 
+### 🌊 [Saltwind Cove](ocean/)
+
+A WebGPU ocean you can walk, swim, sail and dive in. It has FFT waves, breakers that curl and
+plunge on a sandbar, a boat with a real Kelvin wake, a fishing village, a reef and a humpback
+whale, all built with three.js TSL, plus volumetric clouds, a physical sky and real recorded
+sound.
+
+**▶ [Open it](https://badboyvee.github.io/BlackHoleeee/ocean/)** · [source](ocean/)
+
 ### 🚋 [Skyline Tram](skyline-tram/)
 
 Drive a retro aerial tram along a rail loop between two islands floating above a sea of clouds.

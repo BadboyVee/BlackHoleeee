@@ -62,10 +62,10 @@ function buildKernel() {
 }
 
 export class Wake {
-  constructor(renderer, { terrain }) {
+  constructor(renderer, { terrain, size = WAKE_N }) {
     this.renderer = renderer;
     this.terrain = terrain;
-    const N = WAKE_N;
+    const N = this.N = size;
     this.stateA = instancedArray(N * N, 'vec4');   // h, h_prev, foam, -
     this.stateB = instancedArray(N * N, 'vec4');
     this.texture = new THREE.StorageTexture(N, N);
@@ -97,7 +97,7 @@ export class Wake {
   }
 
   _build() {
-    const N = WAKE_N;
+    const N = this.N;
     const K = buildKernel();
     const tilesPerRow = N / TILE;
     const make = (src, dst) => {
@@ -218,7 +218,7 @@ export class Wake {
   update(dt, focus) {
     if (!this.active) return;
     // keep the domain centred on the action, shifting in whole cells
-    const N = WAKE_N, C = WAKE_CELL;
+    const N = this.N, C = WAKE_CELL;
     const cx = Math.round(focus.x / C), cz = Math.round(focus.z / C);
     const ocx = Math.round((this.cpuOrigin.x + N * C / 2) / C), ocz = Math.round((this.cpuOrigin.y + N * C / 2) / C);
     let sx = 0, sz = 0;
@@ -239,7 +239,7 @@ export class Wake {
 
   /** TSL: (height, dh/dx, dh/dz, foam) at world xz; zero outside the domain */
   sample(xz) {
-    const uv = xz.sub(this.origin).div(WAKE_N * WAKE_CELL);
+    const uv = xz.sub(this.origin).div(this.N * WAKE_CELL);
     const inside = uv.x.greaterThan(0.002).and(uv.x.lessThan(0.998)).and(uv.y.greaterThan(0.002)).and(uv.y.lessThan(0.998));
     return select(inside, texture(this.texture, uv).level(0), vec4(0));
   }

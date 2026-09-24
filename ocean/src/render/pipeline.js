@@ -14,7 +14,7 @@ import {
 } from 'three/tsl';
 import { ao } from 'three/addons/tsl/display/GTAONode.js';
 import { sss } from 'three/addons/tsl/display/SSSNode.js';
-import { traa } from 'three/addons/tsl/display/TRAANode.js';
+import { reactiveTraa } from './taa.js';
 import { bloom } from 'three/addons/tsl/display/BloomNode.js';
 
 export const LAYER_NO_PREPASS = 3;
@@ -121,7 +121,8 @@ export class Pipeline {
     for (const c of this.composites) color = c(color, ctx);
 
     // ------------------------------------------------------------ TAA
-    const taaPass = this.taaPass = traa(color, preDepth, preVelocity, camera);
+    // the aux target's g channel carries per-material reactivity (water, spray)
+    const taaPass = this.taaPass = reactiveTraa(color, preDepth, preVelocity, camera, aux);
     taaPass.useSubpixelCorrection = false;
     color = taaPass;
     ctx.postTexture = taaPass.getTextureNode();

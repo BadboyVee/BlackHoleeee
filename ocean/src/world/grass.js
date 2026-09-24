@@ -16,13 +16,14 @@ import { standard } from '../render/materials.js';
 import { fbm2, vnoise2, hash22, hash21 } from '../render/tslnoise.js';
 import { env } from '../env.js';
 
-const GRID = 112;             // cells per side
+let GRID = 112;               // cells per side
 const CELL = 0.5;             // m
 const PER_CELL = 6;           // blade slots per cell
-const COUNT = GRID * GRID * PER_CELL;
+let COUNT = GRID * GRID * PER_CELL;
 
 export class Grass {
-  constructor(renderer, { terrain, island }) {
+  constructor(renderer, { terrain, island, grid = 112 }) {
+    GRID = grid; COUNT = GRID * GRID * PER_CELL;
     this.renderer = renderer;
     this.terrain = terrain;
     this.island = island;

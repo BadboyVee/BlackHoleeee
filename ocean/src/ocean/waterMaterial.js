@@ -82,7 +82,15 @@ class WaterLightingModel extends THREE.LightingModel {
     const spec = D_Beckmann(NdotH, alpha).mul(V_SmithBeckmann(NdotL, NdotV, alpha)).mul(F).mul(NdotL);
     const above = s.above;
     const noFoam = s.foam.oneMinus();
-    reflectedLight.directSpecular.addAssign(lightColor.mul(spec).mul(noFoam).mul(above));
+    // sun glitter: soft-clip the peak so the glitter path stays a path of
+    // sparkles instead of a blown-out, blooming slab (a camera's highlight
+    // roll-off; energy below the knee is untouched)
+    let specL = lightColor.mul(spec);
+    if (isSun) {
+      const knee = this.m.glareKnee;
+      specL = specL.mul(this.m.glare).div(specL.div(knee).add(1));
+    }
+    reflectedLight.directSpecular.addAssign(specL.mul(noFoam).mul(above));
 
     // light entering the water, scattered back towards the eye by the column
     const LdotN = NdotL.max(0.02);
@@ -131,6 +139,8 @@ export class WaterMaterial extends THREE.NodeMaterial {
     this.ssrEnabled = uniform(1);
     this.foamScale = uniform(1);
     this.sssStrength = uniform(1);
+    this.glare = uniform(0.8);        // sun glitter strength
+    this.glareKnee = uniform(24);     // soft-clip knee (scene radiance units)
     const v = ocean.buildVertex(shore, env.time);
     this.v = v;   // varyings appear on v once the vertex stage is built
     this.positionNode = v.position;
@@ -192,7 +202,7 @@ export class WaterMaterial extends THREE.NodeMaterial {
     let aboveBool = frontFacing;
     if (v.shoreNormal) {
       slope = slope.mul(v.fftAtten.mul(0.8).add(0.2));
-      foam = foam.add(v.shoreFoam.mul(1.6));
+      foam = foam.add(v.shoreFoam.mul(1.05));
       base = normalize(v.shoreNormal);
       // overturned lip: its triangles flip winding but it is still seen from air
       // inside a breaking crest winding flips where the lip overturns: from
@@ -240,7 +250,9 @@ export class WaterMaterial extends THREE.NodeMaterial {
     const order = max(fA.x, fB.x.mul(0.92));
     const amount = clamp(foam.mul(this.foamScale), 0, 1.6);
     const edge = float(0.18);
-    const coverage = smoothstep(float(1).sub(amount), float(1).sub(amount).add(edge), order);
+    // even dense foam keeps bubble holes and lace (threshold only reaches 0 at 1.2)
+    const thr = float(1).sub(amount.mul(0.82));
+    const coverage = smoothstep(thr, thr.add(edge), order);
     const foamC = clamp(coverage.mul(smoothstep(0.03, 0.25, amount)), 0, 1).mul(above).toVar('waterFoam');
     s.foam = foamC;
     // dense foam is bright; thin lace and bubble rims pick up a little water tint
@@ -273,7 +285,9 @@ export class WaterMaterial extends THREE.NodeMaterial {
     s.ambientScatter = rrs.mul(env.skyIrradiance).mul(angular);
     // crest thickness proxy for SSS (thin breaking lips glow strongly)
     let crest = clamp(this.vHeight.mul(0.45).add(0.25), 0, 1);
-    if (v.thin) crest = crest.add(v.thin.mul(1.0));
+    // the lip is only translucent where it's genuinely thin: vary it along
+    // the crest so a breaking line doesn't glow as one uniform band
+    if (v.thin) crest = crest.add(v.thin.mul(0.7).mul(vnoise2(xz.mul(0.06).add(env.time.mul(0.05))).mul(0.5).add(0.5).mul(0.8).add(0.2)));
     s.crest = crest.mul(this.sssStrength);
     s.sssColor = vec3(0.07, 0.5, 0.42).mul(0.12);
     s.transmitDir = refract(vWorld.negate(), nUp.negate(), IOR); // underwater looking up
@@ -287,6 +301,7 @@ export class WaterMaterial extends THREE.NodeMaterial {
     if (builder.context.prepass === true) return vec3(0);
     const s = this._setupShared(builder);
     const lit = super.setupLighting(builder);
+    if (this.debugShore && this.v.debug) return this.v.debug.mul(3);
     return lit.add(this._indirect(builder, s));
   }
 

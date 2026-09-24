@@ -42,6 +42,7 @@ export class Shore {
     this.setLength = uniform(7.3);        // waves per set
     this.intensity = uniform(1);
     this.phaseTexture = this._buildPhaseField(9.5);
+    this.breakTexture = this._buildBreakField();
     this.profileTexture = buildProfileTexture();
     this.origin = vec2(WORLD.originX, WORLD.originZ);
     this.invSize = float(1 / WORLD.size);
@@ -145,6 +146,77 @@ export class Shore {
     return t;
   }
 
+  // Breaking progress along each wave ray. A wave that starts breaking goes
+  // on through curl -> plunge -> bore over a few wave heights of travel even
+  // if the water deepens a little (bar -> trough), and only reforms after a
+  // longer stretch of deeper water. For every surf-zone texel we march the
+  // ray upstream through the refraction field, then replay the wave toward
+  // the texel accumulating distance-since-onset in wave heights. Done for
+  // four deep-water heights (RGBA); state() interpolates by the crest's.
+  _buildBreakField() {
+    const N = WORLD.res, TEX = WORLD.size / N;
+    const { height, sdf } = this.island;
+    const tau = this.tauCPU;
+    const CLASSES = [0.3, 0.6, 1.0, 1.6];
+    const out = new Uint16Array(N * N * 4);
+    const toH = THREE.DataUtils.toHalfFloat;
+    const smooth = (a, b, x) => { const t = Math.min(1, Math.max(0, (x - a) / (b - a))); return t * t * (3 - 2 * t); };
+    const pathD = new Float32Array(256), pathS = new Float32Array(256);
+    const at = (x, z) => {
+      const i = Math.min(N - 2, Math.max(1, Math.round((x - WORLD.originX) / TEX - 0.5)));
+      const j = Math.min(N - 2, Math.max(1, Math.round((z - WORLD.originZ) / TEX - 0.5)));
+      return j * N + i;
+    };
+    for (let j = 1; j < N - 1; j++) {
+      for (let i = 1; i < N - 1; i++) {
+        const k = j * N + i;
+        if (sdf[k] < -8 || sdf[k] > 260) continue;
+        // march upstream (against the travel direction = -grad tau)
+        let x = WORLD.originX + (i + 0.5) * TEX, z = WORLD.originZ + (j + 0.5) * TEX;
+        let n = 0;
+        for (; n < 200; n++) {
+          const q = at(x, z);
+          const D = -height[q];
+          pathD[n] = Math.max(D, 0.04); pathS[n] = sdf[q];
+          if (D > 7 || sdf[q] > 280) { n++; break; }
+          const gx = tau[q + 1] - tau[q - 1], gz = tau[q + N] - tau[q - N];
+          const gl = Math.hypot(gx, gz);
+          if (gl < 1e-9) { n++; break; }
+          x -= gx / gl * TEX; z -= gz / gl * TEX;
+        }
+        for (let c = 0; c < 4; c++) {
+          const Hd = CLASSES[c];
+          let P = 0, r = 0;
+          for (let m = n - 1; m >= 0; m--) {
+            const D = pathD[m];
+            const shoal = Math.min(Math.max(Math.pow(9 / Math.max(D, 0.3), 0.25), 1), 1.75);
+            const fade = smooth(240, 120, pathS[m]) * smooth(-1, 1.5, pathS[m]);
+            const H0 = Hd * shoal * fade;
+            r = H0 / D;
+            const step = TEX / Math.max(H0, 0.12);           // metres of travel in wave heights
+            if (r > 0.72) P += step;
+            else if (r < 0.5 && P < 5.5) P = Math.max(P - step * 0.35, 0);   // reforms in deeper water (bores keep going)
+          }
+          // beta: steepening before onset, then curl (to impact at ~3 H), then bore
+          let beta;
+          if (P <= 0) beta = 0.9 * Math.min(1, Math.pow(r / 0.72, 3));
+          else if (P < 3) beta = 0.9 + (P / 3) * 1.35;
+          else beta = Math.min(3.2, 2.25 + (P - 3) / 4 * 0.95);
+          out[k * 4 + c] = toH(beta);
+        }
+      }
+    }
+    const t = new THREE.DataTexture(out, N, N, THREE.RGBAFormat, THREE.HalfFloatType);
+    t.magFilter = THREE.LinearFilter;
+    t.minFilter = THREE.LinearFilter;
+    t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
+    t.generateMipmaps = false;
+    t.needsUpdate = true;
+    t.name = 'shore.breaking';
+    this.breakClasses = CLASSES;
+    return t;
+  }
+
   /** change the swell period: the refraction field depends on it (k(D, T)) */
   setPeriod(T) {
     this.period.value = T;
@@ -152,6 +224,10 @@ export class Shore {
     this.phaseTexture.image.data.set(t.image.data);
     this.phaseTexture.needsUpdate = true;
     t.dispose();
+    const b = this._buildBreakField();
+    this.breakTexture.image.data.set(b.image.data);
+    this.breakTexture.needsUpdate = true;
+    b.dispose();
   }
 
   /** CPU travel-time lookup (cycles from the open ocean) */
@@ -190,9 +266,15 @@ export class Shore {
     // shoaling (Green's law, referenced to 9 m) and offshore fade-in
     const shoal = clamp(pow(float(9).div(max(depth, 0.3)), 0.25), 1.0, 1.75);
     const fadeIn = smoothstep(240, 120, sdf).mul(smoothstep(-1.0, 1.5, sdf));
-    const H0 = this.swellHeight.mul(amp).mul(shoal).mul(fadeIn).mul(this.intensity);
-    const ratio = H0.div(depth.mul(0.78));
-    const beta = clamp(ratio.sub(0.82).mul(2.6), 0, PROFILE.betaMax);
+    const Hdeep = this.swellHeight.mul(amp).mul(this.intensity);
+    const H0 = Hdeep.mul(shoal).mul(fadeIn);
+    // breaking progress along the ray, interpolated between height classes
+    const bt = levelSample ? texture(this.breakTexture, uvw).level(0) : texture(this.breakTexture, uvw);
+    const [c0, c1, c2, c3] = [0.3, 0.6, 1.0, 1.6];
+    const hc = clamp(Hdeep, c0, c3);
+    const beta = clamp(select(hc.lessThan(c1), mix(bt.x, bt.y, hc.sub(c0).div(c1 - c0)),
+      select(hc.lessThan(c2), mix(bt.y, bt.z, hc.sub(c1).div(c2 - c1)), mix(bt.z, bt.w, hc.sub(c2).div(c3 - c2))))
+      .mul(smoothstep(0.08, 0.3, Hdeep)), 0, PROFILE.betaMax);
     // once broken, the bore height is limited by the depth
     const H = mix(H0, min(H0, depth.mul(0.55).add(0.06)), smoothstep(2.2, 3.1, beta));
     // local wavelength (m per cycle) from the dispersion relation

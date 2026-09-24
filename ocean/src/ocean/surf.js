@@ -24,7 +24,8 @@ import { hash21 } from '../render/tslnoise.js';
 const N = 2048;
 
 export class Surf {
-  constructor(renderer, { ocean, shore, terrain, island, spray, time }) {
+  constructor(renderer, { ocean, shore, terrain, island, spray, time, slices = 4 }) {
+    this.slices = slices;
     this.renderer = renderer;
     this.shore = shore;
     this.terrain = terrain;
@@ -41,37 +42,50 @@ export class Surf {
     this.texture.wrapS = this.texture.wrapT = THREE.ClampToEdgeWrapping;
     this.texture.name = 'surf.foam';
     this.origin = vec2(WORLD.originX, WORLD.originZ);
-    this._buildFoam();
+    this._buildFoam(island);
     if (spray) this._buildSpray(ocean, island, spray);
   }
 
-  _buildFoam() {
+  _buildFoam(island) {
     const shore = this.shore;
     const T = WORLD.size / N;
+    // only texels in the surf band are simulated: a precomputed index list,
+    // refreshed in SLICES interleaved slices (each slice sees SLICES x dt)
+    const idx = [];
+    const R = WORLD.res, TS = WORLD.size / R;
+    for (let y = 0; y < N; y++) {
+      const zz = WORLD.originZ + (y + 0.5) * T;
+      const jj = Math.min(R - 1, Math.max(0, Math.floor((zz - WORLD.originZ) / TS)));
+      for (let x = 0; x < N; x++) {
+        const xx = WORLD.originX + (x + 0.5) * T;
+        const ii = Math.min(R - 1, Math.max(0, Math.floor((xx - WORLD.originX) / TS)));
+        const sd = island.sdf[jj * R + ii];
+        if (sd > -6 && sd < 260) idx.push(y * N + x);
+      }
+    }
+    this.bandCount = idx.length;
+    const band = instancedArray(new Uint32Array(idx), 'uint');
+    this.slice = uniform(0, 'uint');
+    const SL = this.slices;
     this.foamKernel = Fn(() => {
-      const i = instanceIndex;
-      const x = i.mod(uint(N)), y = i.div(uint(N));
-      // half the texels per frame (checkerboard), each with twice the dt
-      If(x.add(y).mod(uint(2)).equal(uint(this.parity)), () => {
+      const k = instanceIndex.mul(uint(SL)).add(this.slice);
+      If(k.lessThan(uint(idx.length)), () => {
+        const i = band.element(k);
+        const x = i.mod(uint(N)), y = i.div(uint(N));
         const xz = this.origin.add(vec2(float(x), float(y)).add(0.5).mul(T));
         const old = this.state.element(i);
-        const d = this.terrain.sampleLevel(xz);
-        const sdf = d.y;
-        const out = float(0).toVar();
-        If(sdf.greaterThan(-6).and(sdf.lessThan(260)), () => {
-          const st = shore.state(xz, this.time, true);
-          const br = shore.breaker(st, true);
-          // churning water right now: the profile's whitewater, scaled by wave size
-          const src = br.foam.mul(smoothstep(0.08, 0.45, st.H)).mul(1.15);
-          // decay: slow in the inner surf zone (bores keep stirring it), faster outside
-          const tau = mix(float(7), float(16), smoothstep(2.5, 0.6, st.depth));
-          const kept = old.mul(exp(this.dt.mul(2).negate().div(tau)));
-          out.assign(clamp(max(kept, src), 0, 1.4));
-        });
+        const st = shore.state(xz, this.time, true);
+        const br = shore.breaker(st, true);
+        // churning water right now: the profile's whitewater, scaled by wave size
+        const src = br.foam.mul(smoothstep(0.08, 0.45, st.H)).mul(1.15);
+        // decay: slow in the inner surf zone (bores keep stirring it), faster outside
+        const tau = mix(float(7), float(16), smoothstep(2.5, 0.6, st.depth));
+        const kept = old.mul(exp(this.dt.mul(SL).negate().div(tau)));
+        const out = clamp(max(kept, src), 0, 1.4);
         this.state.element(i).assign(out);
         textureStore(this.texture, uvec2(x, y), vec4(out.div(1.5), 0, 0, 1));
       });
-    })().compute(N * N, [64]);
+    })().compute(Math.ceil(idx.length / SL), [64]);
   }
 
   _buildSpray(ocean, island, spray) {
@@ -127,7 +141,7 @@ export class Surf {
   update(dt) {
     this.dt.value = Math.min(dt, 0.05);
     if (dt <= 0) return;
-    this.parity.value ^= 1;
+    this.slice.value = (this.slice.value + 1) % this.slices;
     this.renderer.compute(this.foamKernel);
   }
 

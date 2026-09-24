@@ -5,9 +5,10 @@
 import * as THREE from 'three/webgpu';
 import {
   Fn, attribute, positionGeometry, cameraPosition, uniform, vec2, vec3, vec4, float,
-  fract, clamp, length, log2, max, texture, varying, smoothstep, mix, select, normalize, exp, sin,
+  fract, clamp, length, log2, max, min, texture, varying, smoothstep, mix, select, normalize, exp, sin, abs,
 } from 'three/tsl';
 import { OceanFFT, OCEAN_SIZE } from './fft.js';
+import { gnoise2 } from '../render/tslnoise.js';
 import { createPatchGeometry, PatchSelector } from './oceanMesh.js';
 
 const EARTH_RADIUS = 6371000;
@@ -174,11 +175,23 @@ export class Ocean {
       out.shoreNormal = varying(nShore, 'vShoreN');
       let shoreFoam = max(br.foam.mul(st.H.mul(1.2).min(1)), sw.foam.mul(select(onLand, float(1), float(0))));
       // whitewater left behind by broken bores (persistent surf foam field)
-      if (this.surf) shoreFoam = max(shoreFoam, this.surf.sample(xz).mul(select(onLand, float(0), float(1))));
+      if (this.surf) {
+        // ...but never on the face or inside the curl of a wave that is
+        // still pitching: whitewater only appears once the lip has landed
+        const sRel = st.psi.mul(st.lambda).div(st.H.max(0.05));
+        const curling = smoothstep(0.7, 1.1, st.beta).mul(smoothstep(2.35, 2.05, st.beta)).mul(smoothstep(4.0, 1.0, abs(sRel.add(0.4))));
+        const face = max(curling, smoothstep(0.05, 0.4, br.thin));
+        // old whitewater thins into drifting patches and streaks (never a flat sheet)
+        const drift = xz.add(st.fwd.mul(timeNode.mul(0.4)));
+        const breakup = gnoise2(drift.mul(0.18)).mul(0.5).add(gnoise2(drift.mul(0.61).add(3.7)).mul(0.3)).add(0.55);
+        const persistent = min(this.surf.sample(xz), 1.0).mul(clamp(breakup, 0.15, 1.0)).mul(0.85);
+        shoreFoam = max(shoreFoam, persistent.mul(select(onLand, float(0), float(1))).mul(float(1).sub(face)));
+      }
       out.shoreFoam = varying(shoreFoam, 'vShoreFoam');
       out.thin = varying(br.thin, 'vShoreThin');
       out.folded = varying(select(br.flipped, float(1), float(0)), 'vShoreFold');
       out.breakZone = varying(smoothstep(0.6, 1.2, st.beta).mul(smoothstep(0.3, 0.8, st.H)), 'vBreakZone');
+      out.debug = varying(vec3(st.beta.div(3.2), shoreFoam, br.thin), 'vShoreDebug');
       out.swash = varying(select(onLand, sw.thick, float(1)), 'vSwash');
       out.fftAtten = varying(fftAtten, 'vFftAtten');
       out.depth = varying(st.depth, 'vWaterDepth');

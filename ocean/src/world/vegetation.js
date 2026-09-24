@@ -444,7 +444,9 @@ export class Vegetation {
           const m = new THREE.InstancedMesh(geom, mat, list.length);
           m.count = 0;
           m.frustumCulled = false;
-          m.castShadow = true;
+          // only the near LOD casts shadows: alpha-tested leaves in every
+          // cascade are expensive, and far tree shadows barely resolve
+          m.castShadow = lod === 0;
           m.receiveShadow = true;
           const data = new THREE.InstancedBufferAttribute(new Float32Array(list.length * 4), 4);
           data.setUsage(THREE.DynamicDrawUsage);
@@ -464,8 +466,20 @@ export class Vegetation {
     }
   }
 
+  /** draw one instance of every LOD mesh (so their pipelines compile while loading) */
+  prime(on) {
+    this.primed = on;
+    for (const e of this.meshes) {
+      for (const m of [...e.lod0, ...e.lod1]) {
+        if (on) { m.count = Math.max(m.count, 1); m.userData.data.setXYZW(0, 0, e.height, 1, 0); m.userData.data.needsUpdate = true; }
+      }
+    }
+    if (!on) this.frame = 0;
+  }
+
   /** assign instances to LODs with dithered cross-fades (every few frames) */
   update(camera) {
+    if (this.primed) return;
     if (this.frame++ % 3 !== 0) return;
     const cx = camera.position.x, cz = camera.position.z;
     const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), p = new THREE.Vector3();

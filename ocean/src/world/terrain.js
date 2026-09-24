@@ -89,9 +89,15 @@ export class Terrain {
 
   /** TSL: close-range micro relief added to the heightfield */
   microRelief(xz, height, weight) {
-    // sand: wind/wave ripples + lumps; rock: knobs
-    const ripple = gnoise2(xz.mul(vec2(0.9, 2.6))).mul(0.018).add(gnoise2(xz.mul(0.35)).mul(0.035));
-    const lumps = fbm2(xz.mul(0.12), 3).mul(0.12);
+    // under water: wave-formed ripples; dry sand: faint, irregular wind
+    // ripples in patches (their direction wanders), plus gentle lumps
+    const warp = vec2(gnoise2(xz.mul(0.05)), gnoise2(xz.mul(0.05).add(7.3))).mul(6.0);
+    const q = xz.add(warp);
+    const wave = gnoise2(q.mul(vec2(0.9, 2.6))).mul(0.018);
+    const wind = gnoise2(q.mul(vec2(1.6, 5.5))).mul(0.005).mul(smoothstep(0.1, 0.55, gnoise2(xz.mul(0.09)).mul(0.5).add(0.5)));
+    const submerged = smoothstep(-0.2, -0.9, height);
+    const ripple = mix(wind, wave, submerged).add(gnoise2(xz.mul(0.35)).mul(0.03));
+    const lumps = fbm2(xz.mul(0.12), 3).mul(0.1);
     return ripple.add(lumps).mul(weight);
   }
 

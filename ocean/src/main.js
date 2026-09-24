@@ -15,10 +15,14 @@ import { Vegetation } from './world/vegetation.js';
 import { Grass } from './world/grass.js';
 import { Fish } from './life/fish.js';
 import { Whale } from './life/whale.js';
+import { Birds } from './life/birds.js';
+import { Crabs, Motes } from './life/critters.js';
+import { Reef } from './life/reef.js';
 import { Audio } from './audio/audio.js';
 import { Pipeline } from './render/pipeline.js';
 import { Composite } from './render/composite.js';
 import { LensDroplets } from './render/droplets.js';
+import { Post } from './render/post.js';
 import { WaterProbe } from './ocean/probe.js';
 import { Wake } from './ocean/wake.js';
 import { Spray } from './fx/spray.js';
@@ -33,7 +37,11 @@ import { buildSettings } from './ui/settings.js';
 import { env } from './env.js';
 
 const $ = (id) => document.getElementById(id);
-const status = (t, p) => { $('loader-status').textContent = t; if (p !== undefined) $('loader-fill').style.width = `${Math.round(p * 100)}%`; };
+const status = (t, p) => {
+  $('loader-status').textContent = t;
+  if (p !== undefined) $('loader-fill').style.width = `${Math.round(p * 100)}%`;
+  if (new URLSearchParams(location.search).has('test')) console.log(`[stage] ${t} ${performance.now().toFixed(0)}ms`);
+};
 const query = new URLSearchParams(location.search);
 const TEST = query.has('test');
 // ?off=grass,fish,... hides systems and skips their updates (debug bisection)
@@ -178,13 +186,14 @@ async function start() {
     scene.backgroundNode = v4(tex(which, screenUV.mul(2)).depth(i32(+dbgLayer)).level(+(query.get('lod') || 0)).rgb, 1);
     renderer.toneMapping = THREE.NoToneMapping;
   }
-  const wake = new Wake(renderer, { terrain });
+  const wake = new Wake(renderer, { terrain, size: TEST ? 256 : 512 });
   ocean.wake = wake;
   const spray = new Spray(renderer, { ocean, wake });
   scene.add(spray.mesh);
-  const surf = new Surf(renderer, { ocean, shore, terrain, island, spray, time: env.time });
+  const surf = new Surf(renderer, { ocean, shore, terrain, island, spray, time: env.time, slices: TEST ? 32 : 4 });
   ocean.surf = surf;
   const water = new WaterMaterial({ ocean, terrain, sky, shore, foamTexture });
+  water.debugShore = query.has('waterDebug');
   const waterMesh = new THREE.Mesh(ocean.geometry, water);
   waterMesh.frustumCulled = false;
   waterMesh.renderOrder = 10;
@@ -212,10 +221,14 @@ async function start() {
   await nextFrame();
   const vegetation = new Vegetation({ scene, island, collision, terrain });
   vegetation.update(camera);
-  const grass = new Grass(renderer, { terrain, island });
+  const grass = new Grass(renderer, { terrain, island, grid: TEST ? 56 : 112 });
   scene.add(grass.mesh);
   const fish = new Fish(renderer, { scene, terrain, reef: REEF });
   const whale = new Whale({ scene, spray, ocean });
+  const reefLife = new Reef({ scene, island, reef: REEF, collision });
+  const birds = new Birds({ scene });
+  const crabs = new Crabs({ scene, island });
+  const motes = new Motes({ scene });
   // the boat, moored alongside the end of the pier, bow to seaward
   const boat = new Boat({
     scene, probe, collision, wake, spray,
@@ -249,11 +262,14 @@ async function start() {
   const composite = new Composite({ camera, probe, sky, renderer });
   pipeline.composites.push(composite.node());
   pipeline.ctxExtra = { dropletTexture: texture(droplets.target.texture) };
+  const post = app.post = new Post({ camera, sky });
+  pipeline.post.push(post.hdrNode());
   pipeline.post.push(droplets.node());
+  pipeline.finals = [post.finalNode()];
   pipeline.build();
 
-  Object.assign(app, { scene, camera, sky, ocean, water, shore, terrain, island, collision, probe, caustics, pipeline, composite, player, flashlight, droplets, input, sun, csm, wake, spray, surf, village, vegetation, grass, fish, whale });
-  const hide = { grass: [grass.mesh], fish: fish.groups.map((g) => g.mesh), whale: [whale.mesh], veg: [vegetation.group], village: [village.group], boat: [boat.group], spray: [spray.mesh] };
+  Object.assign(app, { scene, camera, sky, ocean, water, shore, terrain, island, collision, probe, caustics, pipeline, composite, player, flashlight, droplets, input, sun, csm, wake, spray, surf, village, vegetation, grass, fish, whale, reefLife, birds, crabs, motes });
+  const hide = { grass: [grass.mesh], fish: fish.groups.map((g) => g.mesh), whale: [whale.mesh], veg: [vegetation.group], village: [village.group], boat: [boat.group], spray: [spray.mesh], reef: [reefLife.group], birds: [birds.mesh, birds.beaks], crabs: [crabs.mesh], motes: [motes.mesh] };
   for (const [k, list] of Object.entries(hide)) if (!on(k)) for (const o of list) o.visible = false;
 
   // ---------------------------------------------------------------- places
@@ -323,6 +339,18 @@ async function start() {
   status('Warming up…', 0.9);
   for (let i = 0; i < 10; i++) { sky.update(0.016, camera, 0); await nextFrame(); }
   sky.updateEnvironment(true);
+  // render the real frame graph a few times with every LOD drawable, so the
+  // pipelines of all passes (prepass, MRT scene pass, shadows) compile behind
+  // the loading screen instead of stalling the first seconds of play
+  vegetation.prime(true);
+  for (let i = 0; i < 3; i++) {
+    probe.update(camera); grass.update(camera, player); spray.update(0.016); surf.update(0.016); wake.update(0.016, boat.pos);
+    composite.update(renderer); post.update(renderer, 0.016, 0); droplets.render();
+    pipeline.render();
+    await nextFrame();
+  }
+  vegetation.prime(false);
+  vegetation.update(camera);
   $('loader').classList.add('done');
 
   const timer = new THREE.Timer();
@@ -394,6 +422,9 @@ async function start() {
     if (on('grass')) grass.update(camera, player);
     if (on('fish')) fish.update(dt, time, player.mode === 'swim' || under ? camera.position : boat.pos);
     if (on('whale')) whale.update(dt, time, camera.position);
+    if (on('birds')) birds.update(realDt, performance.now() / 1000);
+    if (on('crabs')) crabs.update(realDt, player);
+    motes.update(camera);
     for (const ev of whale.events.splice(0)) if (ev.type === 'splash') audio.splash(ev.pos, 2.5 * ev.strength);
     audio.update({
       camera, underwater: under, shoreDist: island.sdfAt(camera.position.x, camera.position.z),
@@ -406,6 +437,7 @@ async function start() {
     sky.update(dt, camera, time);
     sky.updateEnvironment();
     composite.update(renderer);
+    post.update(renderer, realDt, time);
     droplets.render();
     pipeline.render();
 
@@ -423,6 +455,7 @@ async function start() {
     }
     input.endFrame();
     debug.frame++;
+    if (TEST && debug.frame <= 6) console.log(`[frame] ${debug.frame} at ${performance.now().toFixed(0)}ms`);
     debug.ready = debug.frame > 2;
     frameWaiters = frameWaiters.filter((w) => (--w.left <= 0 ? (w.res(), false) : true));
   });

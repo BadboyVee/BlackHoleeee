@@ -670,7 +670,9 @@ export class Village {
     }
     const n = env.nightFactor.value;
     const on = THREE.MathUtils.smoothstep(n, 0.2, 0.55);
-    for (const l of this.lights) { l.light.intensity = l.max * on * (0.95 + 0.05 * Math.sin(time * 13 + l.max)); l.light.visible = on > 0.001; }
+    // lights stay in the scene at zero intensity by day: toggling visibility
+    // would change the light set and recompile every lit material
+    for (const l of this.lights) l.light.intensity = l.max * on * (0.95 + 0.05 * Math.sin(time * 13 + l.max));
     const glow = 0.2 + 5.5 * on;
     for (const m of this.lampMats) m.color.setRGB(1.0 * glow, 0.72 * glow, 0.4 * glow);
   }

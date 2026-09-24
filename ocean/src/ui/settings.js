@@ -88,6 +88,8 @@ export function buildSettings(app) {
     onInput: (v) => { water.foamScale.value = v; } });
   panel.slider(wat, { id: 'sss', label: 'Crest glow (SSS)', min: 0, max: 2, step: 0.01, value: water.sssStrength.value, format: (v) => v.toFixed(2),
     onInput: (v) => { water.sssStrength.value = v; } });
+  panel.slider(wat, { id: 'glare', label: 'Sun glitter', min: 0, max: 1.5, step: 0.01, value: water.glare.value, format: (v) => v.toFixed(2),
+    onInput: (v) => { water.glare.value = v; } });
   panel.toggleRow(wat, { id: 'ssr', label: 'Screen-space reflections', value: water.ssrEnabled.value > 0.5, onChange: (v) => { water.ssrEnabled.value = v ? 1 : 0; } });
   panel.toggleRow(wat, { id: 'shafts', label: 'Underwater light shafts', value: composite.shafts.value > 0.5, onChange: (v) => { composite.shafts.value = v ? 1 : 0; } });
 
@@ -107,6 +109,8 @@ export function buildSettings(app) {
       onInput: (v) => { app.post.motionBlur.value = v; } });
     panel.slider(gfx, { id: 'flare', label: 'Lens flare', min: 0, max: 2, step: 0.01, value: app.post.flare.value, format: (v) => v.toFixed(2),
       onInput: (v) => { app.post.flare.value = v; } });
+    panel.slider(gfx, { id: 'godrays', label: 'God rays', min: 0, max: 1.5, step: 0.01, value: app.post.godRays.value, format: (v) => v.toFixed(2),
+      onInput: (v) => { app.post.godRays.value = v; } });
     panel.slider(gfx, { id: 'vignette', label: 'Vignette', min: 0, max: 1, step: 0.01, value: app.post.vignette.value, format: (v) => v.toFixed(2),
       onInput: (v) => { app.post.vignette.value = v; } });
     panel.slider(gfx, { id: 'grain', label: 'Film grain', min: 0, max: 1, step: 0.01, value: app.post.grain.value, format: (v) => v.toFixed(2),

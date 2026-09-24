@@ -26,9 +26,9 @@ const MATS = [
   {
     height: (uv) => {
       const warp = fbmP(uv, [3, 3], 3).mul(0.9);
-      const ripPhase = uv.y.mul(15).add(uv.x.mul(2)).add(warp);
+      const ripPhase = uv.y.mul(22).add(uv.x.mul(3)).add(warp.mul(1.6));
       const rip = pow(sin(ripPhase.mul(6.2831853)).mul(0.5).add(0.5), 1.8);
-      const ripFade = smoothstep(0.2, 0.7, fbmP(uv.add(0.3), [2, 2], 3).mul(0.5).add(0.5));
+      const ripFade = smoothstep(0.35, 0.8, fbmP(uv.add(0.3), [2, 2], 3).mul(0.5).add(0.5));
       const lumps = fbmP(uv, [5, 5], 4).mul(0.5).add(0.5);
       const grains = vnoiseP(uv.mul(512), vec2(512, 512));
       const shells = voronoiP(uv.mul(26), vec2(26, 26));
@@ -48,7 +48,7 @@ const MATS = [
       const rough = mix(0.82, 0.95, t.z);
       return vec4(base.mul(ao), rough);
     },
-    normalStrength: 7,
+    normalStrength: 5,
   },
   // ---------------------------------------------------------------- rock
   {
