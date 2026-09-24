@@ -87,7 +87,7 @@ export class Composite {
       const viewZ = perspectiveDepthToViewZ(depth, this.near, this.far).negate();
       const fwdCos = nearView.z.negate().div(length(nearView)).max(1e-3);
       const dist = viewZ.div(fwdCos).toVar();          // eye -> first surface, along the ray
-      const isSky = depth.greaterThan(0.99999);
+      const isSky = depth.greaterThan(0.99999).toVar();
 
       // ---- is the start of this ray in the water?
       const hNear = this._probeHeight(pNear.xz);
@@ -96,35 +96,39 @@ export class Composite {
       const startWet = select(face.greaterThan(0.75), float(0), select(face.greaterThan(0.25), float(1), select(sNear.lessThan(0), float(1), float(0)))).toVar();
 
       const col = vec3(color.rgb).toVar();
-      const c = env.waterAbsorption.add(env.waterScattering.mul(this.underwaterVisibility.reciprocal()));
-      const b = env.waterScattering.mul(this.underwaterVisibility.reciprocal());
+      // NB: every value shared between the loops below and the code after
+      // them must be a real variable (.toVar()): TSL emits a shared
+      // expression where it is first used, and that may be inside a loop or
+      // a branch that doesn't run (the flashlight loop is usually skipped).
+      const c = env.waterAbsorption.add(env.waterScattering.mul(this.underwaterVisibility.reciprocal())).toVar();
+      const b = env.waterScattering.mul(this.underwaterVisibility.reciprocal()).toVar();
 
       // ---- underwater volume from the eye to the first surface
       If(startWet.greaterThan(0.5), () => {
-        const L = select(isSky, float(400), min(dist, 400));
-        const zc = max(this.eyeWaterHeight.sub(this.camPos.y), 0);    // eye depth
-        const mu = dir.y.negate();                                      // + looking down
-        const T = exp(c.negate().mul(L));
+        const L = select(isSky, float(400), min(dist, 400)).toVar();
+        const zc = max(this.eyeWaterHeight.sub(this.camPos.y), 0).toVar();   // eye depth
+        const mu = dir.y.negate().toVar();                                   // + looking down
+        const T = exp(c.negate().mul(L)).toVar();
         // light arriving in the water column (sun refracted down + sky)
         const sunW = env.sunDir;
-        const sunRefr = normalize(vec3(sunW.x.mul(0.75), sunW.y.max(0.2), sunW.z.mul(0.75)));
-        const Kd = c.mul(1.1);
+        const sunRefr = normalize(vec3(sunW.x.mul(0.75), sunW.y.max(0.2), sunW.z.mul(0.75))).toVar();
+        const Kd = c.mul(1.1).toVar();
         const cosS = dot(dir, sunRefr);
         // strongly forward-peaked seawater phase (two-lobe HG)
         const g1 = 0.88, g2 = 0.3;
         const hg = (g) => float((1 - g * g) / (4 * Math.PI)).div(pow(float(1 + g * g).sub(cosS.mul(2 * g)).max(1e-3), 1.5));
-        const phase = hg(g1).mul(0.6).add(hg(g2).mul(0.4));
+        const phase = hg(g1).mul(0.6).add(hg(g2).mul(0.4)).toVar();
         const k = Kd.mul(mu);
-        const depthAtten = exp(Kd.negate().mul(zc));
-        const integ = float(1).sub(exp(c.add(k).negate().mul(L))).div(c.add(k).max(1e-4));
-        const sunIn = env.sunColor.mul(sunW.y.max(0).mul(0.8).add(0.2)).mul(phase).mul(b).mul(depthAtten).mul(integ);
-        const skyIn = env.skyIrradiance.mul(float(0.9 / (4 * Math.PI))).mul(b).mul(depthAtten).mul(integ);
+        const depthAtten = exp(Kd.negate().mul(zc)).toVar();
+        const integ = float(1).sub(exp(c.add(k).negate().mul(L))).div(c.add(k).max(1e-4)).toVar();
+        const sunIn = env.sunColor.mul(sunW.y.max(0).mul(0.8).add(0.2)).mul(phase).mul(b).mul(depthAtten).mul(integ).toVar();
+        const skyIn = env.skyIrradiance.mul(float(0.9 / (4 * Math.PI))).mul(b).mul(depthAtten).mul(integ).toVar();
         // light shafts: march the sun term through a moving occlusion pattern
         const shaft = float(0).toVar();
         If(this.shafts.greaterThan(0.5), () => {
           const N = 10;
-          const Ls = min(L, 45);
-          const j = vnoise2(uv.mul(vec2(911.0, 677.0)).add(env.time.mul(37.0)));
+          const Ls = min(L, 45).toVar();
+          const j = vnoise2(uv.mul(vec2(911.0, 677.0)).add(env.time.mul(37.0))).toVar();
           Loop(N, ({ i }) => {
             const t = float(i).add(j).div(N).mul(Ls);
             const p = this.camPos.add(dir.mul(t));
@@ -143,8 +147,8 @@ export class Composite {
         const flash = vec3(0).toVar();
         If(env.flashlight.greaterThan(0.5), () => {
           const N = 8;
-          const Lf = min(L, 18);
-          const jf = vnoise2(uv.mul(vec2(523.0, 811.0)).add(env.time.mul(53.0)));
+          const Lf = min(L, 18).toVar();
+          const jf = vnoise2(uv.mul(vec2(523.0, 811.0)).add(env.time.mul(53.0))).toVar();
           Loop(N, ({ i }) => {
             const t = float(i).add(jf).div(N).mul(Lf);
             const p = this.camPos.add(dir.mul(t));
@@ -157,6 +161,10 @@ export class Composite {
           flash.assign(flash.div(N).mul(Lf).mul(b).mul(this.flashIntensity).mul(0.9));
         });
         col.assign(col.mul(T).add(sunIn).add(skyIn).add(shaftLight).add(flash));
+        If(this.debugMode.equal(3), () => { col.assign(T); });
+        If(this.debugMode.equal(4), () => { col.assign(sunIn.add(skyIn)); });
+        If(this.debugMode.equal(5), () => { col.assign(shaftLight); });
+        If(this.debugMode.equal(6), () => { col.assign(vec3(L.div(400), mu.mul(5), 0)); });
       }).Else(() => {
         // ---- aerial perspective above water (ground haze + Rayleigh tint)
         If(isSky.not(), () => {
@@ -191,7 +199,9 @@ export class Composite {
         const shaded = lensed.mul(float(1).sub(core.mul(0.72))).add(skyTint.mul(rim).mul(0.6));
         col.assign(mix(col, shaded, band));
       });
-      If(this.debugMode.greaterThan(0.5), () => {
+      If(this.debugMode.equal(2), () => {
+        col.assign(vec3(dist.div(100).fract(), select(isSky, float(1), float(0)), depth.mul(0.5)));
+      }).ElseIf(this.debugMode.equal(1), () => {
         col.assign(vec3(face, startWet, sNear.mul(0.2).add(0.5)));
       });
       return vec4(col, 1);

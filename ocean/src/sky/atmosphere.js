@@ -128,7 +128,7 @@ export class Atmosphere {
 
     // ---------------------------------------------------------- transmittance
     this.transKernel = Fn(() => {
-      const x = instanceIndex.mod(TRANS_W), y = instanceIndex.div(TRANS_W);
+      const x = instanceIndex.mod(TRANS_W).toVar(), y = instanceIndex.div(TRANS_W).toVar();
       const u = float(x).add(0.5).div(TRANS_W), v = float(y).add(0.5).div(TRANS_H);
       const H = sqrt(cTop.mul(cTop).sub(cBottom.mul(cBottom)));
       const rho = H.mul(v);
@@ -153,8 +153,8 @@ export class Atmosphere {
       const x = instanceIndex.mod(MS_SIZE), y = instanceIndex.div(MS_SIZE);
       const u = float(x).add(0.5).div(MS_SIZE), v = float(y).add(0.5).div(MS_SIZE);
       const cosSun = u.mul(2).sub(1);
-      const r = cBottom.add(v.mul(cTop.sub(cBottom))).add(0.01);
-      const sunDir = vec3(0, cosSun, sqrt(max(cosSun.mul(cosSun).oneMinus(), 0)));
+      const r = cBottom.add(v.mul(cTop.sub(cBottom))).add(0.01).toVar();
+      const sunDir = vec3(0, cosSun, sqrt(max(cosSun.mul(cosSun).oneMinus(), 0))).toVar();
       const L2 = vec3(0).toVar(), fms = vec3(0).toVar();
       const SQRT = 8;
       Loop(SQRT * SQRT, ({ i }) => {
@@ -162,17 +162,17 @@ export class Atmosphere {
         const jj = float(i.div(SQRT)).add(0.5).div(SQRT);
         const theta = acos(jj.mul(2).sub(1));
         const phi = ii.mul(2 * Math.PI);
-        const dir = vec3(sin(theta).mul(cos(phi)), cos(theta), sin(theta).mul(sin(phi)));
+        const dir = vec3(sin(theta).mul(cos(phi)), cos(theta), sin(theta).mul(sin(phi))).toVar();
         const mu = dir.y;
-        const tGround = raySphere(r, mu, cBottom);
+        const tGround = raySphere(r, mu, cBottom).toVar();
         const tTop = raySphere(r, mu, cTop);
-        const hitGround = tGround.greaterThan(0);
+        const hitGround = tGround.greaterThan(0).toVar();
         const len = select(hitGround, tGround, tTop);
         const STEPS = 20;
-        const dt = len.div(STEPS);
+        const dt = len.div(STEPS).toVar();
         const T = vec3(1).toVar();
         const lum = vec3(0).toVar(), fmsAcc = vec3(0).toVar();
-        Loop(STEPS, ({ i: s }) => {
+        Loop({ start: 0, end: STEPS, name: 's' }, ({ s }) => {
           const t = float(s).add(0.5).mul(dt);
           const p = vec3(0, r, 0).add(dir.mul(t));
           const pr = length(p);
@@ -210,7 +210,7 @@ export class Atmosphere {
     // ---------------------------------------------------------------- sky view
     const sunDirU = this.sunDirection, eyeAlt = this.eyeAltitude;
     this.skyKernel = Fn(() => {
-      const x = instanceIndex.mod(SKY_W), y = instanceIndex.div(SKY_W);
+      const x = instanceIndex.mod(SKY_W).toVar(), y = instanceIndex.div(SKY_W).toVar();
       const u = float(x).add(0.5).div(SKY_W), v = float(y).add(0.5).div(SKY_H);
       const dir = skyViewDirection(vec2(u, v), sunDirU);
       const L = integrateScattering(cBottom.add(eyeAlt), dir, sunDirU, 32, transTex, msTex);

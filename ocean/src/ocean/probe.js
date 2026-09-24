@@ -71,7 +71,7 @@ export class WaterProbe {
     const oz = Math.floor(camera.position.z / S) * S - S;
     this.gridOrigin.value.set(ox, oz);
     this.renderer.compute(this.kernel);
-    if (!this.pending) {
+    if (!this.pending && !this.noReadback) {
       this.pending = true;
       const origin = [ox, oz];
       this.renderer.getArrayBufferAsync(this.results.value).then((buf) => {

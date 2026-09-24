@@ -213,6 +213,10 @@ export class Terrain {
     const foamCov = smoothstep(float(1).sub(foamAmt), float(1.18).sub(foamAmt), order).mul(smoothstep(0.03, 0.2, foamAmt));
     albedo = mix(albedo, vec3(0.86, 0.9, 0.9).mul(mix(0.85, 1.0, fA.y)), foamCov);
     rough = mix(rough, 0.55, foamCov);
+    // fully submerged: no air/water film on the grains, so no sheen - the
+    // sand-to-water index contrast is tiny and the surface reads as matte
+    const submerged = smoothstep(-0.25, -0.9, hh);
+    rough = mix(rough, 0.95, submerged);
 
     // --- normal: base heightfield + detail (flattened under water film)
     const T = normalize(vec3(nBase.y, nBase.x.negate(), 0));

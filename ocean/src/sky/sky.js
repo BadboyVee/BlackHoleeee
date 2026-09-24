@@ -207,16 +207,18 @@ export class Sky {
       const tIn = raySphere(r0, mu, base.add(Rb));
       const tOut = raySphere(r0, mu, top.add(Rb));
       If(mu.greaterThan(-0.01).and(tIn.greaterThan(0)).and(tIn.lessThan(90)).and(this.cloudsOn), () => {
-        const t1 = min(tOut, tIn.add(28));
+        // loop invariants must be real variables: TSL emits a shared
+        // expression at its first use, which would be inside the march
+        const t1 = min(tOut, tIn.add(28)).toVar();
         const STEPS = 72;
-        const dt = t1.sub(tIn).div(STEPS);
-        const jitter = hash12(pix.add(vec2(float(this.phase).mul(7.13), float(this.phase).mul(3.7))).add(fract(this.time.mul(0.618)).mul(97.0)));
+        const dt = t1.sub(tIn).div(STEPS).toVar();
+        const jitter = hash12(pix.add(vec2(float(this.phase).mul(7.13), float(this.phase).mul(3.7))).add(fract(this.time.mul(0.618)).mul(97.0))).toVar();
         // sun colour at mid-cloud altitude, sky ambient from the LUT
         const midR = base.add(top).mul(0.5).add(Rb);
-        const sunC = atmo.sampleTransmittance(midR, sunDir.y).mul(E);
-        const ambTop = atmo.skyRadiance(vec3(0, 1, 0)).mul(E).mul(2.6).add(atmo.skyRadiance(normalize(vec3(sunDir.x, 0.15, sunDir.z))).mul(E).mul(1.2));
-        const ambBottom = ambTop.mul(0.22).add(sunC.mul(max(sunDir.y, 0)).mul(0.05));
-        const phaseF = hgPhase(cosT, 0.75), phaseB = hgPhase(cosT, -0.25), phaseM = hgPhase(cosT, 0.3);
+        const sunC = atmo.sampleTransmittance(midR, sunDir.y).mul(E).toVar();
+        const ambTop = atmo.skyRadiance(vec3(0, 1, 0)).mul(E).mul(2.6).add(atmo.skyRadiance(normalize(vec3(sunDir.x, 0.15, sunDir.z))).mul(E).mul(1.2)).toVar();
+        const ambBottom = ambTop.mul(0.22).add(sunC.mul(max(sunDir.y, 0)).mul(0.05)).toVar();
+        const phaseF = hgPhase(cosT, 0.75).toVar(), phaseB = hgPhase(cosT, -0.25).toVar(), phaseM = hgPhase(cosT, 0.3).toVar();
         const tDist = float(0).toVar();
         Loop(STEPS, ({ i }) => {
           If(T.lessThan(0.012), () => { Break(); });

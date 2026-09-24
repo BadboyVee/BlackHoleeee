@@ -54,6 +54,10 @@ async function start() {
   renderer.shadowMap.type = THREE.PCFShadowMap;
   $('app').appendChild(renderer.domElement);
   await renderer.init();
+  renderer.onDeviceLost = (info) => {
+    console.error(`WebGPU device lost at frame ${debug.frame} (${performance.now().toFixed(0)} ms): ${info.message || info.reason}`);
+    debug.deviceLost = info.message || String(info.reason);
+  };
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(62, window.innerWidth / window.innerHeight, 0.08, 30000);
@@ -62,7 +66,7 @@ async function start() {
 
   // ---------------------------------------------------------------- sky
   status('Building sky…', 0.1);
-  const sky = new Sky(renderer, { test: query.has('test'), panoWidth: +(query.get('pano') || 4096) });
+  const sky = new Sky(renderer, { test: query.has('test'), panoWidth: +(query.get('pano') || (query.has('test') ? 1024 : 4096)) });
   await sky.init();
   scene.backgroundNode = sky.backgroundNode();
   scene.environment = sky.envTarget.texture;
@@ -144,6 +148,7 @@ async function start() {
   scene.add(waterMesh);
 
   const probe = new WaterProbe(renderer, ocean, shore, env.time);
+  probe.noReadback = query.has('noreadback');
   const caustics = new Caustics(renderer, ocean);
 
   // ---------------------------------------------------------------- pipeline
