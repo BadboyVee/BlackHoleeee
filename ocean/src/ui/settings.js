@@ -98,6 +98,11 @@ export function buildSettings(app) {
   const baseDPR = Math.min(window.devicePixelRatio || 1, 2);
   panel.slider(gfx, { id: 'res', label: 'Resolution', min: 0.4, max: 1.5, step: 0.05, value: app.resolutionScale, format: (v) => `${Math.round(v * 100)}%`,
     onInput: debounce((v) => { app.resolutionScale = v; renderer.setPixelRatio(baseDPR * v); app.onResize?.(); }, 150) });
+  if (app.vegetation) {
+    panel.slider(gfx, { id: 'vegDetail', label: 'Vegetation detail', min: 0.4, max: 1.6, step: 0.05, value: app.vegetation.lodScale, format: (v) => `×${v.toFixed(2)}`,
+      onInput: (v) => { app.vegetation.setDetail(v); } });
+  }
+  if (app.autoExposure) panel.toggleRow(gfx, { id: 'adapt', label: 'Eye adaptation', value: app.autoExposure.enabled, onChange: (v) => { app.autoExposure.enabled = v; } });
   panel.slider(gfx, { id: 'ao', label: 'Ambient occlusion', min: 0, max: 1, step: 0.01, value: pipeline.aoIntensity.value, format: (v) => v.toFixed(2),
     onInput: (v) => { pipeline.aoIntensity.value = v; } });
   panel.slider(gfx, { id: 'contact', label: 'Contact shadows', min: 0, max: 1, step: 0.01, value: pipeline.contactStrength.value, format: (v) => v.toFixed(2),

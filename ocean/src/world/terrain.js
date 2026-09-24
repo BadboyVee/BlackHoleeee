@@ -230,8 +230,10 @@ export class Terrain {
     albedo = albedo.mul(mix(vec3(1), grassTint, grassShare));
     // far away the canopy's shade stands in for tree shadows the far
     // cascade cannot resolve; up close the real shadows do it
+    // (and from afar the gaps between crowns show shaded undergrowth, not litter)
     const farShade = smoothstep(45, 110, length(positionWorld.sub(cameraPosition)));
-    albedo = albedo.mul(mix(float(1), 0.72, forestCov.mul(inland).mul(farShade)));
+    const under = forestCov.mul(inland).mul(farShade);
+    albedo = mix(albedo, vec3(0.028, 0.045, 0.018).mul(mix(0.8, 1.2, macro)), under.mul(0.85));
 
     // --- shoreline: wet sand, swash film, rounded leading edge, foam
     const t = time;

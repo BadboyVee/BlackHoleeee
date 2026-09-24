@@ -28,13 +28,14 @@ import { VILLAGE } from './island.js';
 const BASE = new URL('../../assets/vegetation/', import.meta.url);
 
 // distances (m): mesh LOD0 until `near`, LOD1 until `mid`, then the
-// impostor (trees) or a fade-out by `far` (undergrowth)
+// impostor (trees) or a fade-out by `far` (undergrowth); saplings are small
+// enough that the reduced mesh does from the start
 const SPECIES = {
   broad: { atlas: 'leaves_broad', near: 38, mid: 105, far: 1500, impostor: true, rad: 4.2, trunk: 0.34, bark: [0.2, 0.17, 0.14], flutter: 0.035, H: 13 },
   umbrella: { atlas: 'leaves_broad', near: 42, mid: 115, far: 1500, impostor: true, rad: 5.2, trunk: 0.3, bark: [0.23, 0.19, 0.15], flutter: 0.035, H: 11 },
   ironwood: { atlas: 'leaves_needle', near: 38, mid: 105, far: 1500, impostor: true, rad: 2.8, trunk: 0.22, bark: [0.16, 0.12, 0.09], flutter: 0.05, H: 14 },
   palm: { atlas: 'frond_palm', near: 55, mid: 140, far: 1500, impostor: true, rad: 2.6, trunk: 0.2, bark: [0.3, 0.27, 0.22], flutter: 0.06, H: 10 },
-  sapling: { model: 'broad', atlas: 'leaves_broad', near: 18, mid: 55, far: 700, impostor: true, rad: 1.6, trunk: 0.1, bark: [0.2, 0.17, 0.14], flutter: 0.04, H: 5 },
+  sapling: { model: 'broad', atlas: 'leaves_broad', near: 0.001, mid: 55, far: 700, impostor: true, rad: 1.6, trunk: 0.1, bark: [0.2, 0.17, 0.14], flutter: 0.04, H: 5 },
   shrub: { atlas: 'leaves_shrub', near: 28, mid: 75, far: 130, impostor: false, rad: 1.3, bark: [0.13, 0.1, 0.07], flutter: 0.04, H: 2 },
   fern: { atlas: 'frond_fern', near: 20, mid: 42, far: 58, impostor: false, rad: 0.8, bark: [0.1, 0.1, 0.05], flutter: 0.05, H: 0.9 },
 };
@@ -301,7 +302,10 @@ export class Vegetation {
     this._place();
     this._build();
     this.frame = 0;
+    this.lodScale = 1;          // Graphics > Vegetation detail: scales the LOD distances
   }
+
+  setDetail(v) { this.lodScale = v; this.lastX = undefined; }
 
   /** Where everything grows: trees from the baked forest cover, palms on
    *  the coastal strip and in damp hollows, scrub along forest edges and
@@ -488,8 +492,9 @@ export class Vegetation {
     this.lastX = cx; this.lastZ = cz;
     const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), p = new THREE.Vector3();
     const up = new THREE.Vector3(0, 1, 0);
+    const k = this.lodScale;
     for (const e of this.sets) {
-      const { near, mid, far } = e.cfg;
+      const near = e.cfg.near * k, mid = e.cfg.mid * k, far = e.cfg.impostor ? e.cfg.far : e.cfg.far * k;
       const b0 = near * 0.12, b1 = mid * 0.12;
       let n0 = 0, n1 = 0, ni = 0;
       const imp = e.imp ? e.imp.geometry : null;

@@ -92,6 +92,9 @@ float and bob with the waves; once you dive you stay at the depth you choose.
 - Frame graph: depth/normal/velocity prepass → GTAO and screen-space contact shadows →
   HDR scene with CSM shadows and sky IBL → water/volume composite → TAA → sharpening, motion
   blur and god rays → bloom → lens flare, vignette, grain → ACES.
+- Eye adaptation: the frame's log-average luminance (GPU, read back asynchronously) opens the
+  exposure up under the forest canopy and closes it again in the open, on top of the
+  day/night curve.
 - Motion vectors for everything that moves: the waves (last frame's FFT displacement and
   breaker profile), fish, birds and the boat. TAA reprojects them instead of dragging ghosts
   behind crests. A reactive mask covers what vectors can't describe (spray, glints).
@@ -105,8 +108,8 @@ float and bob with the waves; once you dive you stay at the depth you choose.
 
 Tab opens a panel with sea-state presets and the full wave spectrum (wind speed and direction,
 fetch, swell, choppiness, whitecaps), surf height and period, sun position and time flow,
-clouds, water optics, graphics options (resolution, AO, contact shadows, bloom, motion blur,
-flare, god rays, vignette, grain) and teleports.
+clouds, water optics, graphics options (resolution, vegetation detail, eye adaptation, AO,
+contact shadows, bloom, motion blur, flare, god rays, vignette, grain) and teleports.
 
 ## Code map
 
@@ -132,7 +135,7 @@ src/audio/audio.js       soundscape
 
 Debug URL parameters: `?test` (small software-GPU friendly settings), `?pano=2048`,
 `?sunEl=8&sunAz=250`, `?t=40&freeze`, `?spawn=fly`, `?off=grass,fish,whale,veg,village,boat,spray,wake,surf,reef,birds,crabs,motes`,
-`?waterDebug=1` (breaker state: breaking index, shore foam, thin lip) or `?waterDebug=2`
+`?veg=0.7` (vegetation LOD distance scale), `?waterDebug=1` (breaker state: breaking index, shore foam, thin lip) or `?waterDebug=2`
 (facing: above water, front face, break zone), `?nofit` (keep full resolution: by default a
 slow GPU gets a lower render resolution a few seconds after loading).
 

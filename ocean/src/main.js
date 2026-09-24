@@ -35,6 +35,7 @@ import { Input } from './player/input.js';
 import { Player } from './player/player.js';
 import { Flashlight } from './player/flashlight.js';
 import { buildSettings } from './ui/settings.js';
+import { AutoExposure } from './render/exposure.js';
 import { env } from './env.js';
 
 const $ = (id) => document.getElementById(id);
@@ -222,6 +223,7 @@ async function start() {
   status('Growing trees…', 0.55);
   await nextFrame();
   const vegetation = await Vegetation.create({ scene, island, collision, terrain });
+  if (query.has('veg')) vegetation.setDetail(+query.get('veg') || 1);
   const boulders = await Boulders.create({ scene, island, collision, textures: terrainTextures });
   if (TEST) console.log('[veg] counts', JSON.stringify(vegetation.counts), 'boulders', boulders.counts);
   vegetation.update(camera);
@@ -272,6 +274,7 @@ async function start() {
   pipeline.post.push(droplets.node());
   pipeline.finals = [post.finalNode()];
   pipeline.build();
+  const autoExposure = app.autoExposure = new AutoExposure(renderer, pipeline.taaPass.getTextureNode().value);
   // reflections must ignore what lies behind the water surface
   water.preDepth = pipeline.preDepth;
 
@@ -396,7 +399,11 @@ async function start() {
     }
     // darker scenes get a little more exposure (eyes adapt at dusk and night)
     const adapt = THREE.MathUtils.lerp(1, 2.6, env.nightFactor.value) * THREE.MathUtils.lerp(1, 1.35, THREE.MathUtils.smoothstep(12 - app.sunEl, 0, 12));
-    renderer.toneMappingExposure = app.exposureBias * adapt;
+    // ...and to the place: what an open scene would read under this sky
+    const lumOf = (c) => c.r * 0.2126 + c.g * 0.7152 + c.b * 0.0722;
+    const refLum = 0.075 * (lumOf(env.sunColor.value) * Math.max(env.sunDir.value.y, 0) + lumOf(env.skyIrradiance.value));
+    renderer.toneMappingExposure = app.exposureBias * adapt * autoExposure.update(realDt, refLum);
+    if (TEST && debug.frame % 8 === 4) console.log(`[exposure] lum ${autoExposure.lum?.toFixed(4)} ref ${refLum.toFixed(4)} factor ${autoExposure.factor.toFixed(2)}`);
 
     // --- player + interaction
     if (input.pressed('Tab')) panel.toggle();
