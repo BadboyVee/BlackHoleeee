@@ -68,8 +68,10 @@ float and bob with the waves; once you dive you stay at the depth you choose.
 - Fishing village: cottages, a timber pier with a T-head and chain-hung lanterns that swing,
   a boat shed, a fish market with a swaying sign, nets, upturned dinghies, crates, pots, buoys,
   rocks and driftwood along the wrack line. Lamps and windows light up at dusk.
-- Palms, broadleaf trees, pines and shrubs sway in the wind, with dithered LOD cross-fades.
-  Grass blades lean away from your feet.
+- Palms line the berm; broadleaf trees, pines and shrubs grow in woods that stand on leaf
+  litter (tree placement and the terrain share one forest mask), densest on the western hill.
+  Everything sways in the wind and cross-fades between LODs with a temporal dither. Grass
+  blades lean away from your feet.
 - A lobster boat with buoyancy computed on the rendered waves, rudder and prop physics, bow
   spray, a helm with instruments, and a cab light at night.
 - Life: fish schools (GPU boids) over the reef, a humpback whale that surfaces, blows, dives
@@ -115,7 +117,8 @@ src/audio/audio.js       soundscape
 Debug URL parameters: `?test` (small software-GPU friendly settings), `?pano=2048`,
 `?sunEl=8&sunAz=250`, `?t=40&freeze`, `?spawn=fly`, `?off=grass,fish,whale,veg,village,boat,spray,wake,surf,reef,birds,crabs,motes`,
 `?waterDebug=1` (breaker state: breaking index, shore foam, thin lip) or `?waterDebug=2`
-(facing: above water, front face, break zone).
+(facing: above water, front face, break zone), `?nofit` (keep full resolution: by default a
+slow GPU gets a lower render resolution a few seconds after loading).
 
 ## References
 

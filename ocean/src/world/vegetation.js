@@ -515,7 +515,7 @@ export class Vegetation {
         if (on) { m.count = Math.max(m.count, 1); m.userData.data.setXYZW(0, 0, e.height, 1, 0); m.userData.data.needsUpdate = true; }
       }
     }
-    if (!on) this.frame = 0;
+    if (!on) { this.frame = 0; this.lastX = undefined; }
   }
 
   /** assign instances to LODs with dithered cross-fades (every few frames) */
@@ -525,6 +525,9 @@ export class Vegetation {
     if (this.primed) return;
     if (this.frame++ % 3 !== 0) return;
     const cx = camera.position.x, cz = camera.position.z;
+    // LOD fades only depend on distance: nothing to do while the eye stays put
+    if (this.lastX !== undefined && Math.hypot(cx - this.lastX, cz - this.lastZ) < 1.5) return;
+    this.lastX = cx; this.lastZ = cz;
     const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), p = new THREE.Vector3();
     const up = new THREE.Vector3(0, 1, 0);
     for (const e of this.meshes) {

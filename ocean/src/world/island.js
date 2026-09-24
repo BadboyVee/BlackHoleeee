@@ -12,7 +12,8 @@ export const WORLD = {
   originX: -800, originZ: -900, size: 1600, res: 1024,
   deep: -70,
 };
-export const VILLAGE = { x0: 55, x1: 205, pierX: 118, pierZ0: -2, pierZ1: 78 };
+// the pier runs out past the surf to ~4 m of water, where the boat can lie
+export const VILLAGE = { x0: 55, x1: 205, pierX: 118, pierZ0: -2, pierZ1: 140 };
 export const REEF = { x: -150, z: 165, r: 95 };
 
 const TEX = WORLD.size / WORLD.res;

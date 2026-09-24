@@ -55,11 +55,23 @@ function brain() {
 }
 
 function table() {
-  const top = new THREE.CylinderGeometry(0.8, 0.7, 0.07, 18, 1).translate(0, 0.42, 0);
-  const p = top.attributes.position;
-  for (let i = 0; i < p.count; i++) { const x = p.getX(i), z = p.getZ(i); const r = Math.hypot(x, z); p.setY(i, p.getY(i) + Math.sin(Math.atan2(z, x) * 5) * 0.03 * r); }
-  const stalk = new THREE.CylinderGeometry(0.08, 0.14, 0.42, 8).translate(0, 0.21, 0);
-  return mergeGeometries([clean(top), clean(stalk)]);
+  // Acropora table: a thin plate with a ragged, lobed rim on a short trunk,
+  // sometimes with a smaller second tier grown out of the side
+  const plate = (R, y, seed) => {
+    const shape = new THREE.Shape();
+    const N = 56;
+    for (let k = 0; k <= N; k++) {
+      const a = k / N * Math.PI * 2;
+      const r = R * (1 + 0.13 * Math.sin(a * 3 + seed) + 0.07 * Math.sin(a * 7 + seed * 2.3) + 0.04 * Math.sin(a * 17 + seed * 5.1));
+      if (k === 0) shape.moveTo(Math.cos(a) * r, Math.sin(a) * r); else shape.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+    }
+    const g = new THREE.ExtrudeGeometry(shape, { depth: 0.035, bevelEnabled: true, bevelThickness: 0.015, bevelSize: 0.03, bevelSegments: 2, curveSegments: 1 });
+    g.rotateX(-Math.PI / 2).translate(0, y, 0);
+    return clean(g);
+  };
+  const parts = [plate(0.72, 0.42, 0.7), plate(0.34, 0.27, 2.9).translate(0.45, 0, 0.2)];
+  parts.push(clean(new THREE.CylinderGeometry(0.07, 0.13, 0.42, 8).translate(0, 0.21, 0)));
+  return mergeGeometries(parts);
 }
 
 function fan() {
@@ -129,14 +141,14 @@ export class Reef {
     this.group.name = 'reef';
     scene.add(this.group);
     const types = {
-      branching: { geo: branching(), n: 140, depth: [1.8, 9], sway: 0, scale: [0.7, 1.4], rough: 0.7 },
-      brain: { geo: brain(), n: 60, depth: [1.8, 10], sway: 0, scale: [0.5, 1.6], rough: 0.8, brain: true },
-      table: { geo: table(), n: 45, depth: [2.5, 11], sway: 0, scale: [0.6, 1.4], rough: 0.75 },
-      fan: { geo: fan(), n: 90, depth: [2.2, 12], sway: 0.18, scale: [0.6, 1.3], rough: 0.8, lace: true },
-      whip: { geo: whip(), n: 80, depth: [2, 12], sway: 0.25, scale: [0.7, 1.5], rough: 0.7 },
-      sponge: { geo: sponge(), n: 70, depth: [2.5, 12], sway: 0, scale: [0.7, 1.5], rough: 0.85 },
-      grass: { geo: grassTuft(), n: 700, depth: [1.0, 6], sway: 0.35, scale: [0.8, 1.5], rough: 0.7, grass: true },
-      rock: { geo: rock(), n: 90, depth: [1.2, 14], sway: 0, scale: [0.6, 2.4], rough: 0.9 },
+      branching: { geo: branching(), n: 180, depth: [1.8, 9], sway: 0, scale: [0.7, 1.4], rough: 0.7 },
+      brain: { geo: brain(), n: 110, depth: [1.8, 10], sway: 0, scale: [0.5, 1.6], rough: 0.8, brain: true },
+      table: { geo: table(), n: 45, depth: [2.5, 11], sway: 0, scale: [0.55, 1.05], rough: 0.75 },
+      fan: { geo: fan(), n: 150, depth: [2.2, 12], sway: 0.18, scale: [0.6, 1.3], rough: 0.8, lace: true },
+      whip: { geo: whip(), n: 140, depth: [2, 12], sway: 0.25, scale: [0.7, 1.5], rough: 0.7 },
+      sponge: { geo: sponge(), n: 120, depth: [2.5, 12], sway: 0, scale: [0.7, 1.5], rough: 0.85 },
+      grass: { geo: grassTuft(), n: 900, depth: [1.0, 6], sway: 0.35, scale: [0.8, 1.5], rough: 0.7, grass: true },
+      rock: { geo: rock(), n: 140, depth: [1.2, 14], sway: 0, scale: [0.6, 2.4], rough: 0.9 },
     };
     for (const [name, t] of Object.entries(types)) {
       const list = [];
@@ -194,7 +206,9 @@ export class Reef {
         mesh.setMatrixAt(i, m4.compose(pos, q, s));
         if (name === 'rock' && o.s > 1.4 && collision) collision.addCylinder({ x: o.x, z: o.z, y0: o.y - 1, y1: o.y + o.s * 0.35, r: o.s * 0.5 });
       });
-      mesh.castShadow = name !== 'grass';
+      // only the big shapes cast sun shadows (small corals' shadows are lost
+      // in the caustics, and they'd be drawn again into every cascade)
+      mesh.castShadow = name === 'rock' || name === 'table' || name === 'brain';
       mesh.receiveShadow = true;
       mesh.name = `reef.${name}`;
       this.group.add(mesh);

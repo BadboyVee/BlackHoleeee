@@ -132,7 +132,7 @@ export class Sky {
   // Cumulus fields (Schneider's Nubis recipe, tuned for broad, low clouds):
   //  weather map (40 km tile)  -> coverage + local cloud-top height
   //  height gradient           -> flat condensation base, rounded tops
-  //  Perlin-Worley shape (~2 km cells, squashed vertically), eroded by Worley fBm
+  //  Perlin-Worley shape (~1.8 km cells, squashed vertically), eroded by Worley fBm
   //  Worley detail (~30-200 m) -> smooth wispy bases, cauliflower tops
   _cloudDensity(pWorld, h, detail) {
     // pWorld: km (x,z horizontal, y altitude above ground)
@@ -141,15 +141,15 @@ export class Sky {
     const wind = vec3(this.windOffset.x, 0, this.windOffset.y);
     const w = texture(weather, pWorld.xz.add(this.windOffset).div(40)).level(0);
     const cov = this._coverage(w.r);
-    const topF = mix(0.42, 1.0, w.g);
+    const topF = mix(0.55, 1.0, w.g);
     const hf = clamp(h.sub(base).div(top.sub(base)), 0, 1);
     const ht = hf.div(topF);
     // flat condensation base; the threshold rises with height so only the
     // strongest cores reach the local top (domed, separate towers)
     const grad = smoothstep(0.0, 0.05, hf).mul(smoothstep(1.0, 0.12, ht));
-    // ~2 km cells: broad cumulus (a squashed vertical period keeps domes
+    // ~1.8 km cells: broad cumulus (a squashed vertical period keeps domes
     // inside the thin layer; much wider cells merge into stratocumulus slabs)
-    const s = sampleAtlas(shape, this.noise.shapeInfo, pWorld.add(wind).mul(vec3(1, 1.6, 1)).div(8.5));
+    const s = sampleAtlas(shape, this.noise.shapeInfo, pWorld.add(wind).mul(vec3(1, 1.4, 1)).div(7.5));
     const lowFbm = s.g.mul(0.625).add(s.b.mul(0.25)).add(s.a.mul(0.125));
     // the eroded Perlin-Worley only spans ~0.72..0.92 (measured with
     // debugNoiseStats); stretch it to 0..1 so coverage has something to cut
@@ -170,11 +170,12 @@ export class Sky {
   }
 
   // weather-map value -> local cloud coverage. Even in the cloudiest parts of
-  // a field it stays below ~0.75 so cumulus remain separate towers; the
-  // global `coverage` sets how much of the sky holds clouds.
+  // a field it stays below ~0.65 so cumulus remain separate cells instead of
+  // merging into a stratocumulus deck; the global `coverage` sets how much of
+  // the sky holds clouds.
   _coverage(wr) {
     const field = smoothstep(0.2, 0.8, wr);
-    return clamp(this.coverage.mul(mix(0.15, 1.75, field)), 0, 0.8);
+    return clamp(this.coverage.mul(mix(0.15, 1.6, field)), 0, 0.65);
   }
 
   _buildPanoramaPass() {
@@ -239,7 +240,8 @@ export class Sky {
         const midR = base.add(top).mul(0.5).add(Rb);
         const sunC = atmo.sampleTransmittance(midR, sunDir.y).mul(E).toVar();
         const ambTop = atmo.skyRadiance(vec3(0, 1, 0)).mul(E).mul(2.6).add(atmo.skyRadiance(normalize(vec3(sunDir.x, 0.15, sunDir.z))).mul(E).mul(1.2)).toVar();
-        const ambBottom = ambTop.mul(0.12).add(sunC.mul(max(sunDir.y, 0)).mul(0.03)).toVar();
+        // bases see the horizon sky and light bounced off the sea: grey, not black
+        const ambBottom = ambTop.mul(0.3).add(sunC.mul(max(sunDir.y, 0)).mul(0.04)).toVar();
         const phaseF = hgPhase(cosT, 0.75).toVar(), phaseB = hgPhase(cosT, -0.25).toVar(), phaseM = hgPhase(cosT, 0.3).toVar();
         const sunV = vec3(sunDir.x, max(sunDir.y, 0.03), sunDir.z).normalize().toVar();
         const t = tIn.add(dtBig.mul(jitter)).toVar();

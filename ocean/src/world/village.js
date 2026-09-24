@@ -130,7 +130,8 @@ export class Village {
     // X-bracing under the deck on every other bay
     for (let z = z0 + 1; z < tz0; z += 6) {
       const bed = Math.max(this.h(X, z), this.h(X, z + 3));
-      const yTop = Y - 0.3, yBot = Math.max(bed + 0.2, -0.9);
+      // (the diagonals stop above the waterline; only the piles go down)
+      const yTop = Y - 0.3, yBot = Math.max(bed + 0.2, 0.35);
       if (yTop - yBot < 0.5) continue;
       const len = Math.hypot(3, yTop - yBot), ang = Math.atan2(yTop - yBot, 3);
       for (const dx of [-W / 2 - 0.2, W / 2 + 0.2]) {
@@ -167,7 +168,10 @@ export class Village {
     col.addBox({ x: X - 3.2, z: z1 - 5.2, y0: Y, y1: Y + 0.48, hx: 0.9, hz: 0.2 });
     this._crateStack(X - 3.4, Y, z1 - 2.1, 0.3, 3);
     // lantern posts: outside the rail posts, arm reaching out over the water
-    for (const [k, z] of [[0, z0 + 7], [1, z0 + 22], [0, z0 + 37], [1, tz0 - 1]].entries()) {
+    const lanterns = [];
+    for (let z = z0 + 7, s = 0; z < tz0 - 12; z += 25, s ^= 1) lanterns.push([s, z]);
+    lanterns.push([1, tz0 - 1]);
+    for (const [k, z] of lanterns.entries()) {
       const side = z[0] === 0 ? -1 : 1, zz = z[1];
       const px = X + side * (W / 2 + 0.33);
       b.pile.add(cylAt(0.09, 0.1, 3.2, px, Y + 1.5, zz, 8));

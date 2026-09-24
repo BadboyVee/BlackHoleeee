@@ -46,7 +46,7 @@ function gullGeometry() {
 }
 
 export class Birds {
-  constructor({ scene, count = 14, center = new THREE.Vector3(118, 0, 20) }) {
+  constructor({ scene, count = 14, center = new THREE.Vector3(118, 0, 60) }) {
     const g = gullGeometry();
     this.count = count;
     const flap = new THREE.InstancedBufferAttribute(new Float32Array(count * 2), 2);

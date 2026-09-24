@@ -278,7 +278,8 @@ async function start() {
   const places = {
     beach: () => player.spawn(72, -3, 140, -4),
     pier: () => player.spawn(VILLAGE.pierX, VILLAGE.pierZ1 - 6, 200, -2),
-    reef: () => { player.setView(REEF.x + 30, 0.3, REEF.z - 30, 225, -12); player.setMode('swim'); },
+    // over the deeper, western side of the reef (the east is only 1.5 m deep)
+    reef: () => { player.setView(REEF.x - 60, 0.3, REEF.z - 15, 110, -14); player.setMode('swim'); },
     boat: () => (app.boat ? app.boat.boardFromMenu(player) : places.pier()),
   };
   app.teleport = (k) => { places[k]?.(); };
@@ -360,6 +361,10 @@ async function start() {
   let frozen = query.has('freeze');
   debug.setTime = (t, freeze = true) => { time = t; frozen = freeze; };
   let fpsAcc = 0, fpsFrames = 0;
+  // One-time resolution fit: a few seconds in, if frames are slow, lower the
+  // render resolution once to aim for 60 fps (never oscillates mid-play; the
+  // panel's Resolution slider overrides it).
+  const fit = { t: 0, n: 0, done: TEST || query.has('nofit') };
   let wasUnder = false, underTime = 0;
   let lastSunKey = '';
   renderer.setAnimationLoop(() => {
@@ -448,6 +453,21 @@ async function start() {
       badgeTimer -= realDt;
       if (badgeTimer <= 0.6) badge.style.opacity = Math.max(0, badgeTimer / 0.6);
       if (badgeTimer <= 0) badge.hidden = true;
+    }
+    if (!fit.done) {
+      fit.t += realDt;
+      if (fit.t > 1.5) fit.n++;                    // (the first frames still compile)
+      if (fit.t > 4.5) {
+        const ms = (fit.t - 1.5) / Math.max(fit.n, 1) * 1000;
+        if (ms > 19 && app.resolutionScale > 0.6) {
+          const s = Math.max(0.6, Math.round(app.resolutionScale * Math.sqrt(16.4 / ms) * 20) / 20);
+          console.log(`[fit] ${ms.toFixed(1)} ms/frame -> resolution ${Math.round(s * 100)}%`);
+          app.resolutionScale = s;
+          onResize();
+          panel.get('res')?.set(s);
+        }
+        fit.done = true;
+      }
     }
     fpsAcc += realDt; fpsFrames++;
     if (fpsAcc > 0.5) {
