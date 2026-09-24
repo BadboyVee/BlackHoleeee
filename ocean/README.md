@@ -51,9 +51,9 @@ float and bob with the waves; once you dive you stay at the depth you choose.
 **Air/water**
 - A GPU probe evaluates the exact rendered surface around the eye, so the waterline on the near
   plane matches the mesh to the pixel. A glass-edge meniscus is drawn along it.
-- Under water: spectral Beer–Lambert fog with forward-peaked scattering, light shafts, Snell's
-  window with total internal reflection, caustics from the real wave surface, depth-attenuated
-  sunlight and flashlight beams.
+- Under water: spectral Beer–Lambert fog with forward-peaked single scattering plus a diffuse
+  multiple-scattering glow, light shafts, Snell's window with total internal reflection,
+  caustics from the real wave surface, depth-attenuated sunlight and flashlight beams.
 - Drops bead on the lens after you surface, roll off and evaporate; there's no full-screen warp.
 
 **Sky**

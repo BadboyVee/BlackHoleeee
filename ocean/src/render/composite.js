@@ -122,7 +122,12 @@ export class Composite {
         const depthAtten = exp(Kd.negate().mul(zc)).toVar();
         const integ = float(1).sub(exp(c.add(k).negate().mul(L))).div(c.add(k).max(1e-4)).toVar();
         const sunIn = env.sunColor.mul(sunW.y.max(0).mul(0.8).add(0.2)).mul(phase).mul(b).mul(depthAtten).mul(integ).toVar();
-        const skyIn = env.skyIrradiance.mul(float(0.9 / (4 * Math.PI))).mul(b).mul(depthAtten).mul(integ).toVar();
+        // multiple scattering: the downwelling sun + sky light, scattered many
+        // times, fills the water with a diffuse glow seen in every direction
+        // (single forward-peaked scattering alone leaves side views black)
+        const diffuseDown = env.sunColor.mul(sunW.y.max(0.05)).add(env.skyIrradiance);
+        const skyIn = env.skyIrradiance.mul(float(0.9 / (4 * Math.PI))).mul(b).mul(depthAtten).mul(integ)
+          .add(diffuseDown.mul(float(2.5 / (4 * Math.PI))).mul(b).mul(depthAtten).mul(integ)).toVar();
         // light shafts: march the sun term through a moving occlusion pattern
         const shaft = float(0).toVar();
         If(this.shafts.greaterThan(0.5), () => {
