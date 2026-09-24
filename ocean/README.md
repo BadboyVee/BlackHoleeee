@@ -113,7 +113,9 @@ src/audio/audio.js       soundscape
 ```
 
 Debug URL parameters: `?test` (small software-GPU friendly settings), `?pano=2048`,
-`?sunEl=8&sunAz=250`, `?t=40&freeze`, `?spawn=fly`, `?off=grass,fish,whale,veg,village,boat,spray,wake,surf,reef,birds,crabs,motes`.
+`?sunEl=8&sunAz=250`, `?t=40&freeze`, `?spawn=fly`, `?off=grass,fish,whale,veg,village,boat,spray,wake,surf,reef,birds,crabs,motes`,
+`?waterDebug=1` (breaker state: breaking index, shore foam, thin lip) or `?waterDebug=2`
+(facing: above water, front face, break zone).
 
 ## References
 

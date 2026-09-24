@@ -147,7 +147,9 @@ export class Terrain {
     const wPeb = smoothstep(0.66, 0.78, n2).mul(beachZone).mul(smoothstep(0.05, 0.14, slope).max(smoothstep(-30, -18, sdf).mul(smoothstep(0.7, 0.85, n1)))).mul(0.9);
     const wSand = beachZone.mul(wRock.oneMinus());
     const inland = beachZone.oneMinus().mul(wRock.oneMinus());
-    const forestMask = smoothstep(0.45, 0.62, n1);
+    // leaf litter where the trees are (same mask as tree placement, see
+    // core/noise.js forestMask; the western hill is wooded)
+    const forestMask = smoothstep(0.45, 0.62, n1.add(smoothstep(-60, -200, vXZ.x).mul(0.2)));
     const wForest = inland.mul(forestMask);
     const wGrass = inland.mul(forestMask.oneMinus());
     const W = [wSand.mul(wPeb.oneMinus()), wRock, wGrass, wForest, wPeb];

@@ -17,6 +17,7 @@ import {
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { standard, staticVelocity } from '../render/materials.js';
 import { fbm2, vnoise2, hash21 } from '../render/tslnoise.js';
+import { forestMask } from '../core/noise.js';
 import { env } from '../env.js';
 import { VILLAGE } from './island.js';
 
@@ -208,9 +209,11 @@ function palmVariant(seed) {
       const y = up0 * r - 0.55 * r * r / len * (1.2 + rnd() * 0.1);
       cp.push(new THREE.Vector3(top.x + Math.cos(a) * r, top.y + y, top.z + Math.sin(a) * r));
     }
+    // the frond blade lies across the rachis, roughly level, each one rolled
+    // a little about its own axis
     const tang = new THREE.Vector3(Math.cos(a), 0, Math.sin(a));
-    const upv = new THREE.Vector3().crossVectors(tang, new THREE.Vector3(0, 1, 0)).cross(tang).normalize().negate();
-    fronds.push(ribbon(cp, (t) => 1.4 * Math.sin(Math.PI * Math.min(1, t * 1.05 + 0.05)) + 0.1, upv.lerp(new THREE.Vector3(0, 1, 0), 0.5).normalize()));
+    const upv = new THREE.Vector3(0, 1, 0).applyAxisAngle(tang, (rnd() - 0.5) * 0.7);
+    fronds.push(ribbon(cp, (t) => 1.4 * Math.sin(Math.PI * Math.min(1, t * 1.05 + 0.05)) + 0.1, upv));
   }
   const nuts = [];
   for (let k = 0; k < 5; k++) nuts.push(new THREE.SphereGeometry(0.12, 8, 6).translate(top.x + Math.cos(k * 1.3) * 0.25, top.y - 0.25 - (k % 2) * 0.1, top.z + Math.sin(k * 1.3) * 0.25));
@@ -421,6 +424,7 @@ export class Vegetation {
     const isl = this.island, col = this.collision;
     const rnd = rndGen(2024);
     const inst = { palm: [], broad: [], pine: [], shrub: [] };
+    const CELL = 6, grid = new Map();   // spatial hash of placed plants
     const blocked = (x, z, r) => {
       if (Math.abs(x - VILLAGE.pierX) < 5 && z > 10) return true;
       const g = col.groundAt(x, z, 100, 0, r);
@@ -428,7 +432,7 @@ export class Vegetation {
     };
     const slopeAt = (x, z) => { const n = isl.normalAt(x, z); return 1 - n.y; };
     const noise = (x, z, f) => (Math.sin(x * f * 1.7 + Math.cos(z * f * 1.3) * 2.1) * Math.cos(z * f * 1.9 - Math.sin(x * f * 0.7) * 1.7) + 1) * 0.5;
-    for (let k = 0; k < 26000; k++) {
+    for (let k = 0; k < 60000; k++) {
       const x = -520 + rnd() * 1040, z = -760 + rnd() * 900;
       const h = isl.heightAt(x, z);
       if (h < 0.6) continue;
@@ -439,19 +443,28 @@ export class Vegetation {
       let kind = null;
       if (sdf < -9 && sdf > -60 && h < 5.5 && rnd() < 0.05 * smoothstepJS(0.35, 0.7, cluster) + 0.012) kind = 'palm';
       else if (sdf < -45 && h > 3) {
-        const forest = smoothstepJS(0.42, 0.66, cluster) + (x < -120 ? 0.35 : 0);    // the western ("left") hill is wooded
+        // the terrain draws leaf litter with the same mask: trees stand in it
+        const forest = forestMask(x, z);
         const r = rnd();
-        if (r < 0.1 * forest) kind = h > 28 || noise(x, z, 0.03) > 0.6 ? 'pine' : 'broad';
-        else if (r < 0.1 * forest + 0.05 * (0.4 + forest)) kind = 'shrub';
-      } else if (sdf < -22 && sdf > -60 && rnd() < 0.02) kind = 'shrub';
+        if (r < 0.16 * forest) kind = h > 28 || noise(x, z, 0.03) > 0.6 ? 'pine' : 'broad';
+        else if (r < 0.16 * forest + 0.03 * (0.4 + forest)) kind = 'shrub';
+      } else if (sdf < -22 && sdf > -60 && rnd() < 0.009) kind = 'shrub';
       if (!kind) continue;
       const rad = kind === 'shrub' ? 0.9 : 2.2;
       if (blocked(x, z, rad)) continue;
-      // spacing: reject if too close to one of the same kind recently placed nearby
+      // spacing: no two plants closer than their combined canopy radii
       const list = inst[kind];
       let ok = true;
-      for (let q = Math.max(0, list.length - 60); q < list.length; q++) { const o = list[q]; if ((o.x - x) ** 2 + (o.z - z) ** 2 < (rad * 2.2) ** 2) { ok = false; break; } }
+      const ci = Math.floor(x / CELL), cj = Math.floor(z / CELL);
+      for (let dj = -1; dj <= 1 && ok; dj++) for (let di = -1; di <= 1 && ok; di++) {
+        for (const o of grid.get((ci + di) * 73856093 ^ (cj + dj) * 19349663) || []) {
+          if ((o.x - x) ** 2 + (o.z - z) ** 2 < (rad + o.rad) ** 2 * 1.2) { ok = false; break; }
+        }
+      }
       if (!ok) continue;
+      const key = ci * 73856093 ^ cj * 19349663;
+      if (!grid.has(key)) grid.set(key, []);
+      grid.get(key).push({ x, z, rad });
       const v = Math.floor(rnd() * this.species[kind].variants.length);
       const s = kind === 'shrub' ? 0.7 + rnd() * 0.8 : 0.8 + rnd() * 0.45;
       list.push({ x, z, y: h - 0.08, yaw: rnd() * Math.PI * 2, s, v, phase: rnd() * 100 });

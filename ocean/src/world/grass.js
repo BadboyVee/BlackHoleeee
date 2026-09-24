@@ -55,7 +55,7 @@ export class Grass {
       const slope = float(1).sub(normalize(vec3(hx.negate(), e * 2, hz.negate())).y);
       const beach = smoothstep(-75, -45, sdf).mul(smoothstep(5.0, 3.2, h)).max(smoothstep(0.4, -0.4, h));
       const n1 = fbm2(xz.mul(0.018), 3).mul(0.5).add(0.5);
-      const forest = smoothstep(0.45, 0.62, n1);
+      const forest = smoothstep(0.45, 0.62, n1.add(smoothstep(-60, -200, xz.x).mul(0.2)));
       const steep = smoothstep(0.2, 0.34, slope);
       let mask = float(1).sub(beach).mul(float(1).sub(steep)).mul(mix(float(1), float(0.25), forest));
       // tufts: patchy density so the carpet isn't uniform
