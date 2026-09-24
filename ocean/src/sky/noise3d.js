@@ -72,7 +72,9 @@ export function makeAtlasInfo(size) {
 function makeAtlas(info, name) {
   const t = new THREE.StorageTexture(info.width, info.height);
   t.format = THREE.RGBAFormat;
-  t.type = THREE.UnsignedByteType;
+  // half float: the density remaps stretch the noise ~16x, which turns 8-bit
+  // steps into visible contour bands through the clouds
+  t.type = THREE.HalfFloatType;
   t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
   t.magFilter = THREE.LinearFilter;
   t.minFilter = THREE.LinearFilter;
