@@ -1,0 +1,2024 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#04050d">
+<title>Earthside</title>
+<meta name="description" content="Freight tracking around a live 3D Earth, with the rest of the solar system hanging in the sky behind it.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Manrope:wght@400;500;600;700;800&family=Unbounded:wght@300;400;500&display=swap">
+<style>
+  :root {
+    color-scheme: dark;
+    --space: #04050d;
+    --ink: #edf0ff;
+    --ink-2: #aeb6d8;
+    --ink-3: #737da8;
+    --glass: rgba(9, 12, 28, 0.64);
+    --glass-2: rgba(255, 255, 255, 0.045);
+    --glass-3: rgba(255, 255, 255, 0.09);
+    --line: rgba(168, 184, 255, 0.12);
+    --line-2: rgba(168, 184, 255, 0.26);
+    --sun: #ffc15a;
+    --sun-ink: #201404;
+    --plan: #7dd8ff;
+    --ok: #5fe3a1;
+    --warn: #ffa24c;
+    --crit: #ff5b6e;
+    --low: #8ea2ff;
+    --r-lg: 20px;
+    --r-md: 14px;
+    --gutter: clamp(16px, 1.6vw, 26px);
+    --f-display: "Unbounded", "Manrope", system-ui, sans-serif;
+    --f-ui: "Manrope", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --f-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0;
+    background: var(--space);
+    color: var(--ink);
+    font: 500 14px/1.45 var(--f-ui);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  button, input, select { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  h2, p, dl, dd, ul, figure { margin: 0; }
+  ul { padding: 0; list-style: none; }
+  :focus-visible { outline: 2px solid var(--sun); outline-offset: 2px; }
+  .mono { font-family: var(--f-mono); font-variant-numeric: tabular-nums; }
+  .sr-only {
+    position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+    overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+  }
+  svg.i { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* ---------- scene layers ---------- */
+  #scene { position: fixed; left: 0; top: 0; width: 100vw; height: 100vh; height: 100lvh; display: block; }
+  .vignette {
+    position: fixed; inset: 0; pointer-events: none; z-index: 1;
+    background: radial-gradient(120% 90% at 50% 50%, transparent 55%, rgba(2, 3, 9, 0.55) 100%);
+  }
+  .labels { position: fixed; inset: 0; pointer-events: none; z-index: 1; overflow: hidden; }
+  .geo-label {
+    position: absolute; left: 0; top: 0;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 3px 9px 3px 7px;
+    border-radius: 999px;
+    background: rgba(6, 8, 20, 0.72);
+    border: 1px solid var(--line-2);
+    font: 700 10.5px/1.3 var(--f-ui);
+    letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap;
+    color: var(--ink);
+    transition: opacity 0.25s;
+    will-change: transform;
+  }
+  .geo-label::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--sun); }
+  .geo-label.is-plan::before { background: var(--plan); }
+  .geo-label.is-risk::before { background: var(--crit); }
+  .geo-label.is-moon::before { background: var(--ink-2); }
+  .geo-label small { font: 500 10px var(--f-mono); letter-spacing: 0; text-transform: none; color: var(--ink-2); }
+
+  /* ---------- app shell ---------- */
+  .app {
+    position: relative; z-index: 2;
+    height: 100%;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: 14px;
+    padding: 16px var(--gutter) 18px;
+  }
+
+  .topbar {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 16px;
+    min-height: 48px;
+  }
+  .brand { display: inline-flex; align-items: center; gap: 12px; color: inherit; text-decoration: none; justify-self: start; }
+  .mark { width: 38px; height: 38px; flex: none; }
+  .wordmark { display: block; font: 500 19px/1 var(--f-display); letter-spacing: -0.01em; }
+  .brand-sub {
+    display: block; margin-top: 6px;
+    font: 700 10.5px/1 var(--f-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3);
+  }
+  .status {
+    display: inline-flex; align-items: center; gap: 12px;
+    padding: 8px 16px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: rgba(6, 8, 20, 0.5);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    font-size: 12px; color: var(--ink-2);
+    white-space: nowrap;
+  }
+  .status .sep { width: 1px; height: 12px; background: var(--line-2); }
+  .status .dim { color: var(--ink-3); }
+  .live { display: inline-flex; align-items: center; gap: 7px; font-weight: 800; font-size: 10.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ok); }
+  .live i { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); animation: ping 2.2s ease-out infinite; }
+  @keyframes ping {
+    0% { box-shadow: 0 0 0 0 rgba(95, 227, 161, 0.55); }
+    75%, 100% { box-shadow: 0 0 0 8px rgba(95, 227, 161, 0); }
+  }
+  .account { justify-self: end; display: flex; align-items: center; gap: 10px; }
+  .icon-btn {
+    position: relative;
+    display: inline-grid; place-items: center;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    border: 1px solid var(--line);
+    background: rgba(12, 16, 36, 0.55);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    color: var(--ink);
+    transition: background 0.15s, border-color 0.15s, transform 0.15s;
+  }
+  .icon-btn:hover { background: rgba(40, 48, 90, 0.6); border-color: var(--line-2); }
+  .icon-btn:active { transform: scale(0.95); }
+  .badge {
+    position: absolute; top: -3px; right: -3px;
+    min-width: 17px; height: 17px; padding: 0 4px;
+    border-radius: 999px; background: var(--sun); color: var(--sun-ink);
+    font: 800 10px/17px var(--f-ui); text-align: center;
+    box-shadow: 0 0 0 2px var(--space);
+  }
+  .user {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 4px 16px 4px 4px;
+    border-radius: 999px;
+    border: 1px solid var(--line);
+    background: rgba(12, 16, 36, 0.55);
+    -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+    text-align: left;
+  }
+  .avatar {
+    width: 30px; height: 30px; border-radius: 50%;
+    display: grid; place-items: center;
+    background: radial-gradient(circle at 30% 25%, #ffe2a6, #f08a3c 70%);
+    color: var(--sun-ink); font: 500 13px/1 var(--f-display);
+  }
+  .user-meta b { display: block; font-size: 13px; line-height: 1.1; }
+  .user-meta small { display: block; font-size: 11px; color: var(--ink-3); }
+
+  /* ---------- dashboard grid ---------- */
+  .dash {
+    display: grid;
+    grid-template-columns: clamp(284px, 23vw, 344px) minmax(0, 1fr) clamp(284px, 23vw, 344px);
+    gap: 18px;
+    min-height: 0;
+  }
+  .col { display: flex; flex-direction: column; justify-content: space-between; gap: 14px; min-height: 0; }
+
+  .panel {
+    position: relative;
+    background: var(--glass);
+    border: 1px solid var(--line);
+    border-radius: var(--r-lg);
+    padding: 16px 18px 18px;
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    backdrop-filter: blur(18px) saturate(140%);
+    box-shadow: 0 24px 60px -28px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    min-height: 0;
+  }
+  .panel-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+  .panel-head h2 { display: inline-flex; align-items: center; gap: 8px; font: 700 14px/1.2 var(--f-ui); letter-spacing: 0.01em; }
+  .panel-head h2 .i { width: 16px; height: 16px; color: var(--sun); fill: currentColor; stroke: none; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 9px;
+    border-radius: 999px;
+    background: var(--glass-3);
+    color: var(--ink-2);
+    font: 700 10.5px/1.4 var(--f-ui); letter-spacing: 0.06em; text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .st-ok   { color: var(--ok);   background: rgba(95, 227, 161, 0.12); }
+  .st-warn { color: var(--warn); background: rgba(255, 162, 76, 0.13); }
+  .st-crit { color: var(--crit); background: rgba(255, 91, 110, 0.14); }
+  .lv-1 { color: var(--low);  background: rgba(142, 162, 255, 0.13); }
+  .lv-2 { color: var(--warn); background: rgba(255, 162, 76, 0.13); }
+  .lv-3 { color: var(--crit); background: rgba(255, 91, 110, 0.14); }
+  .eyebrow { font: 700 10.5px/1.3 var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
+
+  /* ---------- route planner ---------- */
+  .od { display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: 6px; }
+  .field {
+    display: grid; gap: 1px;
+    padding: 8px 10px 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: var(--r-md);
+    background: var(--glass-2);
+    transition: border-color 0.15s;
+    min-width: 0;
+  }
+  .field:hover, .field:focus-within { border-color: var(--line-2); }
+  .field select {
+    appearance: none; -webkit-appearance: none;
+    width: 100%; min-width: 0;
+    padding: 0 16px 0 0; border: 0; outline: 0;
+    background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23737da8' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") no-repeat right center / 13px;
+    font-size: 14px; font-weight: 700; color: var(--ink);
+    text-overflow: ellipsis; cursor: pointer;
+  }
+  .field select option { background: #0d1124; color: var(--ink); }
+  .swap {
+    display: grid; place-items: center;
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 1px solid var(--line); background: var(--glass-2); color: var(--ink-2);
+    transition: transform 0.25s, color 0.15s;
+  }
+  .swap:hover { color: var(--ink); transform: rotate(180deg); }
+  .swap .i { width: 15px; height: 15px; }
+  .plan-row { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px; margin-top: 10px; }
+  .seg {
+    position: relative;
+    display: inline-flex; gap: 2px;
+    padding: 3px; margin: 0;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: rgba(6, 8, 20, 0.45);
+    min-inline-size: 0;
+  }
+  .seg input { position: absolute; opacity: 0; pointer-events: none; }
+  .seg label, .seg button {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 12px;
+    border: 0; border-radius: 999px;
+    background: transparent;
+    color: var(--ink-2);
+    font-size: 12.5px; font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+  }
+  .seg .i { width: 15px; height: 15px; }
+  .seg input:checked + label, .seg button[aria-pressed="true"] { background: var(--ink); color: var(--space); }
+  .seg input:focus-visible + label { outline: 2px solid var(--sun); outline-offset: 1px; }
+  .seg label:hover, .seg button:hover { color: var(--ink); }
+  .seg input:checked + label:hover, .seg button[aria-pressed="true"]:hover { color: var(--space); }
+  .primary {
+    border: 0; border-radius: 999px;
+    padding: 9px 16px;
+    background: linear-gradient(180deg, #ffd27f, var(--sun));
+    color: var(--sun-ink);
+    font-weight: 800; font-size: 13px;
+    box-shadow: 0 8px 22px -10px rgba(255, 176, 60, 0.8);
+    transition: filter 0.15s, transform 0.15s;
+  }
+  .primary:hover { filter: brightness(1.06); }
+  .primary:active { transform: translateY(1px); }
+  .plan-result {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px 14px;
+    margin-top: 14px; padding-top: 14px;
+    border-top: 1px solid var(--line);
+  }
+  .plan-result dt { font: 700 10px/1.3 var(--f-ui); letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink-3); }
+  .plan-result dd { margin-top: 2px; font: 500 14px/1.3 var(--f-mono); color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .plan-result .plan-note { grid-column: 1 / -1; font-size: 12px; color: var(--ink-3); }
+  .plan-result .plan-note b { color: var(--plan); font-weight: 700; }
+  .plan-error { color: var(--warn) !important; }
+
+  /* ---------- shipments ---------- */
+  .planner, .kpis { flex: none; }
+  .shipments, .risk-panel { display: flex; flex-direction: column; }
+  .ship-list, .risk-list { min-height: 0; overflow: auto; scrollbar-width: thin; scrollbar-color: var(--line-2) transparent; }
+  .ship-list { display: grid; align-content: start; gap: 4px; margin: 0 -8px; padding: 0 8px; }
+  .ship {
+    display: grid; gap: 7px; width: 100%;
+    padding: 9px 10px;
+    border: 1px solid transparent;
+    border-radius: var(--r-md);
+    background: transparent;
+    text-align: left;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .ship:hover { background: var(--glass-2); }
+  .ship[aria-pressed="true"] { background: rgba(255, 193, 90, 0.08); border-color: rgba(255, 193, 90, 0.35); }
+  .ship-line { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .ship-line .i { width: 15px; height: 15px; color: var(--ink-3); }
+  .ship-route { flex: 1; min-width: 0; font-weight: 700; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .ship-route .to { color: var(--ink-3); margin: 0 5px; font-weight: 500; }
+  .ship-id { font-size: 11px; color: var(--ink-3); width: 66px; flex: none; }
+  .bar { position: relative; flex: 1; height: 4px; border-radius: 4px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+  .bar i { position: absolute; inset: 0 auto 0 0; border-radius: inherit; background: linear-gradient(90deg, rgba(255, 193, 90, 0.35), var(--sun)); }
+  .ship-eta { font-size: 11px; color: var(--ink-2); flex: none; min-width: 74px; text-align: right; }
+  .ship-eta.late { color: var(--warn); }
+
+  /* ---------- stage ---------- */
+  .stage { position: relative; display: grid; grid-template-rows: minmax(0, 1fr) auto; min-height: 0; min-width: 0; }
+  .globe-slot { position: relative; min-height: 0; cursor: grab; touch-action: none; border-radius: var(--r-lg); outline-offset: -4px; }
+  .globe-slot.dragging { cursor: grabbing; }
+  .globe-note {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+    max-width: 32ch; text-align: center; color: var(--ink-2); font-size: 13px;
+    transition: opacity 0.6s;
+  }
+  .globe-note.is-hidden { opacity: 0; }
+  .hud { display: grid; justify-items: center; gap: 10px; padding-top: 6px; }
+  .readout {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 12px; color: var(--ink-2);
+    padding: 5px 12px; border-radius: 999px;
+    background: rgba(6, 8, 20, 0.45);
+    border: 1px solid var(--line);
+  }
+  .ro-label { font: 800 10px/1 var(--f-ui); letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); min-width: 48px; }
+  .controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; }
+  .btn-row { display: flex; gap: 6px; }
+  .legend { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px 16px; font-size: 11.5px; color: var(--ink-3); }
+  .legend li { display: inline-flex; align-items: center; gap: 7px; }
+  .legend i { width: 16px; height: 0; border-top: 2px dotted; }
+  .legend .k-route { color: var(--sun); }
+  .legend .k-plan { color: var(--plan); }
+  .legend .k-risk { width: 8px; height: 8px; border: 0; border-radius: 50%; background: var(--crit); box-shadow: 0 0 0 3px rgba(255, 91, 110, 0.25); }
+
+  /* ---------- KPIs ---------- */
+  .kpi-main { display: grid; gap: 4px; }
+  .big { font: 300 42px/1.05 var(--f-display); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+  .delta { display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; font-weight: 800; color: var(--ok); }
+  .delta span { color: var(--ink-3); font-weight: 600; margin-left: 3px; }
+  .delta .i { width: 14px; height: 14px; stroke-width: 2.2; }
+  .spark-fig { margin-top: 12px; }
+  .spark-fig svg { display: block; width: 100%; height: auto; overflow: visible; }
+  .spark-fig figcaption { display: flex; justify-content: space-between; margin-top: 4px; font-size: 10.5px; color: var(--ink-3); }
+  .spark-grid { stroke: rgba(168, 184, 255, 0.1); stroke-width: 1; stroke-dasharray: 2 4; }
+  .spark-line { fill: none; stroke: var(--sun); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+  .spark-dot { fill: var(--space); stroke: var(--sun); stroke-width: 2; }
+  .spark-val { fill: var(--ink); font: 700 11px var(--f-mono); }
+  .spark-axis { fill: var(--ink-3); font: 500 9.5px var(--f-mono); }
+  .kpi-grid {
+    display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px;
+    margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line);
+  }
+  .kpi-grid .mid { margin-top: 4px; font: 400 19px/1.1 var(--f-display); letter-spacing: -0.01em; }
+  .kpi-grid .sub { margin-top: 4px; font-size: 11px; color: var(--ink-3); }
+  .kpi-grid .sub.up { color: var(--ok); font-weight: 700; }
+
+  /* ---------- risk ---------- */
+  .risk-list { display: grid; align-content: start; gap: 4px; margin: 0 -8px; padding: 0 8px; }
+  .risk {
+    display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 12px;
+    width: 100%; padding: 9px 10px;
+    border: 1px solid transparent; border-radius: var(--r-md);
+    background: transparent; text-align: left;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .risk:hover { background: var(--glass-2); }
+  .risk[aria-pressed="true"] { background: rgba(255, 91, 110, 0.07); border-color: rgba(255, 91, 110, 0.35); }
+  .risk-body { min-width: 0; }
+  .risk-body b { display: block; font-size: 13px; }
+  .risk-body span { display: block; font-size: 11.5px; color: var(--ink-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .sev { display: inline-flex; align-items: flex-end; gap: 2px; height: 16px; }
+  .sev i { width: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.12); }
+  .sev i:nth-child(1) { height: 6px; }
+  .sev i:nth-child(2) { height: 11px; }
+  .sev i:nth-child(3) { height: 16px; }
+  .sev-1 i:nth-child(-n+1) { background: var(--low); }
+  .sev-2 i:nth-child(-n+2) { background: var(--warn); }
+  .sev-3 i:nth-child(-n+3) { background: var(--crit); }
+
+  .fail-note { color: var(--warn); }
+
+  /* ---------- compact: phones, tablets, short windows ---------- */
+  @media (max-width: 1099px), (max-height: 639px) {
+    body { overflow-x: hidden; overflow-y: auto; }
+    .app { height: auto; min-height: 100%; grid-template-rows: auto auto; padding-bottom: 28px; }
+    .topbar { grid-template-columns: minmax(0, 1fr) auto; row-gap: 12px; }
+    .status { grid-column: 1 / -1; grid-row: 2; justify-self: center; }
+    .user-meta { display: none; }
+    .user { padding-right: 4px; }
+    .dash { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+    .col { display: contents; }
+    .stage { order: 0; height: clamp(360px, min(100vw, 72svh), 760px); }
+    .globe-slot { touch-action: pan-y; }
+    .kpis { order: 1; }
+    .planner { order: 2; }
+    .shipments { order: 3; }
+    .risk-panel { order: 4; }
+    .ship-list, .risk-list { overflow: visible; }
+    .panel { -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); background: rgba(9, 12, 28, 0.7); }
+  }
+  @media (min-width: 700px) and (max-width: 1099px), (min-width: 700px) and (max-height: 639px) {
+    .dash { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .stage { grid-column: 1 / -1; }
+  }
+  @media (max-width: 420px) {
+    .status { gap: 9px; padding: 7px 12px; font-size: 11.5px; }
+    .hide-sm { display: none; }
+    .big { font-size: 36px; }
+    .legend { gap: 6px 12px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; animation-iteration-count: 1 !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16v-5a6 6 0 1 1 12 0v5l1.5 2h-15L6 16Z"/><path d="M10 20.5a2.2 2.2 0 0 0 4 0"/></symbol>
+    <symbol id="i-ship" viewBox="0 0 24 24"><path d="M3 15.5 5.2 19h13.6l2.2-3.5H3Z"/><path d="M6 15.5V10h9.5l3 5.5"/><path d="M9 10V6.5h4.5V10"/></symbol>
+    <symbol id="i-plane" viewBox="0 0 24 24"><path d="M21 15.5v-2l-7.5-4.5V4.5a1.5 1.5 0 0 0-3 0V9L3 13.5v2l7.5-2.2V18l-2 1.5V21l3.5-1 3.5 1v-1.5l-2-1.5v-4.7l7.5 2.2Z"/></symbol>
+    <symbol id="i-swap" viewBox="0 0 24 24"><path d="M4 8h15m0 0-3.5-3.5M19 8l-3.5 3.5M20 16H5m0 0 3.5-3.5M5 16l3.5 3.5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><path d="M9 5.5v13M15 5.5v13"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7.5 5.5 18.5 12l-11 6.5v-13Z"/></symbol>
+    <symbol id="i-expand" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></symbol>
+    <symbol id="i-shrink" viewBox="0 0 24 24"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 2.5c.7 5.2 3.8 8.3 9 9-5.2.7-8.3 3.8-9 9-.7-5.2-3.8-8.3-9-9 5.2-.7 8.3-3.8 9-9Z"/></symbol>
+    <symbol id="i-up" viewBox="0 0 24 24"><path d="M7 17 17 7M9 7h8v8"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.4 2.6 3.6 5.4 3.6 8.5s-1.2 5.9-3.6 8.5c-2.4-2.6-3.6-5.4-3.6-8.5s1.2-5.9 3.6-8.5Z"/></symbol>
+    <symbol id="i-orbit" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><ellipse cx="12" cy="12" rx="9.5" ry="4.2" transform="rotate(-20 12 12)"/></symbol>
+  </defs>
+</svg>
+
+<canvas id="scene" aria-hidden="true"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+<div class="labels" id="labels" aria-hidden="true"></div>
+
+<div class="app">
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="Earthside, freight control">
+      <svg class="mark" viewBox="0 0 40 40" aria-hidden="true">
+        <defs>
+          <radialGradient id="mk-planet" cx="34%" cy="30%" r="78%">
+            <stop offset="0" stop-color="#fff0c8"/>
+            <stop offset=".45" stop-color="#ffc15a"/>
+            <stop offset="1" stop-color="#b8560f"/>
+          </radialGradient>
+        </defs>
+        <ellipse cx="20" cy="20" rx="17.5" ry="6.5" transform="rotate(-22 20 20)" fill="none" stroke="#edf0ff" stroke-opacity=".32" stroke-width="1.3"/>
+        <circle cx="20" cy="20" r="9" fill="url(#mk-planet)"/>
+        <path d="M36.22 13.45A17.5 6.5 -22 0 1 3.78 26.55" fill="none" stroke="#edf0ff" stroke-width="1.5" stroke-linecap="round"/>
+        <circle cx="30.9" cy="11.1" r="2.3" fill="#edf0ff"/>
+      </svg>
+      <span>
+        <span class="wordmark">Earthside</span>
+        <span class="brand-sub">Freight control</span>
+      </span>
+    </a>
+
+    <div class="status">
+      <span class="live"><i></i>Live</span>
+      <span class="sep"></span>
+      <span class="mono" id="utc">--:--:-- UTC</span>
+      <span class="sep"></span>
+      <span class="mono dim">Uplink <span id="latency">118</span> ms</span>
+      <span class="sep hide-sm"></span>
+      <span class="dim hide-sm">Demo feed</span>
+    </div>
+
+    <div class="account">
+      <button class="icon-btn" type="button" id="alerts" aria-label="Show the top alert (3 open)" title="Show the top alert">
+        <svg class="i"><use href="#i-bell"/></svg><span class="badge">3</span>
+      </button>
+      <div class="user" aria-label="Signed in as Kai, dispatch lead">
+        <span class="avatar" aria-hidden="true">K</span>
+        <span class="user-meta"><b>Kai</b><small>Dispatch lead</small></span>
+      </div>
+    </div>
+  </header>
+
+  <main class="dash">
+    <section class="col col-left" aria-label="Planning and shipments">
+      <article class="panel planner" aria-labelledby="planner-h">
+        <div class="panel-head">
+          <h2 id="planner-h"><svg class="i"><use href="#i-spark"/></svg>Route planner</h2>
+          <span class="chip">Great-circle</span>
+        </div>
+        <form id="planner" autocomplete="off">
+          <div class="od">
+            <label class="field" for="from"><span class="eyebrow">From</span><select id="from" name="from"></select></label>
+            <button class="swap" type="button" id="swap" aria-label="Swap origin and destination"><svg class="i"><use href="#i-swap"/></svg></button>
+            <label class="field" for="to"><span class="eyebrow">To</span><select id="to" name="to"></select></label>
+          </div>
+          <div class="plan-row">
+            <fieldset class="seg">
+              <legend class="sr-only">Transport mode</legend>
+              <input type="radio" id="mode-sea" name="mode" value="sea" checked><label for="mode-sea"><svg class="i"><use href="#i-ship"/></svg>Sea</label>
+              <input type="radio" id="mode-air" name="mode" value="air"><label for="mode-air"><svg class="i"><use href="#i-plane"/></svg>Air</label>
+            </fieldset>
+            <button class="primary" type="submit">Plot route</button>
+          </div>
+        </form>
+        <dl class="plan-result" id="planResult" aria-live="polite">
+          <div><dt>Distance</dt><dd id="pDist">&ndash;</dd></div>
+          <div><dt>Transit</dt><dd id="pTime">&ndash;</dd></div>
+          <div><dt>Arrives</dt><dd id="pEta">&ndash;</dd></div>
+          <div><dt>CO&#8322; per tonne</dt><dd id="pCo2">&ndash;</dd></div>
+        </dl>
+      </article>
+
+      <article class="panel shipments" aria-labelledby="ship-h">
+        <div class="panel-head">
+          <h2 id="ship-h">Live shipments</h2>
+          <span class="chip" id="shipCount">6 active</span>
+        </div>
+        <ul class="ship-list" id="shipList"></ul>
+      </article>
+    </section>
+
+    <section class="stage" aria-label="Globe">
+      <div class="globe-slot" id="globeSlot" tabindex="0" role="application" aria-roledescription="3D globe"
+           aria-label="Interactive globe. Drag to rotate, scroll or press plus and minus to zoom, arrow keys to turn.">
+        <p class="globe-note" id="globeNote">Loading Earth imagery&hellip;</p>
+      </div>
+      <div class="hud">
+        <p class="readout mono" id="readout"><span class="ro-label" id="roLabel">Center</span><span id="roLat">&ndash;</span><span id="roLon">&ndash;</span></p>
+        <div class="controls">
+          <div class="seg" role="group" aria-label="Camera">
+            <button type="button" data-view="earth" aria-pressed="true"><svg class="i"><use href="#i-globe"/></svg>Earth</button>
+            <button type="button" data-view="orbit" aria-pressed="false"><svg class="i"><use href="#i-orbit"/></svg>Orbit</button>
+          </div>
+          <div class="btn-row">
+            <button class="icon-btn" type="button" id="zoomOut" aria-label="Zoom out" title="Zoom out"><svg class="i"><use href="#i-minus"/></svg></button>
+            <button class="icon-btn" type="button" id="zoomIn" aria-label="Zoom in" title="Zoom in"><svg class="i"><use href="#i-plus"/></svg></button>
+            <button class="icon-btn" type="button" id="spin" aria-label="Pause rotation" title="Pause rotation" aria-pressed="true"><svg class="i"><use href="#i-pause"/></svg></button>
+            <button class="icon-btn" type="button" id="fullscreen" aria-label="Full screen" title="Full screen"><svg class="i"><use href="#i-expand"/></svg></button>
+          </div>
+        </div>
+        <ul class="legend" aria-label="Map key">
+          <li><i class="k-route"></i>In transit</li>
+          <li><i class="k-plan"></i>Planned</li>
+          <li><i class="k-risk"></i>Risk zone</li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="col col-right" aria-label="Deliveries and risk">
+      <article class="panel kpis" aria-labelledby="kpi-h">
+        <div class="panel-head">
+          <h2 id="kpi-h">Deliveries</h2>
+          <span class="chip">Sample data</span>
+        </div>
+        <div class="kpi-main">
+          <p class="eyebrow" id="monthLabel">This month</p>
+          <p class="big" data-count="1021">1,021</p>
+          <p class="delta"><svg class="i"><use href="#i-up"/></svg>32%<span id="prevMonth">vs last month</span></p>
+        </div>
+        <figure class="spark-fig">
+          <svg id="sparkline" viewBox="0 0 300 92" role="img" aria-label="Daily deliveries this month"></svg>
+          <figcaption><span id="sparkFrom">Day 1</span><span>Daily deliveries</span><span>Today</span></figcaption>
+        </figure>
+        <div class="kpi-grid">
+          <div><p class="eyebrow">This year</p><p class="mid" data-count="8764">8,764</p><p class="sub up" id="ytdDelta">+12% YoY</p></div>
+          <div><p class="eyebrow">On time</p><p class="mid">94.2%</p><p class="sub up">+1.3 pts</p></div>
+          <div><p class="eyebrow">In transit</p><p class="mid" data-count="128">128</p><p class="sub">87 sea &middot; 41 air</p></div>
+        </div>
+      </article>
+
+      <article class="panel risk-panel" aria-labelledby="risk-h">
+        <div class="panel-head">
+          <h2 id="risk-h">Risk watch</h2>
+          <span class="chip st-crit">3 alerts</span>
+        </div>
+        <ul class="risk-list" id="riskList"></ul>
+      </article>
+    </section>
+  </main>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three-mirror": "https://cdnjs.cloudflare.com/ajax/libs/three.js/0.160.0/three.module.min.js"
+  }
+}
+</script>
+
+<script type="module">
+/*
+ * Earthside — a freight dashboard built around a live Earth.
+ *
+ * Two scenes share one canvas. The sky scene (stars, Milky Way, the planets,
+ * a light leak from the Sun) is drawn with a fixed camera that only drifts for
+ * parallax. The Earth scene (globe, clouds, atmosphere, routes, Moon) is drawn
+ * on top with its own camera, framed every frame onto #globeSlot so the planet
+ * follows the page layout — and the page scroll on phones.
+ *
+ * Everything is lit by one Sun direction, so the Earth's terminator, the
+ * phases of the planets and the shadow on Saturn's rings all agree.
+ */
+
+/* ------------------------------------------------------------------ *
+ * Sample data
+ * ------------------------------------------------------------------ */
+const PORTS = {
+  'Busan':       [35.10, 129.04],
+  'Cape Town':   [-33.91, 18.43],
+  'Dubai':       [25.01, 55.06],
+  'Hamburg':     [53.54, 9.97],
+  'Lagos':       [6.43, 3.40],
+  'Los Angeles': [33.74, -118.26],
+  'Mumbai':      [18.95, 72.84],
+  'New York':    [40.68, -74.04],
+  'Rotterdam':   [51.95, 4.14],
+  'Santos':      [-23.99, -46.30],
+  'Shanghai':    [31.23, 121.47],
+  'Shenzhen':    [22.50, 113.90],
+  'Singapore':   [1.26, 103.84],
+  'Sydney':      [-33.86, 151.21],
+  'Tokyo':       [35.77, 140.39],
+  'Vancouver':   [49.29, -123.11],
+};
+
+// Sea legs follow real lanes through straits and around capes; air legs fly
+// the great circle between their two ends.
+const SHIPMENTS = [
+  { id: 'SHP-2041', from: 'Shanghai', to: 'Rotterdam', mode: 'sea', progress: 0.62, eta: { days: 15 }, status: 'ok',
+    via: [[31.0, 122.6], [28.5, 122.8], [24.5, 119.8], [21.6, 117.2], [17.0, 113.8], [10.0, 110.0], [5.0, 105.6], [1.25, 104.1],
+          [2.6, 101.2], [5.6, 97.6], [6.1, 94.4], [5.5, 80.6], [10.0, 65.0], [13.2, 50.5], [12.6, 43.4], [15.5, 41.6], [20.5, 38.4],
+          [27.0, 34.2], [29.9, 32.55], [31.5, 32.35], [33.5, 27.0], [35.2, 22.0], [36.4, 15.6], [37.4, 11.2], [37.6, 5.0],
+          [35.95, -5.6], [36.6, -9.6], [43.2, -9.9], [48.3, -5.6], [50.2, -1.0], [51.1, 1.7]] },
+  { id: 'AIR-0716', from: 'Tokyo', to: 'Vancouver', mode: 'air', progress: 0.71, eta: { hours: 3.2 }, status: 'ok' },
+  { id: 'SHP-1987', from: 'Singapore', to: 'Los Angeles', mode: 'sea', progress: 0.38, eta: { days: 11 }, status: 'warn', late: '+14 h',
+    via: [[2.3, 105.0], [8.0, 110.2], [15.5, 116.2], [20.9, 121.0], [28.0, 135.0]] },
+  { id: 'SHP-2093', from: 'Shenzhen', to: 'Sydney', mode: 'sea', progress: 0.12, eta: { days: 9 }, status: 'crit',
+    via: [[21.3, 115.5], [20.2, 118.5], [20.9, 121.3], [15.0, 128.0], [2.0, 145.0], [-4.0, 156.5], [-14.0, 157.5], [-28.0, 154.5]] },
+  { id: 'AIR-0652', from: 'Dubai', to: 'New York', mode: 'air', progress: 0.47, eta: { hours: 7.5 }, status: 'ok' },
+  { id: 'SHP-1942', from: 'Santos', to: 'Lagos', mode: 'sea', progress: 0.83, eta: { days: 2 }, status: 'ok',
+    via: [[-24.8, -44.0], [-20.0, -37.0], [-8.0, -30.0], [1.0, -10.0], [3.8, 1.0]] },
+];
+
+const RISKS = [
+  { title: 'Tropical storm', place: 'South China Sea', note: '2 vessels rerouting', level: 3, lat: 19.6, lon: 117.6 },
+  { title: 'Port congestion', place: 'Singapore', note: 'Berth wait 31 h', level: 2, lat: 1.0, lon: 104.6 },
+  { title: 'Draft limit', place: 'Panama Canal', note: 'Max 13.4 m', level: 1, lat: 9.1, lon: -79.7 },
+];
+
+// Transit assumptions for the planner. Ships sail about 30% further than the
+// great circle once coastlines and canals are accounted for.
+const MODES = {
+  sea: { kmh: 29.6, detour: 1.3, handlingH: 48, kgPerTkm: 0.012 },  // 16 kn feeder/mainline average
+  air: { kmh: 820, detour: 1.08, handlingH: 14, kgPerTkm: 0.6 },
+};
+
+const STATUS = { ok: 'On time', warn: 'Delayed', crit: 'At risk' };
+const LEVEL = { 1: 'Low', 2: 'Medium', 3: 'High' };
+
+/* ------------------------------------------------------------------ *
+ * Helpers
+ * ------------------------------------------------------------------ */
+const D2R = Math.PI / 180, R2D = 180 / Math.PI;
+const $ = (s) => document.querySelector(s);
+const nf = new Intl.NumberFormat('en-US');
+const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const compactMQ = matchMedia('(max-width: 1099px), (max-height: 639px)');
+const now0 = new Date();
+const dShort = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
+const dLong = new Intl.DateTimeFormat('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+const monthName = (d) => d.toLocaleString('en-US', { month: 'long' });
+
+const lerp = (a, b, t) => a + (b - a) * t;
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const easeInOut = (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const wrapLon = (l) => ((((l + 180) % 360) + 360) % 360) - 180;
+const fmtLat = (v) => `${Math.abs(v).toFixed(4)}° ${v >= 0 ? 'N' : 'S'}`;
+const fmtLon = (v) => `${Math.abs(v).toFixed(4)}° ${v >= 0 ? 'E' : 'W'}`;
+
+function mulberry32(a) {
+  return () => {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+function haversineKm([la1, lo1], [la2, lo2]) {
+  const p1 = la1 * D2R, p2 = la2 * D2R, dp = p2 - p1, dl = (lo2 - lo1) * D2R;
+  const h = Math.sin(dp / 2) ** 2 + Math.cos(p1) * Math.cos(p2) * Math.sin(dl / 2) ** 2;
+  return 2 * 6371 * Math.asin(Math.min(1, Math.sqrt(h)));
+}
+
+function etaText(s) {
+  if (s.eta.hours != null) {
+    const t = new Date(Date.now() + s.eta.hours * 3600e3);
+    return `${String(t.getUTCHours()).padStart(2, '0')}:${String(t.getUTCMinutes()).padStart(2, '0')} UTC`;
+  }
+  return `ETA ${dShort.format(new Date(Date.now() + s.eta.days * 86400e3))}`;
+}
+
+/* ------------------------------------------------------------------ *
+ * Globe API. Stays a no-op until WebGL is up, so the panels work
+ * even when the 3D view can't start.
+ * ------------------------------------------------------------------ */
+let globe = {
+  selectShipment() {}, previewShipment() {}, focusRisk() {}, setPlan() {},
+  setView() {}, zoomBy() {}, setSpin() {}, readout: null,
+};
+
+/* ------------------------------------------------------------------ *
+ * Panels
+ * ------------------------------------------------------------------ */
+function buildShipments() {
+  $('#shipList').innerHTML = SHIPMENTS.map((s, i) => `
+    <li><button class="ship" type="button" data-i="${i}" aria-pressed="false">
+      <span class="ship-line">
+        <svg class="i" role="img" aria-label="${s.mode === 'air' ? 'Air freight' : 'Sea freight'}"><use href="#i-${s.mode === 'air' ? 'plane' : 'ship'}"/></svg>
+        <span class="ship-route" title="${s.from} to ${s.to}">${s.from}<span class="to">&rarr;</span>${s.to}</span>
+        <span class="chip st-${s.status}">${STATUS[s.status]}</span>
+      </span>
+      <span class="ship-line">
+        <span class="mono ship-id">${s.id}</span>
+        <span class="bar" role="img" aria-label="${Math.round(s.progress * 100)}% of the way"><i style="width:${Math.round(s.progress * 100)}%"></i></span>
+        <span class="mono ship-eta${s.late ? ' late' : ''}">${etaText(s)}${s.late ? ` ${s.late}` : ''}</span>
+      </span>
+    </button></li>`).join('');
+  $('#shipCount').textContent = `${SHIPMENTS.length} active`;
+
+  let selected = -1;
+  const rows = [...document.querySelectorAll('.ship')];
+  rows.forEach((row) => {
+    const i = +row.dataset.i;
+    row.addEventListener('click', () => {
+      selected = selected === i ? -1 : i;
+      rows.forEach((r, j) => r.setAttribute('aria-pressed', String(j === selected)));
+      document.querySelectorAll('.risk').forEach((r) => r.setAttribute('aria-pressed', 'false'));
+      globe.selectShipment(selected);
+    });
+    row.addEventListener('pointerenter', () => globe.previewShipment(i));
+    row.addEventListener('pointerleave', () => globe.previewShipment(-1));
+  });
+}
+
+function buildRisks() {
+  $('#riskList').innerHTML = RISKS.map((r, i) => `
+    <li><button class="risk" type="button" data-i="${i}" aria-pressed="false">
+      <span class="sev sev-${r.level}" role="img" aria-label="Severity ${LEVEL[r.level]}"><i></i><i></i><i></i></span>
+      <span class="risk-body"><b>${r.title}</b><span>${r.place} &middot; ${r.note}</span></span>
+      <span class="chip lv-${r.level}">${LEVEL[r.level]}</span>
+    </button></li>`).join('');
+  const rows = [...document.querySelectorAll('.risk')];
+  $('#alerts').addEventListener('click', () => {
+    const top = rows[0];
+    if (top.getAttribute('aria-pressed') !== 'true') top.click();
+    top.scrollIntoView({ block: 'nearest', behavior: reduceMotion ? 'auto' : 'smooth' });
+  });
+  rows.forEach((row) => row.addEventListener('click', () => {
+    const i = +row.dataset.i;
+    const on = row.getAttribute('aria-pressed') !== 'true';
+    rows.forEach((r) => r.setAttribute('aria-pressed', String(on && r === row)));
+    document.querySelectorAll('.ship').forEach((r) => r.setAttribute('aria-pressed', 'false'));
+    globe.focusRisk(on ? i : -1);
+  }));
+}
+
+function buildKpis() {
+  const prev = new Date(now0.getFullYear(), now0.getMonth() - 1, 1);
+  $('#monthLabel').textContent = `${monthName(now0)} to date`;
+  $('#prevMonth').textContent = `vs ${monthName(prev)}`;
+  $('#ytdDelta').textContent = `+12% vs ${now0.getFullYear() - 1}`;
+  $('#sparkFrom').textContent = `${now0.toLocaleString('en-US', { month: 'short' })} 1`;
+
+  // Month-to-date deliveries: a gentle upward trend with weekend dips,
+  // scaled so the days add up to the headline figure.
+  const days = Math.max(7, now0.getDate());
+  const rnd = mulberry32(11);
+  const raw = [];
+  for (let d = 0; d < days; d++) {
+    const dow = new Date(now0.getFullYear(), now0.getMonth(), d + 1).getDay();
+    let v = 36 + d * 0.6 + (rnd() - 0.5) * 12;
+    if (dow === 0) v *= 0.55; else if (dow === 6) v *= 0.78;
+    raw.push(v);
+  }
+  const total = 1021;
+  const sum = raw.reduce((a, b) => a + b, 0);
+  const vals = raw.map((v) => Math.round((v * total) / sum));
+  vals[vals.length - 1] += total - vals.reduce((a, b) => a + b, 0);
+
+  const W = 300, H = 92, L = 2, R = 34, T = 10, B = 16;
+  const max = Math.ceil(Math.max(...vals) / 20) * 20;
+  const x = (i) => L + (i * (W - L - R)) / (days - 1);
+  const y = (v) => T + (1 - v / max) * (H - T - B);
+  const line = vals.map((v, i) => `${i ? 'L' : 'M'}${x(i).toFixed(1)} ${y(v).toFixed(1)}`).join(' ');
+  const area = `${line} L${x(days - 1).toFixed(1)} ${H - B} L${x(0).toFixed(1)} ${H - B} Z`;
+  const last = vals[vals.length - 1];
+  $('#sparkline').innerHTML = `
+    <defs><linearGradient id="spk" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#ffc15a" stop-opacity=".32"/><stop offset="1" stop-color="#ffc15a" stop-opacity="0"/>
+    </linearGradient></defs>
+    <line class="spark-grid" x1="${L}" x2="${W - R}" y1="${y(max)}" y2="${y(max)}"/>
+    <line class="spark-grid" x1="${L}" x2="${W - R}" y1="${y(max / 2)}" y2="${y(max / 2)}"/>
+    <line class="spark-grid" x1="${L}" x2="${W - R}" y1="${H - B}" y2="${H - B}" style="stroke-dasharray:none"/>
+    <text class="spark-axis" x="${W}" y="${y(max) + 3}" text-anchor="end">${max}</text>
+    <text class="spark-axis" x="${W}" y="${y(max / 2) + 3}" text-anchor="end">${max / 2}</text>
+    <path d="${area}" fill="url(#spk)"/>
+    <path class="spark-line" d="${line}"/>
+    <circle class="spark-dot" cx="${x(days - 1)}" cy="${y(last)}" r="4"/>
+    <text class="spark-val" x="${x(days - 1) - 8}" y="${y(last) - 9}" text-anchor="middle">${last}</text>`;
+  $('#sparkline').setAttribute('aria-label',
+    `Daily deliveries this month, ${days} days, from ${vals[0]} on day one to ${last} today`);
+
+  if (!reduceMotion) {
+    document.querySelectorAll('[data-count]').forEach((el) => {
+      const to = +el.dataset.count;
+      const t0 = performance.now();
+      const tick = (t) => {
+        const k = Math.min(1, (t - t0) / 1300);
+        el.textContent = nf.format(Math.round(to * (1 - Math.pow(1 - k, 3))));
+        if (k < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    });
+  }
+}
+
+function buildPlanner() {
+  const opts = Object.keys(PORTS).map((p) => `<option>${p}</option>`).join('');
+  const from = $('#from'), to = $('#to');
+  from.innerHTML = opts; to.innerHTML = opts;
+  from.value = 'Busan'; to.value = 'Vancouver';
+  $('#swap').addEventListener('click', () => { [from.value, to.value] = [to.value, from.value]; plot(); });
+
+  const out = { dist: $('#pDist'), time: $('#pTime'), eta: $('#pEta'), co2: $('#pCo2') };
+  function plot(fly = true) {
+    const mode = document.querySelector('input[name="mode"]:checked').value;
+    if (from.value === to.value) {
+      out.dist.textContent = 'Pick two ports';
+      out.dist.classList.add('plan-error');
+      out.time.textContent = out.eta.textContent = out.co2.textContent = '–';
+      globe.setPlan(null);
+      return;
+    }
+    out.dist.classList.remove('plan-error');
+    const a = PORTS[from.value], b = PORTS[to.value];
+    const m = MODES[mode];
+    const gc = haversineKm(a, b);
+    const km = gc * m.detour;
+    const hours = km / m.kmh + m.handlingH;
+    const co2 = km * m.kgPerTkm;
+    out.dist.textContent = `${nf.format(Math.round(gc))} km`;
+    out.time.textContent = hours >= 48 ? `${Math.round(hours / 24)} days` : `${Math.round(hours)} h`;
+    out.eta.textContent = dLong.format(new Date(Date.now() + hours * 3600e3));
+    out.co2.textContent = co2 >= 1000 ? `${(co2 / 1000).toFixed(1)} t` : `${Math.round(co2)} kg`;
+    globe.setPlan({ from: from.value, to: to.value, a, b, mode }, fly);
+  }
+  $('#planner').addEventListener('submit', (e) => { e.preventDefault(); plot(); });
+  document.querySelectorAll('input[name="mode"]').forEach((r) => r.addEventListener('change', () => plot()));
+  return plot;
+}
+
+function startClock() {
+  const utc = $('#utc'), lat = $('#latency');
+  let ms = 118;
+  const tick = () => { utc.textContent = `${new Date().toISOString().slice(11, 19)} UTC`; };
+  tick();
+  setInterval(tick, 1000);
+  setInterval(() => { ms = clamp(Math.round(ms + (Math.random() - 0.5) * 18), 92, 146); lat.textContent = ms; }, 1600);
+}
+
+buildShipments();
+buildRisks();
+buildKpis();
+const plot = buildPlanner();
+startClock();
+
+function showNote(msg, isError) {
+  const n = $('#globeNote');
+  n.textContent = msg;
+  n.classList.toggle('fail-note', !!isError);
+  n.classList.remove('is-hidden');
+}
+
+/* ------------------------------------------------------------------ *
+ * 3D
+ * ------------------------------------------------------------------ */
+let THREE;
+try {
+  THREE = await import('three');
+} catch (e) {
+  try { THREE = await import('three-mirror'); }
+  catch (e2) { showNote('Could not load three.js. Check the connection and reload.', true); }
+}
+
+if (THREE) {
+  try {
+    globe = initGlobe();
+  } catch (err) {
+    console.error(err);
+    showNote('This browser could not start WebGL, so the 3D globe is off. Everything else still works.', true);
+  }
+}
+plot(false);
+
+function initGlobe() {
+  const canvas = $('#scene');
+  const slot = $('#globeSlot');
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
+  renderer.autoClear = false;
+  renderer.setClearColor(0x04050d, 1);
+  const maxAniso = renderer.capabilities.getMaxAnisotropy();
+  const compact0 = compactMQ.matches;
+
+  // One Sun for everything: up and to the left, a little behind the viewer,
+  // so the Earth carries a crescent of night (and city lights) on its right.
+  const SUN = new THREE.Vector3(-0.76, 0.36, 0.44).normalize();
+
+  /* ---------------- shared GLSL ---------------- */
+  const NOISE = /* glsl */`
+    vec3 mod289(vec3 x){ return x - floor(x * (1.0 / 289.0)) * 289.0; }
+    vec4 mod289(vec4 x){ return x - floor(x * (1.0 / 289.0)) * 289.0; }
+    vec4 permute(vec4 x){ return mod289(((x * 34.0) + 1.0) * x); }
+    vec4 taylorInvSqrt(vec4 r){ return 1.79284291400159 - 0.85373472095314 * r; }
+    float snoise(vec3 v){
+      const vec2 C = vec2(1.0 / 6.0, 1.0 / 3.0);
+      const vec4 D = vec4(0.0, 0.5, 1.0, 2.0);
+      vec3 i = floor(v + dot(v, C.yyy));
+      vec3 x0 = v - i + dot(i, C.xxx);
+      vec3 g = step(x0.yzx, x0.xyz);
+      vec3 l = 1.0 - g;
+      vec3 i1 = min(g.xyz, l.zxy);
+      vec3 i2 = max(g.xyz, l.zxy);
+      vec3 x1 = x0 - i1 + C.xxx;
+      vec3 x2 = x0 - i2 + C.yyy;
+      vec3 x3 = x0 - D.yyy;
+      i = mod289(i);
+      vec4 p = permute(permute(permute(
+        i.z + vec4(0.0, i1.z, i2.z, 1.0)) +
+        i.y + vec4(0.0, i1.y, i2.y, 1.0)) +
+        i.x + vec4(0.0, i1.x, i2.x, 1.0));
+      float n_ = 0.142857142857;
+      vec3 ns = n_ * D.wyz - D.xzx;
+      vec4 j = p - 49.0 * floor(p * ns.z * ns.z);
+      vec4 x_ = floor(j * ns.z);
+      vec4 y_ = floor(j - 7.0 * x_);
+      vec4 x = x_ * ns.x + ns.yyyy;
+      vec4 y = y_ * ns.x + ns.yyyy;
+      vec4 h = 1.0 - abs(x) - abs(y);
+      vec4 b0 = vec4(x.xy, y.xy);
+      vec4 b1 = vec4(x.zw, y.zw);
+      vec4 s0 = floor(b0) * 2.0 + 1.0;
+      vec4 s1 = floor(b1) * 2.0 + 1.0;
+      vec4 sh = -step(h, vec4(0.0));
+      vec4 a0 = b0.xzyw + s0.xzyw * sh.xxyy;
+      vec4 a1 = b1.xzyw + s1.xzyw * sh.zzww;
+      vec3 p0 = vec3(a0.xy, h.x);
+      vec3 p1 = vec3(a0.zw, h.y);
+      vec3 p2 = vec3(a1.xy, h.z);
+      vec3 p3 = vec3(a1.zw, h.w);
+      vec4 norm = taylorInvSqrt(vec4(dot(p0, p0), dot(p1, p1), dot(p2, p2), dot(p3, p3)));
+      p0 *= norm.x; p1 *= norm.y; p2 *= norm.z; p3 *= norm.w;
+      vec4 m = max(0.6 - vec4(dot(x0, x0), dot(x1, x1), dot(x2, x2), dot(x3, x3)), 0.0);
+      m = m * m;
+      return 42.0 * dot(m * m, vec4(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3)));
+    }
+    float fbm(vec3 p){
+      float s = 0.0, a = 0.5;
+      for (int i = 0; i < 6; i++) { s += a * snoise(p); p = p * 2.03 + vec3(1.7, 9.2, 3.1); a *= 0.5; }
+      return s;
+    }
+    // Equirectangular uv -> direction, matching three.js SphereGeometry uvs.
+    vec3 sph(vec2 uv){
+      float lon = (uv.x - 0.5) * 6.2831853;
+      float lat = (uv.y - 0.5) * 3.1415927;
+      return vec3(cos(lat) * cos(lon), sin(lat), -cos(lat) * sin(lon));
+    }
+    vec3 hash3(vec3 p){
+      p = vec3(dot(p, vec3(127.1, 311.7, 74.7)), dot(p, vec3(269.5, 183.3, 246.1)), dot(p, vec3(113.5, 271.9, 124.6)));
+      return fract(sin(p) * 43758.5453123);
+    }
+    // Distance to the nearest cell point, plus that cell's random value.
+    vec2 worley(vec3 p){
+      vec3 i = floor(p), f = fract(p);
+      float best = 8.0, id = 0.0;
+      for (int x = -1; x <= 1; x++)
+      for (int y = -1; y <= 1; y++)
+      for (int z = -1; z <= 1; z++) {
+        vec3 g = vec3(float(x), float(y), float(z));
+        vec3 o = hash3(i + g);
+        vec3 r = g + o - f;
+        float d = dot(r, r);
+        if (d < best) { best = d; id = o.x; }
+      }
+      return vec2(sqrt(best), id);
+    }
+  `;
+
+  /* ---------------- procedural textures, baked once ---------------- */
+  const BAKE_VS = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }`;
+  const bakeCam = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+  const bakeScene = new THREE.Scene();
+  const bakeQuad = new THREE.Mesh(new THREE.PlaneGeometry(2, 2));
+  bakeScene.add(bakeQuad);
+  function bake(body, w, h, uniforms = {}) {
+    const rt = new THREE.WebGLRenderTarget(w, h, {
+      generateMipmaps: true,
+      minFilter: THREE.LinearMipmapLinearFilter,
+      magFilter: THREE.LinearFilter,
+      wrapS: THREE.RepeatWrapping,
+      wrapT: THREE.ClampToEdgeWrapping,
+      depthBuffer: false,
+    });
+    bakeQuad.material = new THREE.ShaderMaterial({
+      uniforms, vertexShader: BAKE_VS,
+      fragmentShader: `varying vec2 vUv;\n${NOISE}\n${body}`,
+      depthTest: false, depthWrite: false,
+    });
+    renderer.setRenderTarget(rt);
+    renderer.render(bakeScene, bakeCam);
+    renderer.setRenderTarget(null);
+    bakeQuad.material.dispose();
+    rt.texture.anisotropy = maxAniso;
+    return rt.texture;
+  }
+
+  const JUPITER = /* glsl */`
+    void main(){
+      vec3 p = sph(vUv);
+      float lat = (vUv.y - 0.5) * 3.1415927;
+      float lon = (vUv.x - 0.5) * 6.2831853;
+      float y = sin(lat) + fbm(p * 2.2) * 0.09 + fbm(p * 7.0 + 3.0) * 0.03;
+      float band = 0.5 + 0.5 * sin(y * 19.0 + 0.6);
+      float band2 = 0.5 + 0.5 * sin(y * 43.0 + 1.9);
+      vec3 col = mix(vec3(0.95, 0.90, 0.80), vec3(0.84, 0.64, 0.44), smoothstep(0.3, 0.8, band));
+      col = mix(col, vec3(0.60, 0.39, 0.27), smoothstep(0.62, 0.98, band2) * 0.45);
+      col *= 0.9 + 0.14 * fbm(vec3(p.x * 3.0, y * 60.0, p.z * 3.0));
+      col = mix(col, vec3(0.56, 0.53, 0.52), smoothstep(0.55, 0.92, abs(sin(lat))) * 0.6);
+      vec2 q = vec2((lon - 0.9) * cos(lat) / 0.16, (lat + 0.38) / 0.075);
+      col = mix(col, vec3(0.97, 0.93, 0.86), exp(-pow(length(q) - 1.15, 2.0) * 8.0) * 0.35);
+      col = mix(col, vec3(0.80, 0.40, 0.28), exp(-dot(q, q) * 1.4) * 0.9);
+      gl_FragColor = vec4(col, 1.0);
+    }`;
+  const SATURN = /* glsl */`
+    void main(){
+      vec3 p = sph(vUv);
+      float lat = (vUv.y - 0.5) * 3.1415927;
+      float y = sin(lat) + fbm(p * 3.0) * 0.015;
+      float b = 0.5 + 0.5 * sin(y * 26.0 + 0.3);
+      float b2 = 0.5 + 0.5 * sin(y * 61.0);
+      vec3 col = mix(vec3(0.94, 0.86, 0.67), vec3(0.83, 0.71, 0.51), b * 0.7);
+      col = mix(col, vec3(0.74, 0.64, 0.48), b2 * 0.25);
+      col = mix(col, vec3(0.60, 0.63, 0.67), smoothstep(0.75, 0.98, abs(sin(lat))) * 0.5);
+      col *= 0.95 + 0.08 * fbm(vec3(p.x * 2.0, y * 40.0, p.z * 2.0));
+      gl_FragColor = vec4(col, 1.0);
+    }`;
+  const MARS = /* glsl */`
+    void main(){
+      vec3 p = sph(vUv);
+      float n = fbm(p * 2.5);
+      float n2 = fbm(p * 9.0 + 5.0);
+      vec3 col = mix(vec3(0.80, 0.42, 0.23), vec3(0.62, 0.29, 0.17), smoothstep(-0.2, 0.5, n));
+      col = mix(col, vec3(0.36, 0.20, 0.14), smoothstep(0.1, 0.5, fbm(p * 1.6 + 11.0)) * 0.65);
+      col *= 0.86 + 0.22 * (0.5 + 0.5 * n2);
+      col = mix(col, vec3(0.96, 0.94, 0.92), smoothstep(0.84, 0.9, abs(p.y) + n2 * 0.04));
+      gl_FragColor = vec4(col, 1.0);
+    }`;
+  const NEPTUNE = /* glsl */`
+    void main(){
+      vec3 p = sph(vUv);
+      float lat = (vUv.y - 0.5) * 3.1415927;
+      float lon = (vUv.x - 0.5) * 6.2831853;
+      float y = sin(lat) + fbm(p * 2.5) * 0.05;
+      vec3 col = mix(vec3(0.19, 0.36, 0.90), vec3(0.30, 0.52, 0.98), (0.5 + 0.5 * sin(y * 14.0)) * 0.6);
+      col *= 0.9 + 0.15 * fbm(vec3(p.x * 2.0, y * 30.0, p.z * 2.0));
+      vec2 q = vec2((lon + 1.2) * cos(lat) / 0.2, (lat + 0.35) / 0.1);
+      col = mix(col, vec3(0.08, 0.14, 0.45), exp(-dot(q, q)) * 0.7);
+      gl_FragColor = vec4(col, 1.0);
+    }`;
+  const MOON = /* glsl */`
+    void main(){
+      vec3 p = sph(vUv);
+      float maria = smoothstep(0.05, 0.35, fbm(p * 1.3 + 2.0));
+      vec3 col = mix(vec3(0.74, 0.73, 0.71), vec3(0.36, 0.36, 0.38), maria * 0.8);
+      col *= 0.88 + 0.18 * fbm(p * 3.0);
+      float c = 0.0, amp = 1.0;
+      vec3 q = p * 5.0;
+      for (int k = 0; k < 3; k++) {
+        vec2 w = worley(q);
+        float d = w.x / (0.22 + 0.2 * w.y);
+        float keep = step(0.5, w.y);
+        c += amp * keep * (exp(-pow((d - 1.0) / 0.2, 2.0)) * 0.6 - smoothstep(1.0, 0.0, d) * 0.4);
+        q *= 2.3; amp *= 0.55;
+      }
+      gl_FragColor = vec4(clamp(col + c * 0.2, 0.0, 1.0), 1.0);
+    }`;
+  const SKY = /* glsl */`
+    uniform vec3 uGalN;
+    uniform vec3 uGalC;
+    void main(){
+      vec3 d = sph(vUv);
+      float b = dot(d, uGalN);
+      float core = pow(max(dot(d, uGalC), 0.0), 5.0);
+      float width = 0.15 + 0.06 * fbm(d * 3.0);
+      float band = exp(-pow(b / width, 2.0));
+      float dust = smoothstep(0.0, 0.6, fbm(d * 6.0 + 9.0)) * exp(-pow(b / 0.05, 2.0));
+      float glow = band * (0.55 + 0.45 * fbm(d * 9.0 + 4.0)) * (1.0 - 0.75 * dust) + core * 0.7 * (1.0 - 0.6 * dust);
+      vec3 col = mix(vec3(0.30, 0.34, 0.60), vec3(0.88, 0.68, 0.52), clamp(core * 1.6, 0.0, 1.0)) * glow * 0.2;
+      col += vec3(0.42, 0.20, 0.56) * smoothstep(0.25, 0.85, fbm(d * 2.0 + 20.0)) * 0.035;
+      col += vec3(0.10, 0.34, 0.46) * smoothstep(0.35, 0.90, fbm(d * 2.4 - 7.0)) * 0.03;
+      col += vec3(0.008, 0.010, 0.026);
+      gl_FragColor = vec4(col, 1.0);
+    }`;
+
+  /* ---------------- common materials ---------------- */
+  const UV_VS = `varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`;
+  const LIT_VS = /* glsl */`
+    varying vec2 vUv; varying vec3 vN; varying vec3 vW;
+    void main(){
+      vUv = uv;
+      vN = normalize(mat3(modelMatrix) * normal);
+      vec4 w = modelMatrix * vec4(position, 1.0);
+      vW = w.xyz;
+      gl_Position = projectionMatrix * viewMatrix * w;
+    }`;
+  const PLANET_FS = /* glsl */`
+    uniform sampler2D map;
+    uniform vec3 uSun, uCam, uRim;
+    uniform float uRimK, uAmb;
+    varying vec2 vUv; varying vec3 vN; varying vec3 vW;
+    void main(){
+      vec3 N = normalize(vN);
+      vec3 V = normalize(uCam - vW);
+      vec3 c = texture2D(map, vUv).rgb;
+      float ndl = dot(N, uSun);
+      float diff = smoothstep(-0.06, 0.25, ndl) * (0.35 + 0.65 * max(ndl, 0.0));
+      float nv = max(dot(N, V), 0.0);
+      vec3 col = c * (uAmb + 1.08 * diff) * (0.72 + 0.28 * pow(nv, 0.5));
+      col += uRim * pow(1.0 - nv, 3.0) * uRimK * smoothstep(-0.25, 0.5, ndl);
+      gl_FragColor = vec4(col, 1.0);
+    }`;
+  function planetMaterial(tex, cam, { rim = [1, 1, 1], rimK = 0.3, amb = 0.012 } = {}) {
+    return new THREE.ShaderMaterial({
+      uniforms: {
+        map: { value: tex }, uSun: { value: SUN }, uCam: { value: cam.position },
+        uRim: { value: new THREE.Color(...rim) }, uRimK: { value: rimK }, uAmb: { value: amb },
+      },
+      vertexShader: LIT_VS, fragmentShader: PLANET_FS,
+    });
+  }
+
+  /* ================================================================ *
+   * Sky scene
+   * ================================================================ */
+  const bgScene = new THREE.Scene();
+  const bgCam = new THREE.PerspectiveCamera(42, 1, 0.5, 6000);
+
+  // Milky Way: a band along a tilted great circle, brightest toward a core
+  // below and to the left of the Earth.
+  const galN = new THREE.Vector3(-0.5, 0.82, 0.28).normalize();
+  const galC = new THREE.Vector3(-0.62, -0.42, -1).normalize();
+  galC.addScaledVector(galN, -galC.dot(galN)).normalize();
+  const skyTex = bake(SKY, compact0 ? 1024 : 2048, compact0 ? 512 : 1024, { uGalN: { value: galN }, uGalC: { value: galC } });
+  const sky = new THREE.Mesh(
+    new THREE.SphereGeometry(3000, 64, 32),
+    new THREE.ShaderMaterial({
+      uniforms: { map: { value: skyTex } },
+      vertexShader: UV_VS,
+      fragmentShader: `uniform sampler2D map; varying vec2 vUv; void main(){ gl_FragColor = vec4(texture2D(map, vUv).rgb, 1.0); }`,
+      side: THREE.BackSide, depthWrite: false,
+    }),
+  );
+  bgScene.add(sky);
+
+  // Stars: a third of them crowd the galactic plane.
+  const STARS = compact0 ? 3200 : 5200;
+  const starU = { uTime: { value: 0 }, uPR: { value: 1 } };
+  {
+    const pos = new Float32Array(STARS * 3), col = new Float32Array(STARS * 3);
+    const size = new Float32Array(STARS), seed = new Float32Array(STARS);
+    const rnd = mulberry32(42);
+    const e1 = new THREE.Vector3().crossVectors(galN, new THREE.Vector3(0, 0, 1)).normalize();
+    const e2 = new THREE.Vector3().crossVectors(galN, e1).normalize();
+    const v = new THREE.Vector3();
+    const tints = [[0.72, 0.82, 1.0], [1.0, 0.98, 0.95], [1.0, 0.98, 0.95], [1.0, 0.9, 0.76], [1.0, 0.76, 0.56]];
+    for (let i = 0; i < STARS; i++) {
+      if (rnd() < 0.34) {
+        const th = rnd() * Math.PI * 2;
+        const g = (rnd() + rnd() + rnd() - 1.5) * 0.16;
+        v.copy(e1).multiplyScalar(Math.cos(th)).addScaledVector(e2, Math.sin(th)).addScaledVector(galN, g).normalize();
+      } else {
+        const z = rnd() * 2 - 1, ph = rnd() * Math.PI * 2, r = Math.sqrt(1 - z * z);
+        v.set(r * Math.cos(ph), r * Math.sin(ph), z);
+      }
+      v.multiplyScalar(2600).toArray(pos, i * 3);
+      const b = Math.pow(rnd(), 5);
+      size[i] = 0.9 + 3.2 * b;
+      const t = tints[Math.floor(rnd() * tints.length)];
+      const k = 0.4 + 0.6 * Math.sqrt(b);
+      col[i * 3] = t[0] * k; col[i * 3 + 1] = t[1] * k; col[i * 3 + 2] = t[2] * k;
+      seed[i] = rnd();
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.setAttribute('aColor', new THREE.BufferAttribute(col, 3));
+    g.setAttribute('aSize', new THREE.BufferAttribute(size, 1));
+    g.setAttribute('aSeed', new THREE.BufferAttribute(seed, 1));
+    const stars = new THREE.Points(g, new THREE.ShaderMaterial({
+      uniforms: starU,
+      vertexShader: /* glsl */`
+        attribute vec3 aColor; attribute float aSize; attribute float aSeed;
+        uniform float uTime, uPR;
+        varying vec3 vC;
+        void main(){
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          float tw = 0.78 + 0.22 * sin(uTime * (0.7 + aSeed * 2.2) + aSeed * 40.0);
+          vC = aColor * mix(1.0, tw, step(0.55, aSeed));
+          gl_PointSize = aSize * uPR;
+        }`,
+      fragmentShader: /* glsl */`
+        varying vec3 vC;
+        void main(){
+          float d = length(gl_PointCoord - 0.5);
+          float a = pow(smoothstep(0.5, 0.0, d), 1.7);
+          gl_FragColor = vec4(vC * a, 1.0);
+        }`,
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    }));
+    bgScene.add(stars);
+  }
+
+  // Planets, each sitting at a fixed spot on screen (see LAYOUT).
+  const planets = {};
+  function addPlanet(name, tex, opts, spin) {
+    const group = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.SphereGeometry(1, 64, 32), planetMaterial(tex, bgCam, opts));
+    group.add(body);
+    bgScene.add(group);
+    planets[name] = { group, body, spin };
+    return planets[name];
+  }
+  addPlanet('jupiter', bake(JUPITER, 1024, 512), { rim: [1.0, 0.82, 0.62], rimK: 0.25 }, 0.018).body.rotation.set(0.05, 1.2, -0.05);
+  addPlanet('mars', bake(MARS, 512, 256), { rim: [1.0, 0.55, 0.4], rimK: 0.35 }, 0.05).body.rotation.set(0.35, 0, 0.2);
+  addPlanet('neptune', bake(NEPTUNE, 256, 128), { rim: [0.5, 0.7, 1.0], rimK: 0.6 }, 0.04).body.rotation.set(0.4, 0, 0.35);
+
+  // Saturn and its rings share one tilted frame.
+  const RING_A = -1.1;
+  const sat = addPlanet('saturn', bake(SATURN, 512, 256), { rim: [1.0, 0.9, 0.7], rimK: 0.2 }, 0.03);
+  const satTilt = new THREE.Group();
+  satTilt.rotation.z = -0.34;
+  sat.group.add(satTilt);
+  satTilt.add(sat.body);
+  sat.body.rotation.x = RING_A + Math.PI / 2;
+  const ringU = {
+    uSun: { value: SUN }, uCenter: { value: new THREE.Vector3() }, uNormal: { value: new THREE.Vector3() },
+    uR: { value: 1 }, uInner: { value: 1.24 }, uOuter: { value: 2.27 },
+  };
+  const ring = new THREE.Mesh(
+    new THREE.RingGeometry(1.24, 2.27, 180, 1),
+    new THREE.ShaderMaterial({
+      uniforms: ringU,
+      vertexShader: `varying vec3 vL; varying vec3 vW; void main(){ vL = position; vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`,
+      fragmentShader: /* glsl */`
+        uniform vec3 uSun, uCenter, uNormal;
+        uniform float uR, uInner, uOuter;
+        varying vec3 vL; varying vec3 vW;
+        float h1(float n){ return fract(sin(n) * 43758.5453); }
+        float n1(float x){ float i = floor(x), f = fract(x); return mix(h1(i), h1(i + 1.0), f * f * (3.0 - 2.0 * f)); }
+        void main(){
+          float t = (length(vL.xy) - uInner) / (uOuter - uInner);
+          if (t < 0.0 || t > 1.0) discard;
+          float dens = mix(0.18, 1.0, smoothstep(0.16, 0.26, t));
+          dens *= 1.0 - (smoothstep(0.545, 0.56, t) - smoothstep(0.60, 0.615, t)) * 0.92;   // Cassini division
+          dens *= 1.0 - (smoothstep(0.86, 0.865, t) - smoothstep(0.872, 0.877, t)) * 0.8;   // Encke gap
+          dens *= smoothstep(0.0, 0.04, t) * (1.0 - smoothstep(0.94, 1.0, t));
+          dens *= 0.62 + 0.38 * n1(t * 120.0) * (0.7 + 0.3 * n1(t * 420.0 + 7.0));
+          vec3 col = mix(vec3(0.62, 0.56, 0.48), vec3(1.0, 0.93, 0.80), smoothstep(0.15, 0.5, t));
+          col = mix(col, vec3(0.86, 0.80, 0.70), smoothstep(0.6, 0.95, t) * 0.5);
+          // Planet shadow: does the ray toward the Sun hit the globe?
+          vec3 oc = vW - uCenter;
+          float b = dot(oc, uSun);
+          float disc = b * b - (dot(oc, oc) - uR * uR);
+          float shadow = step(b, 0.0) * smoothstep(-0.03 * uR * uR, 0.03 * uR * uR, disc);
+          float lit = (0.55 + 0.6 * abs(dot(uNormal, uSun))) * (1.0 - 0.88 * shadow);
+          gl_FragColor = vec4(col * lit, clamp(dens * 1.05, 0.0, 1.0));
+        }`,
+      side: THREE.DoubleSide, transparent: true, depthWrite: false,
+    }),
+  );
+  ring.rotation.x = RING_A;
+  satTilt.add(ring);
+
+  // Where each planet sits: [ndc x, ndc y, distance, radius as a fraction of
+  // the view height at that distance].
+  const LAYOUT = {
+    wide: {
+      jupiter: [0.9, -0.97, 200, 0.33],
+      saturn: [0.41, 0.63, 260, 0.036],
+      mars: [-0.43, 0.54, 150, 0.018],
+      neptune: [-0.46, -0.52, 320, 0.013],
+    },
+    compact: {
+      jupiter: [1.02, -0.62, 200, 0.24],
+      saturn: [0.74, 0.55, 260, 0.026],
+      mars: [-0.64, 0.66, 150, 0.016],
+      neptune: [-0.84, 0.22, 320, 0.011],
+    },
+  };
+  const tmpV = new THREE.Vector3();
+  function layoutPlanets() {
+    const L = compactMQ.matches ? LAYOUT.compact : LAYOUT.wide;
+    const t = Math.tan((bgCam.fov * D2R) / 2);
+    for (const [name, [x, y, dist, frac]] of Object.entries(L)) {
+      const halfH = t * dist, halfW = halfH * bgCam.aspect;
+      const p = planets[name];
+      p.group.position.set(x * halfW, y * halfH, -dist);
+      p.group.scale.setScalar(frac * 2 * halfH);
+    }
+    sat.group.updateMatrixWorld(true);
+    ringU.uCenter.value.setFromMatrixPosition(sat.group.matrixWorld);
+    ringU.uR.value = sat.group.scale.x;
+    ringU.uNormal.value.set(0, 0, 1).transformDirection(ring.matrixWorld);
+  }
+
+  // Light from the Sun, just out of frame at the top left.
+  const leakU = { uRes: { value: new THREE.Vector2(1, 1) }, uSunPx: { value: new THREE.Vector2() }, uTime: { value: 0 } };
+  const leak = new THREE.Mesh(
+    new THREE.PlaneGeometry(2, 2),
+    new THREE.ShaderMaterial({
+      uniforms: leakU,
+      vertexShader: `void main(){ gl_Position = vec4(position.xy, 0.0, 1.0); }`,
+      fragmentShader: /* glsl */`
+        uniform vec2 uRes, uSunPx; uniform float uTime;
+        void main(){
+          vec2 dv = (gl_FragCoord.xy - uSunPx) / uRes.y;
+          float d = length(dv);
+          float ang = atan(dv.y, dv.x);
+          float rays = pow(0.5 + 0.5 * sin(ang * 23.0 + sin(ang * 5.0 + uTime * 0.07) * 2.0), 3.0) * exp(-d * 2.4) * 0.08;
+          vec3 col = vec3(1.0, 0.74, 0.44) * (exp(-d * 3.6) * 0.42 + rays) + vec3(1.0, 0.56, 0.30) * exp(-d * 1.6) * 0.07;
+          gl_FragColor = vec4(col, 1.0);
+        }`,
+      transparent: true, depthTest: false, depthWrite: false, blending: THREE.AdditiveBlending,
+    }),
+  );
+  leak.frustumCulled = false;
+  leak.renderOrder = 10;
+  bgScene.add(leak);
+
+  /* ================================================================ *
+   * Earth scene
+   * ================================================================ */
+  const earthScene = new THREE.Scene();
+  const earthCam = new THREE.PerspectiveCamera(30, 1, 0.01, 400);
+  const tiltG = new THREE.Group();
+  const spinG = new THREE.Group();
+  earthScene.add(tiltG);
+  tiltG.add(spinG);
+
+  const px1 = (r, g, b) => { const t = new THREE.DataTexture(new Uint8Array([r, g, b, 255]), 1, 1); t.needsUpdate = true; return t; };
+  const earthU = {
+    uDay: { value: px1(14, 28, 70) },
+    uData: { value: px1(0, 0, 255) },
+    uSun: { value: SUN },
+    uCam: { value: earthCam.position },
+    uCloudOff: { value: 0 },
+    uFade: { value: 0 },
+  };
+  const earth = new THREE.Mesh(
+    new THREE.SphereGeometry(1, 160, 80),
+    new THREE.ShaderMaterial({
+      uniforms: earthU,
+      vertexShader: LIT_VS,
+      fragmentShader: /* glsl */`
+        uniform sampler2D uDay, uData;
+        uniform vec3 uSun, uCam;
+        uniform float uCloudOff, uFade;
+        varying vec2 vUv; varying vec3 vN; varying vec3 vW;
+        void main(){
+          vec3 N = normalize(vN);
+          vec3 V = normalize(uCam - vW);
+          vec3 day = texture2D(uDay, vUv).rgb;
+          vec4 data = texture2D(uData, vUv);
+          float water = smoothstep(0.35, 0.65, data.b);
+          float cloud = texture2D(uData, vUv + vec2(uCloudOff, 0.0)).g;
+          float ndl = dot(N, uSun);
+          float dayAmt = smoothstep(-0.10, 0.20, ndl);
+
+          // Oceans: stretch the bathymetry into deep, saturated blues.
+          float depth = clamp(day.b * 1.7, 0.0, 1.0);
+          vec3 ocean = mix(vec3(0.010, 0.028, 0.110), vec3(0.045, 0.190, 0.600), smoothstep(0.05, 0.55, depth));
+          ocean = mix(ocean, vec3(0.19, 0.50, 0.93), smoothstep(0.55, 1.0, depth) * 0.6);
+          vec3 land = pow(day, vec3(1.08)) * 1.1;
+          land = mix(vec3(dot(land, vec3(0.299, 0.587, 0.114))), land, 1.12);
+          vec3 albedo = mix(land, ocean, water);
+
+          vec3 lit = albedo * (0.02 + 1.25 * pow(clamp(ndl, 0.0, 1.0), 0.85));
+          lit *= 1.0 - cloud * 0.35 * dayAmt;
+          vec3 H = normalize(uSun + V);
+          lit += vec3(1.0, 0.86, 0.66) * pow(max(dot(N, H), 0.0), 70.0) * water * 0.55 * dayAmt;
+
+          // Night: faint moonlit terrain plus city lights with a soft bloom.
+          float lights = data.r * 1.3 + texture2D(uData, vUv, 2.5).r * 1.1;
+          vec3 night = day * vec3(0.05, 0.07, 0.13) + vec3(1.0, 0.68, 0.36) * lights * (1.0 - cloud * 0.6);
+          vec3 col = mix(night, lit, dayAmt);
+
+          // Atmosphere seen edge-on over the disc.
+          float fres = pow(1.0 - max(dot(N, V), 0.0), 2.6);
+          col += vec3(0.30, 0.58, 1.0) * fres * smoothstep(-0.3, 0.5, ndl) * 0.9;
+          col = mix(vec3(0.02, 0.05, 0.12) + vec3(0.3, 0.58, 1.0) * fres * 0.6, col, uFade);
+          gl_FragColor = vec4(col, 1.0);
+        }`,
+    }),
+  );
+  spinG.add(earth);
+
+  const cloudU = { uData: earthU.uData, uSun: { value: SUN }, uCam: { value: earthCam.position }, uCloudOff: earthU.uCloudOff, uOpacity: { value: 0 } };
+  const clouds = new THREE.Mesh(
+    new THREE.SphereGeometry(1.006, 128, 64),
+    new THREE.ShaderMaterial({
+      uniforms: cloudU,
+      vertexShader: LIT_VS,
+      fragmentShader: /* glsl */`
+        uniform sampler2D uData;
+        uniform vec3 uSun, uCam;
+        uniform float uCloudOff, uOpacity;
+        varying vec2 vUv; varying vec3 vN; varying vec3 vW;
+        void main(){
+          vec3 N = normalize(vN);
+          float c = texture2D(uData, vUv + vec2(uCloudOff, 0.0)).g;
+          float ndl = dot(N, uSun);
+          float light = smoothstep(-0.18, 0.35, ndl);
+          vec3 col = mix(vec3(0.03, 0.04, 0.08), vec3(1.0, 0.99, 0.97), light);
+          col = mix(col, vec3(1.0, 0.62, 0.38), exp(-pow((ndl - 0.02) / 0.09, 2.0)) * 0.45);
+          gl_FragColor = vec4(col, smoothstep(0.08, 0.9, c) * uOpacity);
+        }`,
+      transparent: true, depthWrite: false,
+    }),
+  );
+  clouds.renderOrder = 1;
+  spinG.add(clouds);
+
+  // Outer glow, worked out per pixel from how close the view ray passes to
+  // the planet: tight and bright at the limb, bluer on the day side, a
+  // little dusk-orange where the terminator meets the edge.
+  const halo = new THREE.Mesh(
+    new THREE.SphereGeometry(1.32, 96, 48),
+    new THREE.ShaderMaterial({
+      uniforms: { uCam: { value: earthCam.position }, uSun: { value: SUN }, uFade: earthU.uFade },
+      vertexShader: `varying vec3 vW; void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }`,
+      fragmentShader: /* glsl */`
+        uniform vec3 uCam, uSun; uniform float uFade;
+        varying vec3 vW;
+        void main(){
+          vec3 rd = normalize(vW - uCam);
+          vec3 pc = uCam + rd * -dot(uCam, rd);
+          float h = length(pc);
+          if (h < 1.0) discard;
+          float x = h - 1.0;
+          float glow = exp(-x / 0.03) * 0.95 + exp(-x / 0.12) * 0.32;
+          float s = dot(pc / h, uSun);
+          float day = smoothstep(-0.35, 0.55, s);
+          vec3 col = mix(vec3(0.30, 0.58, 1.0) * 0.22, vec3(0.34, 0.62, 1.0), day);
+          col = mix(col, vec3(1.0, 0.55, 0.3), exp(-pow(s / 0.16, 2.0)) * 0.35);
+          gl_FragColor = vec4(col * glow * (0.3 + 0.7 * day) * (0.5 + 0.5 * uFade), 1.0);
+        }`,
+      side: THREE.BackSide, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    }),
+  );
+  halo.renderOrder = 2;
+  earthScene.add(halo);
+
+  /* ---------------- geography ---------------- */
+  // Local frame of the globe: lon 0 on +X, north on +Y, lon -90 on +Z.
+  const llToVec = (lat, lon, r = 1, out = new THREE.Vector3()) => {
+    const p = lat * D2R, l = lon * D2R;
+    return out.set(Math.cos(p) * Math.cos(l), Math.sin(p), -Math.cos(p) * Math.sin(l)).multiplyScalar(r);
+  };
+  const vecToLL = (v) => {
+    const n = tmpV.copy(v).normalize();
+    return { lat: Math.asin(clamp(n.y, -1, 1)) * R2D, lon: Math.atan2(-n.z, n.x) * R2D };
+  };
+  function slerp(a, b, ang, t, out = new THREE.Vector3()) {
+    if (ang < 1e-6) return out.copy(a);
+    const s = Math.sin(ang);
+    return out.copy(a).multiplyScalar(Math.sin((1 - t) * ang) / s).addScaledVector(b, Math.sin(t * ang) / s);
+  }
+
+  // A path through waypoints, resampled evenly by arc length.
+  function buildPath(points, mode, density) {
+    const vs = points.map(([la, lo]) => llToVec(la, lo));
+    const segs = [];
+    let total = 0;
+    for (let i = 0; i < vs.length - 1; i++) { const a = vs[i].angleTo(vs[i + 1]); segs.push(a); total += a; }
+    const n = Math.max(24, Math.round(total * density));
+    const lift = mode === 'air' ? 0.05 + (0.26 * total) / Math.PI : 0;
+    const samples = [];
+    for (let k = 0; k < n; k++) {
+      const t = k / (n - 1);
+      let s = t * total, i = 0;
+      while (i < segs.length - 1 && s > segs[i]) { s -= segs[i]; i++; }
+      const v = slerp(vs[i], vs[i + 1], segs[i], segs[i] > 0 ? Math.min(1, s / segs[i]) : 0);
+      v.multiplyScalar(1.009 + lift * Math.sin(Math.PI * t));
+      samples.push({ v, t });
+    }
+    const at = (t) => samples[Math.round(clamp(t, 0, 1) * (n - 1))].v;
+    return { samples, total, at };
+  }
+
+  const routes = SHIPMENTS.map((s) => {
+    const pts = [PORTS[s.from], ...(s.via || []), PORTS[s.to]];
+    return buildPath(pts, s.mode, s.mode === 'air' ? 62 : 74);
+  });
+
+  /* ---------------- route dots ---------------- */
+  const arcU = { uTime: { value: 0 }, uPR: { value: 1 }, uScale: { value: 1 }, uSel: { value: -1 }, uColor: { value: new THREE.Color(1.0, 0.76, 0.35) }, uFlow: { value: reduceMotion ? 0 : 1 } };
+  {
+    const count = routes.reduce((n, r) => n + r.samples.length, 0);
+    const pos = new Float32Array(count * 3), aT = new Float32Array(count), aIdx = new Float32Array(count), aProg = new Float32Array(count);
+    let k = 0;
+    routes.forEach((r, i) => r.samples.forEach(({ v, t }) => {
+      v.toArray(pos, k * 3); aT[k] = t; aIdx[k] = i; aProg[k] = SHIPMENTS[i].progress; k++;
+    }));
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.setAttribute('aT', new THREE.BufferAttribute(aT, 1));
+    g.setAttribute('aIdx', new THREE.BufferAttribute(aIdx, 1));
+    g.setAttribute('aProg', new THREE.BufferAttribute(aProg, 1));
+    const arcs = new THREE.Points(g, new THREE.ShaderMaterial({
+      uniforms: arcU,
+      vertexShader: /* glsl */`
+        attribute float aT, aIdx, aProg;
+        uniform float uTime, uPR, uScale, uSel, uFlow;
+        varying float vA;
+        void main(){
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+          float done = step(aT, aProg);
+          float flow = fract(aT * 7.0 - uTime * 0.32 + aIdx * 0.37);
+          float pulse = smoothstep(0.78, 1.0, flow) * (1.0 - done) * uFlow;
+          float sel = 1.0 - step(0.5, abs(aIdx - uSel));
+          float any = step(-0.5, uSel);
+          vA = (mix(0.42, 1.0, done) + pulse * 0.7) * mix(1.0, mix(0.16, 1.3, sel), any);
+          gl_PointSize = (2.1 + pulse * 1.4 + sel * any * 0.9) * uPR * uScale;
+        }`,
+      fragmentShader: /* glsl */`
+        uniform vec3 uColor;
+        varying float vA;
+        void main(){
+          float d = length(gl_PointCoord - 0.5);
+          gl_FragColor = vec4(uColor, smoothstep(0.5, 0.12, d) * min(vA, 1.4));
+        }`,
+      transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+    }));
+    arcs.renderOrder = 3;
+    spinG.add(arcs);
+  }
+
+  /* ---------------- markers: ports, vessels, risk zones ---------------- */
+  // kind 0 = port, 1 = vessel, 2 = risk zone, 3 = planned-route end
+  const MARK_VS = /* glsl */`
+    attribute float aKind, aIdx, aLevel, aSize;
+    uniform float uPR, uScale, uSel, uRisk;
+    uniform vec3 uCam;
+    varying float vKind, vLevel, vA;
+    void main(){
+      vec4 w = modelMatrix * vec4(position, 1.0);
+      gl_Position = projectionMatrix * viewMatrix * w;
+      float facing = dot(normalize(w.xyz), normalize(uCam - w.xyz));
+      float sel = 1.0 - step(0.5, abs(aIdx - uSel));
+      float any = step(-0.5, uSel);
+      float isShip = step(aKind, 1.5);
+      float dim = mix(1.0, mix(0.25, 1.0, sel), any * isShip);
+      float riskSel = (1.0 - isShip) * step(1.5, aKind) * step(aKind, 2.5) * step(-0.5, uRisk) * (1.0 - step(0.5, abs(aIdx - uRisk)));
+      vA = smoothstep(-0.05, 0.22, facing) * dim;
+      vKind = aKind; vLevel = aLevel;
+      gl_PointSize = aSize * (1.0 + riskSel * 0.45 + sel * any * isShip * 0.25) * uPR * uScale;
+    }`;
+  const MARK_FS = /* glsl */`
+    uniform float uTime;
+    varying float vKind, vLevel, vA;
+    void main(){
+      float d = length(gl_PointCoord - 0.5) * 2.0;
+      vec3 col; float a;
+      if (vKind < 0.5) {
+        a = max(smoothstep(0.14, 0.0, abs(d - 0.62)) * 0.9, smoothstep(0.32, 0.2, d));
+        col = vec3(1.0, 0.88, 0.66);
+      } else if (vKind < 1.5) {
+        float ph = fract(uTime * 0.55);
+        a = smoothstep(0.26, 0.14, d) + exp(-d * d * 9.0) * 0.45 + smoothstep(0.08, 0.0, abs(d - ph)) * (1.0 - ph) * 0.9;
+        col = mix(vec3(1.0, 0.76, 0.35), vec3(1.0), smoothstep(0.24, 0.08, d));
+      } else if (vKind < 2.5) {
+        col = vLevel > 2.5 ? vec3(1.0, 0.36, 0.43) : (vLevel > 1.5 ? vec3(1.0, 0.64, 0.30) : vec3(0.56, 0.64, 1.0));
+        float p1 = fract(uTime * 0.42), p2 = fract(uTime * 0.42 + 0.5);
+        a = smoothstep(0.17, 0.09, d)
+          + (smoothstep(0.05, 0.0, abs(d - p1)) * (1.0 - p1) + smoothstep(0.05, 0.0, abs(d - p2)) * (1.0 - p2)) * 0.85
+          + exp(-d * d * 7.0) * 0.28;
+      } else {
+        a = max(smoothstep(0.12, 0.0, abs(d - 0.6)), smoothstep(0.3, 0.2, d));
+        col = vec3(0.49, 0.85, 1.0);
+      }
+      a = clamp(a, 0.0, 1.0) * vA;
+      if (a < 0.01) discard;
+      gl_FragColor = vec4(col, a);
+    }`;
+  const markU = { uTime: arcU.uTime, uPR: arcU.uPR, uScale: arcU.uScale, uSel: arcU.uSel, uRisk: { value: -1 }, uCam: { value: earthCam.position } };
+  function markerPoints(items) {
+    const n = items.length;
+    const pos = new Float32Array(n * 3), kind = new Float32Array(n), idx = new Float32Array(n), level = new Float32Array(n), size = new Float32Array(n);
+    items.forEach((m, i) => { m.v.toArray(pos, i * 3); kind[i] = m.kind; idx[i] = m.idx; level[i] = m.level || 0; size[i] = m.size; });
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.setAttribute('aKind', new THREE.BufferAttribute(kind, 1));
+    g.setAttribute('aIdx', new THREE.BufferAttribute(idx, 1));
+    g.setAttribute('aLevel', new THREE.BufferAttribute(level, 1));
+    g.setAttribute('aSize', new THREE.BufferAttribute(size, 1));
+    const pts = new THREE.Points(g, new THREE.ShaderMaterial({ uniforms: markU, vertexShader: MARK_VS, fragmentShader: MARK_FS, transparent: true, depthWrite: false }));
+    pts.renderOrder = 4;
+    return pts;
+  }
+  {
+    const items = [];
+    const ports = new Map();
+    SHIPMENTS.forEach((s, i) => {
+      for (const p of [s.from, s.to]) if (!ports.has(p)) ports.set(p, i);
+      items.push({ v: routes[i].at(s.progress).clone(), kind: 1, idx: i, size: 26 });
+    });
+    ports.forEach((i, p) => items.push({ v: llToVec(...PORTS[p], 1.008), kind: 0, idx: i, size: 13 }));
+    RISKS.forEach((r, i) => items.push({ v: llToVec(r.lat, r.lon, 1.01), kind: 2, idx: i, level: r.level, size: r.level === 3 ? 56 : 44 }));
+    spinG.add(markerPoints(items));
+  }
+
+  /* ---------------- planned route ---------------- */
+  const planU = { uTime: arcU.uTime, uPR: arcU.uPR, uScale: arcU.uScale, uReveal: { value: 0 } };
+  const planMat = new THREE.ShaderMaterial({
+    uniforms: planU,
+    vertexShader: /* glsl */`
+      attribute float aT;
+      uniform float uPR, uScale, uReveal, uTime;
+      varying float vA;
+      void main(){
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        float shown = step(aT, uReveal);
+        float head = exp(-pow((aT - uReveal) / 0.02, 2.0)) * step(uReveal, 0.999);
+        float shimmer = 0.75 + 0.25 * sin(aT * 90.0 - uTime * 4.0);
+        vA = shown * (0.8 * shimmer) + head * 1.2;
+        gl_PointSize = (2.0 + head * 3.0) * uPR * uScale;
+      }`,
+    fragmentShader: /* glsl */`
+      varying float vA;
+      void main(){
+        float d = length(gl_PointCoord - 0.5);
+        gl_FragColor = vec4(0.49, 0.85, 1.0, smoothstep(0.5, 0.1, d) * vA);
+      }`,
+    transparent: true, depthWrite: false, blending: THREE.AdditiveBlending,
+  });
+  let planObj = null, planEnds = null, planInfo = null;
+  let planRevealT = 1;
+
+  function buildPlan(plan) {
+    if (planObj) { spinG.remove(planObj, planEnds); planObj.geometry.dispose(); planEnds.geometry.dispose(); planObj = planEnds = null; }
+    planInfo = plan;
+    if (!plan) return;
+    // Planned routes are drawn as arcs whatever the mode: the planner only
+    // knows the great circle, not the sea lanes.
+    const path = buildPath([plan.a, plan.b], 'air', 62);
+    const n = path.samples.length;
+    const pos = new Float32Array(n * 3), aT = new Float32Array(n);
+    path.samples.forEach(({ v, t }, i) => { v.toArray(pos, i * 3); aT[i] = t; });
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.setAttribute('aT', new THREE.BufferAttribute(aT, 1));
+    planObj = new THREE.Points(g, planMat);
+    planObj.renderOrder = 3;
+    planEnds = markerPoints([
+      { v: llToVec(...plan.a, 1.008), kind: 3, idx: -9, size: 16 },
+      { v: llToVec(...plan.b, 1.008), kind: 3, idx: -9, size: 16 },
+    ]);
+    spinG.add(planObj, planEnds);
+    planInfo.mid = vecToLL(path.at(0.5));
+    planInfo.total = path.total;
+    planRevealT = reduceMotion ? 1 : 0;
+  }
+
+  /* ---------------- Moon ---------------- */
+  const MOON_R = 2.0;
+  const moonOrbit = new THREE.Group();
+  moonOrbit.rotation.set(0.42, 0, -0.28);
+  earthScene.add(moonOrbit);
+  const moonPivot = new THREE.Group();
+  moonOrbit.add(moonPivot);
+  const moon = new THREE.Mesh(new THREE.SphereGeometry(0.2, 64, 32), planetMaterial(bake(MOON, 1024, 512), earthCam, { rim: [0.8, 0.85, 1], rimK: 0.12, amb: 0.02 }));
+  moon.position.set(MOON_R, 0, 0);
+  moonPivot.add(moon);
+  const orbitLine = new THREE.LineLoop(
+    new THREE.BufferGeometry().setFromPoints(Array.from({ length: 160 }, (_, i) => {
+      const a = (i / 160) * Math.PI * 2;
+      return new THREE.Vector3(Math.cos(a) * MOON_R, 0, Math.sin(a) * MOON_R);
+    })),
+    new THREE.LineBasicMaterial({ color: 0xaeb6d8, transparent: true, opacity: 0, depthWrite: false }),
+  );
+  moonOrbit.add(orbitLine);
+
+  /* ---------------- imagery ---------------- */
+  const loader = new THREE.TextureLoader();
+  const loadTex = (url) => new Promise((res, rej) => loader.load(url, res, undefined, rej));
+  const prepTex = (t) => { t.wrapS = THREE.RepeatWrapping; t.anisotropy = maxAniso; return t; };
+  let revealT = -1;
+  Promise.all([loadTex('tex/earth-day-2k.jpg'), loadTex('tex/earth-data-2k.jpg')])
+    .then(([day, data]) => {
+      earthU.uDay.value = prepTex(day);
+      earthU.uData.value = prepTex(data);
+      revealT = 0;
+      $('#globeNote').classList.add('is-hidden');
+      if (!compactMQ.matches && renderer.capabilities.maxTextureSize >= 4096) {
+        loadTex('tex/earth-day-4k.jpg').then((hi) => { const old = earthU.uDay.value; earthU.uDay.value = prepTex(hi); old.dispose(); }).catch(() => {});
+      }
+    })
+    .catch(() => showNote('The Earth imagery did not load. Reload to try again.', true));
+
+  /* ================================================================ *
+   * View state and input
+   * ================================================================ */
+  const view = {
+    lon: 108, lat: 16, zoom: 1, zoomTo: 1,
+    orbit: 0, orbitTo: 0,
+    vLon: 0, vLat: 0,
+    spin: !reduceMotion, idleUntil: 0,
+    fly: null, sel: -1, preview: -1, risk: -1,
+  };
+  let radiusPx = 300;
+  let W = 0, H = 0, PR = 1;
+  let clock = 0, last = performance.now();
+  const hover = { active: false, x: 0, y: 0 };
+  const pointer = { x: 0, y: 0, sx: 0, sy: 0 };
+
+  function flyTo(lat, lon, zoom) {
+    const dLon = wrapLon(lon - view.lon);
+    view.fly = { t: 0, dur: reduceMotion ? 0.01 : 1.5, lon0: view.lon, lat0: view.lat, z0: view.zoomTo, lon1: view.lon + dLon, lat1: clamp(lat, -70, 70), z1: zoom ?? view.zoomTo };
+    view.vLon = view.vLat = 0;
+  }
+  const nudge = (ms = 7000) => { view.idleUntil = performance.now() + ms; };
+
+  const pointers = new Map();
+  let pinch = 0;
+  slot.addEventListener('pointerdown', (e) => {
+    if (e.button > 0) return;
+    slot.setPointerCapture(e.pointerId);
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    slot.classList.add('dragging');
+    view.fly = null; view.vLon = view.vLat = 0;
+    nudge();
+    if (pointers.size === 2) { const [a, b] = [...pointers.values()]; pinch = Math.hypot(a.x - b.x, a.y - b.y); }
+  });
+  slot.addEventListener('pointermove', (e) => {
+    hover.active = true; hover.x = e.clientX; hover.y = e.clientY;
+    const p = pointers.get(e.pointerId);
+    if (!p) return;
+    const dx = e.clientX - p.x, dy = e.clientY - p.y;
+    p.x = e.clientX; p.y = e.clientY;
+    if (pointers.size === 2) {
+      const [a, b] = [...pointers.values()];
+      const d = Math.hypot(a.x - b.x, a.y - b.y);
+      if (pinch > 0) view.zoomTo = clamp(view.zoomTo * (d / pinch), 0.6, 3.2);
+      pinch = d;
+      return;
+    }
+    const k = (R2D / radiusPx) * 0.9;
+    view.lon -= dx * k; view.lat = clamp(view.lat + dy * k, -70, 70);
+    view.vLon = -dx * k * 60; view.vLat = dy * k * 60;
+    nudge();
+  });
+  const release = (e) => {
+    pointers.delete(e.pointerId);
+    if (pointers.size < 2) pinch = 0;
+    if (!pointers.size) slot.classList.remove('dragging');
+  };
+  slot.addEventListener('pointerup', release);
+  slot.addEventListener('pointercancel', (e) => { release(e); view.vLon = view.vLat = 0; });
+  slot.addEventListener('pointerleave', () => { hover.active = false; });
+  slot.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    view.zoomTo = clamp(view.zoomTo * Math.exp(-e.deltaY * 0.0012), 0.6, 3.2);
+    nudge();
+  }, { passive: false });
+  slot.addEventListener('keydown', (e) => {
+    const step = 8;
+    const k = { ArrowLeft: [step, 0], ArrowRight: [-step, 0], ArrowUp: [0, step], ArrowDown: [0, -step] }[e.key];
+    if (k) { e.preventDefault(); flyTo(view.lat + k[1], view.lon - k[0]); nudge(); }
+    else if (e.key === '+' || e.key === '=') { view.zoomTo = clamp(view.zoomTo * 1.25, 0.6, 3.2); nudge(); }
+    else if (e.key === '-' || e.key === '_') { view.zoomTo = clamp(view.zoomTo / 1.25, 0.6, 3.2); nudge(); }
+  });
+  addEventListener('pointermove', (e) => {
+    pointer.x = (e.clientX / innerWidth) * 2 - 1;
+    pointer.y = (e.clientY / innerHeight) * 2 - 1;
+  }, { passive: true });
+
+  // HUD buttons
+  const spinBtn = $('#spin');
+  function setSpin(on) {
+    view.spin = on;
+    spinBtn.setAttribute('aria-pressed', String(on));
+    spinBtn.setAttribute('aria-label', on ? 'Pause rotation' : 'Resume rotation');
+    spinBtn.title = on ? 'Pause rotation' : 'Resume rotation';
+    spinBtn.querySelector('use').setAttribute('href', on ? '#i-pause' : '#i-play');
+  }
+  setSpin(view.spin);
+  spinBtn.addEventListener('click', () => { setSpin(!view.spin); view.idleUntil = 0; });
+  $('#zoomIn').addEventListener('click', () => { view.zoomTo = clamp(view.zoomTo * 1.3, 0.6, 3.2); nudge(); });
+  $('#zoomOut').addEventListener('click', () => { view.zoomTo = clamp(view.zoomTo / 1.3, 0.6, 3.2); nudge(); });
+  const viewBtns = [...document.querySelectorAll('[data-view]')];
+  function setView(mode) {
+    view.orbitTo = mode === 'orbit' ? 1 : 0;
+    viewBtns.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.view === mode)));
+  }
+  viewBtns.forEach((b) => b.addEventListener('click', () => setView(b.dataset.view)));
+  const fsBtn = $('#fullscreen');
+  if (!document.fullscreenEnabled) fsBtn.hidden = true;
+  fsBtn.addEventListener('click', () => {
+    const p = document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen();
+    p?.catch?.(() => { fsBtn.hidden = true; });
+  });
+  document.addEventListener('fullscreenchange', () => {
+    const on = !!document.fullscreenElement;
+    fsBtn.querySelector('use').setAttribute('href', on ? '#i-shrink' : '#i-expand');
+    fsBtn.setAttribute('aria-label', on ? 'Exit full screen' : 'Full screen');
+    fsBtn.title = on ? 'Exit full screen' : 'Full screen';
+  });
+
+  /* ---------------- labels ---------------- */
+  const labelLayer = $('#labels');
+  const labelPool = [];
+  function label(i) {
+    if (!labelPool[i]) { const el = document.createElement('span'); el.className = 'geo-label'; labelLayer.append(el); labelPool[i] = el; }
+    return labelPool[i];
+  }
+  const projV = new THREE.Vector3(), camDir = new THREE.Vector3();
+  function placeLabel(i, world, text, cls, sub) {
+    const el = label(i);
+    if (el.dataset.text !== text + sub) { el.innerHTML = sub ? `${text} <small>${sub}</small>` : text; el.dataset.text = text + sub; }
+    el.className = `geo-label ${cls}`;
+    const facing = camDir.copy(earthCam.position).sub(world).normalize().dot(projV.copy(world).normalize());
+    projV.copy(world).project(earthCam);
+    const x = ((projV.x + 1) / 2) * W, y = ((1 - projV.y) / 2) * H;
+    el.style.transform = `translate3d(${(x + 10).toFixed(1)}px, ${(y - 11).toFixed(1)}px, 0)`;
+    el.style.opacity = cls === 'is-moon' ? String(view.orbit) : (facing > 0.08 ? '1' : '0');
+  }
+  const wv = new THREE.Vector3();
+  function updateLabels() {
+    let n = 0;
+    const sel = view.sel >= 0 ? view.sel : view.preview;
+    if (sel >= 0) {
+      const s = SHIPMENTS[sel];
+      placeLabel(n++, spinG.localToWorld(llToVec(...PORTS[s.from], 1.01, wv)), s.from, '', '');
+      placeLabel(n++, spinG.localToWorld(llToVec(...PORTS[s.to], 1.01, wv)), s.to, '', '');
+      placeLabel(n++, spinG.localToWorld(wv.copy(routes[sel].at(s.progress))), s.id, '', `${Math.round(s.progress * 100)}%`);
+    }
+    if (planInfo && view.sel < 0) {
+      placeLabel(n++, spinG.localToWorld(llToVec(...planInfo.a, 1.01, wv)), planInfo.from, 'is-plan', '');
+      placeLabel(n++, spinG.localToWorld(llToVec(...planInfo.b, 1.01, wv)), planInfo.to, 'is-plan', '');
+    }
+    if (view.risk >= 0) {
+      const r = RISKS[view.risk];
+      placeLabel(n++, spinG.localToWorld(llToVec(r.lat, r.lon, 1.01, wv)), r.title, 'is-risk', r.place);
+    }
+    if (view.orbit > 0.02) placeLabel(n++, moon.getWorldPosition(wv), 'Moon', 'is-moon', '384,400 km');
+    for (let i = n; i < labelPool.length; i++) labelPool[i].style.opacity = '0';
+  }
+
+  /* ---------------- readout ---------------- */
+  const ro = { label: $('#roLabel'), lat: $('#roLat'), lon: $('#roLon') };
+  const raycaster = new THREE.Raycaster();
+  const unit = new THREE.Sphere(new THREE.Vector3(), 1);
+  const ndc = new THREE.Vector2(), hit = new THREE.Vector3();
+  let roText = '';
+  function updateReadout() {
+    let ll = null, lbl = 'Center';
+    if (hover.active && !pointers.size) {
+      ndc.set((hover.x / W) * 2 - 1, -(hover.y / H) * 2 + 1);
+      raycaster.setFromCamera(ndc, earthCam);
+      if (raycaster.ray.intersectSphere(unit, hit)) { ll = vecToLL(spinG.worldToLocal(hit)); lbl = 'Cursor'; }
+    }
+    if (!ll) ll = { lat: view.lat, lon: wrapLon(view.lon) };
+    const text = `${lbl}|${fmtLat(ll.lat)}|${fmtLon(ll.lon)}`;
+    if (text !== roText) { roText = text; ro.label.textContent = lbl; ro.lat.textContent = fmtLat(ll.lat); ro.lon.textContent = fmtLon(ll.lon); }
+  }
+
+  /* ---------------- layout ---------------- */
+  function resize() {
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    const pr = Math.min(devicePixelRatio || 1, compactMQ.matches ? 1.75 : 2);
+    if (w === W && h === H && pr === PR) return;
+    W = w; H = h; PR = pr;
+    renderer.setPixelRatio(PR);
+    renderer.setSize(W, H, false);
+    bgCam.aspect = W / H;
+    bgCam.updateProjectionMatrix();
+    layoutPlanets();
+    starU.uPR.value = PR;
+    arcU.uPR.value = PR;
+    leakU.uRes.value.set(W * PR, H * PR);
+    const compact = compactMQ.matches;
+    leakU.uSunPx.value.set(W * PR * (compact ? -0.12 : -0.05), H * PR * (compact ? 1.02 : 1.1));
+  }
+
+  function frameEarth() {
+    const r = slot.getBoundingClientRect();
+    const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
+    const fit = Math.max(60, Math.min(r.width, r.height) / 2) * (compactMQ.matches ? 0.86 : 0.9);
+    const e = easeInOut(view.orbit);
+    radiusPx = fit * view.zoom * lerp(1, 0.4, e);
+    const tanHalf = Math.tan((earthCam.fov * D2R) / 2);
+    const dist = Math.max(1.15, 1 / Math.sin(Math.atan((radiusPx / (H / 2)) * tanHalf)));
+    const elev = lerp(3, 30, e) * D2R, azim = lerp(0, -16, e) * D2R;
+    earthCam.position.set(Math.sin(azim) * Math.cos(elev), Math.sin(elev), Math.cos(azim) * Math.cos(elev)).multiplyScalar(dist);
+    earthCam.lookAt(0, 0, 0);
+    earthCam.aspect = W / H;
+    earthCam.setViewOffset(W, H, W / 2 - cx, H / 2 - cy, W, H);
+    arcU.uScale.value = clamp(radiusPx / 300, 0.55, 1.6);
+  }
+
+  /* ---------------- frame loop ---------------- */
+  function frame(t) {
+    const dt = Math.min(0.05, (t - last) / 1000);
+    last = t;
+    clock += dt;
+    resize();
+
+    if (view.fly) {
+      const f = view.fly;
+      f.t = Math.min(1, f.t + dt / f.dur);
+      const k = easeInOut(f.t);
+      view.lon = lerp(f.lon0, f.lon1, k);
+      view.lat = lerp(f.lat0, f.lat1, k);
+      view.zoomTo = lerp(f.z0, f.z1, k);
+      if (f.t >= 1) view.fly = null;
+    } else if (!pointers.size) {
+      view.lon += view.vLon * dt; view.lat = clamp(view.lat + view.vLat * dt, -70, 70);
+      const damp = Math.exp(-dt * 3.2);
+      view.vLon *= damp; view.vLat *= damp;
+      if (view.spin && view.sel < 0 && view.risk < 0 && t > view.idleUntil) view.lon -= dt * 3.2;
+    }
+    view.zoom += (view.zoomTo - view.zoom) * (1 - Math.exp(-dt * 7));
+    view.orbit += (view.orbitTo - view.orbit) * (1 - Math.exp(-dt * (reduceMotion ? 60 : 2.6)));
+    view.lon = ((view.lon % 360) + 360) % 360;
+
+    tiltG.rotation.x = view.lat * D2R;
+    spinG.rotation.y = -(view.lon + 90) * D2R;
+    frameEarth();
+
+    if (revealT >= 0 && revealT < 1) {
+      revealT = Math.min(1, revealT + dt / (reduceMotion ? 0.01 : 1.4));
+      earthU.uFade.value = easeInOut(revealT);
+      cloudU.uOpacity.value = 0.62 * easeInOut(revealT);
+    }
+    if (planRevealT < 1) planRevealT = Math.min(1, planRevealT + dt / 1.6);
+    planU.uReveal.value = easeInOut(planRevealT);
+
+    const motion = reduceMotion ? 0 : 1;
+    earthU.uCloudOff.value = (clock * 0.0016 * motion) % 1;
+    arcU.uTime.value = clock;
+    starU.uTime.value = clock;
+    leakU.uTime.value = clock;
+    arcU.uSel.value = view.sel >= 0 ? view.sel : view.preview;
+    markU.uRisk.value = view.risk;
+
+    moonPivot.rotation.y = 2.6 + clock * 0.07 * motion;
+    orbitLine.material.opacity = 0.32 * easeInOut(view.orbit);
+    for (const p of Object.values(planets)) p.body.rotation.y += p.spin * dt * motion;
+
+    // Parallax: the sky camera slides with the pointer on desktop and with
+    // the scroll position on phones.
+    const compact = compactMQ.matches;
+    pointer.sx += ((compact ? 0 : pointer.x) - pointer.sx) * (1 - Math.exp(-dt * 2));
+    pointer.sy += ((compact ? 0 : pointer.y) - pointer.sy) * (1 - Math.exp(-dt * 2));
+    bgCam.position.set(pointer.sx * 2.2, -pointer.sy * 1.4 - (compact ? scrollY * 0.012 : 0), 0);
+    bgCam.rotation.x = lerp(0, 0.06, easeInOut(view.orbit));
+
+    renderer.clear();
+    renderer.render(bgScene, bgCam);
+    renderer.clearDepth();
+    renderer.render(earthScene, earthCam);
+
+    updateLabels();
+    updateReadout();
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  /* ---------------- API for the panels ---------------- */
+  return {
+    selectShipment(i) {
+      view.sel = i; view.risk = -1;
+      if (i < 0) return;
+      const r = routes[i];
+      const mid = vecToLL(r.at(0.5));
+      flyTo(mid.lat, mid.lon, clamp(1.35 - (r.total / Math.PI) * 0.55, 0.9, 1.4));
+    },
+    previewShipment(i) { view.preview = i; },
+    focusRisk(i) {
+      view.risk = i; view.sel = -1;
+      if (i >= 0) flyTo(RISKS[i].lat, RISKS[i].lon, 1.7);
+    },
+    setPlan(plan, fly = true) {
+      buildPlan(plan);
+      if (plan && fly) {
+        view.sel = -1; view.risk = -1;
+        document.querySelectorAll('.ship, .risk').forEach((r) => r.setAttribute('aria-pressed', 'false'));
+        flyTo(planInfo.mid.lat, planInfo.mid.lon, clamp(1.3 - (planInfo.total / Math.PI) * 0.5, 0.9, 1.3));
+        nudge(9000);
+      }
+    },
+    setView, setSpin,
+  };
+}
+</script>
+</body>
+</html>

@@ -5,6 +5,15 @@ any of them — every project is an `index.html` you can open directly.
 
 ## Projects
 
+### 🪐 [Earthside](earthside/)
+
+A freight-tracking dashboard wrapped around a live 3D Earth: day and night with city lights,
+drifting clouds, shipping lanes through Suez and Malacca, pulsing risk zones and a great-circle
+route planner. Jupiter, Saturn, Mars, Neptune and the Moon hang in the sky behind it, all lit by
+the same Sun.
+
+**▶ [Open it](https://badboyvee.github.io/BlackHoleeee/earthside/)** · [source & prompt](earthside/)
+
 ### 🚋 [Skyline Tram](skyline-tram/)
 
 Drive a retro aerial tram along a rail loop between two islands floating above a sea of clouds.
