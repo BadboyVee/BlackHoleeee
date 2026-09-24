@@ -27,8 +27,16 @@ function clean(g) {
   return q;
 }
 
+// indexed variant (shared vertices, smooth normals) for the many-part corals
+function cleanIndexed(g) {
+  for (const k of Object.keys(g.attributes)) if (!['position', 'normal', 'uv'].includes(k)) g.deleteAttribute(k);
+  if (!g.attributes.uv) g.setAttribute('uv', new THREE.BufferAttribute(new Float32Array(g.attributes.position.count * 2), 2));
+  return g;
+}
+
 function branching() {
-  // staghorn: recursive forking tubes
+  // staghorn: recursive forking tubes (indexed: ~3x fewer vertices over
+  // a couple of hundred instances)
   const parts = [];
   const grow = (p, dir, len, r, depth) => {
     const end = p.clone().addScaledVector(dir, len);
@@ -36,8 +44,8 @@ function branching() {
     g.translate(0, len / 2, 0);
     g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0, 1, 0), dir));
     g.translate(p.x, p.y, p.z);
-    parts.push(clean(g));
-    if (depth === 0) { parts.push(clean(new THREE.SphereGeometry(r * 0.75, 6, 4).translate(end.x, end.y, end.z))); return; }
+    parts.push(cleanIndexed(g));
+    if (depth === 0) { parts.push(cleanIndexed(new THREE.SphereGeometry(r * 0.75, 6, 4).translate(end.x, end.y, end.z))); return; }
     const n = 2 + (rnd() < 0.4 ? 1 : 0);
     for (let k = 0; k < n; k++) {
       const d2 = dir.clone().add(new THREE.Vector3((rnd() - 0.5) * 1.2, rnd() * 0.3, (rnd() - 0.5) * 1.2)).normalize();
@@ -139,6 +147,9 @@ export class Reef {
   constructor({ scene, island, reef, collision }) {
     this.group = new THREE.Group();
     this.group.name = 'reef';
+    this.center = new THREE.Vector2(reef.x, reef.z);
+    this.radius = reef.r * 1.7;
+    this.enabled = true;
     scene.add(this.group);
     const types = {
       branching: { geo: branching(), n: 180, depth: [1.8, 9], sway: 0, scale: [0.7, 1.4], rough: 0.7 },
@@ -213,5 +224,16 @@ export class Reef {
       mesh.name = `reef.${name}`;
       this.group.add(mesh);
     }
+  }
+
+  /**
+   * Skip drawing the reef when it can't be seen: from above the water only
+   * within ~140 m (farther out the surface is a mirror at grazing angles),
+   * under water only within the visibility.
+   */
+  update(camera, underwater) {
+    if (!this.enabled) return;
+    const d = Math.hypot(camera.position.x - this.center.x, camera.position.y, camera.position.z - this.center.z);
+    this.group.visible = d < this.radius + (underwater ? 70 : 140);
   }
 }

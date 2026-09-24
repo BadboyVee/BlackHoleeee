@@ -431,6 +431,8 @@ async function start() {
     if (on('whale')) whale.update(dt, time, camera.position);
     if (on('birds')) birds.update(realDt, performance.now() / 1000);
     if (on('crabs')) crabs.update(realDt, player);
+    reefLife.enabled = on('reef');
+    reefLife.update(camera, under);
     motes.update(camera);
     for (const ev of whale.events.splice(0)) if (ev.type === 'splash') audio.splash(ev.pos, 2.5 * ev.strength);
     audio.update({
