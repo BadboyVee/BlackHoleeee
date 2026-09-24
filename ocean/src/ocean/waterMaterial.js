@@ -137,6 +137,31 @@ export class WaterMaterial extends THREE.NodeMaterial {
     this.name = 'water';
     this.userData.noAO = true;
     this.userData.noContactShadow = true;
+    this.hullMasks = [];
+  }
+
+  /**
+   * Keep the sea out of a hull: water fragments inside the hull's plan
+   * outline and below its sheer line are discarded (the hull is watertight,
+   * the rendered surface isn't). halfBeam(s) is the hull's plan shape, s = 0
+   * at the transom, 1 at the stem; length/sheer in metres.
+   */
+  addHullMask({ matrixWorldInverse, length, halfBeam, sheer }) {
+    this.hullMasks.push({ inv: uniform(matrixWorldInverse), length, halfBeam, sheer });
+    const masks = this.hullMasks;
+    this.maskNode = Fn(() => {
+      let keep = float(1);
+      for (const m of masks) {
+        const lp = m.inv.mul(vec4(positionWorld, 1)).xyz;
+        const s = float(0.5).sub(lp.z.div(m.length));
+        const within = s.greaterThan(0.002).and(s.lessThan(0.995));
+        const hb = m.halfBeam(clamp(s, 0, 1));
+        const inside = within.and(abs(lp.x).lessThan(hb)).and(lp.y.lessThan(m.sheer(clamp(s, 0, 1))));
+        keep = keep.mul(select(inside, float(0), float(1)));
+      }
+      return keep.greaterThan(0.5);
+    })();
+    this.needsUpdate = true;
   }
 
   updateRoughnessTable() {
@@ -173,6 +198,10 @@ export class WaterMaterial extends THREE.NodeMaterial {
       // inside a breaking crest winding flips where the lip overturns: from
       // the air every face there is seen from above the water
       aboveBool = frontFacing.or(v.breakZone.greaterThan(0.01).and(env.cameraUnderwater.lessThan(0.5)));
+    }
+    if (v.wakeSlope) {
+      slope = slope.add(v.wakeSlope);
+      foam = foam.add(v.wakeFoam.mul(0.9));
     }
     const ctx = { xz, slope, foam, height: this.vHeight };
     for (const mod of this.shoreModifiers) mod(ctx);

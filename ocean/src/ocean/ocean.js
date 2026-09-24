@@ -5,7 +5,7 @@
 import * as THREE from 'three/webgpu';
 import {
   Fn, attribute, positionGeometry, cameraPosition, uniform, vec2, vec3, vec4, float,
-  fract, clamp, length, log2, max, texture, varying, smoothstep, mix, select, normalize,
+  fract, clamp, length, log2, max, texture, varying, smoothstep, mix, select, normalize, exp, sin,
 } from 'three/tsl';
 import { OceanFFT, OCEAN_SIZE } from './fft.js';
 import { createPatchGeometry, PatchSelector } from './oceanMesh.js';
@@ -25,6 +25,33 @@ export class Ocean {
     this.displacementModifiers = [];
     this.eyeXZ = uniform(new THREE.Vector2());
     this.nearFadeOff = uniform(1);
+    // splash events (whale breaches): foam patch + an expanding ring wave
+    this.blobs = Array.from({ length: 4 }, () => uniform(new THREE.Vector4(0, 0, 0, -1000)));
+    this.time = 0;
+  }
+
+  /** a splash at (x, z) of radius r (m): foam and a ring wave for ~40 s */
+  addFoamBlob(x, z, r) {
+    let slot = this.blobs[0];
+    for (const b of this.blobs) if (b.value.w < slot.value.w) slot = b;
+    slot.value.set(x, z, r, this.time);
+  }
+
+  _blobs(xz, timeNode) {
+    let dy = float(0), foam = float(0);
+    for (const b of this.blobs) {
+      const age = timeNode.sub(b.w);
+      const live = age.greaterThan(0).and(age.lessThan(45));
+      const d = length(xz.sub(b.xy));
+      const r = b.z;
+      const f = smoothstep(r.mul(1.1), r.mul(0.3), d).mul(exp(age.mul(-0.12))).mul(1.6);
+      // ring: a short wave packet running outward at ~4 m/s, decaying
+      const front = d.sub(age.mul(4.0));
+      const ring = sin(front.mul(1.3)).mul(exp(front.mul(front).mul(-0.05))).mul(r.mul(0.05)).mul(exp(age.mul(-0.12)));
+      dy = dy.add(select(live, ring, float(0)));
+      foam = foam.add(select(live, f, float(0)));
+    }
+    return { dy, foam };
   }
 
   /** TSL: summed cascade displacement at undisplaced world xz. */
@@ -74,9 +101,14 @@ export class Ocean {
    * vertex and compute stages). Everything that must agree about where the
    * water is (mesh, waterline probe, buoyancy) goes through this.
    */
-  surface(xz, spacing, shore, timeNode) {
+  surface(xz, spacing, shore, timeNode, { wakeScale = null } = {}) {
     let disp = this.displacement(xz, spacing);
     let fftFoam = this.foamAt(xz, spacing);
+    if (timeNode) {
+      const bl = this._blobs(xz, timeNode);
+      disp = disp.add(vec3(0, bl.dy, 0));
+      fftFoam = fftFoam.add(bl.foam);
+    }
     const out = {};
     let y;
     if (shore) {
@@ -87,6 +119,12 @@ export class Ocean {
       fftFoam = fftFoam.mul(fftAtten);
       const br = shore.breaker(st, true);
       disp = disp.add(br.disp);
+      if (this.wake) {
+        // interactive wake waves (boats) ride on top of everything else
+        const wk = this.wake.sample(xz);
+        disp = disp.add(vec3(0, wakeScale ? wk.x.mul(wakeScale) : wk.x, 0));
+        out.wake = wk;
+      }
       const sw = shore.swash(st, timeNode);
       // swash sheet riding over the beach face; hide the ocean under dry sand
       const bedTop = st.bed.add(sw.thick);
@@ -134,13 +172,20 @@ export class Ocean {
       const { st, br, sw, fftAtten, onLand } = srf;
       const nShore = normalize(vec3(st.fwd.x.mul(br.normalFwd), br.normalUp, st.fwd.y.mul(br.normalFwd)));
       out.shoreNormal = varying(nShore, 'vShoreN');
-      out.shoreFoam = varying(max(br.foam.mul(st.H.mul(1.2).min(1)), sw.foam.mul(select(onLand, float(1), float(0)))), 'vShoreFoam');
+      let shoreFoam = max(br.foam.mul(st.H.mul(1.2).min(1)), sw.foam.mul(select(onLand, float(1), float(0))));
+      // whitewater left behind by broken bores (persistent surf foam field)
+      if (this.surf) shoreFoam = max(shoreFoam, this.surf.sample(xz).mul(select(onLand, float(0), float(1))));
+      out.shoreFoam = varying(shoreFoam, 'vShoreFoam');
       out.thin = varying(br.thin, 'vShoreThin');
       out.folded = varying(select(br.flipped, float(1), float(0)), 'vShoreFold');
       out.breakZone = varying(smoothstep(0.6, 1.2, st.beta).mul(smoothstep(0.3, 0.8, st.H)), 'vBreakZone');
       out.swash = varying(select(onLand, sw.thick, float(1)), 'vSwash');
       out.fftAtten = varying(fftAtten, 'vFftAtten');
       out.depth = varying(st.depth, 'vWaterDepth');
+      if (srf.wake) {
+        out.wakeSlope = varying(srf.wake.yz, 'vWakeSlope');
+        out.wakeFoam = varying(srf.wake.w, 'vWakeFoam');
+      }
     }
     const rel = xz.sub(cameraPosition.xz);
     const curvature = rel.dot(rel).div(2 * EARTH_RADIUS);
@@ -160,6 +205,7 @@ export class Ocean {
   }
 
   update(dt, time, camera, waterHeightAtEye = 0) {
+    this.time = time;
     this.fft.update(dt, time);
     this.selector.update(camera, 6);
     this.eyeXZ.value.set(camera.position.x, camera.position.z);

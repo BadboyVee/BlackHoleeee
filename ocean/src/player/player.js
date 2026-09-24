@@ -115,12 +115,17 @@ export class Player {
   update(dt) {
     dt = Math.min(dt, 0.05);
     const inp = this.input;
-    if (inp.locked) {
+    if (inp.locked && this.mode !== 'boat') {
       this.yaw += inp.mouseDX * this.sensitivity;
       this.pitch -= inp.mouseDY * this.sensitivity;
       this.pitch = THREE.MathUtils.clamp(this.pitch, -1.53, 1.53);
     }
-    if (inp.pressed('KeyG') && this.mode !== 'boat') this.setMode(this.mode === 'fly' ? 'walk' : 'fly');
+    if (this.mode === 'boat') {
+      this.boat?.updateCamera(this.camera, this, dt, inp);
+      this.eye.copy(this.camera.position);
+      return;
+    }
+    if (inp.pressed('KeyG')) this.setMode(this.mode === 'fly' ? 'walk' : 'fly');
 
     // the probe query follows the body
     const qx = this.mode === 'walk' ? this.feet.x : this.eye.x;

@@ -39,8 +39,8 @@ export const worley3 = Fn(([p, period]) => {
 
 const fade = (t) => t.mul(t).mul(t).mul(t.mul(t.mul(6).sub(15)).add(10));
 
-// periodic gradient noise in [-1,1]
-export const perlin3 = Fn(([p, period]) => {
+// periodic gradient noise in [-1,1]; period per axis (cells across [0,1))
+export const perlin3v = Fn(([p, period]) => {
   const pp = p.mul(period);
   const i = floor(pp);
   const f = fract(pp);
@@ -54,7 +54,8 @@ export const perlin3 = Fn(([p, period]) => {
   const n001 = g(vec3(0, 0, 1)), n101 = g(vec3(1, 0, 1)), n011 = g(vec3(0, 1, 1)), n111 = g(vec3(1, 1, 1));
   const x00 = mix(n000, n100, u.x), x10 = mix(n010, n110, u.x), x01 = mix(n001, n101, u.x), x11 = mix(n011, n111, u.x);
   return mix(mix(x00, x10, u.y), mix(x01, x11, u.y), u.z).mul(1.6);
-}).setLayout({ name: 'perlin3', type: 'float', inputs: [{ name: 'p', type: 'vec3' }, { name: 'period', type: 'float' }] });
+}).setLayout({ name: 'perlin3v', type: 'float', inputs: [{ name: 'p', type: 'vec3' }, { name: 'period', type: 'vec3' }] });
+export const perlin3 = (p, period) => perlin3v(p, vec3(period));
 
 const remap = (v, a, b, c, d) => c.add(v.sub(a).div(b.sub(a)).mul(d.sub(c)));
 
@@ -133,8 +134,8 @@ export async function createCloudNoise(renderer, { shapeSize = 128 } = {}) {
     const pn = perlin3(p, float(4)).add(perlin3(p, float(8)).mul(0.5)).add(perlin3(p, float(16)).mul(0.25)).div(1.75).mul(0.5).add(0.5);
     const w1 = worley3(p, float(4)), w2 = worley3(p, float(8)), w3 = worley3(p, float(16)), w4 = worley3(p, float(32));
     const wfbm = w1.mul(0.625).add(w2.mul(0.25)).add(w3.mul(0.125));
-    // Perlin-Worley: Perlin with Worley billows carved in
-    const pw = clamp(remap(pn, wfbm.sub(1), float(1), float(0), float(1)), 0, 1);
+    // Perlin-Worley: Perlin dilated by the billowy (1 - F1) Worley fBm
+    const pw = clamp(remap(pn, float(0), float(1), wfbm, float(1)), 0, 1);
     const g = w1.mul(0.625).add(w2.mul(0.25)).add(w3.mul(0.125));
     const b = w2.mul(0.625).add(w3.mul(0.25)).add(w4.mul(0.125));
     const a = w3.mul(0.75).add(w4.mul(0.25));
@@ -186,8 +187,8 @@ export async function createCloudNoise(renderer, { shapeSize = 128 } = {}) {
     const q = w.add(warp2.mul(0.06));
     // stretch: many cycles across the fibre, few along it
     const fibres = fbm2(vec2(q.x, q.y), 3, 2, 0.61).mul(0.35)
-      .add(perlin3(vec3(q.x, q.y.mul(0.25), 0.2), float(24)).mul(0.35))
-      .add(perlin3(vec3(q.x, q.y.mul(0.2), 0.8), float(56)).mul(0.2))
+      .add(perlin3v(vec3(q.x, q.y, 0.2), vec3(24, 6, 24)).mul(0.35))
+      .add(perlin3v(vec3(q.x, q.y, 0.8), vec3(56, 11, 56)).mul(0.2))
       .add(perlin3(vec3(q.x, q.y, 0.4), float(96)).mul(0.1));
     const strands = pow(clamp(fibres.mul(0.9).add(0.5), 0, 1), float(2.2));
     const patches = clamp(fbm2(uv.add(warp1.mul(0.3)), 3, 4, 0.05).mul(1.4).add(0.35), 0, 1);

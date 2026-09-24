@@ -10,10 +10,20 @@ import { bakeTerrainTextures } from './world/terrainTextures.js';
 import { Island, VILLAGE, REEF } from './world/island.js';
 import { Terrain } from './world/terrain.js';
 import { CollisionWorld } from './world/collision.js';
+import { Village } from './world/village.js';
+import { Vegetation } from './world/vegetation.js';
+import { Grass } from './world/grass.js';
+import { Fish } from './life/fish.js';
+import { Whale } from './life/whale.js';
+import { Audio } from './audio/audio.js';
 import { Pipeline } from './render/pipeline.js';
 import { Composite } from './render/composite.js';
 import { LensDroplets } from './render/droplets.js';
 import { WaterProbe } from './ocean/probe.js';
+import { Wake } from './ocean/wake.js';
+import { Spray } from './fx/spray.js';
+import { Surf } from './ocean/surf.js';
+import { Boat } from './boat/boat.js';
 import { Caustics } from './ocean/caustics.js';
 import { underwaterSun, underwaterAmbient } from './ocean/underwaterLight.js';
 import { Input } from './player/input.js';
@@ -26,6 +36,9 @@ const $ = (id) => document.getElementById(id);
 const status = (t, p) => { $('loader-status').textContent = t; if (p !== undefined) $('loader-fill').style.width = `${Math.round(p * 100)}%`; };
 const query = new URLSearchParams(location.search);
 const TEST = query.has('test');
+// ?off=grass,fish,... hides systems and skips their updates (debug bisection)
+const OFF = new Set((query.get('off') || '').split(',').filter(Boolean));
+const on = (k) => !OFF.has(k);
 
 const debug = window.__ocean = { ready: false, frame: 0 };
 let frameWaiters = [];
@@ -165,6 +178,12 @@ async function start() {
     scene.backgroundNode = v4(tex(which, screenUV.mul(2)).depth(i32(+dbgLayer)).level(+(query.get('lod') || 0)).rgb, 1);
     renderer.toneMapping = THREE.NoToneMapping;
   }
+  const wake = new Wake(renderer, { terrain });
+  ocean.wake = wake;
+  const spray = new Spray(renderer, { ocean, wake });
+  scene.add(spray.mesh);
+  const surf = new Surf(renderer, { ocean, shore, terrain, island, spray, time: env.time });
+  ocean.surf = surf;
   const water = new WaterMaterial({ ocean, terrain, sky, shore, foamTexture });
   const waterMesh = new THREE.Mesh(ocean.geometry, water);
   waterMesh.frustumCulled = false;
@@ -186,6 +205,29 @@ async function start() {
   flashlight.light.castShadow = true;
   flashlight.light.shadow.shadowNode = float(1);
   const droplets = new LensDroplets(renderer);
+  status('Building the village…', 0.52);
+  await nextFrame();
+  const village = new Village({ scene, island, collision, terrain });
+  status('Growing trees…', 0.55);
+  await nextFrame();
+  const vegetation = new Vegetation({ scene, island, collision, terrain });
+  vegetation.update(camera);
+  const grass = new Grass(renderer, { terrain, island });
+  scene.add(grass.mesh);
+  const fish = new Fish(renderer, { scene, terrain, reef: REEF });
+  const whale = new Whale({ scene, spray, ocean });
+  // the boat, moored alongside the end of the pier, bow to seaward
+  const boat = new Boat({
+    scene, probe, collision, wake, spray,
+    mooring: { x: VILLAGE.pierX + 3.2, z: VILLAGE.pierZ1 - 9, heading: Math.PI },
+  });
+  app.boat = boat;
+  {
+    const tsl = await import('three/tsl');
+    const { halfBeamNode, sheerNode, BOAT } = await import('./boat/boatModel.js');
+    boat.matrixWorldInverse = new THREE.Matrix4();
+    water.addHullMask({ matrixWorldInverse: boat.matrixWorldInverse, length: BOAT.L, halfBeam: (s) => halfBeamNode(tsl, s), sheer: (s) => sheerNode(tsl, s).add(0.05) });
+  }
 
   // ---------------------------------------------------------------- pipeline
   const pipeline = new Pipeline({ renderer, scene, camera, sun });
@@ -210,7 +252,9 @@ async function start() {
   pipeline.post.push(droplets.node());
   pipeline.build();
 
-  Object.assign(app, { scene, camera, sky, ocean, water, shore, terrain, island, collision, probe, caustics, pipeline, composite, player, flashlight, droplets, input, sun, csm });
+  Object.assign(app, { scene, camera, sky, ocean, water, shore, terrain, island, collision, probe, caustics, pipeline, composite, player, flashlight, droplets, input, sun, csm, wake, spray, surf, village, vegetation, grass, fish, whale });
+  const hide = { grass: [grass.mesh], fish: fish.groups.map((g) => g.mesh), whale: [whale.mesh], veg: [vegetation.group], village: [village.group], boat: [boat.group], spray: [spray.mesh] };
+  for (const [k, list] of Object.entries(hide)) if (!on(k)) for (const o of list) o.visible = false;
 
   // ---------------------------------------------------------------- places
   const places = {
@@ -223,10 +267,23 @@ async function start() {
   if (query.get('spawn') === 'fly') player.setView(40, 2.4, 20, 20, -2);
   else places.beach();
 
+  // ---------------------------------------------------------------- audio
+  const audio = app.audio = new Audio();
+  player.on('step', (e) => {
+    let surface = 'grass';
+    if (e.wade > 0.12) surface = 'water';
+    else if (e.surface && e.surface.tag === 'wood') surface = 'wood';
+    else if (island.heightAt(e.x, e.z) < 4.2 && island.sdfAt(e.x, e.z) > -70) surface = 'sand';
+    audio.footstep(surface, e.speed);
+  });
+  player.on('mode', (m, prev) => {
+    if (m === 'swim' && (prev === 'walk' || prev === 'fly') && player.vel.y < -2.5) audio.splash(camera.position.clone(), Math.min(2, -player.vel.y / 4));
+  });
+
   // ---------------------------------------------------------------- ui
   const panel = buildSettings(app);
   panel.onToggle = (open) => { if (open) input.unlock(); };
-  const hint = $('hint'), badge = $('mode-badge'), crosshair = $('crosshair');
+  const hint = $('hint'), badge = $('mode-badge'), crosshair = $('crosshair'), promptEl = $('prompt');
   const setHint = (html) => { hint.innerHTML = html; hint.hidden = !html; };
   const lockHint = 'Click to look around · <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move · <kbd>Tab</kbd> settings';
   setHint(TEST ? '' : lockHint);
@@ -238,7 +295,10 @@ async function start() {
   let badgeTimer = 0;
   const showBadge = (text) => { badge.textContent = text; badge.hidden = false; badge.style.opacity = 1; badgeTimer = 2.2; };
   const modeNames = { walk: 'On foot', swim: 'Swimming', fly: 'Free fly', boat: 'Boat' };
-  player.on('mode', (m) => { if (!TEST) showBadge(modeNames[m] || m); panel.get('mode')?.set(m === 'fly' ? 'fly' : 'walk'); });
+  player.on('mode', (m) => {
+    if (!TEST) showBadge(m === 'boat' ? 'At the helm · W/S throttle · A/D steer · V camera · E leave' : (modeNames[m] || m));
+    panel.get('mode')?.set(m === 'fly' ? 'fly' : 'walk');
+  });
 
   const onResize = () => {
     renderer.setPixelRatio(pixelRatio());
@@ -298,9 +358,19 @@ async function start() {
     // --- player + interaction
     if (input.pressed('Tab')) panel.toggle();
     if (input.pressed('KeyF')) { flashlight.toggle(); panel.get('torch')?.set(flashlight.on); }
+    if (input.pressed('KeyE')) {
+      if (player.mode === 'boat') boat.leave(player);
+      else if (player.mode !== 'fly' && boat.canBoard(player.eye)) boat.board(player);
+    }
+    boat.update(dt, time, player.mode === 'boat' ? input : null, env);
+    boat.matrixWorldInverse.copy(boat.group.matrixWorld).invert();
+    village.update(realDt, performance.now() / 1000, env);
     player.update(realDt);
-    app.boat?.update(dt, time);
     flashlight.update(camera, realDt);
+    // context prompt
+    const near = player.mode !== 'boat' && player.mode !== 'fly' && boat.canBoard(player.eye);
+    const promptText = near ? 'Press <kbd>E</kbd> to take the helm' : '';
+    if (promptEl.dataset.t !== promptText) { promptEl.innerHTML = promptText; promptEl.hidden = !promptText; promptEl.dataset.t = promptText; }
 
     // --- water state at the eye
     camera.updateMatrixWorld();
@@ -316,7 +386,21 @@ async function start() {
     droplets.update(realDt, under);
 
     ocean.update(dt, time, camera, eyeWater);
+    if (on('wake')) wake.update(dt, boat.pos);
+    if (on('surf')) surf.update(dt);
+    if (on('spray')) spray.update(dt);
     terrain.update(camera);
+    if (on('veg')) vegetation.update(camera);
+    if (on('grass')) grass.update(camera, player);
+    if (on('fish')) fish.update(dt, time, player.mode === 'swim' || under ? camera.position : boat.pos);
+    if (on('whale')) whale.update(dt, time, camera.position);
+    for (const ev of whale.events.splice(0)) if (ev.type === 'splash') audio.splash(ev.pos, 2.5 * ev.strength);
+    audio.update({
+      camera, underwater: under, shoreDist: island.sdfAt(camera.position.x, camera.position.z),
+      heightAboveGround: camera.position.y - Math.max(island.heightAt(camera.position.x, camera.position.z), 0),
+      wind: env.windSpeed.value, night: env.nightFactor.value, treeDensity: 0.3, surf: shore.swellHeight.value,
+      boat: boat.pos, boatSpeed: Math.abs(boat.speed), whale: whale.pos,
+    });
     probe.update(camera);
     caustics.update();
     sky.update(dt, camera, time);

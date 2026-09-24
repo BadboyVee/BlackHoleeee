@@ -37,15 +37,17 @@ export class WaterProbe {
         // arbitrary point: invert the horizontal displacement (2 iterations)
         const q = queries.element(i.sub(uint(G)));
         const p = q.xy;
-        const s0 = ocean.surface(p, float(0.5), shore, time);
+        // q.z = 1: leave out the wake (a hull must not float on its own displacement)
+        const o = { wakeScale: float(1).sub(q.z) };
+        const s0 = ocean.surface(p, float(0.5), shore, time, o);
         const p1 = p.sub(s0.disp.xz);
-        const s1 = ocean.surface(p1, float(0.5), shore, time);
+        const s1 = ocean.surface(p1, float(0.5), shore, time, o);
         const p2 = p.sub(s1.disp.xz);
-        const s2 = ocean.surface(p2, float(0.5), shore, time);
+        const s2 = ocean.surface(p2, float(0.5), shore, time, o);
         // slope from a small stencil (for buoyancy torque / orientation)
         const e = 0.4;
-        const sx = ocean.surface(p2.add(vec2(e, 0)), float(0.5), shore, time).y;
-        const sz = ocean.surface(p2.add(vec2(0, e)), float(0.5), shore, time).y;
+        const sx = ocean.surface(p2.add(vec2(e, 0)), float(0.5), shore, time, o).y;
+        const sz = ocean.surface(p2.add(vec2(0, e)), float(0.5), shore, time, o).y;
         results.element(i).assign(vec4(s2.y, sx.sub(s2.y).div(e), sz.sub(s2.y).div(e), select_foam(s2)));
       });
     })().compute(this.count, [64]);
@@ -61,9 +63,10 @@ export class WaterProbe {
   }
 
   /** query slot k samples the water at (x, z); read it with query(k) */
-  setQuery(k, x, z) {
+  setQuery(k, x, z, noWake = 0) {
     this.queryData[k * 4] = x;
     this.queryData[k * 4 + 1] = z;
+    this.queryData[k * 4 + 2] = noWake;
     this.numQueries = Math.max(this.numQueries, k + 1);
     this.queryDirty = true;
   }
