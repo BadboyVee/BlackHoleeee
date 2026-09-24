@@ -10,6 +10,10 @@ import { bakeTerrainTextures } from './world/terrainTextures.js';
 import { Island } from './world/island.js';
 import { Terrain } from './world/terrain.js';
 import { Pipeline } from './render/pipeline.js';
+import { Composite } from './render/composite.js';
+import { WaterProbe } from './ocean/probe.js';
+import { Caustics } from './ocean/caustics.js';
+import { underwaterSun, underwaterAmbient } from './ocean/underwaterLight.js';
 import { env } from './env.js';
 
 const $ = (id) => document.getElementById(id);
@@ -139,9 +143,16 @@ async function start() {
   waterMesh.name = 'ocean';
   scene.add(waterMesh);
 
+  const probe = new WaterProbe(renderer, ocean, shore, env.time);
+  const caustics = new Caustics(renderer, ocean);
+
   // ---------------------------------------------------------------- pipeline
   const pipeline = new Pipeline({ renderer, scene, camera, sun });
   pipeline.sunShadowTerms.push(() => sky.cloudShadow(positionWorld));
+  pipeline.sunShadowTerms.push((builder) => (builder.material.isWaterMaterial || builder.material.userData.noUnderwater ? null : underwaterSun(ocean, caustics)));
+  pipeline.aoTerms.push((builder) => (builder.material.userData.noUnderwater ? null : underwaterAmbient(ocean)));
+  const composite = new Composite({ camera, probe, sky, renderer });
+  pipeline.composites.push(composite.node());
   pipeline.build();
 
   // ---------------------------------------------------------------- warm up
@@ -166,10 +177,16 @@ async function start() {
     time += dt;
     env.time.value = time;
     env.dt.value = dt;
-    ocean.update(dt, time, camera);
+    const eyeWater = probe.eyeHeight(camera);
+    env.cameraUnderwater.value = camera.position.y < eyeWater ? 1 : 0;
+    composite.eyeWaterHeight.value = eyeWater;
+    ocean.update(dt, time, camera, eyeWater);
     terrain.update(camera);
+    probe.update(camera);
+    caustics.update();
     sky.update(dt, camera, time);
     sky.updateEnvironment();
+    composite.update(renderer);
     pipeline.render();
     fpsAcc += dt; fpsFrames++;
     if (fpsAcc > 0.5) {
@@ -183,7 +200,7 @@ async function start() {
   });
 
   // ---------------------------------------------------------------- debug hooks
-  Object.assign(debug, { renderer, scene, camera, sky, ocean, terrain, island, water, pipeline, sun, csm, env, shore });
+  Object.assign(debug, { renderer, scene, camera, sky, ocean, terrain, island, water, pipeline, sun, csm, env, shore, probe, composite, caustics });
   debug.stats = () => ({ frame: debug.frame, oceanPatches: ocean.selector.count, terrainPatches: terrain.selector.count, hs: +ocean.fft.stats.hs.toFixed(2) });
   // yaw: 0 = north (-z), 90 = east (+x)
   debug.look = (yaw, pitch, x, y, z) => {

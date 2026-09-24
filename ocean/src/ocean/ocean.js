@@ -23,6 +23,8 @@ export class Ocean {
     this.cascadeWeights = this.lengthScales.map(() => uniform(1));
     // extra displacement contributors (shore waves, wake) register here
     this.displacementModifiers = [];
+    this.eyeXZ = uniform(new THREE.Vector2());
+    this.nearFadeOff = uniform(1);
   }
 
   /** TSL: summed cascade displacement at undisplaced world xz. */
@@ -68,36 +70,14 @@ export class Ocean {
   }
 
   /**
-   * Vertex stage: patch grid -> morphed world xz -> displaced world position.
-   * Returns { position, worldXZ (varying) }.
+   * The water surface at an undisplaced grid position (pure TSL, usable in
+   * vertex and compute stages). Everything that must agree about where the
+   * water is (mesh, waterline probe, buoyancy) goes through this.
    */
-  /**
-   * Returns { position } where position is an Fn node; the varyings it creates
-   * are published on the returned object when the vertex stage is built (the
-   * fragment stage of the same build reads them).
-   */
-  buildVertex(shore = null, timeNode = null) {
-    // pure expressions only (no statements), so this can be built eagerly and
-    // its varyings handed to the fragment stage
-    const out = this._buildVertex(shore, timeNode);
-    out.position = out._position;
-    return out;
-  }
-
-  _buildVertex(shore, timeNode) {
-    const patch = attribute('oceanPatch', 'vec4');
-    const g = positionGeometry.xz;
-    const origin = patch.xy, spacing = patch.z, morphEnd = patch.w;
-    const world0 = origin.add(g.mul(spacing));
-    const dist = length(vec3(world0.x, 0, world0.y).sub(cameraPosition));
-    const morphK = clamp(dist.sub(morphEnd.mul(0.62)).div(morphEnd.mul(0.34)), 0, 1);
-    const odd = fract(g.mul(0.5)).mul(2);
-    const gm = g.sub(odd.mul(morphK));
-    const xz = origin.add(gm.mul(spacing));
-    const effSpacing = spacing.mul(morphK.add(1));
-    let disp = this.displacement(xz, effSpacing);
-    let fftFoam = this.foamAt(xz, effSpacing);
-    const out = { spacing: effSpacing };
+  surface(xz, spacing, shore, timeNode) {
+    let disp = this.displacement(xz, spacing);
+    let fftFoam = this.foamAt(xz, spacing);
+    const out = {};
     let y;
     if (shore) {
       const st = shore.state(xz, timeNode, true);
@@ -111,7 +91,7 @@ export class Ocean {
       // swash sheet riding over the beach face; hide the ocean under dry sand
       const bedTop = st.bed.add(sw.thick);
       const onLand = st.bed.greaterThan(disp.y.sub(0.02));
-      // thin sheets (<2 cm) are drawn by the terrain shader (per-pixel edge)
+      // thin sheets (<2 cm) are drawn by the terrain shader (per-pixel edge);
       // feather the sheet edge flush into the (smooth, wave-washed) beach face
       // instead of a vertical step; everywhere else on land hide far below
       const nearSwash = st.sdf.greaterThan(sw.rmax.add(2.5).negate()).and(st.bed.lessThan(2.5));
@@ -119,6 +99,39 @@ export class Ocean {
       // the prepass never sees the swash sheet: it would cast AO / contact
       // shadows onto the sand around its edge
       out.prepassY = select(onLand, st.bed.sub(0.05), disp.y);
+      Object.assign(out, { st, br, sw, fftAtten, onLand });
+    } else {
+      y = disp.y;
+    }
+    // right at the camera the surface must be a true height field so the
+    // waterline probe can reproduce the mesh exactly: fade out the
+    // horizontal (choppy) displacement within ~2 m of the eye
+    const near = smoothstep(0.6, 2.2, length(xz.sub(this.eyeXZ))).max(this.nearFadeOff);
+    disp = vec3(disp.x.mul(near), disp.y, disp.z.mul(near));
+    Object.assign(out, { disp, y, fftFoam });
+    return out;
+  }
+
+  /**
+   * Vertex stage: patch grid -> morphed world xz -> displaced world position,
+   * plus the varyings the water shader needs.
+   */
+  buildVertex(shore = null, timeNode = null) {
+    const patch = attribute('oceanPatch', 'vec4');
+    const g = positionGeometry.xz;
+    const origin = patch.xy, spacing = patch.z, morphEnd = patch.w;
+    const world0 = origin.add(g.mul(spacing));
+    const dist = length(vec3(world0.x, 0, world0.y).sub(cameraPosition));
+    const morphK = clamp(dist.sub(morphEnd.mul(0.62)).div(morphEnd.mul(0.34)), 0, 1);
+    const odd = fract(g.mul(0.5)).mul(2);
+    const gm = g.sub(odd.mul(morphK));
+    const xz = origin.add(gm.mul(spacing));
+    const effSpacing = spacing.mul(morphK.add(1));
+    const srf = this.surface(xz, effSpacing, shore, timeNode);
+    const { disp, y } = srf;
+    const out = { spacing: effSpacing };
+    if (shore) {
+      const { st, br, sw, fftAtten, onLand } = srf;
       const nShore = normalize(vec3(st.fwd.x.mul(br.normalFwd), br.normalUp, st.fwd.y.mul(br.normalFwd)));
       out.shoreNormal = varying(nShore, 'vShoreN');
       out.shoreFoam = varying(max(br.foam.mul(st.H.mul(1.2).min(1)), sw.foam.mul(select(onLand, float(1), float(0)))), 'vShoreFoam');
@@ -128,27 +141,29 @@ export class Ocean {
       out.swash = varying(select(onLand, sw.thick, float(1)), 'vSwash');
       out.fftAtten = varying(fftAtten, 'vFftAtten');
       out.depth = varying(st.depth, 'vWaterDepth');
-    } else {
-      y = disp.y;
     }
     const rel = xz.sub(cameraPosition.xz);
     const curvature = rel.dot(rel).div(2 * EARTH_RADIUS);
     const position = vec3(xz.x.add(disp.x), y.sub(curvature), xz.y.add(disp.z));
-    if (out.prepassY) {
-      const pre = vec3(xz.x.add(disp.x), out.prepassY.sub(curvature), xz.y.add(disp.z));
-      out._position = Fn((inputs, builder) => (builder.context.prepass === true ? pre : position))();
+    if (srf.prepassY) {
+      const pre = vec3(xz.x.add(disp.x), srf.prepassY.sub(curvature), xz.y.add(disp.z));
+      out.position = Fn((inputs, builder) => (builder.context.prepass === true ? pre : position))();
+    } else {
+      out.position = position;
     }
     // whitecap foam is sampled per vertex (fragment texture slots are scarce);
     // the fragment shader adds the fine bubbly structure
-    out.foam = varying(fftFoam, 'vOceanFoam');
-    if (!out._position) out._position = position;
+    out.foam = varying(srf.fftFoam, 'vOceanFoam');
     out.worldXZ = varying(xz, 'vOceanXZ');
     out.height = varying(disp.y, 'vOceanH');
     return out;
   }
 
-  update(dt, time, camera) {
+  update(dt, time, camera, waterHeightAtEye = 0) {
     this.fft.update(dt, time);
     this.selector.update(camera, 6);
+    this.eyeXZ.value.set(camera.position.x, camera.position.z);
+    // only flatten the chop around the eye when the eye is near the surface
+    this.nearFadeOff.value = Math.abs(camera.position.y - waterHeightAtEye) < 3 ? 0 : 1;
   }
 }

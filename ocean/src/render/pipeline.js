@@ -109,7 +109,8 @@ export class Pipeline {
     const sceneDepth = this.sceneDepth = scenePass.getTextureNode('depth');
 
     // ------------------------------------------------------------ composite (HDR)
-    const ctx = { aux, sceneDepth, preDepth, velocity: preVelocity, camera, scenePass, prePass };
+    this.resolution = uniform(new THREE.Vector2(1, 1));
+    const ctx = { aux, sceneDepth, preDepth, velocity: preVelocity, camera, scenePass, prePass, sceneColorNode: sceneColor, resolution: this.resolution };
     let color = sceneColor;
     for (const c of this.composites) color = c(color, ctx);
 
@@ -130,6 +131,8 @@ export class Pipeline {
   }
 
   render() {
+    const size = this.renderer.getDrawingBufferSize(new THREE.Vector2());
+    this.resolution.value.copy(size);
     this.renderPipeline.render();
   }
 }
