@@ -50,10 +50,11 @@ def main(deck, workbook, preview, size_json, out):
     locks = gf.find(qn("p:nvGraphicFramePr")).find(qn("p:cNvGraphicFramePr")).find(qn("a:graphicFrameLocks"))
     locks.set("noChangeAspect", "1")
 
-    # The picture inside p:oleObj gets its own id, like the ones PowerPoint writes.
+    # The picture inside p:oleObj needs an id of its own; no two shapes on a slide may share one.
     inner = ole.find(qn("p:pic")).find(qn("p:nvPicPr")).find(qn("p:cNvPr"))
-    inner.set("id", cnvpr.get("id"))
-    inner.set("name", NAME)
+    used = [int(e.get("id")) for e in slide.shapes._spTree.iter(qn("p:cNvPr"))]
+    inner.set("id", str(max(used) + 1))
+    inner.set("name", NAME + " picture")
 
     # Take the picture's place in the z-order, then remove the picture.
     pic._element.addprevious(gf)

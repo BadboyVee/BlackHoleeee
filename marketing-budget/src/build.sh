@@ -30,8 +30,12 @@ python3 "$HERE/render_table_preview.py" "$TMP/raw.xlsx" "$TMP/table_preview.png"
   --range "$TABLE_RANGE" > "$TMP/table_size.json"
 python3 "$HERE/export_slide_data.py" "$OUT/Marketing_Department_Budget.xlsx" "$TMP/slide_data.json"
 
-# 4. Slides, then the embedded Excel table on slide 7.
+# 4. Slides; charts rewritten to the strict chart schema (PowerPoint 2013 rejects some of
+#    what pptxgenjs writes); then the embedded Excel table on slide 7. Set CHART_XSD to
+#    dml-chart.xsd (ISO/IEC 29500 transitional) to fail the build on any invalid chart.
 node "$HERE/build_deck.js" "$TMP/slide_data.json" "$TMP/table_preview.png" \
   "$TMP/table_size.json" "$TMP/deck.pptx"
-python3 "$HERE/embed_excel_table.py" "$TMP/deck.pptx" "$TMP/embed.xlsx" \
+python3 "$HERE/sanitize_charts.py" "$TMP/deck.pptx" "$TMP/deck_clean.pptx" \
+  ${CHART_XSD:+--xsd "$CHART_XSD"}
+python3 "$HERE/embed_excel_table.py" "$TMP/deck_clean.pptx" "$TMP/embed.xlsx" \
   "$TMP/table_preview.png" "$TMP/table_size.json" "$OUT/Marketing_Department_Budget.pptx"
