@@ -160,7 +160,7 @@ export class Sky {
       const dF = clamp(d.r.mul(0.625).add(d.g.mul(0.25)).add(d.b.mul(0.125)).sub(0.28).div(0.42), 0, 1);
       // wispy (inverted billows) under the base, cauliflower higher up
       const dMod = mix(dF, float(1).sub(dF), smoothstep(0.06, 0.3, ht));
-      const erosion = mix(0.14, 0.45, smoothstep(0.05, 0.7, ht));
+      const erosion = mix(0.16, 0.58, smoothstep(0.05, 0.7, ht));
       dens = clamp(remap(dens, dMod.mul(erosion), float(1), float(0), float(1)), 0, 1);
     }
     // real cumulus are optically thick right up to a crisp edge: compress the
@@ -202,7 +202,7 @@ export class Sky {
       const sky = atmo.skyRadiance(dir).mul(E).toVar();
       const r0 = float(Rb + 0.002);
       const mu = dir.y;
-      const cosT = dot(dir, sunDir);
+      const cosT = dot(dir, sunDir).toVar();   // (read in the cirrus branch and the march)
 
       // ------------------------------------------------ cirrus (2D, ~9 km)
       const tC = raySphere(r0, mu, float(Rb + 9.0));
@@ -271,7 +271,11 @@ export class Sky {
               const ms = exp(tau.negate()).mul(phaseF.mul(0.7).add(phaseB.mul(0.3)))
                 .add(exp(tau.mul(-0.35)).mul(phaseM).mul(0.32))
                 .add(exp(tau.mul(-0.12)).mul(0.05 / (4 * Math.PI) * 4.0));
-              const powder = float(1).sub(exp(dens.mul(sigma).mul(-1.2))).mul(0.65).add(0.35);
+              // "powder": in-scattering needs some cloud behind it to build
+              // up, so thinly covered sunlit billows are darker than their
+              // cores - this is what carves cauliflower tops (hidden when
+              // looking into the sun, where forward scattering dominates)
+              const powder = mix(float(1).sub(exp(tau.mul(-2.0))).mul(0.75).add(0.25), float(1), smoothstep(-0.2, 0.9, cosT));
               const hf = clamp(h.sub(base).div(top.sub(base)), 0, 1);
               const amb = mix(ambBottom, ambTop, hf.pow(0.6)).mul(0.9);
               const Lsample = sunC.mul(ms).mul(powder).mul(4 * Math.PI * 0.25).add(amb.mul(0.26));
