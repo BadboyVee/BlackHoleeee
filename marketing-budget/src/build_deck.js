@@ -7,6 +7,10 @@
 // the Excel budget table named "Excel Budget Table"; embed_excel_table.py swaps that
 // picture for the real embedded Excel worksheet object.
 //
+// Every object gets a name and an animation step. The plan is written next to the deck
+// (out.anim.json); finish_deck.py turns it into entrance animations that play by themselves:
+// step 1 appears after the slide transition, and each later step after the one before it.
+//
 // Look: one font (Arial, as in the Excel table), black text with dark-blue titles, white
 // slides in a thin frame, one light box colour. Colour otherwise appears only in the charts,
 // one colour per unit.
@@ -36,25 +40,38 @@ const RANK_WORDS = ["the largest", "the second largest", "the third largest", "t
 const [ADV, MKT, PR, EBIZ] = units;
 const colorOf = (u) => UNIT_COLOR[u.name];
 
-function text(slide, value, opts) {
-  slide.addText(value, { fontFace: FONT, color: TEXT, margin: 0, isTextBox: true, ...opts });
+// ---------------------------------------------------------------- animation plan
+// animPlan[slideNumber] = [{ name, step, effect }]; effect is "fade", "wipe-left" or "wipe-up".
+const animPlan = {};
+let slideNo = 0;
+function anim(label, step, effect = "fade") {
+  const list = animPlan[slideNo] || (animPlan[slideNo] = []);
+  let name = label;
+  for (let k = 2; list.some((e) => e.name === name); k++) name = `${label} ${k}`;
+  list.push({ name, step, effect });
+  return name;
 }
 
-function rule(slide, pres, x, y, w) {
-  slide.addShape(pres.shapes.LINE, { x, y, w, h: 0, line: { color: TITLE, width: 1.5 } });
+function text(slide, value, opts, name, step, effect) {
+  slide.addText(value, { fontFace: FONT, color: TEXT, margin: 0, isTextBox: true, ...opts, objectName: anim(name, step, effect) });
 }
 
-// Centred title over a rule, the layout used on every content slide.
+function rule(slide, pres, x, y, w, name, step) {
+  slide.addShape(pres.shapes.LINE, { x, y, w, h: 0, line: { color: TITLE, width: 1.5 }, objectName: anim(name, step, "wipe-left") });
+}
+
+function box(slide, pres, x, y, w, h, name, step) {
+  slide.addShape(pres.shapes.RECTANGLE, { x, y, w, h, fill: { color: BOX }, line: { color: BOX, width: 0 }, objectName: anim(name, step) });
+}
+
+// Centred title over a rule, the layout used on every content slide. Title and rule come in
+// first, the subtitle next; returns the first free step.
 function title(slide, pres, value, sub) {
-  text(slide, value, { x: 0.8, y: 0.5, w: W - 1.6, h: 0.8, fontSize: 36, bold: true, color: TITLE, align: "center", valign: "middle" });
-  rule(slide, pres, 1.0, 1.42, W - 2.0);
-  if (sub) {
-    text(slide, sub, { x: 0.8, y: 1.55, w: W - 1.6, h: 0.42, fontSize: 18, align: "center", valign: "middle" });
-  }
-}
-
-function box(slide, pres, x, y, w, h) {
-  slide.addShape(pres.shapes.RECTANGLE, { x, y, w, h, fill: { color: BOX }, line: { color: BOX, width: 0 } });
+  text(slide, value, { x: 0.8, y: 0.5, w: W - 1.6, h: 0.8, fontSize: 36, bold: true, color: TITLE, align: "center", valign: "middle" }, "Title", 1);
+  rule(slide, pres, 1.0, 1.42, W - 2.0, "Title Rule", 1);
+  if (!sub) return 2;
+  text(slide, sub, { x: 0.8, y: 1.55, w: W - 1.6, h: 0.42, fontSize: 18, align: "center", valign: "middle" }, "Subtitle", 2);
+  return 3;
 }
 
 async function main() {
@@ -69,22 +86,22 @@ async function main() {
     background: { color: "FFFFFF" },
     objects: [{ rect: { x: 0.3, y: 0.3, w: W - 0.6, h: H - 0.6, fill: { color: "FFFFFF", transparency: 100 }, line: { color: FRAME, width: 1 } } }],
   });
-  const newSlide = () => pres.addSlide({ masterName: "FRAMED" });
+  const newSlide = () => { slideNo += 1; return pres.addSlide({ masterName: "FRAMED" }); };
 
   // ============================================================ 1. Title
   {
     const s = newSlide();
-    text(s, "MARKETING DEPARTMENT", { x: 0.8, y: 1.9, w: W - 1.6, h: 0.95, fontSize: 44, bold: true, color: TITLE, align: "center", valign: "middle" });
-    rule(s, pres, 2.5, 3.0, W - 5.0);
-    text(s, `Annual Budget ${data.year}`, { x: 0.8, y: 3.15, w: W - 1.6, h: 0.7, fontSize: 32, align: "center", valign: "middle" });
+    text(s, "MARKETING DEPARTMENT", { x: 0.8, y: 1.9, w: W - 1.6, h: 0.95, fontSize: 44, bold: true, color: TITLE, align: "center", valign: "middle" }, "Title", 1);
+    rule(s, pres, 2.5, 3.0, W - 5.0, "Title Rule", 1);
+    text(s, `Annual Budget ${data.year}`, { x: 0.8, y: 3.15, w: W - 1.6, h: 0.7, fontSize: 32, align: "center", valign: "middle" }, "Subtitle", 2);
     // One box, two paragraphs: if the sentence wraps, the unit names move down with it.
     text(s, [
       { text: "How the department's budget is planned and shared across its four units:", options: { breakLine: true } },
       { text: units.map((u) => u.name).join("   •   "), options: { bold: true } },
-    ], { x: 1.0, y: 4.3, w: W - 2.0, h: 1.1, fontSize: 20, align: "center", valign: "top", paraSpaceAfter: 6 });
+    ], { x: 1.0, y: 4.3, w: W - 2.0, h: 1.1, fontSize: 20, align: "center", valign: "top", paraSpaceAfter: 6 }, "Units", 3);
     text(s, "Amounts in US$  ·  Source: Marketing_Department_Budget.xlsx", {
       x: 0.8, y: 6.3, w: W - 1.6, h: 0.4, fontSize: 14, align: "center", valign: "middle",
-    });
+    }, "Source", 4);
     s.addNotes(
       `Good day. This presentation covers the ${data.year} budget of the Marketing Department. ` +
       "The department has four units: Advertising (Ads), Marketing, Public Relations (PR) and e-Business. " +
@@ -95,18 +112,19 @@ async function main() {
   // ============================================================ 2. Budget at a glance
   {
     const s = newSlide();
-    title(s, pres, "Budget at a Glance", `How the ${money(data.departmentTotal)} department budget is shared across the four units`);
+    let step = title(s, pres, "Budget at a Glance", `How the ${money(data.departmentTotal)} department budget is shared across the four units`);
     const stats = [
-      { y: 2.2, value: money(data.departmentTotal), label: "Total department budget",
+      { y: 2.2, name: "Total", value: money(data.departmentTotal), label: "Total department budget",
         formula: `Excel: =SUM(B${data.totalRow}:E${data.totalRow})` },
-      { y: 4.55, value: money(data.averagePerUnit), label: "Average budget per unit",
+      { y: 4.55, name: "Average", value: money(data.averagePerUnit), label: "Average budget per unit",
         formula: `Excel: =AVERAGE(B${data.totalRow}:E${data.totalRow})` },
     ];
     for (const c of stats) {
-      box(s, pres, 0.9, c.y, 4.3, 2.15);
-      text(s, c.value, { x: 0.9, y: c.y + 0.22, w: 4.3, h: 0.8, fontSize: 40, bold: true, align: "center", valign: "middle" });
-      text(s, c.label, { x: 0.9, y: c.y + 1.08, w: 4.3, h: 0.42, fontSize: 20, align: "center", valign: "middle" });
-      text(s, c.formula, { x: 0.9, y: c.y + 1.52, w: 4.3, h: 0.38, fontSize: 16, align: "center", valign: "middle" });
+      box(s, pres, 0.9, c.y, 4.3, 2.15, `${c.name} Box`, step);
+      text(s, c.value, { x: 0.9, y: c.y + 0.22, w: 4.3, h: 0.8, fontSize: 40, bold: true, align: "center", valign: "middle" }, `${c.name} Value`, step);
+      text(s, c.label, { x: 0.9, y: c.y + 1.08, w: 4.3, h: 0.42, fontSize: 20, align: "center", valign: "middle" }, `${c.name} Label`, step);
+      text(s, c.formula, { x: 0.9, y: c.y + 1.52, w: 4.3, h: 0.38, fontSize: 16, align: "center", valign: "middle" }, `${c.name} Formula`, step);
+      step += 1;
     }
 
     const dx = 5.4, dy = 2.3, dd = 4.3;
@@ -117,21 +135,26 @@ async function main() {
       chartColors: units.map(colorOf),
       dataBorder: { pt: 1.5, color: "FFFFFF" },
       showPercent: false, showValue: false, showLabel: false, showLegend: false, showTitle: false,
+      objectName: anim("Share Chart", step),
     });
     text(s, [
       { text: "Share of", options: { breakLine: true } },
       { text: "total budget" },
-    ], { x: dx + dd / 2 - 1.0, y: dy + dd / 2 - 0.4, w: 2.0, h: 0.8, fontSize: 16, bold: true, align: "center", valign: "middle" });
+    ], { x: dx + dd / 2 - 1.0, y: dy + dd / 2 - 0.4, w: 2.0, h: 0.8, fontSize: 16, bold: true, align: "center", valign: "middle" }, "Share Label", step);
+    step += 1;
 
     // Legend with the values: it is also how the doughnut's numbers are read.
     const lx = 9.9;
     units.forEach((u, i) => {
       const y = 2.45 + i * 1.05;
-      s.addShape(pres.shapes.RECTANGLE, { x: lx, y: y + 0.07, w: 0.24, h: 0.24, fill: { color: colorOf(u) }, line: { color: colorOf(u), width: 0 } });
+      s.addShape(pres.shapes.RECTANGLE, {
+        x: lx, y: y + 0.07, w: 0.24, h: 0.24, fill: { color: colorOf(u) }, line: { color: colorOf(u), width: 0 },
+        objectName: anim(`Legend Key ${u.name}`, step),
+      });
       text(s, [
         { text: u.name, options: { bold: true, breakLine: true } },
         { text: `${money(u.total)}  ·  ${pct(u.share)}` },
-      ], { x: lx + 0.38, y, w: 2.45, h: 0.9, fontSize: 17, valign: "top" });
+      ], { x: lx + 0.38, y, w: 2.45, h: 0.9, fontSize: 17, valign: "top" }, `Legend ${u.name}`, step);
     });
     s.addNotes(
       `In total the department plans to spend ${money(data.departmentTotal)}. In Excel this is the SUM of the four unit budgets. ` +
@@ -144,11 +167,11 @@ async function main() {
   // ============================================================ 3-6. One slide per unit
   units.forEach((u) => {
     const s = newSlide();
-    title(s, pres, u.title, u.covers);
+    const step = title(s, pres, u.title, u.covers);
     const top = u.items[0];
 
-    box(s, pres, 0.9, 2.2, 4.4, 4.55);
-    text(s, "Key Figures", { x: 1.15, y: 2.35, w: 3.9, h: 0.5, fontSize: 22, bold: true, valign: "middle" });
+    box(s, pres, 0.9, 2.2, 4.4, 4.55, "Key Figures Box", step);
+    text(s, "Key Figures", { x: 1.15, y: 2.35, w: 3.9, h: 0.5, fontSize: 22, bold: true, valign: "middle" }, "Key Figures Heading", step);
     const item = { bullet: { indent: 18 } };
     text(s, [
       { text: "Total budget: ", options: item },
@@ -161,9 +184,9 @@ async function main() {
       { text: money(u.averagePerItem), options: { bold: true, breakLine: true } },
       { text: "Largest item: ", options: item },
       { text: `${top.name}, ${money(top.amount)}`, options: { bold: true } },
-    ], { x: 1.15, y: 2.95, w: 3.95, h: 3.65, fontSize: 17, valign: "top", paraSpaceAfter: 10 });
+    ], { x: 1.15, y: 2.95, w: 3.95, h: 3.65, fontSize: 17, valign: "top", paraSpaceAfter: 10 }, "Key Figures", step);
 
-    text(s, "Where the Money Goes (US$)", { x: 5.7, y: 2.2, w: 6.8, h: 0.5, fontSize: 22, bold: true, align: "center", valign: "middle" });
+    text(s, "Where the Money Goes (US$)", { x: 5.7, y: 2.2, w: 6.8, h: 0.5, fontSize: 22, bold: true, align: "center", valign: "middle" }, "Chart Heading", step + 1);
     const max = top.amount;
     s.addChart(pres.charts.BAR, [{
       name: u.name, labels: u.items.map((it) => it.name), values: u.items.map((it) => it.amount),
@@ -179,6 +202,7 @@ async function main() {
       showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "$#,##0",
       dataLabelColor: TEXT, dataLabelFontFace: FONT, dataLabelFontSize: 12, dataLabelFontBold: true,
       showLegend: false, showTitle: false,
+      objectName: anim("Budget Chart", step + 1, "wipe-left"),
     });
     const second = u.items[1];
     s.addNotes(
@@ -193,7 +217,7 @@ async function main() {
   // ============================================================ 7. Budget table imported from Excel
   {
     const s = newSlide();
-    title(s, pres, "Budget Table from Excel",
+    const step = title(s, pres, "Budget Table from Excel",
       "Imported from Marketing_Department_Budget.xlsx, sheet “Marketing Budget”, cells " + data.tableRange);
     const [pw, ph] = tableSize.points;
     const maxW = 11.6, maxH = 4.3;
@@ -201,13 +225,13 @@ async function main() {
     if (h > maxH) { h = maxH; w = (h * pw) / ph; }
     const x = (W - w) / 2, y = 2.2;
     s.addImage({
-      path: previewPath, x, y, w, h, objectName: "Excel Budget Table",
+      path: previewPath, x, y, w, h, objectName: anim("Excel Budget Table", step),
       altText: "Budget table from Excel: budget items by unit with SUM totals, AVERAGE rows and each unit's share of the total budget",
     });
     text(s, [
       { text: "Double-click the table to open it in Excel. ", options: { bold: true } },
       { text: "Blue figures are the budget inputs; black figures are SUM and AVERAGE formulas." },
-    ], { x: 0.8, y: y + h + 0.15, w: W - 1.6, h: 0.4, fontSize: 15, align: "center", valign: "middle" });
+    ], { x: 0.8, y: y + h + 0.15, w: W - 1.6, h: 0.4, fontSize: 15, align: "center", valign: "middle" }, "Caption", step + 1);
     s.addNotes(
       "This is the budget table imported directly from the Excel workbook as an embedded Excel worksheet object, " +
       "so double-clicking it opens the live spreadsheet. Each row is a budget item and each column is a unit. " +
@@ -219,7 +243,7 @@ async function main() {
   // ============================================================ 8. Units vs the average
   {
     const s = newSlide();
-    title(s, pres, "Unit Budgets vs. the Average",
+    const step = title(s, pres, "Unit Budgets vs. the Average",
       `Each unit's total (SUM) compared with the average of ${money(data.averagePerUnit)} per unit (AVERAGE)`);
     const labels = units.map((u) => u.name);
     const maxTotal = Math.max(...units.map((u) => u.total));
@@ -241,11 +265,15 @@ async function main() {
       showValue: true, dataLabelPosition: "outEnd", dataLabelFormatCode: "$#,##0",
       dataLabelColor: TEXT, dataLabelFontFace: FONT, dataLabelFontSize: 12, dataLabelFontBold: true,
       showLegend: false, showTitle: false,
+      objectName: anim("Comparison Chart", step, "wipe-up"),
     });
 
-    box(s, pres, 8.45, 2.25, 4.05, 4.5);
-    s.addShape(pres.shapes.LINE, { x: 8.75, y: 2.72, w: 0.5, h: 0, line: { color: TEXT, width: 2, dashType: "dash" } });
-    text(s, `Average per unit: ${money(data.averagePerUnit)}`, { x: 9.35, y: 2.45, w: 3.05, h: 0.55, fontSize: 16, bold: true, valign: "middle" });
+    box(s, pres, 8.45, 2.25, 4.05, 4.5, "Average Box", step + 1);
+    s.addShape(pres.shapes.LINE, {
+      x: 8.75, y: 2.72, w: 0.5, h: 0, line: { color: TEXT, width: 2, dashType: "dash" },
+      objectName: anim("Average Key", step + 1),
+    });
+    text(s, `Average per unit: ${money(data.averagePerUnit)}`, { x: 9.35, y: 2.45, w: 3.05, h: 0.55, fontSize: 16, bold: true, valign: "middle" }, "Average Label", step + 1);
     const rows = [];
     units.forEach((u, i) => {
       const above = u.vsAverage >= 0;
@@ -253,7 +281,7 @@ async function main() {
       rows.push({ text: `${money(Math.abs(u.vsAverage))} ${above ? "above" : "below"} the average`,
         options: { breakLine: i < units.length - 1 } });
     });
-    text(s, rows, { x: 8.75, y: 3.2, w: 3.6, h: 3.4, fontSize: 17, valign: "top", paraSpaceAfter: 12 });
+    text(s, rows, { x: 8.75, y: 3.2, w: 3.6, h: 3.4, fontSize: 17, valign: "top", paraSpaceAfter: 12 }, "Above and Below", step + 1);
     const aboveNames = units.filter((u) => u.vsAverage > 0).map((u) => u.name);
     const belowNames = units.filter((u) => u.vsAverage < 0).map((u) => u.name);
     s.addNotes(
@@ -266,7 +294,7 @@ async function main() {
   // ============================================================ 9. Key takeaways
   {
     const s = newSlide();
-    title(s, pres, "Key Takeaways");
+    let step = title(s, pres, "Key Takeaways");
     const eb = EBIZ.items.find((it) => it.name.startsWith("Digital"));
     const cards = [
       { head: [`${money(data.departmentTotal)} in Total`],
@@ -281,18 +309,20 @@ async function main() {
     const gap = 0.25, x0 = 0.9, total = W - 1.8, cw = (total - gap * 3) / 4;
     cards.forEach((c, i) => {
       const x = x0 + i * (cw + gap);
-      box(s, pres, x, 1.85, cw, 3.05);
+      const card = `Takeaway ${i + 1}`;
+      box(s, pres, x, 1.85, cw, 3.05, `${card} Box`, step);
       // Headlines break where we say, never inside "e-Business".
       text(s, c.head.map((t, k) => ({ text: t, options: { breakLine: k < c.head.length - 1 } })), {
         x: x + 0.15, y: 2.0, w: cw - 0.3, h: 0.75, fontSize: 18, bold: true, align: "center", valign: "middle",
-      });
-      rule(s, pres, x + 0.4, 2.85, cw - 0.8);
-      text(s, c.body, { x: x + 0.2, y: 3.0, w: cw - 0.4, h: 1.8, fontSize: 17, valign: "top" });
+      }, `${card} Headline`, step);
+      slideRule(s, pres, x + 0.4, 2.85, cw - 0.8, `${card} Rule`, step);
+      text(s, c.body, { x: x + 0.2, y: 3.0, w: cw - 0.4, h: 1.8, fontSize: 17, valign: "top" }, `${card} Text`, step);
+      step += 1;
     });
-    rule(s, pres, 3.2, 5.4, W - 6.4);
+    rule(s, pres, 3.2, 5.4, W - 6.4, "Closing Rule", step);
     text(s, "Thank You. Questions?", {
       x: 0.8, y: 5.6, w: W - 1.6, h: 0.7, fontSize: 32, bold: true, color: TITLE, align: "center", valign: "middle",
-    });
+    }, "Thank You", step);
     s.addNotes(
       `To summarise: the department budget is ${money(data.departmentTotal)} with an average of ${money(data.averagePerUnit)} per unit. ` +
       `Advertising is the largest unit at ${money(ADV.total)}, staff salaries and benefits are the biggest single item at ${money(data.largestItem.total)}, ` +
@@ -301,7 +331,13 @@ async function main() {
   }
 
   await pres.writeFile({ fileName: outPath });
+  fs.writeFileSync(outPath.replace(/\.pptx$/, ".anim.json"), JSON.stringify(animPlan, null, 2));
   console.log("wrote " + outPath);
+}
+
+// A card's own rule appears with the card (a fade), unlike title rules, which wipe in.
+function slideRule(slide, pres, x, y, w, name, step) {
+  slide.addShape(pres.shapes.LINE, { x, y, w, h: 0, line: { color: TITLE, width: 1.5 }, objectName: anim(name, step) });
 }
 
 main().catch((e) => { console.error(e); process.exit(1); });

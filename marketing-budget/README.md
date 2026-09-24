@@ -56,7 +56,10 @@ functions that exist in Excel 2013: SUM, AVERAGE, MAX, MIN, INDEX, MATCH, COUNTA
 8. Each unit's budget compared with the average.
 9. Key takeaways.
 
-Every slide has speaker notes to present from.
+Every slide has speaker notes to present from, and a Push transition. When the slide show
+runs, each slide builds itself: the title appears first, then each box or chart fades or wipes
+in, one after another, with no clicking. Click (or press the right arrow) to go to the next
+slide.
 
 ### Importing the table yourself in PowerPoint 2013
 
@@ -76,8 +79,9 @@ Run `src/build.sh` to regenerate both files. It needs:
 PowerPoint 2013 rejects some of the XML that pptxgenjs writes, so the build cleans it up:
 
 - `src/sanitize_charts.py` puts every chart into the order the chart schema requires.
-- `src/finish_deck.py` keeps one paragraph-settings block per paragraph and adds the Fade
-  transitions.
+- `src/finish_deck.py` keeps one paragraph-settings block per paragraph. It also adds the
+  Push transitions and the automatic entrance animations that `src/build_deck.js` plans in
+  `deck.anim.json`.
 
 Set `SCHEMA_DIR` to the ISO/IEC 29500 transitional schemas (`pml.xsd`, `sml.xsd`,
 `dml-chart.xsd`, ...) and `src/validate_strict.py` checks every part of both files. The build

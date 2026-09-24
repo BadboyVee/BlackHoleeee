@@ -39,8 +39,10 @@ python3 "$HERE/sanitize_charts.py" "$TMP/deck.pptx" "$TMP/deck_clean.pptx" \
 python3 "$HERE/embed_excel_table.py" "$TMP/deck_clean.pptx" "$TMP/embed.xlsx" \
   "$TMP/table_preview.png" "$TMP/table_size.json" "$TMP/deck_embedded.pptx"
 
-# 5. One paragraph-settings block per paragraph, and a Fade transition on every slide.
-python3 "$HERE/finish_deck.py" "$TMP/deck_embedded.pptx" "$OUT/Marketing_Department_Budget.pptx"
+# 5. One paragraph-settings block per paragraph, a Push transition on every slide, and the
+#    automatic entrance animations planned by build_deck.js (deck.anim.json).
+python3 "$HERE/finish_deck.py" "$TMP/deck_embedded.pptx" "$TMP/deck.anim.json" \
+  "$OUT/Marketing_Department_Budget.pptx"
 
 # 6. Strict schema check of both files (set SCHEMA_DIR to the ISO/IEC 29500 transitional
 #    schemas: pml.xsd, sml.xsd, dml-main.xsd, dml-chart.xsd, ...).
