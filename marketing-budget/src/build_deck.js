@@ -12,8 +12,7 @@
 // step 1 appears after the slide transition, and each later step after the one before it.
 //
 // Look: one font (Arial, as in the Excel table), black text with dark-blue titles, white
-// slides in a thin frame, one light box colour. Colour otherwise appears only in the charts,
-// one colour per unit.
+// slides in a thin frame, one light box colour. Charts are black, grey and white only.
 const fs = require("fs");
 const pptxgen = require("pptxgenjs");
 
@@ -30,15 +29,17 @@ const FRAME = "8FAADC";    // slide frame
 const W = 13.333;
 const H = 7.5;
 
-// One colour per unit, used only for chart marks (validated for colour-blind separation).
-const UNIT_COLOR = { "Advertising": "4472C4", "Marketing": "C55A11", "Public Relations": "7030A0", "e-Business": "548235" };
+// Charts are grey. The pie gives each unit a different shade (standard PowerPoint greys),
+// ordered so neighbouring slices are always far apart in lightness.
+const BAR_GRAY = "595959";
+const UNIT_GRAY = { "Advertising": "262626", "Marketing": "A6A6A6", "Public Relations": "595959", "e-Business": "D9D9D9" };
 
 const money = (n) => "$" + Math.round(n).toLocaleString("en-US");
 const pct = (x) => (x * 100).toFixed(1) + "%";
 const units = data.units;
 const RANK_WORDS = ["the largest", "the second largest", "the third largest", "the smallest"];
 const [ADV, MKT, PR, EBIZ] = units;
-const colorOf = (u) => UNIT_COLOR[u.name];
+const grayOf = (u) => UNIT_GRAY[u.name];
 
 // ---------------------------------------------------------------- animation plan
 // animPlan[slideNumber] = [{ name, step, effect }]; effect is "fade", "wipe-left" or "wipe-up".
@@ -127,28 +128,27 @@ async function main() {
       step += 1;
     }
 
-    const dx = 5.4, dy = 2.3, dd = 4.3;
-    s.addChart(pres.charts.DOUGHNUT, [{
+    s.addChart(pres.charts.PIE, [{
       name: "Share of total budget", labels: units.map((u) => u.name), values: units.map((u) => u.total),
     }], {
-      x: dx, y: dy, w: dd, h: dd, holeSize: 55,
-      chartColors: units.map(colorOf),
+      x: 5.35, y: 2.2, w: 4.4, h: 4.55,
+      chartColors: units.map(grayOf),
       dataBorder: { pt: 1.5, color: "FFFFFF" },
-      showPercent: false, showValue: false, showLabel: false, showLegend: false, showTitle: false,
+      showPercent: true, showValue: false, showLabel: false, showLegend: false,
+      dataLabelPosition: "outEnd", dataLabelFormatCode: "0.0%",
+      dataLabelColor: TEXT, dataLabelFontFace: FONT, dataLabelFontSize: 14, dataLabelFontBold: true,
+      showTitle: true, title: "Share of Total Budget",
+      titleFontFace: FONT, titleFontSize: 16, titleColor: TEXT,
       objectName: anim("Share Chart", step),
     });
-    text(s, [
-      { text: "Share of", options: { breakLine: true } },
-      { text: "total budget" },
-    ], { x: dx + dd / 2 - 1.0, y: dy + dd / 2 - 0.4, w: 2.0, h: 0.8, fontSize: 16, bold: true, align: "center", valign: "middle" }, "Share Label", step);
     step += 1;
 
-    // Legend with the values: it is also how the doughnut's numbers are read.
+    // Legend with the values: the shade of each unit in the pie, with its amount and share.
     const lx = 9.9;
     units.forEach((u, i) => {
       const y = 2.45 + i * 1.05;
       s.addShape(pres.shapes.RECTANGLE, {
-        x: lx, y: y + 0.07, w: 0.24, h: 0.24, fill: { color: colorOf(u) }, line: { color: colorOf(u), width: 0 },
+        x: lx, y: y + 0.07, w: 0.24, h: 0.24, fill: { color: grayOf(u) }, line: { color: "7F7F7F", width: 0.75 },
         objectName: anim(`Legend Key ${u.name}`, step),
       });
       text(s, [
@@ -193,7 +193,7 @@ async function main() {
     }], {
       x: 5.55, y: 2.75, w: 7.05, h: 4.1,
       barDir: "bar", barGapWidthPct: 40,
-      chartColors: [colorOf(u)],
+      chartColors: [BAR_GRAY],
       catAxisOrientation: "maxMin",
       catAxisLabelColor: TEXT, catAxisLabelFontFace: FONT, catAxisLabelFontSize: 12,
       catAxisLineShow: false, catAxisMajorTickMark: "none",
@@ -249,7 +249,7 @@ async function main() {
     const maxTotal = Math.max(...units.map((u) => u.total));
     s.addChart([
       { type: pres.charts.BAR, data: [{ name: "Total budget", labels, values: units.map((u) => u.total) }],
-        options: { chartColors: units.map(colorOf), barGapWidthPct: 60 } },
+        options: { chartColors: [BAR_GRAY], barGapWidthPct: 60 } },
       { type: pres.charts.LINE, data: [{ name: "Average per unit", labels, values: units.map(() => data.averagePerUnit) }],
         options: { chartColors: [TEXT], lineSize: 2, lineDash: "dash", lineDataSymbol: "none", showValue: false, dataLabelPosition: "t" } },
     ], {

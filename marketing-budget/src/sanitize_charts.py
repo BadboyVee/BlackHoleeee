@@ -22,6 +22,7 @@ from lxml import etree
 C = "http://schemas.openxmlformats.org/drawingml/2006/chart"
 MC = "http://schemas.openxmlformats.org/markup-compatibility/2006"
 Q = f"{{{C}}}"
+A_NS = "http://schemas.openxmlformats.org/drawingml/2006/main"
 
 # Child order from dml-chart.xsd (ISO/IEC 29500 transitional).
 SER_ORDER = {
@@ -121,6 +122,10 @@ def fix_chart(xml: bytes):
             reorder(dlbls, DLBLS_ORDER, drop_unknown=False)
         for dlbl in group.iter(f"{Q}dLbl"):
             reorder(dlbl, DLBL_ORDER, drop_unknown=False)
+        # Keep short labels such as "36.0%" on one line (renderers may otherwise wrap them).
+        for body in group.iter(f"{{{A_NS}}}bodyPr"):
+            if etree.QName(body.getparent().getparent()).localname in ("dLbls", "dLbl"):
+                body.set("wrap", "none")
         reorder(group, GROUP_ORDER[kind], drop_unknown=False)
     out = etree.tostring(root, xml_declaration=True, encoding="UTF-8", standalone=True)
     return out, notes
