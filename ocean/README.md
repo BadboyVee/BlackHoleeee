@@ -129,8 +129,17 @@ float and bob with the waves; once you dive you stay at the depth you choose.
 
 Tab opens a panel with sea-state presets and the full wave spectrum (wind speed and direction,
 fetch, swell, choppiness, whitecaps), surf height and period, sun position and time flow,
-clouds, water optics, graphics options (resolution, vegetation detail, eye adaptation, AO,
-contact shadows, bloom, motion blur, flare, god rays, vignette, grain) and teleports.
+clouds, water optics, graphics options (frame rate, quality, resolution, vegetation detail, eye
+adaptation, AO, contact shadows, bloom, motion blur, flare, god rays, vignette, grain) and teleports.
+
+**Frame rate** caps the game at 20, 30, 40 or 50 fps (or leaves it unlimited), and the game holds
+that rate: it measures what each frame costs the GPU and lowers the render resolution when frames
+run long (up to the Resolution setting when there is room). With **Quality** on Auto it also steps
+between three tiers: Medium drops ambient occlusion, motion blur and the small plants' shadows and
+thins the vegetation; Low also drops contact shadows, water reflections, god rays, the lens flare
+and the grass, and redraws the far shadow cascades less often. Low, Medium and High fix the tier
+and only adapt the resolution. Phones start at 30 fps on Auto, with two shadow cascades instead of three. The corner counter shows the real
+frame rate, the frame time, the render resolution and the tier.
 
 ## Code map
 
@@ -160,8 +169,8 @@ src/core/assets.js       asset URLs (served files, or the one-file build's embed
 Debug URL parameters: `?test` (small software-GPU friendly settings), `?pano=2048`,
 `?sunEl=8&sunAz=250`, `?t=40&freeze`, `?spawn=fly`, `?off=grass,fish,whale,veg,village,boat,spray,wake,surf,reef,birds,crabs,motes`,
 `?veg=0.7` (vegetation LOD distance scale), `?phone` (the lighter phone settings), `?waterDebug=1` (breaker state: breaking index, shore foam, thin lip) or `?waterDebug=2`
-(facing: above water, front face, break zone), `?nofit` (keep full resolution: by default a
-slow GPU gets a lower render resolution a few seconds after loading).
+(facing: above water, front face, break zone), `?nofit` (keep the quality and resolution fixed:
+by default the game adapts them to hold the frame rate).
 
 ## References
 

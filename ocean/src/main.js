@@ -37,6 +37,7 @@ import { Player } from './player/player.js';
 import { Flashlight } from './player/flashlight.js';
 import { buildSettings } from './ui/settings.js';
 import { AutoExposure } from './render/exposure.js';
+import { FramePacer, Governor } from './render/framerate.js';
 import { env } from './env.js';
 import { checkWebGPU, noWebGPU, NoWebGPU } from './core/gpu.js';
 
@@ -93,7 +94,7 @@ async function start() {
   status('Initialising WebGPU…', 0.04);
   await checkWebGPU();
   const renderer = new THREE.WebGPURenderer({ antialias: false, powerPreference: 'high-performance' });
-  const app = { renderer, resolutionScale: 1, daySpeed: 0, exposureBias: 0.55 };
+  const app = { renderer, resolutionScale: 1, resolutionMax: 1, daySpeed: 0, exposureBias: 0.55 };
   const pixelRatio = () => (TEST ? 1 : Math.min(window.devicePixelRatio || 1, 1.25) * app.resolutionScale);
   renderer.setPixelRatio(pixelRatio());
   renderer.setSize(window.innerWidth, window.innerHeight);
@@ -130,7 +131,8 @@ async function start() {
   sun.shadow.camera.far = 1200;
   sun.shadow.bias = -0.0003;
   sun.shadow.normalBias = 0.04;
-  const csm = new CSMShadowNode(sun, { cascades: 3, maxFar: 420, mode: 'practical', lightMargin: 260 });
+  // (a phone's small screen gets by with two cascades: a third fewer shadow casters drawn)
+  const csm = new CSMShadowNode(sun, { cascades: PHONE ? 2 : 3, maxFar: 420, mode: 'practical', lightMargin: 260 });
   csm.fade = true;
   sun.shadow.shadowNode = csm;
   scene.add(sun, sun.target);
@@ -230,8 +232,8 @@ async function start() {
   status('Growing trees…', 0.55);
   await nextFrame();
   const vegetation = await Vegetation.create({ scene, island, collision, terrain });
-  if (query.has('veg')) vegetation.setDetail(+query.get('veg') || 1);
-  else if (PHONE) vegetation.setDetail(0.7);
+  const vegBase = +query.get('veg') || 1;     // ?veg= scales every quality tier's vegetation detail
+  vegetation.setDetail(vegBase);
   const boulders = await Boulders.create({ scene, island, collision, textures: terrainTextures });
   if (TEST) console.log('[veg] counts', JSON.stringify(vegetation.counts), 'boulders', boulders.counts);
   vegetation.update(camera);
@@ -315,8 +317,59 @@ async function start() {
     if (m === 'swim' && (prev === 'walk' || prev === 'fly') && player.vel.y < -2.5) audio.splash(camera.position.clone(), Math.min(2, -player.vel.y / 4));
   });
 
+  // ---------------------------------------------------------------- frame rate
+  // Quality tiers the governor (render/framerate.js) steps between to hold the
+  // chosen frame rate; 'high' is the full look. The lower tiers skip ambient
+  // occlusion, contact shadows, water reflections and camera effects, thin out
+  // grass and vegetation, and redraw the far shadow cascades less often (most
+  // of a frame's draw calls are shadow casters).
+  const full = { ao: pipeline.aoIntensity.value, contact: pipeline.contactStrength.value, mblur: post.motionBlur.value, godRays: post.godRays.value, flare: post.flare.value };
+  const TIERS = {
+    high: { ao: true, contact: true, ssr: true, mblur: true, rays: true, grass: true, veg: 1, smallShadows: true, cascades: [1, 1, 1] },
+    medium: { ao: false, contact: true, ssr: true, mblur: false, rays: true, grass: true, veg: 0.75, smallShadows: false, cascades: [1, 1, 2] },
+    low: { ao: false, contact: false, ssr: false, mblur: false, rays: false, grass: false, veg: 0.5, smallShadows: false, cascades: [1, 2, 3] },
+  };
+  let tier = TIERS.high;
+  let panel = null;
+  const applyQuality = (name, scale) => {
+    const t = tier = TIERS[name];
+    pipeline.settings.ao = t.ao;
+    pipeline.aoIntensity.value = t.ao ? full.ao : 0;
+    pipeline.settings.contactShadows = t.contact;
+    pipeline.contactStrength.value = t.contact ? full.contact : 0;
+    water.ssrEnabled.value = t.ssr ? 1 : 0;
+    post.motionBlur.value = t.mblur ? full.mblur : 0;
+    post.godRays.value = t.rays ? full.godRays : 0;
+    post.flare.value = t.rays ? full.flare : 0;
+    if (on('grass')) grass.mesh.visible = t.grass;
+    vegetation.setDetail(vegBase * t.veg);
+    vegetation.setSmallShadows(t.smallShadows);
+    const s = Math.round(app.resolutionMax * scale * 100) / 100;
+    if (s !== app.resolutionScale) { app.resolutionScale = s; app.onResize?.(); }
+    if (panel) {
+      for (const [id, v] of [['ao', pipeline.aoIntensity.value], ['contact', pipeline.contactStrength.value], ['ssr', t.ssr], ['mblur', post.motionBlur.value],
+        ['godrays', post.godRays.value], ['flare', post.flare.value], ['vegDetail', vegetation.lodScale]]) panel.get(id)?.set(v);
+    }
+  };
+  const pacer = new FramePacer();
+  const governor = new Governor(renderer.backend.device, applyQuality);
+  governor.enabled = !TEST && !query.has('nofit');
+  // the choice sticks between visits (where the browser keeps storage)
+  const prefs = (() => { try { return JSON.parse(localStorage.getItem('saltwind.frame')) || {}; } catch (e) { return {}; } })();
+  const savePrefs = () => { try { localStorage.setItem('saltwind.frame', JSON.stringify({ fps: pacer.fps, quality: governor.mode })); } catch (e) { /* not kept */ } };
+  pacer.fps = TEST ? 0 : prefs.fps ?? (PHONE ? 30 : 0);
+  governor.mode = ['auto', 'low', 'medium', 'high'].includes(prefs.quality) ? prefs.quality : 'auto';
+  governor.setTarget(pacer.fps || 60);
+  app.frame = {
+    get fps() { return pacer.fps; },
+    get quality() { return governor.mode; },
+    setFps(v) { pacer.fps = v; governor.setTarget(v || 60); savePrefs(); },
+    setQuality(v) { governor.setMode(v); savePrefs(); },
+    rescale() { applyQuality(governor.tier, governor.scale); },
+  };
+
   // ---------------------------------------------------------------- ui
-  const panel = buildSettings(app);
+  panel = buildSettings(app);
   panel.onToggle = (open) => { if (open) input.unlock(); };
   const hint = $('hint'), badge = $('mode-badge'), crosshair = $('crosshair'), promptEl = $('prompt');
   const setHint = (html) => { hint.innerHTML = html; hint.hidden = !html; };
@@ -343,6 +396,9 @@ async function start() {
     if (!TEST) showBadge(m === 'boat' ? helm : (modeNames[m] || m));
     panel.get('mode')?.set(m === 'fly' ? 'fly' : 'walk');
   });
+
+  // warm up with everything on, so every shader compiles behind the loading screen
+  applyQuality('high', 1);
 
   const onResize = () => {
     renderer.setPixelRatio(pixelRatio());
@@ -384,6 +440,8 @@ async function start() {
   boulders.prime(false);
   vegetation.update(camera);
   boulders.update(camera);
+  // then start from the chosen quality (phones on Auto start a few rungs down)
+  governor.start(governor.mode === 'auto' && PHONE ? 4 : 0);
   $('loader').classList.add('done');
 
   const timer = new THREE.Timer();
@@ -391,15 +449,14 @@ async function start() {
   let frozen = query.has('freeze');
   debug.setTime = (t, freeze = true) => { time = t; frozen = freeze; };
   let fpsAcc = 0, fpsFrames = 0;
-  // One-time resolution fit: a few seconds in, if frames are slow, lower the
-  // render resolution once to aim for 60 fps (never oscillates mid-play; the
-  // panel's Resolution slider overrides it).
-  const fit = { t: 0, n: 0, done: TEST || query.has('nofit') };
   let wasUnder = false, underTime = 0;
   let lastSunKey = '';
   renderer.setAnimationLoop(() => {
+    if (!pacer.ready(performance.now())) return;    // the frame rate cap
+    governor.begin();
     timer.update();
-    const realDt = Math.min(timer.getDelta(), 0.1);
+    const rawDt = timer.getDelta();
+    const realDt = Math.min(rawDt, 0.1);
     const dt = frozen ? 0 : realDt;
     time += dt;
     env.time.value = time;
@@ -482,7 +539,14 @@ async function start() {
     composite.update(renderer);
     post.update(renderer, realDt, time);
     droplets.render();
+    // the lower tiers redraw the far shadow cascades every second or third frame
+    csm.lights.forEach((l, i) => {
+      const every = tier.cascades[i] || 1;
+      l.shadow.autoUpdate = every === 1;
+      if (every > 1) l.shadow.needsUpdate = (debug.frame + i) % every === 0;
+    });
     pipeline.render();
+    if (governor.enabled) governor.done();
 
     // --- hud
     if (badgeTimer > 0) {
@@ -490,25 +554,11 @@ async function start() {
       if (badgeTimer <= 0.6) badge.style.opacity = Math.max(0, badgeTimer / 0.6);
       if (badgeTimer <= 0) badge.hidden = true;
     }
-    if (!fit.done) {
-      fit.t += realDt;
-      if (fit.t > 1.5) fit.n++;                    // (the first frames still compile)
-      if (fit.t > 4.5) {
-        const ms = (fit.t - 1.5) / Math.max(fit.n, 1) * 1000;
-        if (ms > 19 && app.resolutionScale > 0.6) {
-          const s = Math.max(0.6, Math.round(app.resolutionScale * Math.sqrt(16.4 / ms) * 20) / 20);
-          console.log(`[fit] ${ms.toFixed(1)} ms/frame -> resolution ${Math.round(s * 100)}%`);
-          app.resolutionScale = s;
-          onResize();
-          panel.get('res')?.set(s);
-        }
-        fit.done = true;
-      }
-    }
-    fpsAcc += realDt; fpsFrames++;
+    // the real rate (the simulation's step is clamped, the counter is not)
+    fpsAcc += rawDt; fpsFrames++;
     if (fpsAcc > 0.5) {
       $('fps-value').textContent = Math.round(fpsFrames / fpsAcc);
-      $('fps-ms').textContent = `${(fpsAcc / fpsFrames * 1000).toFixed(1)} ms`;
+      $('fps-ms').textContent = `${(fpsAcc / fpsFrames * 1000).toFixed(1)} ms · ${Math.round(app.resolutionScale * 100)}% ${governor.tier}`;
       fpsAcc = 0; fpsFrames = 0;
     }
     input.endFrame();

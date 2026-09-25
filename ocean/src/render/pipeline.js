@@ -74,6 +74,13 @@ export class Pipeline {
     sssPass.useTemporalFiltering = true;
     const sssTex = sssPass.getTextureNode();
 
+    // switched off (settings.ao / settings.contactShadows, with the strength at
+    // 0 so the stale texture is never seen) the passes are skipped, not just faded
+    for (const [node, key] of [[aoPass, 'ao'], [sssPass, 'contactShadows']]) {
+      const update = node.updateBefore.bind(node);
+      node.updateBefore = (frame) => { if (this.settings[key]) update(frame); };
+    }
+
     // ------------------------------------------------------------ scene pass
     const scenePass = this.scenePass = pass(scene, camera);
     scenePass.name = 'scene';

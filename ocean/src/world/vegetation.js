@@ -95,6 +95,17 @@ const bayer4 = (p) => {
   return v.add(0.5).div(16);
 };
 // drawn when the pixel's threshold falls in this LOD's range [lo, hi)
+/**
+ * Mark the first n instances of an attribute for upload. The buffers hold
+ * every plant on the island; only the ones near enough to draw change.
+ */
+export function uploadFirst(attr, n) {
+  if (!n) return;
+  attr.clearUpdateRanges();
+  attr.addUpdateRange(0, n * attr.itemSize);
+  attr.needsUpdate = true;
+}
+
 export const inRange = (lo, hi) => {
   const b = bayer4(screenCoordinate.xy.add(ditherShift));
   return b.greaterThanEqual(lo).and(b.lessThan(hi));
@@ -325,6 +336,14 @@ export class Vegetation {
 
   setDetail(v) { this.lodScale = v; this.lastX = undefined; }
 
+  /** whether saplings, shrubs and ferns cast shadows (the lower quality tiers drop them) */
+  setSmallShadows(on) {
+    for (const s of this.sets) {
+      if (s.kind !== 'sapling' && s.kind !== 'shrub' && s.kind !== 'fern') continue;
+      for (const m of [...s.lod0, ...s.lod1, s.imp]) if (m) m.castShadow = on;
+    }
+  }
+
   /** Where everything grows: trees from the baked forest cover, palms on
    *  the coastal strip and in damp hollows, scrub along forest edges and
    *  the back of the beach, ferns under the canopy. */
@@ -485,11 +504,13 @@ export class Vegetation {
     if (on) {
       for (const e of this.sets) {
         for (const m of [...e.lod0, ...e.lod1]) {
+          m.visible = true;
           m.count = Math.max(m.count, 1);
           m.userData.data.setXYZW(0, 0, 0, 0, 1);
           m.userData.data.needsUpdate = true;
         }
         if (e.imp) {
+          e.imp.visible = true;
           const g = e.imp.geometry, o = e.list[0];
           g.instanceCount = Math.max(g.instanceCount, 1);
           g.attributes.iPos.setXYZW(0, o.x, o.y, o.z, o.s);
@@ -553,9 +574,11 @@ export class Vegetation {
           ni++;
         }
       }
-      for (const m of e.lod0) { m.count = n0; m.instanceMatrix.needsUpdate = true; m.userData.data.needsUpdate = true; }
-      for (const m of e.lod1) { m.count = n1; m.instanceMatrix.needsUpdate = true; m.userData.data.needsUpdate = true; }
-      if (imp) { imp.instanceCount = ni; imp.attributes.iPos.needsUpdate = true; imp.attributes.iRot.needsUpdate = true; }
+      // (an empty set is hidden: three.js then skips it in every pass, shadows included)
+      for (const [list, n] of [[e.lod0, n0], [e.lod1, n1]]) {
+        for (const m of list) { m.count = n; m.visible = n > 0; uploadFirst(m.instanceMatrix, n); uploadFirst(m.userData.data, n); }
+      }
+      if (imp) { imp.instanceCount = ni; e.imp.visible = ni > 0; uploadFirst(imp.attributes.iPos, ni); uploadFirst(imp.attributes.iRot, ni); }
     }
   }
 }

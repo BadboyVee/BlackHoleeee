@@ -11,7 +11,7 @@ import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { standard, staticVelocity } from '../render/materials.js';
 import { vnoise2 } from '../render/tslnoise.js';
-import { inRange } from './vegetation.js';
+import { inRange, uploadFirst } from './vegetation.js';
 import { assetURL, dracoDecoderPath } from '../core/assets.js';
 import { VILLAGE } from './island.js';
 import { TERRAIN_TILE } from './terrainTextures.js';
@@ -123,7 +123,7 @@ export class Boulders {
     this.primed = on;
     if (!on) { this.lastX = undefined; return; }
     for (const e of this.sets) {
-      for (const m of [e.lod0, e.lod1]) { m.count = Math.max(m.count, 1); m.userData.data.setXYZW(0, 0, 0, 0, 1); m.userData.data.needsUpdate = true; }
+      for (const m of [e.lod0, e.lod1]) { m.visible = true; m.count = Math.max(m.count, 1); m.userData.data.setXYZW(0, 0, 0, 0, 1); m.userData.data.needsUpdate = true; }
     }
   }
 
@@ -156,7 +156,7 @@ export class Boulders {
         if (f0 > 0.001) { e.lod0.instanceMatrix.array.set(o.m, n0 * 16); e.lod0.userData.data.setXYZW(n0, 0, 0, 0, f0); n0++; }
         if (f1 > 0.001) { e.lod1.instanceMatrix.array.set(o.m, n1 * 16); e.lod1.userData.data.setXYZW(n1, 0, 0, f0, f0 + f1); n1++; }
       }
-      for (const [m, n] of [[e.lod0, n0], [e.lod1, n1]]) { m.count = n; m.instanceMatrix.needsUpdate = true; m.userData.data.needsUpdate = true; }
+      for (const [m, n] of [[e.lod0, n0], [e.lod1, n1]]) { m.count = n; m.visible = n > 0; uploadFirst(m.instanceMatrix, n); uploadFirst(m.userData.data, n); }
     }
   }
 }
