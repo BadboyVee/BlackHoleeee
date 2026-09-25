@@ -35,6 +35,12 @@ remake them with `pip install av && python tools/audio-opus.py`.
 | G | free fly on/off (switching back drops you with gravity) |
 | Tab | settings panel |
 
+On a phone or tablet: the left thumb moves (drag past the stick's ring to run), a drag anywhere
+else looks around, and the buttons on the right are ▲ jump / up, ▼ down, E and Fly; ⛶ goes full
+screen and ☰ opens the settings. Phones start with lighter graphics settings. If the browser can't
+give the page WebGPU (Chrome on Android turns it off for some graphics chips) the loading screen
+says so, and what to try.
+
 Walk off the end of the pier or into deep water and you start swimming. Near the surface you
 float and bob with the waves; once you dive you stay at the depth you choose.
 
@@ -153,7 +159,7 @@ src/core/assets.js       asset URLs (served files, or the one-file build's embed
 
 Debug URL parameters: `?test` (small software-GPU friendly settings), `?pano=2048`,
 `?sunEl=8&sunAz=250`, `?t=40&freeze`, `?spawn=fly`, `?off=grass,fish,whale,veg,village,boat,spray,wake,surf,reef,birds,crabs,motes`,
-`?veg=0.7` (vegetation LOD distance scale), `?waterDebug=1` (breaker state: breaking index, shore foam, thin lip) or `?waterDebug=2`
+`?veg=0.7` (vegetation LOD distance scale), `?phone` (the lighter phone settings), `?waterDebug=1` (breaker state: breaking index, shore foam, thin lip) or `?waterDebug=2`
 (facing: above water, front face, break zone), `?nofit` (keep full resolution: by default a
 slow GPU gets a lower render resolution a few seconds after loading).
 

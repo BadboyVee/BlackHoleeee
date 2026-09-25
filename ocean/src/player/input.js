@@ -1,4 +1,5 @@
-// Keyboard + mouse state with pointer lock.
+// Keyboard + mouse state with pointer lock, plus the on-screen touch
+// controls (player/touch.js), which press the same key codes.
 //
 // Keys are tracked by KeyboardEvent.code (layout independent). `pressed()`
 // reports a key once per physical press; `down()` while it is held.
@@ -12,6 +13,9 @@ export class Input {
     this.mouseDY = 0;
     this.wheel = 0;
     this.locked = false;
+    this.touch = false;          // touch controls in use: look without pointer lock
+    this.touchHeld = new Set();  // on-screen buttons held down
+    this.analog = {};            // the touch stick, 0..1 per direction key (KeyW/KeyS/KeyA/KeyD)
     this.enabled = true;
     this.onLockChange = null;
 
@@ -22,7 +26,7 @@ export class Input {
       if (['Space', 'Tab', 'ArrowUp', 'ArrowDown'].includes(e.code) || (this.locked && e.ctrlKey)) e.preventDefault();
     });
     addEventListener('keyup', (e) => { this.held.delete(e.code); });
-    addEventListener('blur', () => { this.held.clear(); });
+    addEventListener('blur', () => { this.held.clear(); this.touchHeld.clear(); this.analog = {}; });
     dom.addEventListener('mousedown', (e) => {
       if (ignore(e)) return;
       if (!this.locked && e.button === 0) dom.requestPointerLock?.();
@@ -40,9 +44,14 @@ export class Input {
     });
   }
 
-  down(code) { return this.held.has(code); }
+  /** mouse or finger moves turn the view */
+  get looking() { return this.locked || this.touch; }
+  down(code) { return this.held.has(code) || this.touchHeld.has(code); }
   pressed(code) { return this.edges.has(code); }
-  axis(neg, pos) { return (this.down(pos) ? 1 : 0) - (this.down(neg) ? 1 : 0); }
+  axis(neg, pos) {
+    const v = (this.down(pos) ? 1 : 0) - (this.down(neg) ? 1 : 0) + (this.analog[pos] || 0) - (this.analog[neg] || 0);
+    return Math.max(-1, Math.min(1, v));
+  }
 
   /** call once per frame after the game has read the input */
   endFrame() {

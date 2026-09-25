@@ -115,7 +115,7 @@ export class Player {
   update(dt) {
     dt = Math.min(dt, 0.05);
     const inp = this.input;
-    if (inp.locked && this.mode !== 'boat') {
+    if (inp.looking && this.mode !== 'boat') {
       this.yaw += inp.mouseDX * this.sensitivity;
       this.pitch -= inp.mouseDY * this.sensitivity;
       this.pitch = THREE.MathUtils.clamp(this.pitch, -1.53, 1.53);

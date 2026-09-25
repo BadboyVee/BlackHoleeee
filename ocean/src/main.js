@@ -32,11 +32,13 @@ import { Boat } from './boat/boat.js';
 import { Caustics } from './ocean/caustics.js';
 import { underwaterSun, underwaterAmbient } from './ocean/underwaterLight.js';
 import { Input } from './player/input.js';
+import { TouchControls } from './player/touch.js';
 import { Player } from './player/player.js';
 import { Flashlight } from './player/flashlight.js';
 import { buildSettings } from './ui/settings.js';
 import { AutoExposure } from './render/exposure.js';
 import { env } from './env.js';
+import { checkWebGPU, noWebGPU, NoWebGPU } from './core/gpu.js';
 
 const $ = (id) => document.getElementById(id);
 const status = (t, p) => {
@@ -46,6 +48,8 @@ const status = (t, p) => {
 };
 const query = new URLSearchParams(location.search);
 const TEST = query.has('test');
+// phones and small tablets start lighter (the settings panel can raise it again; ?phone forces it)
+const PHONE = query.has('phone') || (!TEST && matchMedia('(pointer: coarse)').matches && Math.min(screen.width, screen.height) < 820);
 // ?off=grass,fish,... hides systems and skips their updates (debug bisection)
 const OFF = new Set((query.get('off') || '').split(',').filter(Boolean));
 const on = (k) => !OFF.has(k);
@@ -86,8 +90,8 @@ function hourFromSun(el, az) {
 }
 
 async function start() {
-  if (!navigator.gpu) throw new Error('WebGPU is not available in this browser. Try a recent Chrome, Edge or Safari.');
   status('Initialising WebGPU…', 0.04);
+  await checkWebGPU();
   const renderer = new THREE.WebGPURenderer({ antialias: false, powerPreference: 'high-performance' });
   const app = { renderer, resolutionScale: 1, daySpeed: 0, exposureBias: 0.55 };
   const pixelRatio = () => (TEST ? 1 : Math.min(window.devicePixelRatio || 1, 1.25) * app.resolutionScale);
@@ -99,6 +103,8 @@ async function start() {
   renderer.shadowMap.type = THREE.PCFShadowMap;
   $('app').appendChild(renderer.domElement);
   await renderer.init();
+  // three.js drops to WebGL2 if WebGPU fails after all; the game can't run there
+  if (!renderer.backend.isWebGPUBackend) throw noWebGPU("WebGPU couldn't start on this device, so the game can't run.");
   renderer.onDeviceLost = (info) => {
     console.error(`WebGPU device lost at frame ${debug.frame}: ${info.message || info.reason}`);
     debug.deviceLost = info.message || String(info.reason);
@@ -111,7 +117,7 @@ async function start() {
 
   // ---------------------------------------------------------------- sky
   status('Building sky…', 0.1);
-  const sky = new Sky(renderer, { test: TEST, panoWidth: +(query.get('pano') || (TEST ? 1024 : 4096)) });
+  const sky = new Sky(renderer, { test: TEST, panoWidth: +(query.get('pano') || (TEST ? 1024 : PHONE ? 2048 : 4096)) });
   await sky.init();
   scene.backgroundNode = sky.backgroundNode();
   scene.environment = sky.envTarget.texture;
@@ -119,7 +125,7 @@ async function start() {
   // ---------------------------------------------------------------- sun
   const sun = new THREE.DirectionalLight(0xffffff, 1);
   sun.castShadow = true;
-  sun.shadow.mapSize.set(2048, 2048);
+  sun.shadow.mapSize.setScalar(PHONE ? 1024 : 2048);
   sun.shadow.camera.near = 1;
   sun.shadow.camera.far = 1200;
   sun.shadow.bias = -0.0003;
@@ -210,6 +216,7 @@ async function start() {
 
   // ---------------------------------------------------------------- player
   const input = new Input(renderer.domElement, { ignore: (e) => !!e.target.closest?.('#panel') });
+  const touch = new TouchControls(input, renderer.domElement);
   const player = new Player({ camera, input, collision, probe, queryIndex: probe.allocQueries(1) });
   const flashlight = new Flashlight(scene);
   // the torch casts no shadow map; a constant shadow node makes three.js run
@@ -224,11 +231,12 @@ async function start() {
   await nextFrame();
   const vegetation = await Vegetation.create({ scene, island, collision, terrain });
   if (query.has('veg')) vegetation.setDetail(+query.get('veg') || 1);
+  else if (PHONE) vegetation.setDetail(0.7);
   const boulders = await Boulders.create({ scene, island, collision, textures: terrainTextures });
   if (TEST) console.log('[veg] counts', JSON.stringify(vegetation.counts), 'boulders', boulders.counts);
   vegetation.update(camera);
   boulders.update(camera);
-  const grass = new Grass(renderer, { terrain, island, grid: TEST ? 56 : 112 });
+  const grass = new Grass(renderer, { terrain, island, grid: TEST ? 56 : PHONE ? 80 : 112 });
   scene.add(grass.mesh);
   const whale = new Whale({ scene, spray, ocean, island });
   const fish = new Fish(renderer, { scene, terrain, reef: REEF, escortStart: whale.pos });
@@ -313,7 +321,15 @@ async function start() {
   const hint = $('hint'), badge = $('mode-badge'), crosshair = $('crosshair'), promptEl = $('prompt');
   const setHint = (html) => { hint.innerHTML = html; hint.hidden = !html; };
   const lockHint = 'Click to look around · <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> move · <kbd>Tab</kbd> settings';
-  setHint(TEST ? '' : lockHint);
+  const touchHint = 'Left thumb moves (drag past the ring to run) · drag elsewhere to look · <kbd>☰</kbd> settings';
+  const showTouchHint = () => {
+    if (TEST) return;
+    setHint(touchHint);
+    setTimeout(() => { if (hint.innerHTML === touchHint) setHint(''); }, 9000);
+  };
+  if (input.touch) showTouchHint();
+  else setHint(TEST ? '' : lockHint);
+  touch.onStart = showTouchHint;
   input.onLockChange = (locked) => {
     crosshair.hidden = !locked;
     setHint(locked ? '' : lockHint);
@@ -323,7 +339,8 @@ async function start() {
   const showBadge = (text) => { badge.textContent = text; badge.hidden = false; badge.style.opacity = 1; badgeTimer = 2.2; };
   const modeNames = { walk: 'On foot', swim: 'Swimming', fly: 'Free fly', boat: 'Boat' };
   player.on('mode', (m) => {
-    if (!TEST) showBadge(m === 'boat' ? 'At the helm · W/S throttle · A/D steer · V camera · E leave' : (modeNames[m] || m));
+    const helm = input.touch ? 'At the helm · stick: throttle and steer · E leave' : 'At the helm · W/S throttle · A/D steer · V camera · E leave';
+    if (!TEST) showBadge(m === 'boat' ? helm : (modeNames[m] || m));
     panel.get('mode')?.set(m === 'fly' ? 'fly' : 'walk');
   });
 
@@ -331,6 +348,8 @@ async function start() {
     renderer.setPixelRatio(pixelRatio());
     renderer.setSize(window.innerWidth, window.innerHeight);
     camera.aspect = window.innerWidth / window.innerHeight;
+    // a phone held upright gets a taller view so the view across stays usable
+    camera.fov = camera.aspect < 1 ? THREE.MathUtils.radToDeg(2 * Math.atan(Math.tan(THREE.MathUtils.degToRad(31)) / Math.sqrt(camera.aspect))) : 62;
     camera.updateProjectionMatrix();
     const s = renderer.getDrawingBufferSize(new THREE.Vector2());
     droplets.resize(s.x, s.y);
@@ -514,6 +533,7 @@ async function start() {
 
 start().catch((e) => {
   console.error(e);
+  if (e instanceof NoWebGPU) { status('WebGPU needed', 0); $('loader').classList.add('no-gpu'); }
   $('loader-error').hidden = false;
   $('loader-error').textContent = String(e && e.message || e);
 });

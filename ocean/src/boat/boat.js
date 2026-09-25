@@ -290,7 +290,7 @@ export class Boat {
 
   /** camera while aboard: helm view or orbit */
   updateCamera(camera, player, dt, input) {
-    if (input.locked) {
+    if (input.looking) {
       if (this.thirdPerson) {
         this.orbitYaw -= input.mouseDX * player.sensitivity;
         this.orbitPitch = THREE.MathUtils.clamp(this.orbitPitch + input.mouseDY * player.sensitivity, -0.15, 1.2);
