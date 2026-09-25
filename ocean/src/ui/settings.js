@@ -95,16 +95,16 @@ export function buildSettings(app) {
 
   // ------------------------------------------------------------ graphics
   const gfx = panel.section('Graphics', { icon: '◧' });
-  if (app.frame) {
-    panel.choice(gfx, { id: 'fps', label: 'Frame rate', value: app.frame.fps, options: [[20, '20'], [30, '30'], [40, '40'], [50, '50'], [0, 'No limit']],
-      onChange: (v) => app.frame.setFps(v) });
-    panel.choice(gfx, { id: 'quality', label: 'Quality', value: app.frame.quality, options: [['auto', 'Auto'], ['low', 'Low'], ['medium', 'Medium'], ['high', 'High']],
-      onChange: (v) => app.frame.setQuality(v) });
+  if (app.frameRate) {
+    panel.choice(gfx, { id: 'fps', label: 'Frame rate', value: app.frameRate.fps, options: [[20, '20'], [30, '30'], [40, '40'], [50, '50'], [0, 'No limit']],
+      onChange: (v) => app.frameRate.setFps(v) });
+    panel.choice(gfx, { id: 'quality', label: 'Quality', value: app.frameRate.quality, options: [['auto', 'Auto'], ['low', 'Low'], ['medium', 'Medium'], ['high', 'High']],
+      onChange: (v) => app.frameRate.setQuality(v) });
     panel.note(gfx, 'The game lowers the render resolution (and with Auto quality, the effects) as needed to hold the frame rate.');
   }
   panel.slider(gfx, { id: 'res', label: 'Resolution', min: 0.4, max: 1.5, step: 0.05, value: app.resolutionMax, format: (v) => `${Math.round(v * 100)}%`,
     hint: 'The most the game renders at; it goes below this when it needs to for the frame rate',
-    onInput: debounce((v) => { app.resolutionMax = v; app.frame ? app.frame.rescale() : app.onResize?.(); }, 150) });
+    onInput: debounce((v) => { app.resolutionMax = v; app.frameRate ? app.frameRate.rescale() : app.onResize?.(); }, 150) });
   if (app.vegetation) {
     panel.slider(gfx, { id: 'vegDetail', label: 'Vegetation detail', min: 0.4, max: 1.6, step: 0.05, value: app.vegetation.lodScale, format: (v) => `×${v.toFixed(2)}`,
       onInput: (v) => { app.vegetation.setDetail(v); } });

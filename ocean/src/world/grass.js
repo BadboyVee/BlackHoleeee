@@ -23,6 +23,7 @@ let COUNT = GRID * GRID * PER_CELL;
 
 export class Grass {
   constructor(renderer, { terrain, island, grid = 112 }) {
+    this.enabled = true;     // off in the Low quality tier (the blades and their compute are skipped)
     GRID = grid; COUNT = GRID * GRID * PER_CELL;
     this.renderer = renderer;
     this.terrain = terrain;
@@ -161,7 +162,7 @@ export class Grass {
     this.eye.value.copy(c);
     if (player && player.mode === 'walk') this.foot.value.copy(player.feet); else this.foot.value.set(0, -1000, 0);
     // nothing to draw far above the ground
-    this.mesh.visible = c.y < Math.max(this.island.heightAt(c.x, c.z), 0) + 60;
+    this.mesh.visible = this.enabled && c.y < Math.max(this.island.heightAt(c.x, c.z), 0) + 60;
     if (this.mesh.visible) this.renderer.compute(this.kernel);
   }
 }

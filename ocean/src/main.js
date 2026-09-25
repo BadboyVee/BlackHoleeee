@@ -341,7 +341,7 @@ async function start() {
     post.motionBlur.value = t.mblur ? full.mblur : 0;
     post.godRays.value = t.rays ? full.godRays : 0;
     post.flare.value = t.rays ? full.flare : 0;
-    if (on('grass')) grass.mesh.visible = t.grass;
+    grass.enabled = t.grass;
     vegetation.setDetail(vegBase * t.veg);
     vegetation.setSmallShadows(t.smallShadows);
     const s = Math.round(app.resolutionMax * scale * 100) / 100;
@@ -360,7 +360,7 @@ async function start() {
   pacer.fps = TEST ? 0 : prefs.fps ?? (PHONE ? 30 : 0);
   governor.mode = ['auto', 'low', 'medium', 'high'].includes(prefs.quality) ? prefs.quality : 'auto';
   governor.setTarget(pacer.fps || 60);
-  app.frame = {
+  app.frameRate = {
     get fps() { return pacer.fps; },
     get quality() { return governor.mode; },
     setFps(v) { pacer.fps = v; governor.setTarget(v || 60); savePrefs(); },
