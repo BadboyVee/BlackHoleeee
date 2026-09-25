@@ -79,9 +79,10 @@ float and bob with the waves; once you dive you stay at the depth you choose.
   cards rendered from modelled leaves. Woods follow the baked tree cover (valleys wooded,
   ridges open), with scrub on the forest edges and ferns under the canopy. Two mesh LODs and
   octahedral impostors per tree let the whole massif be forested; LODs cross-fade with a
-  temporal dither that never overlaps or leaves holes. Branches bend by painted flexibility,
-  cards flutter, crowns darken inside and glow when backlit. Grass blades lean away from your
-  feet.
+  temporal dither that never overlaps or leaves holes. Impostors write their true depth, so
+  crowns intersect and self-shadow. Branches bend by painted flexibility, cards flutter, crowns
+  darken inside and glow when backlit. Meadows are clumps of fanned grass blades over the
+  turf texture; they lean away from your feet.
 - A lobster boat with buoyancy computed on the rendered waves, rudder and prop physics, bow
   spray, a helm with instruments, and a cab light at night.
 - Life: fish schools (GPU boids) over the reef, a humpback whale that surfaces, blows, dives
