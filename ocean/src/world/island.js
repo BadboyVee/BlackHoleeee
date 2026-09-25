@@ -11,6 +11,7 @@ import * as THREE from 'three/webgpu';
 import { clamp } from '../core/noise.js';
 import { WORLD, VILLAGE, REEF, ISLAND, SPINE, edt, blurField } from './islandShape.js';
 import { fetchIsland } from './islandData.js';
+import { assetURL } from '../core/assets.js';
 
 export { WORLD, VILLAGE, REEF, ISLAND, SPINE };
 
@@ -18,7 +19,7 @@ const TEX = WORLD.size / WORLD.res;
 
 export class Island {
   /** loads the baked island (see tools/bake-island.mjs) */
-  static async load(url = new URL('../../assets/terrain/island.bin.gz', import.meta.url)) {
+  static async load(url = assetURL('assets/terrain/island.bin.gz')) {
     return new Island(await fetchIsland(url));
   }
 

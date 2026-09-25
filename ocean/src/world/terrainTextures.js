@@ -21,6 +21,7 @@ import {
 } from 'three/tsl';
 import { makeStorage } from '../render/bake.js';
 import { fbmP, voronoiP, gnoiseP, vnoiseP, hash21 } from '../render/tslnoise.js';
+import { assetURL } from '../core/assets.js';
 
 export const TERRAIN_LAYERS = { sand: 0, rock: 1, grass: 2, forest: 3, pebbles: 4, soil: 5 };
 export const TERRAIN_TILE = [2.0, 4.0, 2.0, 2.0, 2.0, 2.0];
@@ -222,10 +223,9 @@ export function bakeTerrainTextures(renderer, size = 1024) {
  * down the rows: flipped while copying.
  */
 export async function loadGroundImages(renderer, textures, size) {
-  const base = new URL('../../assets/terrain/', import.meta.url);
   const loader = new THREE.TextureLoader();
   const load = async (name, srgb) => {
-    const t = await loader.loadAsync(new URL(name, base).href);
+    const t = await loader.loadAsync(assetURL('assets/terrain/' + name));
     t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
     t.flipY = false;
     t.generateMipmaps = false;

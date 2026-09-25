@@ -23,9 +23,10 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { standard, deform, staticVelocity } from '../render/materials.js';
 import { fbm2, vnoise2 } from '../render/tslnoise.js';
 import { env } from '../env.js';
+import { assetURL, dracoDecoderPath } from '../core/assets.js';
 import { VILLAGE } from './island.js';
 
-const BASE = new URL('../../assets/vegetation/', import.meta.url);
+const asset = (name) => assetURL('assets/vegetation/' + name);
 // where main.js puts the player on the beach (kept clear of plants)
 const SPAWN = { x: 72, z: -3 };
 
@@ -47,11 +48,11 @@ const smoothstepJS = (a, b, x) => { const t = Math.min(Math.max((x - a) / (b - a
 
 // ------------------------------------------------------------------ assets
 async function loadAssets() {
-  const json = async (n) => (await fetch(new URL(n, BASE))).json();
+  const json = async (n) => (await fetch(asset(n))).json();
   const [plants, atlases, impostors] = await Promise.all([json('plants.json'), json('atlases.json'), json('impostors.json')]);
   const texLoader = new THREE.TextureLoader();
   const tex = async (name, srgb) => {
-    const t = await texLoader.loadAsync(new URL(name, BASE).href);
+    const t = await texLoader.loadAsync(asset(name));
     t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
     t.flipY = false;                 // glTF UV convention (v = 0 at the top)
     t.wrapS = t.wrapT = THREE.ClampToEdgeWrapping;
@@ -62,8 +63,8 @@ async function loadAssets() {
     return t;
   };
   const draco = new DRACOLoader();
-  draco.setDecoderPath(import.meta.resolve('three/addons/libs/draco/gltf/'));
-  const gltf = await new GLTFLoader().setDRACOLoader(draco).loadAsync(new URL('plants.glb', BASE).href);
+  draco.setDecoderPath(dracoDecoderPath());
+  const gltf = await new GLTFLoader().setDRACOLoader(draco).loadAsync(asset('plants.glb'));
   draco.dispose();
   const geoms = {};
   gltf.scene.traverse((o) => { if (o.isMesh) geoms[o.name] = o.geometry; });

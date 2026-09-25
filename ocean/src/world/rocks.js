@@ -12,6 +12,7 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
 import { standard, staticVelocity } from '../render/materials.js';
 import { vnoise2 } from '../render/tslnoise.js';
 import { inRange } from './vegetation.js';
+import { assetURL, dracoDecoderPath } from '../core/assets.js';
 import { VILLAGE } from './island.js';
 import { TERRAIN_TILE } from './terrainTextures.js';
 
@@ -23,8 +24,8 @@ const NEAR = 70, FAR = 700;
 export class Boulders {
   static async create(opts) {
     const draco = new DRACOLoader();
-    draco.setDecoderPath(import.meta.resolve('three/addons/libs/draco/gltf/'));
-    const gltf = await new GLTFLoader().setDRACOLoader(draco).loadAsync(new URL('../../assets/terrain/rocks.glb', import.meta.url).href);
+    draco.setDecoderPath(dracoDecoderPath());
+    const gltf = await new GLTFLoader().setDRACOLoader(draco).loadAsync(assetURL('assets/terrain/rocks.glb'));
     draco.dispose();
     const geoms = {};
     gltf.scene.traverse((o) => { if (o.isMesh) geoms[o.name] = o.geometry; });

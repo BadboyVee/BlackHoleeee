@@ -9,10 +9,12 @@
 //             splashes cut from the oar strokes of the rowing recording
 // Under water every above-water sound goes through a steep low-pass.
 
+import { assetURL } from '../core/assets.js';
+
 const FILES = ['waves', 'wind', 'wind-in-trees', 'seagulls', 'birds', 'crickets', 'whale', 'walk-on-gravel', 'walk-on-leaves', 'rowing-boat'];
 
 export class Audio {
-  constructor({ base = 'assets/audio/' } = {}) {
+  constructor({ base = 'assets/audio/' } = {}) {   // (under ocean/, see core/assets.js)
     this.base = base;
     this.ctx = null;
     this.buffers = {};
@@ -43,7 +45,7 @@ export class Audio {
     this.water.connect(this.master);
     await Promise.all(FILES.map(async (f) => {
       try {
-        const res = await fetch(this.base + f + '.mp3');
+        const res = await fetch(assetURL(this.base + f + '.mp3'));
         this.buffers[f] = await ctx.decodeAudioData(await res.arrayBuffer());
       } catch (e) { console.warn('audio', f, e); }
     }));

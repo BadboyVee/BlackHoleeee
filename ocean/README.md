@@ -6,6 +6,17 @@ browser with WebGPU (recent Chrome, Edge or Safari).
 
 **▶ [Open it](https://badboyvee.github.io/BlackHoleeee/ocean/)**
 
+### One-file version (runs offline)
+
+`tools/build-single.mjs` packs the whole game into a single `saltwind-cove.html`: the code with
+three.js bundled in, and every model, texture and sound embedded, so it runs when opened straight
+from disk with no server and no internet (about 40 MB, needs a WebGPU browser such as Chrome or Edge):
+
+```
+npm i --no-save esbuild three@0.186.0
+node tools/build-single.mjs            # writes dist/saltwind-cove.html
+```
+
 ## Controls
 
 | key | action |
@@ -122,6 +133,7 @@ src/sky/                 atmosphere LUTs, cloud noise, sky + clouds + shadows
 src/world/               island (+ islandShape/erosion/islandData: the baked heightfield),
                          terrain, materials, village, vegetation, grass, collision
 tools/bake-island.mjs    bakes assets/terrain/island.bin.gz (node tools/bake-island.mjs)
+tools/build-single.mjs   builds the offline one-file dist/saltwind-cove.html
 tools/blender/           plant, leaf-card, impostor and ground-texture generators; run with
                          Blender's Python module (pip install bpy), e.g.
                          python tools/blender/leaves.py && python tools/blender/trees.py &&
@@ -132,6 +144,7 @@ src/player/              input, first-person controller, flashlight
 src/render/              frame graph, composite, post effects, lens drops, noise, bake
 src/fx/spray.js          GPU spray particles
 src/audio/audio.js       soundscape
+src/core/assets.js       asset URLs (served files, or the one-file build's embedded copies)
 ```
 
 Debug URL parameters: `?test` (small software-GPU friendly settings), `?pano=2048`,
