@@ -495,6 +495,19 @@ export class Vegetation {
     } else { this.frame = 0; this.lastX = undefined; }
   }
 
+  /** the plants never move: build every instance matrix once */
+  _composeMatrices() {
+    const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), sc = new THREE.Vector3(), p = new THREE.Vector3();
+    const up = new THREE.Vector3(0, 1, 0);
+    for (const e of this.sets) {
+      for (const o of e.list) {
+        q.setFromAxisAngle(up, o.yaw); sc.setScalar(o.s); p.set(o.x, o.y, o.z);
+        o.m = new Float32Array(m4.compose(p, q, sc).elements);
+      }
+    }
+    this.matrices = true;
+  }
+
   /** assign instances to LODs (threshold ranges for the dithered cross-fades) */
   update(camera) {
     ditherFrame = (ditherFrame + 1) % 16;
@@ -505,8 +518,7 @@ export class Vegetation {
     // LOD assignment only depends on distance: nothing to do while the eye stays put
     if (this.lastX !== undefined && Math.hypot(cx - this.lastX, cz - this.lastZ) < 1.5) return;
     this.lastX = cx; this.lastZ = cz;
-    const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), s = new THREE.Vector3(), p = new THREE.Vector3();
-    const up = new THREE.Vector3(0, 1, 0);
+    if (!this.matrices) this._composeMatrices();
     const k = this.lodScale;
     for (const e of this.sets) {
       const near = e.cfg.near * k, mid = e.cfg.mid * k, far = e.cfg.impostor ? e.cfg.far : e.cfg.far * k;
@@ -522,16 +534,12 @@ export class Vegetation {
         let f1 = (1 - f0) * (1 - toFar);
         let fi = (1 - f0) * toFar;
         if (!imp) { f1 = (f1 + fi) * (1 - smoothstepJS(far * 0.8, far, d)); fi = 0; } else fi *= 1 - smoothstepJS(far * 0.9, far, d);
-        if (f0 > 0.001 || f1 > 0.001) {
-          q.setFromAxisAngle(up, o.yaw); s.setScalar(o.s); p.set(o.x, o.y, o.z);
-          m4.compose(p, q, s);
-        }
         if (f0 > 0.001) {
-          for (const m of e.lod0) { m.setMatrixAt(n0, m4); m.userData.data.setXYZW(n0, o.phase, o.yaw, 0, f0); }
+          for (const m of e.lod0) { m.instanceMatrix.array.set(o.m, n0 * 16); m.userData.data.setXYZW(n0, o.phase, o.yaw, 0, f0); }
           n0++;
         }
         if (f1 > 0.001) {
-          for (const m of e.lod1) { m.setMatrixAt(n1, m4); m.userData.data.setXYZW(n1, o.phase, o.yaw, f0, f0 + f1); }
+          for (const m of e.lod1) { m.instanceMatrix.array.set(o.m, n1 * 16); m.userData.data.setXYZW(n1, o.phase, o.yaw, f0, f0 + f1); }
           n1++;
         }
         if (imp && fi > 0.001) {

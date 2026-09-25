@@ -130,8 +130,20 @@ export class Boulders {
     const cx = camera.position.x, cz = camera.position.z;
     if (this.lastX !== undefined && Math.hypot(cx - this.lastX, cz - this.lastZ) < 2) return;
     this.lastX = cx; this.lastZ = cz;
-    const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), qt = new THREE.Quaternion(), sc = new THREE.Vector3(), p = new THREE.Vector3();
-    const up = new THREE.Vector3(0, 1, 0), nrm = new THREE.Vector3();
+    if (!this.matrices) {
+      // the stones never move: compose their matrices once
+      const m4 = new THREE.Matrix4(), q = new THREE.Quaternion(), qt = new THREE.Quaternion(), sc = new THREE.Vector3(), p = new THREE.Vector3();
+      const up = new THREE.Vector3(0, 1, 0), nrm = new THREE.Vector3();
+      for (const o of this.list) {
+        // sit the stone on the slope: yaw, then half-way toward the ground normal
+        nrm.set(o.nx * 0.5, 1, o.nz * 0.5).normalize();
+        qt.setFromUnitVectors(up, nrm);
+        q.setFromAxisAngle(up, o.yaw).premultiply(qt);
+        sc.setScalar(o.s); p.set(o.x, o.y, o.z);
+        o.m = new Float32Array(m4.compose(p, q, sc).elements);
+      }
+      this.matrices = true;
+    }
     for (const e of this.sets) {
       let n0 = 0, n1 = 0;
       for (const o of e.list) {
@@ -139,14 +151,8 @@ export class Boulders {
         if (d > FAR) continue;
         const f0 = 1 - smoothstepJS(NEAR * 0.85, NEAR * 1.15, d);
         const f1 = (1 - f0) * (1 - smoothstepJS(FAR * 0.85, FAR, d));
-        // sit the stone on the slope: yaw, then half-way toward the ground normal
-        nrm.set(o.nx * 0.5, 1, o.nz * 0.5).normalize();
-        qt.setFromUnitVectors(up, nrm);
-        q.setFromAxisAngle(up, o.yaw).premultiply(qt);
-        sc.setScalar(o.s); p.set(o.x, o.y, o.z);
-        m4.compose(p, q, sc);
-        if (f0 > 0.001) { e.lod0.setMatrixAt(n0, m4); e.lod0.userData.data.setXYZW(n0, 0, 0, 0, f0); n0++; }
-        if (f1 > 0.001) { e.lod1.setMatrixAt(n1, m4); e.lod1.userData.data.setXYZW(n1, 0, 0, f0, f0 + f1); n1++; }
+        if (f0 > 0.001) { e.lod0.instanceMatrix.array.set(o.m, n0 * 16); e.lod0.userData.data.setXYZW(n0, 0, 0, 0, f0); n0++; }
+        if (f1 > 0.001) { e.lod1.instanceMatrix.array.set(o.m, n1 * 16); e.lod1.userData.data.setXYZW(n1, 0, 0, f0, f0 + f1); n1++; }
       }
       for (const [m, n] of [[e.lod0, n0], [e.lod1, n1]]) { m.count = n; m.instanceMatrix.needsUpdate = true; m.userData.data.needsUpdate = true; }
     }

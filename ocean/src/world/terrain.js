@@ -225,13 +225,19 @@ export class Terrain {
     // yellower on dry, exposed ridges; leaf litter lies in the canopy's shade
     const grassShare = wGrass.div(wa.add(wb).max(1e-3)).mul(select(bestL.equal(int(2)).or(secL.equal(int(2))), float(1), float(0)));
     const dryness = moist.oneMinus().mul(smoothstep(0.93, 0.99, skyVis)).mul(smoothstep(0.35, 0.7, n1.add(macro.mul(0.4)).sub(0.2)));
-    const lush = vec3(0.78, 1.05, 0.72), dry = vec3(1.35, 1.12, 0.72);
-    const grassTint = mix(mix(vec3(1), lush, moist.mul(0.9)), dry, dryness.mul(0.85));
+    const lush = vec3(0.82, 1.05, 0.75), dry = vec3(1.2, 1.08, 0.78);
+    const grassTint = mix(mix(vec3(1), lush, moist.mul(0.9)), dry, dryness.mul(0.5));
+    // turf seen at a glancing angle aliases into salt-and-pepper noise: pull
+    // it toward its own average a few metres out (the blades carry the detail)
+    const camDist = length(positionWorld.sub(cameraPosition));
+    const turfMean = vec3(0.08, 0.108, 0.03);
+    const calm = smoothstep(3.0, 18.0, camDist).mul(0.55).mul(grassShare);
+    albedo = mix(albedo, turfMean.mul(mix(0.85, 1.15, macro)), calm);
     albedo = albedo.mul(mix(vec3(1), grassTint, grassShare));
     // far away the canopy's shade stands in for tree shadows the far
     // cascade cannot resolve; up close the real shadows do it
     // (and from afar the gaps between crowns show shaded undergrowth, not litter)
-    const farShade = smoothstep(45, 110, length(positionWorld.sub(cameraPosition)));
+    const farShade = smoothstep(45, 110, camDist);
     const under = forestCov.mul(inland).mul(farShade);
     albedo = mix(albedo, vec3(0.028, 0.045, 0.018).mul(mix(0.8, 1.2, macro)), under.mul(0.85));
 

@@ -18,7 +18,7 @@ import { env } from '../env.js';
 
 let GRID = 112;               // cells per side
 const CELL = 0.45;            // m
-const PER_CELL = 10;          // blade slots per cell
+const PER_CELL = 7;           // clump slots per cell (each clump: 5 blades)
 let COUNT = GRID * GRID * PER_CELL;
 
 export class Grass {
@@ -79,14 +79,19 @@ export class Grass {
       this.shape.element(i).assign(vec4(height, width, r.y.sub(0.5).mul(0.9), hash21(worldCell.add(slot)).mul(0.999).add(dry)));
     })().compute(COUNT, [64]);
 
-    // blade: 3 segments, tapered, 7 vertices
+    // a clump of 5 blades, each 3 tapered segments (7 vertices); the blade's
+    // index within the clump rides in position.z
+    const CLUMP = 5;
     const g = new THREE.InstancedBufferGeometry();
     const pos = [], idx = [];
     const segs = [0, 0.4, 0.75, 1];
-    for (let k = 0; k < 3; k++) { const t = segs[k]; const w = 1 - t * 0.85; pos.push(-w, t, 0, w, t, 0); }
-    pos.push(0, 1, 0);
-    for (let k = 0; k < 2; k++) { const a = k * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
-    idx.push(4, 5, 6);
+    for (let b = 0; b < CLUMP; b++) {
+      const o = b * 7;
+      for (let k = 0; k < 3; k++) { const t = segs[k]; const w = 1 - t * 0.85; pos.push(-w, t, b, w, t, b); }
+      pos.push(0, 1, b);
+      for (let k = 0; k < 2; k++) { const a = o + k * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
+      idx.push(o + 4, o + 5, o + 6);
+    }
     g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
     g.setIndex(idx);
     g.instanceCount = COUNT;
@@ -94,26 +99,36 @@ export class Grass {
     const B = this.blades.toAttribute(), S = this.shape.toAttribute();
     const local = positionGeometry;
     const t = local.y;
-    const yaw = fract(B.w.div(6.283)).mul(6.283);
     const phase = floor(B.w.div(6.283));
-    const H = S.x, W = S.y;
+    // this blade within the clump: its own heading, spot, height and outward lean
+    const kb = local.z;
+    const hk = hash21(vec2(phase.mul(0.37).add(kb.mul(3.1)), kb.mul(7.7).add(fract(B.w))));
+    const hk2 = hash21(vec2(kb.mul(5.3).add(1.7), phase.mul(0.11).add(kb)));
+    const yaw = fract(B.w.div(6.283)).mul(6.283).add(kb.mul(2.39996)).add(hk.sub(0.5));
+    const ang = kb.mul(2.39996).add(hk2.mul(6.283));
+    const out = vec3(cos(ang), 0, sin(ang));
+    const root = B.xyz.add(out.mul(hk2.sqrt().mul(0.06)));
+    const H = S.x.mul(hk.mul(0.55).add(0.65)), W = S.y;
     const side = vec3(cos(yaw), 0, sin(yaw));
     const face = vec3(sin(yaw).negate(), 0, cos(yaw));
     // wind: gust waves travelling downwind + per-blade flutter
     const w2 = env.windDir;
     const along = dot(B.xz, w2);
     const gust = sin(along.mul(0.35).sub(env.time.mul(2.2))).mul(0.5).add(0.5).mul(vnoise2(B.xz.mul(0.05).sub(w2.mul(env.time.mul(0.6)))).mul(0.5).add(0.6));
-    const flutter = sin(env.time.mul(4.3).add(phase.mul(1.7))).mul(0.12);
+    const flutter = sin(env.time.mul(4.3).add(phase.mul(1.7)).add(kb.mul(1.3))).mul(0.12);
     const bendAmt = gust.mul(0.55).add(flutter).mul(env.windSpeed.div(8)).add(S.z.mul(0.5));
     // push away from the player's feet
     const toFoot = B.xyz.sub(this.foot);
     const dF = length(toFoot.xz);
     const push = smoothstep(0.9, 0.15, dF).mul(smoothstep(1.2, 0.0, abs(toFoot.y)));
     const pushDir = select(dF.greaterThan(1e-3), normalize(vec3(toFoot.x, 0, toFoot.z)), vec3(0));
-    const bendDir = normalize(vec3(w2.x, 0, w2.y).mul(bendAmt).add(pushDir.mul(push.mul(1.4))).add(face.mul(S.z.mul(0.3))).add(vec3(1e-4, 0, 0)));
-    const bend = min(length(vec3(w2.x, 0, w2.y).mul(bendAmt).add(pushDir.mul(push.mul(1.4)))), 1.3);
+    // blades fan out of the clump
+    const splay = out.mul(hk.mul(0.35).add(0.2));
+    const bendVec = vec3(w2.x, 0, w2.y).mul(bendAmt).add(pushDir.mul(push.mul(1.4))).add(splay);
+    const bendDir = normalize(bendVec.add(face.mul(S.z.mul(0.3))).add(vec3(1e-4, 0, 0)));
+    const bend = min(length(bendVec), 1.3);
     const curve = t.mul(t);
-    const p = B.xyz.add(side.mul(local.x.mul(W)))
+    const p = root.add(side.mul(local.x.mul(W)))
       .add(vec3(0, t.mul(H).mul(float(1).sub(curve.mul(bend).mul(0.35))), 0))
       .add(bendDir.mul(curve.mul(bend).mul(H).mul(0.7)));
     mat.positionNode = p;
@@ -124,8 +139,8 @@ export class Grass {
     const tint = fract(S.w), dry = floor(S.w);
     // real grass albedo (linear) tops out around 0.2 in green: brighter blades
     // would ring the player with a pale disc against the terrain's grass
-    const base = mix(mix(vec3(0.045, 0.075, 0.02), vec3(0.06, 0.09, 0.026), tint), vec3(0.14, 0.12, 0.06), dry);
-    const tip = mix(mix(vec3(0.13, 0.18, 0.05), vec3(0.18, 0.21, 0.07), tint.mul(tint)), vec3(0.3, 0.27, 0.13), dry);
+    const base = mix(mix(vec3(0.04, 0.075, 0.018), vec3(0.055, 0.09, 0.024), tint), vec3(0.14, 0.12, 0.06), dry);
+    const tip = mix(mix(vec3(0.12, 0.19, 0.045), vec3(0.17, 0.22, 0.06), tint.mul(tint)), vec3(0.3, 0.27, 0.13), dry);
     const vt = varying(t, 'vGrassT');
     mat.colorNode = mix(base, tip, vt.pow(0.8));
     const V = normalize(positionWorld.sub(cameraPosition));
