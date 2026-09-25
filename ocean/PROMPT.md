@@ -3,7 +3,8 @@
 The prompt this project was built from, exactly as it was sent: the brief first, then a long run of
 follow-up requests and fixes. Reuse it, remix it, point it at a different coast.
 
-[Saltwind Cove](README.md) · [all projects](../README.md)
+[Saltwind Cove](README.md) · [all projects](../README.md) · shareable page with a preview card:
+<https://badboyvee.github.io/BlackHoleeee/ocean/prompt/>
 
 ---
 
