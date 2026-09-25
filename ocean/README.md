@@ -132,7 +132,8 @@ fetch, swell, choppiness, whitecaps), surf height and period, sun position and t
 clouds, water optics, graphics options (frame rate, quality, resolution, vegetation detail, eye
 adaptation, AO, contact shadows, bloom, motion blur, flare, god rays, vignette, grain) and teleports.
 
-**Frame rate** caps the game at 20, 30, 40 or 50 fps (or leaves it unlimited), and the game holds
+**Frame rate** (on phones and computers alike; click or tap the fps counter to jump to it) caps the
+game at 20, 30, 40 or 50 fps (or leaves it unlimited), and the game holds
 that rate: it measures what each frame costs the GPU and lowers the render resolution when frames
 run long (up to the Resolution setting when there is room). With **Quality** on Auto it also steps
 between three tiers: Medium drops ambient occlusion, motion blur and the small plants' shadows and

@@ -29,6 +29,16 @@ export class Panel {
     this.onToggle?.(open);
   }
 
+  /** open the panel at a section (by its title) */
+  reveal(title) {
+    this.toggle(true);
+    for (const sec of this.body.querySelectorAll('.pn-section')) {
+      if (sec.querySelector('.pn-section-title')?.textContent !== title) continue;
+      sec.classList.add('open');
+      sec.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    }
+  }
+
   header(title, subtitle) {
     const h = el('div', 'pn-header', this.body);
     el('div', 'pn-title', h, title);

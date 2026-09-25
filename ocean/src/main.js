@@ -370,6 +370,8 @@ async function start() {
 
   // ---------------------------------------------------------------- ui
   panel = buildSettings(app);
+  // the fps counter opens the frame rate and quality settings
+  $('fps').addEventListener('click', () => panel.reveal('Graphics'));
   panel.onToggle = (open) => { if (open) input.unlock(); };
   const hint = $('hint'), badge = $('mode-badge'), crosshair = $('crosshair'), promptEl = $('prompt');
   const setHint = (html) => { hint.innerHTML = html; hint.hidden = !html; };
