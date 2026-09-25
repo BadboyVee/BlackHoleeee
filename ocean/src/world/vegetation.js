@@ -26,6 +26,8 @@ import { env } from '../env.js';
 import { VILLAGE } from './island.js';
 
 const BASE = new URL('../../assets/vegetation/', import.meta.url);
+// where main.js puts the player on the beach (kept clear of plants)
+const SPAWN = { x: 72, z: -3 };
 
 // distances (m): mesh LOD0 until `near`, LOD1 until `mid`, then the
 // impostor (trees) or a fade-out by `far` (undergrowth); saplings are small
@@ -334,6 +336,8 @@ export class Vegetation {
     const key = (i, j) => i * 73856093 ^ j * 19349663;
     const blocked = (x, z, r) => {
       if (Math.abs(x - VILLAGE.pierX) < 5 && z > 10) return true;
+      // keep the player's arrival spot on the beach clear
+      if ((x - SPAWN.x) ** 2 + (z - SPAWN.z) ** 2 < 9 * 9) return true;
       const g = col.groundAt(x, z, 100, 0, r);
       return g.surface !== null || col.ceilingAt(x, z, isl.heightAt(x, z) - 1) < Infinity;
     };

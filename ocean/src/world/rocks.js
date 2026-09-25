@@ -101,6 +101,7 @@ export class Boulders {
         const forest = isl.forestAt(px, pz);
         // near the village and on the beach the ground stays clear
         const vx = px > VILLAGE.x0 - 40 && px < VILLAGE.x1 + 40 && sdf > -170;
+        if ((px - 72) ** 2 + (pz + 3) ** 2 < 81) continue;      // the player's arrival spot
         if (vx || (sdf > -45 && h < 4.5)) continue;
         let p = 0.002 + forest * 0.006;
         p += smoothstepJS(0.2, 0.34, slope) * 0.22;                     // crags
