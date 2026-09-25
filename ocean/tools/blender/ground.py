@@ -180,7 +180,7 @@ def grass():
     g = rng(11)
     # soil underneath, barely visible between the blades
     soil = fbm_field(256, 5, 2.2)
-    soil_rgb = (0.07 + 0.045 * soil)[..., None] * np.array([1.0, 0.8, 0.58])
+    soil_rgb = (0.06 + 0.04 * soil)[..., None] * np.array([0.8, 0.95, 0.45])   # mossy, rooty thatch
     bpy.ops.mesh.primitive_plane_add(size=T, location=(T / 2, T / 2, 0))
     bpy.context.object.data.materials.append(plane_material('soil', image_texture('soil', soil_rgb)))
     # patches: denser, greener clumps and thinner, drier ones
@@ -189,7 +189,7 @@ def grass():
     mat = vcol_material('blade', 0.55)
     verts, faces, cols = [], [], []
     count = 0
-    n_blades = 34000
+    n_blades = 52000
     for _ in range(n_blades):
         x, y = g.random() * T, g.random() * T
         c = periodic_sample(clump, T, x, y)

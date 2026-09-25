@@ -14,13 +14,13 @@
 
 import * as THREE from 'three/webgpu';
 import {
-  attribute, positionGeometry, normalGeometry, positionWorld, vec2, vec3, float, sin, cos, mix, smoothstep,
+  attribute, positionGeometry, normalGeometry, positionWorld, vec2, vec3, vec4, float, cameraProjectionMatrix, cameraViewMatrix, sin, cos, mix, smoothstep,
   clamp, max, dot, normalize, cross, screenCoordinate, floor, fract, uniform, texture, uv, cameraPosition, pow,
   select, length, abs, mod, log2, dFdx, dFdy, varying, transformNormalToView, normalMap, sqrt, normalWorld,
 } from 'three/tsl';
 import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
-import { standard, deform } from '../render/materials.js';
+import { standard, deform, staticVelocity } from '../render/materials.js';
 import { fbm2, vnoise2 } from '../render/tslnoise.js';
 import { env } from '../env.js';
 import { VILLAGE } from './island.js';
@@ -220,8 +220,13 @@ function impostorMaterial(tex, meta, frames) {
   const up = cross(Vw, right);
   const q = positionGeometry.xy;                         // quad corners in [-1, 1]
   // pushed a little toward the eye so slopes do not swallow the lower crown
+  // (the real depth is written per pixel below)
   m.positionNode = cw.add(right.mul(q.x.mul(R)).add(up.mul(q.y.mul(R))).mul(s)).add(Vw.mul(R * 0.3).mul(s));
+  // without this the velocity pass would take the raw quad corners as last
+  // frame's position and TAA would smear every crown toward the world origin
+  staticVelocity(m);
   const vC = varying(cw, 'vImpCentre');
+  const vW = varying(Vw, 'vImpViewWorld');
   const vRot = varying(vec3(cs, sn, s), 'vImpRot');
   const vLo = varying(iRot.zw, 'vImpRange');
   // world -> tree space (inverse yaw)
@@ -254,10 +259,20 @@ function impostorMaterial(tex, meta, frames) {
   const nl = octDecode(r.nrm.xy);
   // tree space -> world (yaw)
   const nw = normalize(vec3(nl.x.mul(vRot.x).add(nl.z.mul(vRot.y)), nl.y, nl.x.mul(vRot.y).negate().add(nl.z.mul(vRot.x))));
-  const albedo = r.col.rgb.div(max(r.col.a, 0.2));
-  m.colorNode = albedo;
+  // (the atlas colours are straight, bled into the empty texels)
+  const albedo = r.col.rgb;
+  // deep foliage is shaded by the leaves around it for the sun as much as
+  // for the sky: without it a wood reads as a flat green carpet
+  const occl = r.nrm.w;
+  m.colorNode = albedo.mul(mix(float(0.3), float(1.05), pow(occl, 1.3)));
   m.normalNode = transformNormalToView(nw);
-  m.aoNode = r.nrm.w.mul(0.6).add(0.4);
+  m.aoNode = occl.mul(0.5).add(0.5);
+  // true surface depth: neighbouring crowns intersect instead of stacking,
+  // and the shadow pass sees the rounded crown (self-shadowing)
+  const depth01 = r.nrm.z;
+  const surface = positionWorld.sub(vW.mul(R * 0.3).mul(vRot.z)).add(vW.mul(depth01.sub(0.5).mul(R * 2)).mul(vRot.z));
+  const clip = cameraProjectionMatrix.mul(cameraViewMatrix.mul(vec4(surface, 1)));
+  m.depthNode = clip.z.div(clip.w);
   const V = normalize(positionWorld.sub(cameraPosition));
   m.emissiveNode = albedo.mul(albedo).mul(env.sunColor).mul(pow(max(dot(V, env.sunDir), 0), 4).mul(0.1));
   // keep distant crowns dense: averaged mips lose coverage (Golus)

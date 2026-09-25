@@ -70,11 +70,11 @@ export class Grass {
       const keep = mask.mul(select(slot.div(PER_CELL).lessThan(keepFrac), float(1), float(0))).mul(smoothstep(24.8, 21.5, dist));
       const r = hash22(worldCell.mul(3.1).add(slot.mul(11.3)));
       // short turf with the odd taller seed stalk; lusher where it is damp
-      const stalk = select(r.x.greaterThan(0.94), float(1.9), float(1));
-      const height = mix(0.12, 0.42, r.x).mul(stalk).mul(mix(0.7, 1.15, tuft)).mul(mix(0.8, 1.25, moist)).mul(keep).mul(smoothstep(0.3, 0.6, mask));
+      const stalk = select(r.x.greaterThan(0.96), float(1.7), float(1));
+      const height = mix(0.08, 0.34, r.x.mul(r.x)).mul(stalk).mul(mix(0.7, 1.15, tuft)).mul(mix(0.8, 1.25, moist)).mul(keep).mul(smoothstep(0.3, 0.6, mask));
       const width = mix(0.008, 0.016, r.y).mul(mix(float(1), float(2.2), smoothstep(10, 24, dist)));
       // dry, straw-coloured blades on dry ground (packed into the tint's integer part)
-      const dry = select(hash21(worldCell.mul(1.7).add(slot.mul(5.1))).lessThan(moist.oneMinus().mul(0.3).add(0.04)), float(1), float(0));
+      const dry = select(hash21(worldCell.mul(1.7).add(slot.mul(5.1))).lessThan(moist.oneMinus().mul(0.14).add(0.03)), float(1), float(0));
       this.blades.element(i).assign(vec4(xz.x, h, xz.y, r.x.mul(6.283).add(floor(r.y.mul(50)).mul(6.283))));
       this.shape.element(i).assign(vec4(height, width, r.y.sub(0.5).mul(0.9), hash21(worldCell.add(slot)).mul(0.999).add(dry)));
     })().compute(COUNT, [64]);
@@ -124,8 +124,8 @@ export class Grass {
     const tint = fract(S.w), dry = floor(S.w);
     // real grass albedo (linear) tops out around 0.2 in green: brighter blades
     // would ring the player with a pale disc against the terrain's grass
-    const base = mix(mix(vec3(0.03, 0.058, 0.015), vec3(0.048, 0.075, 0.021), tint), vec3(0.12, 0.1, 0.05), dry);
-    const tip = mix(mix(vec3(0.11, 0.16, 0.045), vec3(0.17, 0.2, 0.065), tint.mul(tint)), vec3(0.3, 0.26, 0.12), dry);
+    const base = mix(mix(vec3(0.045, 0.075, 0.02), vec3(0.06, 0.09, 0.026), tint), vec3(0.14, 0.12, 0.06), dry);
+    const tip = mix(mix(vec3(0.13, 0.18, 0.05), vec3(0.18, 0.21, 0.07), tint.mul(tint)), vec3(0.3, 0.27, 0.13), dry);
     const vt = varying(t, 'vGrassT');
     mat.colorNode = mix(base, tip, vt.pow(0.8));
     const V = normalize(positionWorld.sub(cameraPosition));
