@@ -17,6 +17,9 @@ npm i --no-save esbuild three@0.186.0
 node tools/build-single.mjs            # writes dist/saltwind-cove.html
 ```
 
+It embeds the sounds as the compact Opus copies in `assets/audio/opus/`; after changing a sound,
+remake them with `pip install av && python tools/audio-opus.py`.
+
 ## Controls
 
 | key | action |
@@ -134,6 +137,7 @@ src/world/               island (+ islandShape/erosion/islandData: the baked hei
                          terrain, materials, village, vegetation, grass, collision
 tools/bake-island.mjs    bakes assets/terrain/island.bin.gz (node tools/bake-island.mjs)
 tools/build-single.mjs   builds the offline one-file dist/saltwind-cove.html
+tools/audio-opus.py      the one-file build's compact Opus copies of the sounds
 tools/blender/           plant, leaf-card, impostor and ground-texture generators; run with
                          Blender's Python module (pip install bpy), e.g.
                          python tools/blender/leaves.py && python tools/blender/trees.py &&

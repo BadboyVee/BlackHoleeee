@@ -17,3 +17,6 @@ Moodist's README for the per-sound licensing note.
 | walk-on-gravel.mp3 | sounds/nature/walk-on-gravel.mp3 |
 | walk-on-leaves.mp3 | sounds/nature/walk-on-leaves.mp3 |
 | rowing-boat.mp3 | sounds/transport/rowing-boat.mp3 |
+
+`opus/*.ogg` are the same recordings re-encoded to Opus (tools/audio-opus.py)
+for the one-file build.

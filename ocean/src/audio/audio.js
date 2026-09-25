@@ -9,7 +9,7 @@
 //             splashes cut from the oar strokes of the rowing recording
 // Under water every above-water sound goes through a steep low-pass.
 
-import { assetURL } from '../core/assets.js';
+import { assetURL, singleFile } from '../core/assets.js';
 
 const FILES = ['waves', 'wind', 'wind-in-trees', 'seagulls', 'birds', 'crickets', 'whale', 'walk-on-gravel', 'walk-on-leaves', 'rowing-boat'];
 
@@ -45,7 +45,8 @@ export class Audio {
     this.water.connect(this.master);
     await Promise.all(FILES.map(async (f) => {
       try {
-        const res = await fetch(assetURL(this.base + f + '.mp3'));
+        // the one-file build carries compact Opus copies (tools/audio-opus.py)
+        const res = await fetch(assetURL(singleFile ? `${this.base}opus/${f}.ogg` : `${this.base}${f}.mp3`));
         this.buffers[f] = await ctx.decodeAudioData(await res.arrayBuffer());
       } catch (e) { console.warn('audio', f, e); }
     }));

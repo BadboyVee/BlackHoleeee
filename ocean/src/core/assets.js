@@ -10,6 +10,9 @@ import * as THREE from 'three/webgpu';
 const EMBEDDED = globalThis.__SALTWIND_ASSETS__ || null;
 const ROOT = new URL('../../', import.meta.url);
 
+/** true in the one-file build */
+export const singleFile = !!EMBEDDED;
+
 /** URL of a file under ocean/, e.g. assetURL('assets/terrain/island.bin.gz') */
 export function assetURL(path) {
   if (EMBEDDED) {

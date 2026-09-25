@@ -46,11 +46,13 @@ const result = await esbuild.build({
 });
 const js = result.outputFiles[0].text;
 
-// ---- assets: everything under assets/ (not the credits) plus the Draco decoder
+// ---- assets: everything under assets/ plus the Draco decoder; not the credits,
+// and the sounds only as their compact Opus copies (assets/audio/opus/, made by
+// tools/audio-opus.py), which keeps the file small enough to send around
 const MIME = {
   '.webp': 'image/webp', '.png': 'image/png', '.jpg': 'image/jpeg', '.json': 'application/json',
   '.glb': 'model/gltf-binary', '.gz': 'application/gzip', '.mp3': 'audio/mpeg', '.wasm': 'application/wasm',
-  '.js': 'text/javascript', '.bin': 'application/octet-stream',
+  '.js': 'text/javascript', '.bin': 'application/octet-stream', '.ogg': 'audio/ogg',
 };
 const assets = {};
 let raw = 0;
@@ -64,7 +66,10 @@ const walk = (dir) => {
   for (const e of fs.readdirSync(dir, { withFileTypes: true })) {
     const f = path.join(dir, e.name);
     if (e.isDirectory()) walk(f);
-    else if (!e.name.endsWith('.md')) add(path.relative(ROOT, f).split(path.sep).join('/'), f);
+    else {
+      const key = path.relative(ROOT, f).split(path.sep).join('/');
+      if (!key.endsWith('.md') && !/^assets\/audio\/[^/]+\.mp3$/.test(key)) add(key, f);
+    }
   }
 };
 walk(path.join(ROOT, 'assets'));
