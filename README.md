@@ -12,7 +12,7 @@ plunge on a sandbar, a boat with a real Kelvin wake, a fishing village, a reef a
 whale, all built with three.js TSL, plus volumetric clouds, a physical sky and real recorded
 sound.
 
-**▶ [Open it](https://badboyvee.github.io/BlackHoleeee/ocean/)** · [source](ocean/)
+**▶ [Open it](https://badboyvee.github.io/BlackHoleeee/ocean/)** · [source](ocean/) · [prompt](ocean/PROMPT.md)
 
 ### 🚋 [Skyline Tram](skyline-tram/)
 

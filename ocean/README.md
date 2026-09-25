@@ -4,7 +4,7 @@ A real-time coastal scene built with three.js **WebGPU** and **TSL** (the three.
 shading language). There's no build step: open `index.html` from any static web server in a
 browser with WebGPU (recent Chrome, Edge or Safari).
 
-**▶ [Open it](https://badboyvee.github.io/BlackHoleeee/ocean/)**
+**▶ [Open it](https://badboyvee.github.io/BlackHoleeee/ocean/)** · [the prompt it was built from](PROMPT.md)
 
 ### One-file version (runs offline)
 
