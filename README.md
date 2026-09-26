@@ -13,7 +13,7 @@ Astra 6, Gemini 3.8 and Fable 5.1; a tribute to Dario Amodei; and **INTERFACE**,
 answer across a board of live UI. Pictures are drawn with skia, the 3D plates are rendered with Blender Cycles,
 and every sound is synthesised with numpy.
 
-**▶ [Watch them](https://badboyvee.github.io/BlackHoleeee/motion/)** · [source & notes](motion/)
+**▶ [Watch them](https://badboyvee.github.io/BlackHoleeee/motion/)** · [source & notes](motion/) · [prompts](motion/PROMPTS.md)
 
 ### 🌊 [Saltwind Cove](ocean/)
 

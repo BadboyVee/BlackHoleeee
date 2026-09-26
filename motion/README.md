@@ -10,7 +10,7 @@ with Blender's Cycles through the `bpy` module, and every sound is synthesised w
 | **DARIO AMODEI**, a tribute | 32.8 s, 1920×1080 | 120 BPM, B minor → D major | [out/dario-amodei-tribute.mp4](out/dario-amodei-tribute.mp4) |
 | **INTERFACE** — Fable 5.1 answers, on one board | 25 s, 1440×1440 | 120 BPM, F♯ minor | [out/interface.mp4](out/interface.mp4) |
 
-**▶ [Watch them](https://badboyvee.github.io/BlackHoleeee/motion/)**
+**▶ [Watch them](https://badboyvee.github.io/BlackHoleeee/motion/)** · [the prompts](PROMPTS.md)
 
 ## THE FRONTIER
 
