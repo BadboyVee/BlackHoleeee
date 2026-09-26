@@ -548,6 +548,23 @@ def svg_path(d):
     return p
 
 
+def perspective(cx, cy, rx=0.0, ry=0.0, rz=0.0, D=1800.0):
+    """A matrix that tilts the drawing plane around the screen point (cx, cy) as if it were a card in 3D.
+    Degrees: rx > 0 brings the top edge toward the viewer, ry > 0 the left edge, rz spins it in the plane.
+    D is the focal length in pixels; smaller is more dramatic."""
+    ax, ay, az = (math.radians(v) for v in (rx, ry, rz))
+    Rx = np.array([[1, 0, 0], [0, math.cos(ax), -math.sin(ax)], [0, math.sin(ax), math.cos(ax)]])
+    Ry = np.array([[math.cos(ay), 0, math.sin(ay)], [0, 1, 0], [-math.sin(ay), 0, math.cos(ay)]])
+    Rz = np.array([[math.cos(az), -math.sin(az), 0], [math.sin(az), math.cos(az), 0], [0, 0, 1]])
+    R = Rx @ Ry @ Rz
+    K = np.array([[D, 0, cx], [0, D, cy], [0, 0, 1.0]])
+    Hm = K @ np.column_stack([R[:, 0], R[:, 1], [0, 0, D]])
+    Hm /= Hm[2, 2]
+    m = skia.Matrix.MakeAll(*[float(v) for v in Hm.ravel()])
+    m.preTranslate(-cx, -cy)
+    return m
+
+
 def light_sweep(c, draw_fn, x0, x1, y, u, colors=("#ffffff",), width=260, angle=20.0, strength=0.9):
     """CC Light Sweep: a bright diagonal band that passes over whatever draw_fn paints, and only over it.
     u runs 0 -> 1 as the band travels from x0 to x1."""

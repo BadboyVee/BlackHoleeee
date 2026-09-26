@@ -72,6 +72,27 @@ toggle wipes the whole board into dark mode from the switch outward, and on the 
 The camera is a homography over the board (pan, zoom, roll, tilt), so whip pans get real motion blur from the
 sub-frame renderer. Every click, keystroke, token burst, toggle and chime has a sound on the 120 BPM grid.
 
+## ARNAUD'S, a concept spot
+
+A 25.5 s, 1920×1080 AI-concierge spot in the style of a UI food ad (white canvas, rainbow edge glow, lime and
+orange, a lavender caret), built for a real restaurant: Arnaud's, 813 Bienville St in the French Quarter of New
+Orleans, serving classic Creole since 1918.
+
+| Bars | Scene | What happens |
+| --- | --- | --- |
+| 1–2 | Intro | a chandelier draws itself in brass and lights bulb by bulb on the sixteenths; its crystals fly into the outline of the name, which inks in under a rainbow light sweep |
+| 3 | The ask | a phone swings out of a 3D tilt and the prompt types into a glowing input: pizza, sushi or ramen, or something special |
+| 4 | Giant words | *Pizza, sushi, ramen?* each filled with its photo, then *something special.* in iridescent glass |
+| 5 | Finding | the three cravings drop into an orange bowl and something special rises out of it |
+| 6 | Carousel | a lime field of dish cards races past and brakes on Arnaud's, which opens into the dining room with its chandeliers glinting |
+| 7–8 | Chat | the assistant recommends Arnaud's and its classics (Soufflé Potatoes, Shrimp Arnaud, Bananas Foster), a tap books the table |
+| 9–10 | Map | a tilted map of the French Quarter grid, a glowing walk from Canal Street down Bourbon to 813 Bienville, a booking card |
+| 11–13 | End | *You were craving… something special. Now your table is waiting.*, then the name again inside a halo of crystals |
+
+The soundtrack is a 120 BPM jazz-pop groove in F: celesta for the bulbs, a brass chord for the name, Rhodes,
+brushes and a walking bass. The photographs (`photos/arnauds/pizza.jpg`, `sushi.jpg`, `ramen.jpg`, `dining.jpg`)
+were supplied for the render and are not in the repository. Fan-made; not affiliated with Arnaud's.
+
 ## How it is built
 
 ```
@@ -89,6 +110,7 @@ blender/       the two Cycles plates (monoliths, datacenter)
 frontier/      film 1: score.py (timing shared by picture and sound), music.py, scenes, film.py
 dario/         film 2: the same layout, plus photos.py for the optional photographs
 interface/     film 3: score.py, film.py (board, camera, cursor), stream.py (the streamed answer), ui.py, music.py
+arnauds/       the concept spot: intro.py (chandelier and name), phone.py, words.py, cards.py, map.py, film.py, music.py
 fonts/         Archivo, Fraunces, Inter, JetBrains Mono, Instrument Serif (all SIL OFL); DejaVu for ∝ ⌘ ⏎
 ```
 
@@ -110,6 +132,7 @@ python3 -m frontier.main --plate /tmp/plates/monoliths
 python3 -m dario.main    --plate /tmp/plates/datacenter
 ffmpeg -i out/the-frontier.mp4 -vf fps=30,scale=1280:720 -q:v 3 out/player_frames/f%04d.jpg   # for the player
 python3 -m interface.main
+python3 -m arnauds.main            # needs the four photographs in photos/arnauds/
 ```
 
 `--scale 0.5 --mb 3 --step 2` renders a quick half-resolution, 30 fps preview. Without a plate directory the
