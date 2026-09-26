@@ -7,3 +7,5 @@ __pycache__/
 out/player_frames/
 photos/*
 !photos/README.md
+# the Arnaud's spot is built from photographs supplied for it, so its render stays local like the photos
+out/arnauds.mp4
