@@ -1,15 +1,16 @@
 # Motion — every frame is code
 
-Two motion-design films, 1920×1080 at 60 fps, written entirely in Python. No editor, no stock footage,
-no samples: pictures are drawn with [skia-python](https://github.com/kyamagu/skia-python), the two 3D plates
-are rendered with Blender's Cycles through the `bpy` module, and every sound is synthesised with numpy.
+Three motion-design films at 60 fps, written entirely in Python. No editor, no stock footage, no samples:
+pictures are drawn with [skia-python](https://github.com/kyamagu/skia-python), the two 3D plates are rendered
+with Blender's Cycles through the `bpy` module, and every sound is synthesised with numpy.
 
-| Film | Length | Tempo | File |
+| Film | Format | Tempo | File |
 | --- | --- | --- | --- |
-| **THE FRONTIER** — Astra 6 · Gemini 3m · Fable 5.1 | 26.4 s | 150 BPM, F minor | [out/the-frontier.mp4](out/the-frontier.mp4) |
-| **DARIO AMODEI**, a tribute | 32.8 s | 120 BPM, B minor → D major | [out/dario-amodei-tribute.mp4](out/dario-amodei-tribute.mp4) |
+| **THE FRONTIER** — Astra 6 · Gemini 3m · Fable 5.1 | 26.4 s, 1920×1080 | 150 BPM, F minor | [out/the-frontier.mp4](out/the-frontier.mp4) |
+| **DARIO AMODEI**, a tribute | 32.8 s, 1920×1080 | 120 BPM, B minor → D major | [out/dario-amodei-tribute.mp4](out/dario-amodei-tribute.mp4) |
+| **INTERFACE** — a UI micro-interaction reel | 16.4 s, 1440×1440 | 120 BPM, E major | [out/interface.mp4](out/interface.mp4) |
 
-**▶ [Watch both](https://badboyvee.github.io/BlackHoleeee/motion/)**
+**▶ [Watch them](https://badboyvee.github.io/BlackHoleeee/motion/)**
 
 ## THE FRONTIER
 
@@ -43,6 +44,19 @@ the film is typography, data and light.
 | 11–13 | 05 Machines of Loving Grace | the October 2024 essay: *a country of geniuses in a datacenter* over a Blender flyover of a city of racks, *the compressed 21st century*, and the essay's five domains |
 | 14–16 | 06 Dario Amodei | the name, the role, the chapters, and the trace from the prologue firing once on the last chord |
 
+The finale uses a portrait when `photos/dario.jpg` is present (the published render uses one supplied for it);
+chapter 04 can show the Anthropic office from `photos/anthropic-hq.jpg`. Photos are rendered in the film's
+duotone and are git-ignored: see [photos/README.md](photos/README.md).
+
+## INTERFACE
+
+A square reel of product-UI micro-interactions, about making the other two films: a model picker with the three
+marks, a prompt typed into a composer, a Generate button that morphs into a spinning Claude spark and then a
+render-progress pill counting 1,584 frames, a player scrubbing real frames of THE FRONTIER over its real
+waveform, springy toggles and an effort slider, a stats card whose digits roll from one film's numbers to the
+other's over each film's measured loudness curve, and a command palette that ships them. Every click, keystroke,
+toggle and chime lands on the 120 BPM grid.
+
 ## How it is built
 
 ```
@@ -58,8 +72,9 @@ engine/        the shared engine
                sidechain, glue compression, a look-ahead limiter and LUFS normalisation
 blender/       the two Cycles plates (monoliths, datacenter)
 frontier/      film 1: score.py (timing shared by picture and sound), music.py, scenes, film.py
-dario/         film 2: the same layout
-fonts/         Archivo, Fraunces, Inter, JetBrains Mono, Instrument Serif (all SIL OFL), DejaVu Serif Italic
+dario/         film 2: the same layout, plus photos.py for the optional photographs
+interface/     film 3: score.py (cursor choreography), film.py (components), music.py
+fonts/         Archivo, Fraunces, Inter, JetBrains Mono, Instrument Serif (all SIL OFL); DejaVu for ∝ ⌘ ⏎
 ```
 
 Picture and sound read the same timing sheet (`score.py`), so every cut, letter and flash lands on the beat it was
@@ -78,6 +93,8 @@ python3 blender/monoliths.py  /tmp/plates/monoliths  1 150
 python3 blender/datacenter.py /tmp/plates/datacenter 1 150
 python3 -m frontier.main --plate /tmp/plates/monoliths
 python3 -m dario.main    --plate /tmp/plates/datacenter
+ffmpeg -i out/the-frontier.mp4 -vf fps=10,scale=452:254 out/player_frames/f%04d.jpg   # frames for the player
+python3 -m interface.main
 ```
 
 `--scale 0.5 --mb 3 --step 2` renders a quick half-resolution, 30 fps preview. Without a plate directory the

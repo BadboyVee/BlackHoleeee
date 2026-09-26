@@ -8,9 +8,10 @@ directly.
 
 ### 🎬 [Motion — every frame is code](motion/)
 
-Two motion-design films at 1920×1080, 60 fps, written entirely in Python: **THE FRONTIER**, a fight-card reel
-for Astra 6, Gemini 3m and Fable 5.1, and a tribute to Dario Amodei. Pictures are drawn with skia, the 3D
-plates are rendered with Blender Cycles, and every sound is synthesised with numpy.
+Three motion-design films at 60 fps, written entirely in Python: **THE FRONTIER**, a fight-card reel for
+Astra 6, Gemini 3m and Fable 5.1; a tribute to Dario Amodei; and **INTERFACE**, a UI micro-interaction reel.
+Pictures are drawn with skia, the 3D plates are rendered with Blender Cycles, and every sound is synthesised
+with numpy.
 
 **▶ [Watch them](https://badboyvee.github.io/BlackHoleeee/motion/)** · [source & notes](motion/)
 

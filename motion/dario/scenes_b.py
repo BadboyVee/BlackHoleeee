@@ -68,17 +68,19 @@ def s_anthropic(c, t):
         with G.clip_rect(c, 150, 830, (wl + 48) * ca, 52):
             G.text(c, label, 174, 865, fm, G.P(PAGE), tracking=0.26)
     # the A\ mark draws itself, then fills; with an office photograph it tucks into the photo's corner
-    hq = PH.available("anthropic-hq")
+    # the card shows the office if there is a photograph of it, otherwise the portrait
+    card = "anthropic-hq" if PH.available("anthropic-hq") else ("dario" if PH.available("dario") else None)
+    caption = "ANTHROPIC  ·  SAN FRANCISCO" if card == "anthropic-hq" else "DARIO AMODEI  ·  CO-FOUNDER & CEO"
     hx, hy, hw, hh = 1040, 250, 720, 540
-    he = snap(clamp((t - HQ_T) / 0.5)) if hq else 0.0
+    he = snap(clamp((t - HQ_T) / 0.5)) if card else 0.0
     if he > 0:
         c.drawRect(skia.Rect.MakeXYWH(hx + 14, hy + 22, hw, hh), G.P(INK, 0.25, blur=22))
-        img = PH.duotone("anthropic-hq", hw, hh, INK, PAGE)
+        img = PH.duotone(card, hw, hh, INK, PAGE, 0.3)
         with G.clip_rect(c, hx, hy + hh * (1 - he), hw, hh * he):
             with G.xf(c, hx + hw / 2, hy + hh / 2, s=1.06 - 0.06 * he):
                 G.draw_image(c, img, -hw / 2, -hh / 2, hw, hh)
         fm = G.Font("mono", 17, wght=700)
-        G.text(c, G.scramble("ANTHROPIC  ·  SAN FRANCISCO", clamp((t - HQ_T - 0.3) / 0.4), 9, t), hx, hy + hh + 42, fm,
+        G.text(c, G.scramble(caption, clamp((t - HQ_T - 0.3) / 0.4), 9, t), hx, hy + hh + 42, fm,
                G.P(INK, he), tracking=0.26)
     lu = clamp((t - LOGO_T) / 0.55)
     if lu > 0:
