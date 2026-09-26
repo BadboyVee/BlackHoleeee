@@ -1,0 +1,9 @@
+# render byproducts: the soundtrack WAVs, audio level caches and near-lossless masters are rebuilt by main.py
+out/*.wav
+out/*.npz
+out/*.mkv
+out/.segs/
+__pycache__/
+out/player_frames/
+photos/*
+!photos/README.md
