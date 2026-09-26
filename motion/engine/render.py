@@ -119,37 +119,44 @@ def render(film, out, scale=1.0, workers=4, mb_cap=None, audio=None, f0=0, f1=No
         f1 = int(round(film.duration * FPS))
     frames = list(range(f0, f1, step))
     fps_out = FPS / step
-    tmpdir = tmpdir or os.path.join(os.path.dirname(os.path.abspath(out)), ".segs")
+    name = os.path.splitext(os.path.basename(out))[0]
+    tmpdir = tmpdir or os.path.join(os.path.dirname(os.path.abspath(out)), ".segs", name)   # one per film
     os.makedirs(tmpdir, exist_ok=True)
-    k = max(1, min(workers, len(frames)))
+    # more chunks than workers, handed out as workers free up, so one heavy stretch of the film
+    # (a finale with every effect on) no longer leaves the other cores idle at the end
+    k = max(1, min(workers * 4, len(frames)))
     size = (len(frames) + k - 1) // k
     chunks = [frames[i * size:(i + 1) * size] for i in range(k)]
     chunks = [ch for ch in chunks if ch]
     ctx = mp.get_context("fork")
     counter = ctx.Value("i", 0)
-    segs, procs = [], []
+    segs = [os.path.join(tmpdir, f"seg{i:03d}.mkv") for i in range(len(chunks))]
+    queue = list(range(len(chunks)))
+    running = []
     t0 = time.time()
-    for i, ch in enumerate(chunks):
-        seg = os.path.join(tmpdir, f"seg{i:02d}.mkv")
-        segs.append(seg)
-        pr = ctx.Process(target=_worker, args=(film, scale, ch, seg, mb_cap, fps_out, counter))
-        pr.start()
-        procs.append(pr)
     total = len(frames)
-    last = -1
-    while any(p.is_alive() for p in procs):
-        time.sleep(2.0)
+    last, shown = -1, 0.0
+    while queue or running:
+        while queue and len(running) < workers:
+            i = queue.pop(0)
+            pr = ctx.Process(target=_worker, args=(film, scale, chunks[i], segs[i], mb_cap, fps_out, counter))
+            pr.start()
+            running.append(pr)
+        time.sleep(0.25)
+        for pr in [p for p in running if not p.is_alive()]:
+            pr.join()
+            running.remove(pr)
+            if pr.exitcode != 0:
+                for other in running:
+                    other.terminate()
+                raise RuntimeError(f"render worker failed with exit code {pr.exitcode}")
         done = counter.value
-        if done != last:
+        if done != last and time.time() - shown > 2.0:
             el = time.time() - t0
             eta = el / max(done, 1) * (total - done)
             sys.stdout.write(f"\r{label} {done}/{total} frames  {el:5.0f}s elapsed  eta {eta:5.0f}s ")
             sys.stdout.flush()
-            last = done
-    for p in procs:
-        p.join()
-        if p.exitcode != 0:
-            raise RuntimeError(f"render worker failed with exit code {p.exitcode}")
+            last, shown = done, time.time()
     print(f"\r{label} {total}/{total} frames in {time.time() - t0:.0f}s" + " " * 30)
     lst = os.path.join(tmpdir, "list.txt")
     with open(lst, "w") as fh:
