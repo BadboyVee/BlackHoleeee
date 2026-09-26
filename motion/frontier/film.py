@@ -17,7 +17,7 @@ from . import scenes_a as A
 from . import scenes_b as B
 from . import scenes_c as C
 
-SECTIONS = [(0.0, "00 — COLD OPEN"), (T_DROP_A, "01 — ASTRA 6"), (T_DROP_B, "02 — GEMINI 3M"),
+SECTIONS = [(0.0, "00 — COLD OPEN"), (T_DROP_A, "01 — ASTRA 6"), (T_DROP_B, "02 — GEMINI 3.8"),
             (T_DROP_C, "03 — FABLE 5.1"), (T_CLASH, "04 — THE CLASH"), (T_FINALE, "05 — THE FRONTIER")]
 
 

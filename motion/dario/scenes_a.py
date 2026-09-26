@@ -336,7 +336,7 @@ def plot(c, t, x0, y0, w, h):
         ex = snap(clamp((t - FIT_T - 0.45) / 0.5))
         if ex > 0:
             q1 = (lx(1.2), line_y(1.2))
-            c.drawPath(G.poly([p1, q1], closed=False), G.P(CLAY, 0.8 * ex, stroke=3, effect=skia.PathEffect.MakeCompose(G.dash(14, 10), G.trim(0, ex))))
+            c.drawPath(G.poly([p1, q1], closed=False), G.P(CLAY, 0.8 * ex, stroke=3, effect=G.compose(G.dash(14, 10), G.trim(0, ex))))
         fa = clamp((t - FIT_T - 0.3) / 0.4)
         f1 = G.Font("fraunces-italic", 76, wght=420, opsz=144)
         fs = G.Font("dejavu-serif-italic", 62)

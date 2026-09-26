@@ -10,7 +10,7 @@ BARS = 16
 DURATION = 26.4          # 16 bars plus a held last chord
 
 T_DROP_A = G.at(3)       # ASTRA 6
-T_DROP_B = G.at(6)       # GEMINI 3m
+T_DROP_B = G.at(6)       # GEMINI 3.8
 T_DROP_C = G.at(9)       # FABLE 5.1
 T_CLASH = G.at(12)
 T_BUILD = G.at(13)

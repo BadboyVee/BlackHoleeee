@@ -98,6 +98,7 @@ def radial_grad(x, y, r, colors, stops=None, alphas=None):
 
 
 def trim(start, end):
+    """Trim-path effect; None when nothing is trimmed (skia's own answer for 0..1)."""
     start, end = max(0.0, min(1.0, start)), max(0.0, min(1.0, end))
     if end <= start:
         return skia.TrimPathEffect.Make(0.0, 0.0)
@@ -106,6 +107,13 @@ def trim(start, end):
 
 def dash(on, off, phase=0.0):
     return skia.DashPathEffect.Make([on, off], phase)
+
+
+def compose(outer, inner):
+    """Compose two path effects; skia hands back None for no-op effects (a 0..1 trim), so tolerate that."""
+    if outer is None or inner is None:
+        return outer if inner is None else inner
+    return skia.PathEffect.MakeCompose(outer, inner)
 
 
 # ---------------------------------------------------------------- layers
@@ -299,10 +307,21 @@ class Font:
         self.desc = m.fDescent
         self.cap = m.fCapHeight if m.fCapHeight > 0 else self.size * 0.7
         self.xh = m.fXHeight if m.fXHeight > 0 else self.size * 0.5
+        self._runs = {}
 
     def shape(self, text, tracking=0.0, features=None):
         """tracking is in em (0.1 = 10% of the font size added after each glyph).
-        features adds OpenType features, e.g. {"tnum": True} for tabular figures."""
+        features adds OpenType features, e.g. {"tnum": True} for tabular figures.
+        Runs are cached per font: a frame redraws the same strings once per motion-blur sub-frame."""
+        key = (text, tracking, tuple(sorted(features.items())) if features else None)
+        run = self._runs.get(key)
+        if run is None:
+            if len(self._runs) > 4096:
+                self._runs.clear()
+            run = self._runs[key] = self._shape(text, tracking, features)
+        return run
+
+    def _shape(self, text, tracking, features):
         if not text:
             return Run(self, [], [], [], 0.0, text)
         buf = hb.Buffer()

@@ -1,5 +1,5 @@
 """Render a grid of stills for quick review: python3 tools_stills.py film out.png t1 t2 ..."""
-import sys, time
+import os, sys, time
 import cv2, numpy as np
 from engine.render import Renderer
 from engine.core import FPS
@@ -20,7 +20,7 @@ def grid(film, times, out, scale=0.33, cols=4, mb_cap=3):
 
 if __name__ == "__main__":
     which = sys.argv[1]
-    P = "/tmp/claude-0/-home-user-BlackHoleeee/ba2456e3-f87c-55be-85e8-b9f73bb5a5f4/scratchpad/plates/"
+    P = os.environ.get("PLATES", "/tmp/plates") + "/"
     if which == "frontier":
         from frontier.film import Frontier
         film = Frontier("out/frontier_levels.npz", P + "monoliths")

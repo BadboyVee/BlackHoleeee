@@ -1,4 +1,4 @@
-"""GEMINI 3m and FABLE 5.1."""
+"""GEMINI 3.8 and FABLE 5.1."""
 import math
 
 import numpy as np
@@ -13,7 +13,7 @@ from .common import (INK, PAPER, WHITE, GREEN, BLUE, VIOLET, CLAY, BOOK, fill, f
 from engine import logos as LG
 from .score import G as GR, T_DROP_B, T_DROP_C, T_CLASH
 
-# ---------------------------------------------------------------- GEMINI 3m
+# ---------------------------------------------------------------- GEMINI 3.8
 
 T_HELIX = GR.at(7)
 T_SPLIT = GR.at(8)
@@ -101,7 +101,7 @@ def s_gemini(c, t):
         a3 = clamp((t - GR.at(6, 3, 2)) / 0.25)
         if a3 > 0:
             f3 = G.Font("fraunces-italic", 300, wght=450, opsz=144, SOFT=60)
-            G.text(c, "3m", x0 + run.width + 30, base + 50 * (1 - snap(a3)) + 8, f3, G.P(WHITE, a3))
+            G.text(c, "3.8", x0 + run.width + 30, base + 50 * (1 - snap(a3)) + 8, f3, G.P(WHITE, a3))
         la = clamp((t - GR.at(6, 3)) / 0.3)
         if la > 0:
             fm = G.Font("mono", 20, wght=720)
@@ -141,7 +141,7 @@ def s_gemini(c, t):
         spin = 90 * snap(clamp((u % GR.spb) / 0.25)) + 90 * beat
         LG.gemini(c, CX, CY, 190 * (1 + 0.1 * ke), 1.0, rot=spin)
         fr = G.Font("mono", 17, wght=700)
-        text_on_circle(c, "GEMINI 3M · GOOGLE DEEPMIND · LONDON · EST. 2010 · ", CX, CY, rr + 44,
+        text_on_circle(c, "GEMINI 3.8 · GOOGLE DEEPMIND · LONDON · EST. 2010 · ", CX, CY, rr + 44,
                        u * 1.4, fr, G.P(top_bg if False else INK))
         # ruled lines wipe to paper on the last beat
         if t >= T_WIPE:

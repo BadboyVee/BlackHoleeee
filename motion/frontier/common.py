@@ -20,7 +20,7 @@ BOOK = "#171411"
 
 CONTENDERS = [
     dict(name="ASTRA", ver="6", lab="OPENAI", est="2015", base="SAN FRANCISCO", color=GREEN),
-    dict(name="GEMINI", ver="3m", lab="GOOGLE DEEPMIND", est="2010", base="LONDON", color=BLUE),
+    dict(name="GEMINI", ver="3.8", lab="GOOGLE DEEPMIND", est="2010", base="LONDON", color=BLUE),
     dict(name="FABLE", ver="5.1", lab="ANTHROPIC", est="2021", base="SAN FRANCISCO", color=CLAY),
 ]
 

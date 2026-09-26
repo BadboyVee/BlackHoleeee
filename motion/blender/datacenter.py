@@ -67,6 +67,8 @@ def node(nt, kind, **inputs):
 
 def city_material():
     m = bpy.data.materials.new("racks")
+    # thousands of lit windows: seen directly, never sampled as lights (same look, twice the speed)
+    m.cycles.emission_sampling = "NONE"
     m.use_nodes = True
     nt = m.node_tree
     for n in list(nt.nodes):
