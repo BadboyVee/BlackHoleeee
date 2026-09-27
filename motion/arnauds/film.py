@@ -1,7 +1,7 @@
-"""ARNAUD'S: the film. White day scenes, black night scenes, gold and light-green accents, cut together with its
-own moves: a card dropped on a kitchen table that becomes the input box, a dive into the caret, a spin into the
-bead ring, cards racing over a light-green field, a whip up to the counter, a gold circle from the tap, a zoom
-into the pin."""
+"""ARNAUD'S: the film. One light-green ground from the first frame to the last, white cards and panels on it,
+gold for everything that glows, black only for type. Cut together with its own moves: a card dropped on a kitchen
+table that becomes the input box, a dive into the caret, a spin into the bead ring, cards racing over the ground,
+a whip up to the counter, a gold circle from the tap, a zoom into the pin."""
 import skia
 
 from .score import *   # noqa: F401,F403 - the timing sheet is the vocabulary of this file
@@ -9,7 +9,7 @@ from engine import gfx as G   # after the star import: the sheet's musical grid 
 from engine.core import clamp, lerp, snap, whip, in_out_cubic, in_quart
 from engine.render import Film
 from . import intro as I, table as TB, phone as P, words as W, cards as C, map as M, checkout as K
-from .look import GOLD, CREAM, NIGHT, T as txt, ui
+from .look import GOLD, LIGHT_GREEN, INK, T as txt, ui
 
 
 def ask_to_giant(c, t):
@@ -51,9 +51,10 @@ def checkout_tap():
     return 960 - K.SHIFT + (px - 960) * push, 560 + (py - 560) * push
 
 
-def black(c, a):
+def settle(c, a):
+    """Scenes hand over by settling into the plain ground."""
     if a > 0:
-        c.drawRect(skia.Rect.MakeWH(*SIZE), G.P(NIGHT, a))
+        c.drawRect(skia.Rect.MakeWH(*SIZE), G.P(LIGHT_GREEN, a))
 
 
 class Arnauds(Film):
@@ -61,8 +62,7 @@ class Arnauds(Film):
     size = SIZE
 
     def bg(self, t):
-        dark = T_GIANT <= t < T_FIND + 0.2 or T_TO_CHAT <= t < T_MAP + 0.4 or t >= T_CRAVE - 0.3
-        return G.rgb(NIGHT) if dark else G.rgb(CREAM)
+        return G.rgb(LIGHT_GREEN)
 
     def draw(self, c, t):
         if t < T_PHONE:
@@ -109,16 +109,16 @@ class Arnauds(Film):
                 c.restore()
         elif t < T_CRAVE:
             M.mapscene(c, t)
-            black(c, clamp((t - (T_CRAVE - 0.3)) / 0.3))
+            settle(c, clamp((t - (T_CRAVE - 0.3)) / 0.3))
         elif t < T_END:
             W.crave(c, t)
-            black(c, clamp((t - (T_END - 0.25)) / 0.25))
+            settle(c, clamp((t - (T_END - 0.25)) / 0.25))
         else:
             I.outro(c, t, T_END)
             if t >= T_END + 1.4:
-                txt(c, "Fan-made concept · not affiliated with Arnaud’s", 960, 1062, ui(15, 500), "#6f6f6f",
-                    a=0.8 * clamp((t - T_END - 1.4) / 0.4), align=0.5, tracking=0.08)
-            black(c, clamp((t - T_FADE[0]) / (T_FADE[1] - T_FADE[0])))
+                txt(c, "Fan-made concept · not affiliated with Arnaud’s", 960, 1062, ui(15, 500), INK,
+                    a=0.45 * clamp((t - T_END - 1.4) / 0.4), align=0.5, tracking=0.08)
+            settle(c, clamp((t - T_FADE[0]) / (T_FADE[1] - T_FADE[0])))
 
     def mb(self, t):
         for c0 in CUTS + [T_GIANT, T_TO_CHAT, T_LIME, T_CARDS, T_FULL]:
@@ -134,15 +134,8 @@ class Arnauds(Film):
         return 0.6
 
     def fx(self, t):
+        # one light ground throughout: no bloom or vignette to grey it, a touch of grain
         fx = {"grain": 0.014, "vignette": 0.0}
-        # the closing night gets bloom and a vignette
-        night = clamp((t - T_END + 0.1) / 0.2)
-        if night > 0:
-            fx.update(bloom=0.5 * night, bloom_th=0.5, bloom_r=1.4, vignette=0.26 * night, grain=0.02)
-        if T_GIANT + 0.2 <= t < T_FIND or T_CRAVE <= t < T_END:
-            fx.update(bloom=0.35, bloom_th=0.6, vignette=0.2)
-        if T_CHAT <= t < T_TAP + 0.25:
-            fx.update(bloom=0.3, bloom_th=0.7, vignette=0.22)
         for c0 in (T_NAME, T_GIANT, T_FIND, T_TO_CHAT, T_MAP, T_END, T_CREDIT):
             k = t - c0
             if 0 <= k < 0.3:

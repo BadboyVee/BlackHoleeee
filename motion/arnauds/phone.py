@@ -2,15 +2,11 @@
 import math
 from functools import lru_cache
 
-import skia
 
 from engine import gfx as G
-from engine.core import clamp, lerp, snap, whip, out_cubic, in_out_cubic, spring, out_back
-from .look import (F, T, ui, rr, WHITE, INK, GREY, FAINT, LINE, LIME, ORANGE, BLUE, LAVENDER, CARD, GOLD, GLOW,
-                   CREAM, VIOLET, GREEN, PINK, PURPLE, veee_orb,
-                   glow_rrect, glow_blob, soft_shadow, caret, phone, status_bar, icon_arrow, icon_x, icon_plus,
-                   icon_send, icon_check, icon_pin, icon_clock, icon_people, icon_star, icon_puff, icon_shrimp,
-                   icon_flame, draw_cover, hand, sweep)
+from engine.core import clamp, snap, in_out_cubic
+from .look import (T, ui, rr, WHITE, INK, glow_rrect, caret, phone, status_bar, icon_arrow, icon_x, icon_plus,
+                   icon_send, ground)
 from .score import T_PHONE, T_TYPE, PROMPT, T_SEND
 
 # ---------------------------------------------------------------- the ask
@@ -44,17 +40,9 @@ def typed(t):
     return int(round(n * clamp((t - T_TYPE[0]) / (T_TYPE[1] - T_TYPE[0]))))
 
 
-def cream_ground(c, t):
-    """White, lit by slow gold and light-green glows."""
-    c.drawRect(skia.Rect.MakeWH(1920, 1080), G.P(CREAM))
-    for k, (col, x, y, r) in enumerate(((VIOLET, 180, 180, 640), (GREEN, 1760, 900, 620), (GOLD, 1720, 120, 520),
-                                         (PINK, 220, 980, 520))):
-        glow_blob(c, x + 60 * math.sin(t * 0.6 + k), y + 40 * math.cos(t * 0.5 + k), r, col, 0.22)
-
-
 def ask(c, t):
     """The phone rises out of a 3D tilt and settles; the prompt types itself into the glowing input."""
-    cream_ground(c, t)
+    ground(c, t)
     u = snap(clamp((t - T_PHONE) / 0.6))
     push = 1.0 + 0.06 * in_out_cubic(clamp((t - T_TYPE[0]) / 2.0))
     c.save()

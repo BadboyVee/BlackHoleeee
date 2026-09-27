@@ -4,11 +4,10 @@ import os
 from functools import lru_cache
 
 import cv2
-import numpy as np
 import skia
 
 from engine import gfx as G
-from engine.core import clamp, lerp
+from engine.core import clamp
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 PHOTOS = os.path.join(HERE, "..", "photos", "arnauds")
@@ -21,12 +20,15 @@ GOLD_DEEP = "#b8872a"
 GOLD_PALE = "#f3dc9a"
 LIGHT_GREEN = "#bde9a0"
 GREEN_MID = "#86d36a"
-# grounds
-CREAM = WHITE              # the day scenes
-PAPER = WHITE              # cards and the phone
-NIGHT = BLACK              # the night scenes
-PLUM = "#141414"           # dark cards and glass on black
-FIELD = LIGHT_GREEN        # the field of the thinking scene and the carousel
+GOLD_INK = "#946a17"        # gold for type on the light ground
+SHADOW = "#1d3a12"          # shadows fall dark green on the light-green ground
+# one ground for the whole film: light green; white for cards, panels and the phone; black only for type
+CREAM = WHITE
+PAPER = WHITE
+NIGHT = LIGHT_GREEN
+PLUM = WHITE
+FIELD = LIGHT_GREEN
+GROUND = ["#d6f2bf", LIGHT_GREEN, "#9fd07d"]
 # accents, all drawn from the four colours
 PURPLE = GOLD_DEEP
 VIOLET = GREEN_MID
@@ -40,9 +42,9 @@ GREY = "#8a8a8a"
 FAINT = "#c8c8c8"
 LINE = "#ececec"
 CARD = PLUM
-# the signature glow: gold and light green, turning slowly around every card
-GLOW = [GOLD, GOLD_PALE, LIGHT_GREEN, GREEN_MID, GOLD_DEEP, LIGHT_GREEN, GOLD_PALE, GOLD]
-MARDI = [GOLD_DEEP, GOLD, GREEN_MID, LIGHT_GREEN]
+# the signature glow: gold and white light, turning slowly around every card
+GLOW = [GOLD, GOLD_PALE, WHITE, GOLD, GOLD_DEEP, WHITE, GOLD_PALE, GOLD]
+MARDI = [GOLD_INK, GOLD_DEEP, GOLD, GOLD_DEEP]
 # the old names, for code that still speaks them
 LIME = GOLD
 ORANGE = GOLD
@@ -99,12 +101,24 @@ def glow_blob(c, x, y, r, col, a=1.0):
 
 
 def soft_shadow(c, x, y, w, h, r, a=1.0, lift=1.0):
-    c.drawRRect(rr(x, y + 26 * lift, w, h, r), G.P("#000000", 0.07 * a, blur=40 * lift))
-    c.drawRRect(rr(x, y + 3, w, h, r), G.P("#000000", 0.05 * a, blur=5))
+    c.drawRRect(rr(x, y + 26 * lift, w, h, r), G.P(SHADOW, 0.14 * a, blur=40 * lift))
+    c.drawRRect(rr(x, y + 3, w, h, r), G.P(SHADOW, 0.08 * a, blur=5))
+
+
+def ground(c, t):
+    """The one ground of the whole film: light green, lit from the middle, with slow gold and white glows."""
+    c.save()
+    c.clipRect(skia.Rect.MakeWH(1920, 1080))       # the lighting stays inside the frame when a scene slides
+    c.drawRect(skia.Rect.MakeWH(1920, 1080), G.P(LIGHT_GREEN))
+    c.drawCircle(960, 540, 1250, G.P(LIGHT_GREEN, 1, shader=G.radial_grad(960, 540, 1250, GROUND,
+                                                                         stops=[0.0, 0.55, 1.0])))
+    for k, (col, x, y, r) in enumerate(((GOLD, 200, 160, 560), (WHITE, 1720, 940, 600), (GOLD_PALE, 1780, 90, 420))):
+        glow_blob(c, x + 50 * math.sin(t * 0.7 + k), y + 30 * math.cos(t * 0.6 + k), r, col, 0.2)
+    c.restore()
 
 
 def caret(c, x, y_top, h, length, a=1.0):
-    """The caret: a pink-to-violet trail that ends in a gold bar."""
+    """The caret: a trail of light that ends in a gold bar."""
     if length > 1:
         c.drawRect(skia.Rect.MakeXYWH(x - length, y_top, length, h),
                    G.P(GOLD, a, shader=G.linear_grad(x - length, 0, x, 0, [LIGHT_GREEN, GOLD], alphas=[0.0, 0.9 * a])))

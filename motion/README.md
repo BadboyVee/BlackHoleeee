@@ -76,20 +76,21 @@ sub-frame renderer. Every click, keystroke, token burst, toggle and chime has a 
 
 A 27.5 s, 1920×1080 AI-concierge spot for a real restaurant: Arnaud's, 813 Bienville St in the French Quarter of
 New Orleans, serving classic Creole since 1918. It started from a UI food ad and grew its own identity in four
-colours only: white by day, black by night, gold and light green for everything that glows, with a glowing frame of
-light as its signature and MADE BY VEEE as the maker's mark.
+colours used the same way in every scene: one light-green ground from the first frame to the last, white for cards,
+panels and the phone, gold for everything that glows, and black only for type. A glowing frame of light is its
+signature and MADE BY VEEE the maker's mark.
 
 | Bars | Scene | What happens |
 | --- | --- | --- |
 | 1–2 | The table | a light-green kitchen table seen from above: bread, gold cutlery, a board and a knife drop onto it on the sixteenths while *Anniversary dinner / means choosing / A lot.* pops in, fruit keeps landing until the table is crowded, and a white card with a glowing edge drops in the middle |
-| 3 | The ask | the props fly off, white washes in, the card becomes the phone's input box, the phone rises behind it, and the prompt types in: pizza, sushi or ramen, or something special |
-| 4 | Giant words | on black, *Pizza, sushi, ramen?* each filled with its photo, then *something special.* in gold and green |
+| 3 | The ask | the props fly off the table, the card becomes the phone's input box, the phone rises behind it, and the prompt types in: pizza, sushi or ramen, or something special |
+| 4 | Giant words | *Pizza, sushi, ramen?* each filled with its photo and edged in white, then *something special.* in gold |
 | 5 | Thinking | a ring of beads spins like a loader; the three cravings orbiting inside are tossed away one by one and a gold doubloon stamped with the A flips into the middle |
-| 6 | Carousel | white menu cards race over the light-green field and brake on Arnaud's, which opens into the dining room with its chandeliers glinting |
-| 7–8 | The cashier | a receipt prints the pre-order (Soufflé Potatoes, Shrimp Arnaud, Bananas Foster), the terminal rolls the amount due, a card taps, the screen goes gold and the receipt is stamped CONFIRMED |
-| 9–10 | Map | the French Quarter at night, a green-to-gold walk from Canal Street down Bourbon to 813 Bienville, a booking card |
-| 11–12 | The name | *You were craving… something special. Now your table is waiting.*, then a frame of light bursts open around the name and the address |
-| 13 | Credit | the frame folds back into the orb, and the orb signs it: MADE BY VEEE |
+| 6 | Carousel | white menu cards race over the ground and brake on Arnaud's, edged in gold, which opens into the dining room with its chandeliers glinting |
+| 7–8 | The cashier | a white printer feeds out the pre-order (Soufflé Potatoes, Shrimp Arnaud, Bananas Foster), a white terminal rolls the amount due, a gold card taps, the screen goes gold and the receipt is stamped CONFIRMED |
+| 9–10 | Map | the French Quarter by day in light green and white, a gold walk from Canal Street down Bourbon to 813 Bienville, a booking card |
+| 11–12 | The name | *You were craving… something special. Now your table is waiting.*, then a white frame edged in light bursts open around the name and the address |
+| 13 | Credit | the frame folds back into a gold orb, and the orb signs it: MADE BY VEEE |
 
 The soundtrack is a 120 BPM jazz-pop groove in F with a sound for every event, from each prop knocking onto the
 table and the fruit popping up the scale to the printer, the till and the stamp. The receipt shows no dish prices
@@ -114,7 +115,7 @@ blender/       the two Cycles plates (monoliths, datacenter)
 frontier/      film 1: score.py (timing shared by picture and sound), music.py, scenes, film.py
 dario/         film 2: the same layout, plus photos.py for the optional photographs
 interface/     film 3: score.py, film.py (board, camera, cursor), stream.py (the streamed answer), ui.py, music.py
-arnauds/       the concept spot: table.py (the opening), intro.py (the name, the credit), phone.py, words.py, cards.py, checkout.py, map.py, film.py, music.py
+arnauds/       the concept spot: table.py (the opening), intro.py (the end: the name, the credit), phone.py, words.py, cards.py, checkout.py, map.py, film.py, music.py
 fonts/         Archivo, Fraunces, Inter, JetBrains Mono, Instrument Serif (all SIL OFL); DejaVu for ∝ ⌘ ⏎
 ```
 

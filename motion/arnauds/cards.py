@@ -1,4 +1,5 @@
-"""The carousel: cream dish cards racing over the purple field, the usual cravings, until Arnaud's lifts out."""
+"""The carousel: white dish cards racing over the light-green ground, the usual cravings, until Arnaud's lifts
+out."""
 import math
 import os
 from functools import lru_cache
@@ -7,11 +8,10 @@ import cv2
 import skia
 
 from engine import gfx as G
-from engine.core import clamp, lerp, snap, whip, out_cubic, in_out_cubic, out_quint, spring
-from .look import (F, T, ui, rr, WHITE, INK, LIME, ORANGE, CARD, GOLD, GLOW, glow_rrect, glow_blob, draw_cover,
-                   photo, PHOTOS, PAPER, PLUM, PURPLE, VIOLET, GREEN, PINK, GREY, MARDI,
-                   icon_star, icon_pin, icon_clock, icon_flame, icon_people)
-from .score import T_LIME, T_CARDS, T_PICK, T_FULL, T_TO_CHAT
+from engine.core import clamp, lerp, snap, out_cubic, out_quint, spring
+from .look import (F, T, ui, rr, WHITE, INK, GOLD, GOLD_DEEP, GOLD_INK, SHADOW, glow_rrect, glow_blob, draw_cover,
+                   photo, PHOTOS, PAPER, GREY, icon_star, icon_pin, icon_clock)
+from .score import T_LIME, T_CARDS, T_PICK, T_FULL
 
 W, H, GAP = 380, 452, 28
 ROW = ["pizza", "sushi", "ramen", "pizza", "sushi", "ramen", "arnauds", "pizza", "sushi", "ramen"]
@@ -27,10 +27,10 @@ DISH = {
 
 
 def food_card(c, kind, x, y, t, a=1.0):
-    """A cream menu card: photo, a serif title, the details, a purple price."""
+    """A white menu card: photo, a serif title, the details, a gold price."""
     d = DISH[kind]
     with G.layer(c, alpha=a):
-        c.drawRRect(rr(x, y + 16, W, H, 26), G.P("#000000", 0.35, blur=26))
+        c.drawRRect(rr(x, y + 16, W, H, 26), G.P(SHADOW, 0.3, blur=26))
         c.drawRRect(rr(x, y, W, H, 26), G.P(PAPER))
         c.save()
         c.clipRRect(rr(x + 10, y + 10, W - 20, 270, 18), skia.ClipOp.kIntersect, True)
@@ -41,9 +41,9 @@ def food_card(c, kind, x, y, t, a=1.0):
         c.drawRRect(rr(x + 24, y + 24, bw, 32, 16), G.P(GOLD))
         T(c, d["badge"], x + 24 + bw / 2, y + 45, fb, INK, align=0.5)
         rw = fb.width(d["rating"]) + 46
-        c.drawRRect(rr(x + W - 24 - rw, y + 24, rw, 32, 16), G.P(PLUM, 0.85))
-        icon_star(c, x + W - 24 - rw + 20, y + 40, 16, GOLD)
-        T(c, d["rating"], x + W - 24 - rw + 34, y + 46, fb, WHITE)
+        c.drawRRect(rr(x + W - 24 - rw, y + 24, rw, 32, 16), G.P(WHITE, 0.92))
+        icon_star(c, x + W - 24 - rw + 20, y + 40, 16, GOLD_DEEP)
+        T(c, d["rating"], x + W - 24 - rw + 34, y + 46, fb, INK)
         T(c, d["title"], x + 22, y + 330, F("serif", 38), INK)
         T(c, d["desc"], x + 22, y + 362, ui(15, 450), GREY)
         fm = ui(14, 560)
@@ -51,31 +51,31 @@ def food_card(c, kind, x, y, t, a=1.0):
         T(c, d["time"], x + 44, y + 417, fm, INK)
         icon_pin(c, x + 132, y + 412, 16, GREY)
         T(c, d["dist"], x + 146, y + 417, fm, INK)
-        T(c, d["price"], x + W - 22, y + 420, ui(26, 750), PURPLE, align=1.0)
+        T(c, d["price"], x + W - 22, y + 420, ui(26, 750), GOLD_INK, align=1.0)
 
 
 def arnauds_card(c, x, y, t, a=1.0, glow=0.0):
-    """Arnaud's: the one card in plum and gold."""
+    """Arnaud's: the one card edged in gold."""
     with G.layer(c, alpha=a):
+        c.drawRRect(rr(x, y + 16, W, H, 26), G.P(SHADOW, 0.3, blur=26))
         if glow > 0:
             glow_rrect(c, x, y, W, H, 26, t, a=glow, spread=44, width=36, speed=70)
-        c.drawRRect(rr(x, y, W, H, 26), G.P(PLUM))
+        c.drawRRect(rr(x, y, W, H, 26), G.P(WHITE))
         c.save()
         c.clipRRect(rr(x + 10, y + 10, W - 20, 270, 18), skia.ClipOp.kIntersect, True)
         draw_cover(c, "dining", x + 10, y + 10, W - 20, 270, fx=0.3, fy=0.3, zoom=1.15)
         c.restore()
-        c.drawRRect(rr(x + 0.5, y + 0.5, W - 1, H - 1, 26), G.P(GOLD, 0.8, stroke=1.6))
+        c.drawRRect(rr(x + 1.5, y + 1.5, W - 3, H - 3, 25), G.P(GOLD, 1, stroke=3))
         fb = ui(15, 700)
         bw = fb.width("Something special") + 48
-        c.drawRRect(rr(x + 24, y + 24, bw, 32, 16), G.P(PLUM, 0.85))
-        c.drawRRect(rr(x + 24, y + 24, bw, 32, 16), G.P(GOLD, 1, stroke=1.4))
-        icon_star(c, x + 42, y + 40, 16, GOLD)
-        T(c, "Something special", x + 58, y + 46, fb, GOLD)
-        T(c, "Arnaud’s", x + 22, y + 334, F("serif", 44), "#ffffff")
-        T(c, "Classic Creole in the French Quarter", x + 22, y + 364, ui(15, 450), "#a8a8a8")
+        c.drawRRect(rr(x + 24, y + 24, bw, 32, 16), G.P(GOLD))
+        icon_star(c, x + 42, y + 40, 16, WHITE)
+        T(c, "Something special", x + 58, y + 46, fb, INK)
+        T(c, "Arnaud’s", x + 22, y + 334, F("serif", 44), INK)
+        T(c, "Classic Creole in the French Quarter", x + 22, y + 364, ui(15, 450), GREY)
         fm = ui(14, 560)
-        icon_pin(c, x + 30, y + 412, 16, "#a8a8a8")
-        T(c, "813 Bienville St", x + 44, y + 417, fm, "#eeeeee")
+        icon_pin(c, x + 30, y + 412, 16, GREY)
+        T(c, "813 Bienville St", x + 44, y + 417, fm, INK)
         pw = ui(18, 750).width("Book") + 36
         c.drawRRect(rr(x + W - 22 - pw, y + 394, pw, 38, 19), G.P(GOLD))
         T(c, "Book", x + W - 22 - pw / 2, y + 419, ui(18, 750), INK, align=0.5)
@@ -161,10 +161,11 @@ def dining_full(c, t):
             c.drawLine(sx, sy - L * 0.7, sx, sy + L * 0.7, p)
     # a warm grade and the title
     c.drawRect(skia.Rect.MakeXYWH(x, y, w, h), G.P("#000000", 1, shader=G.linear_grad(0, y + h * 0.45, 0, y + h,
-               ["#000000", "#000000"], alphas=[0.0, 0.72 * u])))
+               ["#000000", "#000000"], alphas=[0.0, 0.5 * u])))
     a = clamp((t - T_FULL - 0.3) / 0.35)
     if a > 0:
         e = out_cubic(a)
+        T(c, "Arnaud’s", 124, 908 + 40 * (1 - e), F("serif", 190), "#000000", a=0.3 * a)
         T(c, "Arnaud’s", 120, 900 + 40 * (1 - e), F("serif", 190), WHITE, a=a)
         T(c, "CLASSIC CREOLE   ·   FRENCH QUARTER   ·   SINCE 1918", 128, 972 + 30 * (1 - e), ui(26, 600), WHITE,
           a=0.85 * a, tracking=0.3)

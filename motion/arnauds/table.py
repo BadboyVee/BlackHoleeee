@@ -7,11 +7,10 @@ import skia
 
 from engine import gfx as G
 from engine.core import clamp, out_back, in_out_cubic, spring, hash01
-from .look import ui, rr, WHITE, glow_rrect
+from .look import ui, rr, WHITE, LIGHT_GREEN, GROUND, SHADOW, glow_rrect, ground
 from .score import T_NAME, T_WIPE, CX
 
-TABLE = "#b7e59a"
-SHADOW = "#1d3a12"
+TABLE = LIGHT_GREEN
 INPUT = (368, 388, 1184, 318, 46)
 T_DROP = 3.0          # the white card lands
 
@@ -274,11 +273,10 @@ def headline(c, t):
 # ---------------------------------------------------------------- the table
 
 def table(c, t):
-    """Everything on the table, and the way out: the card lands, the props fly off, white takes over."""
+    """Everything on the table, and the way out: the card lands, the props fly off, the card stays."""
     m = in_out_cubic(clamp((t - T_WIPE[0]) / (T_WIPE[1] - T_WIPE[0])))
     c.drawRect(skia.Rect.MakeWH(1920, 1080), G.P(TABLE))
-    c.drawCircle(CX, 540, 1250, G.P(TABLE, 1, shader=G.radial_grad(CX, 540, 1250, ["#c8f0ad", TABLE, "#9fd683"],
-                                                                     stops=[0.0, 0.6, 1.0])))
+    c.drawCircle(CX, 540, 1250, G.P(TABLE, 1, shader=G.radial_grad(CX, 540, 1250, GROUND, stops=[0.0, 0.55, 1.0])))
     zoom = 1.0 + 0.05 * clamp(t / 3.4)
 
     def scatter(x, y):
@@ -313,10 +311,10 @@ def table(c, t):
             c.drawRRect(rr(ix + 14, iy + 30 * (1 - e) + 26, iw, ih, ir), G.P(SHADOW, 0.3 * a, blur=24 + 20 * (1 - e)))
             glow_rrect(c, ix, iy, iw, ih, ir, t, a=a, spread=30, width=22, speed=50)
             c.drawRRect(rr(ix, iy, iw, ih, ir), G.P(WHITE, a))
-    # white washes in behind the flying props
+    # the props fly off and the ground of the app settles in behind them
     if m > 0:
         with G.layer(c, alpha=m):
-            c.drawRect(skia.Rect.MakeWH(1920, 1080), G.P(WHITE))
+            ground(c, t)
             ix, iy, iw, ih, ir = INPUT
             glow_rrect(c, ix, iy, iw, ih, ir, t, a=1.0, spread=30, width=22, speed=50)
             c.drawRRect(rr(ix, iy, iw, ih, ir), G.P(WHITE))
