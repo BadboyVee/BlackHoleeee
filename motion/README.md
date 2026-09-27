@@ -74,24 +74,28 @@ sub-frame renderer. Every click, keystroke, token burst, toggle and chime has a 
 
 ## ARNAUD'S, a concept spot
 
-A 25.5 s, 1920×1080 AI-concierge spot in the style of a UI food ad (white canvas, rainbow edge glow, lime and
-orange, a lavender caret), built for a real restaurant: Arnaud's, 813 Bienville St in the French Quarter of New
-Orleans, serving classic Creole since 1918.
+A 27.5 s, 1920×1080 AI-concierge spot for a real restaurant: Arnaud's, 813 Bienville St in the French Quarter of
+New Orleans, serving classic Creole since 1918. It started from a UI food ad and grew its own identity in four
+colours only: white by day, black by night, gold and light green for everything that glows, with a glowing frame of
+light as its signature and MADE BY VEEE as the maker's mark.
 
 | Bars | Scene | What happens |
 | --- | --- | --- |
-| 1–2 | Intro | a chandelier draws itself in brass and lights bulb by bulb on the sixteenths; its crystals fly into the outline of the name, which inks in under a rainbow light sweep |
-| 3 | The ask | a phone swings out of a 3D tilt and the prompt types into a glowing input: pizza, sushi or ramen, or something special |
-| 4 | Giant words | *Pizza, sushi, ramen?* each filled with its photo, then *something special.* in iridescent glass |
-| 5 | Finding | the three cravings drop into an orange bowl and something special rises out of it |
-| 6 | Carousel | a lime field of dish cards races past and brakes on Arnaud's, which opens into the dining room with its chandeliers glinting |
-| 7–8 | Chat | the assistant recommends Arnaud's and its classics (Soufflé Potatoes, Shrimp Arnaud, Bananas Foster), a tap books the table |
-| 9–10 | Map | a tilted map of the French Quarter grid, a glowing walk from Canal Street down Bourbon to 813 Bienville, a booking card |
-| 11–13 | End | *You were craving… something special. Now your table is waiting.*, then the name again inside a halo of crystals |
+| 1–2 | The table | a light-green kitchen table seen from above: bread, gold cutlery, a board and a knife drop onto it on the sixteenths while *Anniversary dinner / means choosing / A lot.* pops in, fruit keeps landing until the table is crowded, and a white card with a glowing edge drops in the middle |
+| 3 | The ask | the props fly off, white washes in, the card becomes the phone's input box, the phone rises behind it, and the prompt types in: pizza, sushi or ramen, or something special |
+| 4 | Giant words | on black, *Pizza, sushi, ramen?* each filled with its photo, then *something special.* in gold and green |
+| 5 | Thinking | a ring of beads spins like a loader; the three cravings orbiting inside are tossed away one by one and a gold doubloon stamped with the A flips into the middle |
+| 6 | Carousel | white menu cards race over the light-green field and brake on Arnaud's, which opens into the dining room with its chandeliers glinting |
+| 7–8 | The cashier | a receipt prints the pre-order (Soufflé Potatoes, Shrimp Arnaud, Bananas Foster), the terminal rolls the amount due, a card taps, the screen goes gold and the receipt is stamped CONFIRMED |
+| 9–10 | Map | the French Quarter at night, a green-to-gold walk from Canal Street down Bourbon to 813 Bienville, a booking card |
+| 11–12 | The name | *You were craving… something special. Now your table is waiting.*, then a frame of light bursts open around the name and the address |
+| 13 | Credit | the frame folds back into the orb, and the orb signs it: MADE BY VEEE |
 
-The soundtrack is a 120 BPM jazz-pop groove in F: celesta for the bulbs, a brass chord for the name, Rhodes,
-brushes and a walking bass. The photographs (`photos/arnauds/pizza.jpg`, `sushi.jpg`, `ramen.jpg`, `dining.jpg`)
-were supplied for the render and are not in the repository. Fan-made; not affiliated with Arnaud's.
+The soundtrack is a 120 BPM jazz-pop groove in F with a sound for every event, from each prop knocking onto the
+table and the fruit popping up the scale to the printer, the till and the stamp. The receipt shows no dish prices
+(the published menu could not be checked for this render). The photographs (`photos/arnauds/pizza.jpg`,
+`sushi.jpg`, `ramen.jpg`, `dining.jpg`) were supplied for the render and are not in the repository. Fan-made; not
+affiliated with Arnaud's.
 
 ## How it is built
 
@@ -110,7 +114,7 @@ blender/       the two Cycles plates (monoliths, datacenter)
 frontier/      film 1: score.py (timing shared by picture and sound), music.py, scenes, film.py
 dario/         film 2: the same layout, plus photos.py for the optional photographs
 interface/     film 3: score.py, film.py (board, camera, cursor), stream.py (the streamed answer), ui.py, music.py
-arnauds/       the concept spot: intro.py (chandelier and name), phone.py, words.py, cards.py, map.py, film.py, music.py
+arnauds/       the concept spot: table.py (the opening), intro.py (the name, the credit), phone.py, words.py, cards.py, checkout.py, map.py, film.py, music.py
 fonts/         Archivo, Fraunces, Inter, JetBrains Mono, Instrument Serif (all SIL OFL); DejaVu for ∝ ⌘ ⏎
 ```
 

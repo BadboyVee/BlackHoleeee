@@ -9,17 +9,17 @@ import skia
 from engine import gfx as G
 from engine.core import clamp, lerp, snap, whip, out_cubic, in_out_cubic, in_out_sine, spring, hash01
 from .look import (F, T, ui, rr, WHITE, INK, GREY, LIME, BLUE, GOLD, GLOW, glow_rrect, glow_blob, soft_shadow,
-                   icon_check, icon_pin, sweep)
+                   icon_check, icon_pin, sweep, PLUM, PURPLE, VIOLET, GREEN, MINT, PINK, AMBER, NIGHT)
 from .score import T_MAP, T_ROUTE, T_CONFIRM, T_GO, T_CRAVE, T_TAP
 
 B = 260                     # one French Quarter block, in map pixels
-LAND = "#f1eee7"
-BLOCK = "#e7e3d9"
-STREET = "#ffffff"
-CASING = "#d9d4c8"
-WATER = "#cfe2f5"
-PARK = "#d5ebc6"
-LABEL = "#8a857a"
+LAND = "#0d0d0d"             # the French Quarter at night
+BLOCK = "#171717"
+STREET = "#2a2a2a"
+CASING = "#070707"
+WATER = "#0b1510"
+PARK = "#10301f"
+LABEL = "#9a9a9a"
 
 # streets parallel to the river, by distance from it (in blocks)
 LONG = [(0, "Decatur St"), (1, "Chartres St"), (2, "Royal St"), (3, "Bourbon St"), (4, "Dauphine St"),
@@ -110,7 +110,7 @@ def draw_map(c, t):
     # the river and the riverfront
     x0, y0 = mp(-3, -0.35)
     c.drawRect(skia.Rect.MakeLTRB(-4000, y0, 4000, 4000), G.P(WATER))
-    c.drawRect(skia.Rect.MakeLTRB(-4000, y0 - 6, 4000, y0), G.P("#b7d3ee"))
+    c.drawRect(skia.Rect.MakeLTRB(-4000, y0 - 6, 4000, y0), G.P("#3d6b4a", 0.8))
     px0, py0 = mp(1.0, -0.33)
     px1, py1 = mp(5.8, -0.05)
     c.drawRect(skia.Rect.MakeLTRB(px0, py1, px1, py0), G.P(PARK))
@@ -118,6 +118,11 @@ def draw_map(c, t):
     for bx, by, w, h in buildings():
         x, y = mp(bx, by + h)
         c.drawRect(skia.Rect.MakeXYWH(x, y, w * B, h * B), G.P(BLOCK))
+    for i, (bx, by, w, h) in enumerate(buildings()[::3]):
+        if float(hash01(i, 31)) < 0.6:
+            x, y = mp(bx + w / 2, by + h / 2)
+            on = 0.5 + 0.5 * math.sin(t * (1 + float(hash01(i, 32)) * 3) + i)
+            c.drawCircle(x, y, 5, G.P((GOLD, AMBER, PINK, MINT)[i % 4], 0.35 + 0.4 * on))
     js0, js1 = mp(6.0, 1.0), mp(8.0, 0.0)
     c.drawRect(skia.Rect.MakeLTRB(js0[0] + 20, js0[1] + 20, js1[0] - 20, js1[1] - 20), G.P(PARK))
     # streets: casing, then the white road
@@ -132,7 +137,8 @@ def draw_map(c, t):
             c.drawLine(a[0], a[1], b[0], b[1], G.P(col, 1, stroke=wu, cap="round"))
     # the Arnaud's block glows warm
     ab0, ab1 = mp(1.08, 3.92), mp(1.92, 3.08)
-    c.drawRect(skia.Rect.MakeLTRB(ab0[0], ab0[1], ab1[0], ab1[1]), G.P("#f6d9a8", 0.8))
+    c.drawRect(skia.Rect.MakeLTRB(ab0[0], ab0[1], ab1[0], ab1[1]), G.P(GOLD, 0.55))
+    c.drawRect(skia.Rect.MakeLTRB(ab0[0], ab0[1], ab1[0], ab1[1]), G.P(GOLD, 0.5, blur=30))
 
 
 def labels(c, t, m):
@@ -147,11 +153,11 @@ def labels(c, t, m):
         with G.xf(c, x, y, rot=-90):
             T(c, name.upper(), 0, 8, f if name != "Canal St" else ui(26, 650), LABEL, align=0.5, tracking=0.18)
     x, y = mp(7.0, 0.5)
-    T(c, "JACKSON SQUARE", x, y + 8, ui(18, 600), "#6f8f5c", align=0.5, tracking=0.2)
+    T(c, "JACKSON SQUARE", x, y + 8, ui(18, 600), "#9fdc7e", align=0.5, tracking=0.2)
     x, y = mp(3.5, -1.1)
-    T(c, "MISSISSIPPI RIVER", x, y, ui(34, 600), "#7da2c9", align=0.5, tracking=0.5)
+    T(c, "MISSISSIPPI RIVER", x, y, ui(34, 600), "#6f9f78", align=0.5, tracking=0.5)
     x, y = mp(6.5, 5.5)
-    T(c, "FRENCH QUARTER", x, y, ui(46, 700), "#b9b3a5", align=0.5, tracking=0.5)
+    T(c, "FRENCH QUARTER", x, y, ui(46, 700), "#3a3a3a", align=0.5, tracking=0.5)
 
 
 def route(c, t):
@@ -160,7 +166,7 @@ def route(c, t):
         return
     path = route_path()
     a0, a1 = mp(*ROUTE[0]), mp(*ROUTE[-1])
-    shader = G.linear_grad(a0[0], a0[1], a1[0], a1[1], ["#e858a8", "#fb8f5a", "#c8f868", "#68d888", "#4f72e8"])
+    shader = G.linear_grad(a0[0], a0[1], a1[0], a1[1], [VIOLET, PINK, AMBER, GOLD])
     glow = skia.Paint(AntiAlias=True)
     glow.setStyle(skia.Paint.kStroke_Style)
     glow.setStrokeWidth(46)
@@ -190,9 +196,10 @@ def screen_overlays(c, t, m):
     x, y = route_point(u)
     p = m.mapXY(x, y)
     pulse = (t * 1.4) % 1.0
-    G.circle(c, p.fX, p.fY, 22 + 60 * pulse, G.P(BLUE, 0.35 * (1 - pulse)))
+    G.circle(c, p.fX, p.fY, 22 + 60 * pulse, G.P(GREEN, 0.4 * (1 - pulse)))
+    glow_blob(c, p.fX, p.fY, 60, GREEN, 0.5)
     G.circle(c, p.fX, p.fY, 22, G.P(WHITE))
-    G.circle(c, p.fX, p.fY, 15, G.P(BLUE))
+    G.circle(c, p.fX, p.fY, 15, G.P(GREEN))
     # the Arnaud's pin
     ax, ay = mp(*ARNAUDS)
     q = m.mapXY(ax, ay)
@@ -201,17 +208,18 @@ def screen_overlays(c, t, m):
         glow_blob(c, q.fX, q.fY - 70, 170 * s, GOLD, 0.45)
         with G.xf(c, q.fX, q.fY, s=s):
             c.drawOval(skia.Rect.MakeXYWH(-26, -9, 52, 18), G.P("#000000", 0.18, blur=4))
-            icon_pin(c, 0, -62, 120, INK)
-            G.circle(c, 0, -84, 30, G.P(WHITE))
-            T(c, "A", 0, -71, F("serif", 40), INK, align=0.5)
+            icon_pin(c, 0, -62, 120, GOLD)
+            G.circle(c, 0, -84, 30, G.P(PLUM))
+            T(c, "A", 0, -71, F("serif", 40), GOLD, align=0.5)
             # label card
             f = F("serif", 40)
             w = max(f.width("Arnaud’s"), ui(20, 500).width("813 Bienville St")) + 56
             x0 = 58
             soft_shadow(c, x0, -150, w, 104, 22, 1.0, 0.6)
-            c.drawRRect(rr(x0, -150, w, 104, 22), G.P(WHITE))
-            T(c, "Arnaud’s", x0 + 28, -98, f, INK)
-            T(c, "813 Bienville St", x0 + 28, -66, ui(20, 500), GREY)
+            c.drawRRect(rr(x0, -150, w, 104, 22), G.P(PLUM, 0.95))
+            c.drawRRect(rr(x0, -150, w, 104, 22), G.P(GOLD, 0.7, stroke=1.4))
+            T(c, "Arnaud’s", x0 + 28, -98, f, "#ffffff")
+            T(c, "813 Bienville St", x0 + 28, -66, ui(20, 500), "#a8a8a8")
 
 
 def booking_card(c, t):
@@ -223,11 +231,11 @@ def booking_card(c, t):
     x, y = 960 - w / 2, lerp(-200, 56, s)
     glow_rrect(c, x, y, w, h, 40, t, a=1.0, spread=26, width=20, speed=60)
     soft_shadow(c, x, y, w, h, 40, 1.0, 0.8)
-    c.drawRRect(rr(x, y, w, h, 40), G.P(WHITE))
-    G.circle(c, x + 80, y + h / 2, 42, G.P(LIME))
+    c.drawRRect(rr(x, y, w, h, 40), G.P(PLUM, 0.96))
+    G.circle(c, x + 80, y + h / 2, 42, G.P(GOLD))
     icon_check(c, x + 80, y + h / 2 + 2, 40, INK, p=snap(clamp((t - T_MAP - 0.4) / 0.35)))
-    T(c, "Table for 2 at Arnaud’s", x + 148, y + 68, ui(36, 650), INK)
-    T(c, "Tonight · 8:00 pm · 813 Bienville St, New Orleans", x + 148, y + 110, ui(24, 460), GREY)
+    T(c, "Table for 2 at Arnaud’s", x + 148, y + 68, ui(36, 650), "#ffffff")
+    T(c, "Tonight · 8:00 pm · 813 Bienville St, New Orleans", x + 148, y + 110, ui(24, 460), "#a8a8a8")
     # the walk, counting down as the dot moves
     u = clamp((t - T_GO[0]) / (T_GO[1] - T_GO[0]))
     mins = max(0, int(math.ceil(7 * (1 - u))))
@@ -238,8 +246,9 @@ def booking_card(c, t):
     if k > 0:
         with G.layer(c, alpha=k):
             soft_shadow(c, 70, cy, cw, 86, 43, 1.0, 0.6)
-            c.drawRRect(rr(70, cy, cw, 86, 43), G.P(INK if mins > 0 else LIME))
-            G.circle(c, 70 + 48, cy + 43, 18, G.P(BLUE if mins > 0 else INK))
+            c.drawRRect(rr(70, cy, cw, 86, 43), G.P(PLUM if mins > 0 else GOLD))
+            c.drawRRect(rr(70, cy, cw, 86, 43), G.P(GREEN if mins > 0 else GOLD, 0.8, stroke=1.6))
+            G.circle(c, 70 + 48, cy + 43, 18, G.P(GREEN if mins > 0 else INK))
             T(c, label, 70 + 82, cy + 53, ui(28, 620), WHITE if mins > 0 else INK)
 
 

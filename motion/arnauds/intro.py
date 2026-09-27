@@ -1,130 +1,116 @@
-"""The intro: a chandelier draws itself in brass line and lights up bulb by bulb on the sixteenths; on the bar
-its crystals fly off and settle on the outline of the name, which inks in under a light sweep."""
+"""The intro and the end, in the spot's own light: ribbons of parade-coloured light drift in over the night,
+gather into a glowing orb that beats with the kick, and burst on the bar into a frame of light with the name
+rising inside it. The frame then shrinks into the phone's input box, the cut into the app.
+
+The end brings the orb back for the name and the address, then turns it into the maker's mark: MADE BY VEEE."""
 import math
 from functools import lru_cache
 
-import numpy as np
 import skia
 
 from engine import gfx as G
-from engine.core import clamp, lerp, snap, in_out_cubic, out_cubic, hash01, noise1
-from .look import (F, T, ui, serif, WHITE, INK, GREY, GLOW, GOLD, glow_blob)
-from .score import T_LINES, T_BULBS, T_MORPH, T_NAME, T_INK, T_TAG, T_SWEEP, CX
+from engine.core import clamp, lerp, snap, in_out_cubic, out_cubic, out_back, spring, noise1, hash01
+from .look import (F, T, ui, serif, NIGHT, CREAM, PAPER, WHITE, INK, GOLD, VIOLET, PINK, GREEN, PURPLE, MINT, AMBER,
+                   MARDI, GLOW, glow_rrect, glow_blob, veee_orb, rr)
+from .score import T_NAME, T_WIPE, T_PHONE, T_END, T_OFF, T_CREDIT, CX
 
-BRASS = "#9a7b4c"
-AXIS_X = CX
-TIERS = [(318, 150, 6), (468, 300, 10), (620, 440, 14)]     # (y, radius, arms)
-SPIN = 0.35                                                 # rad/s, the chandelier turns slowly
 NAME = "Arnaud’s"
-NAME_SIZE = 330
-NAME_BASE = 640
+NAME_SIZE = 250
+NAME_BASE = 590
+FRAME = (CX - 660, 250, 1320, 560, 110)          # x, y, w, h, corner radius
+INPUT = (368, 388, 1184, 318, 46)                # the phone's input box, where the frame lands
+CREAM_TXT = "#ffffff"
+
+T_GATHER = (0.0, 1.45)
+T_ORB = 0.95
+T_TAG = 2.62
+T_SWEEP = 3.0
 
 
-# ---------------------------------------------------------------- the chandelier, in 3D
+# ---------------------------------------------------------------- light
 
-def _ang(k, i, t):
-    n = TIERS[k][2]
-    return 2 * math.pi * i / n + SPIN * t + k * 0.3
-
-
-def bulb_pos(k, i, t):
-    y, r, n = TIERS[k]
-    a = _ang(k, i, t)
-    x = AXIS_X + r * math.cos(a)
-    z = math.sin(a)                      # +1 is nearest the viewer
-    return x, y + r * 0.18 * z - 18, z
-
-
-def bulb_time(k, i):
-    """Which sixteenth lights this bulb: the tiers light top to bottom, round each ring."""
-    order = sum(TIERS[j][2] for j in range(k)) + i
-    total = sum(n for _, _, n in TIERS)
-    return T_BULBS[min(len(T_BULBS) - 1, int(order / total * len(T_BULBS)))]
-
-
-@lru_cache(maxsize=1)
-def crystals():
-    """Every glass piece the name will be made of: (tier, index, kind, sub)."""
-    out = []
-    for k, (_, _, n) in enumerate(TIERS):
-        for i in range(n):
-            out.append((k, i, "bulb", 0))
-            for d in range(3):
-                out.append((k, i, "drop", d))
-            for b in range(5):
-                out.append((k, i, "bead", b))
-    return out
-
-
-def crystal_pos(item, t):
-    k, i, kind, sub = item
-    x, y, z = bulb_pos(k, i, t)
-    if kind == "bulb":
-        return x, y - 8, z
-    if kind == "drop":
-        return x, y + 32 + sub * 27, z
-    # beads hang in a swag between this bulb and the next
-    x2, y2, z2 = bulb_pos(k, (i + 1) % TIERS[k][2], t)
-    u = (sub + 1) / 6
-    sag = 56 * math.sin(math.pi * u) + 12
-    return lerp(x, x2, u), lerp(y, y2, u) + 22 + sag, lerp(z, z2, u)
-
-
-def chandelier_lines(c, t, a):
-    """Brass: the chain, the column, and an arm to every bulb."""
+def aurora(c, t, gather, a=1.0, t0=0.0):
+    """Five ribbons of light swing in from the edges and pull together towards the centre."""
     if a <= 0:
         return
-    p = G.P(BRASS, 0.85 * a, stroke=2.4, cap="round")
-    draw = snap(clamp((t - T_LINES[0]) / (T_LINES[1] - T_LINES[0])))
-    path = skia.Path()
-    path.moveTo(AXIS_X, -20)
-    path.lineTo(AXIS_X, 200)
-    c.drawPath(path, G.P(BRASS, 0.85 * a, stroke=2.4, cap="round", effect=G.trim(0, min(1.0, draw * 2.5))))
-    c.drawOval(skia.Rect.MakeXYWH(AXIS_X - 52, 200, 104, 32), G.P(BRASS, a * clamp(draw * 3 - 0.5), stroke=3.0))
-    col = skia.Path()
-    col.moveTo(AXIS_X, 232)
-    col.lineTo(AXIS_X, 690)
-    c.drawPath(col, G.P(BRASS, 0.85 * a, stroke=3.0, cap="round", effect=G.trim(0, clamp(draw * 1.6 - 0.2))))
-    for k, (ty, r, n) in enumerate(TIERS):
-        for i in range(n):
-            x, y, z = bulb_pos(k, i, t)
-            arm = skia.Path()
-            arm.moveTo(AXIS_X, ty + 40)
-            arm.cubicTo(lerp(AXIS_X, x, 0.35), ty + 84, lerp(AXIS_X, x, 0.8), y + 56, x, y + 12)
-            local = clamp((draw - 0.15 - 0.06 * k) / 0.55)
-            depth = 0.55 + 0.45 * (z + 1) / 2
-            c.drawPath(arm, G.P(BRASS, 0.9 * a * depth, stroke=2.8 + 1.6 * depth, cap="round",
-                                effect=G.trim(0, snap(local))))
-            if local >= 1:
-                c.drawRRect(skia.RRect.MakeRectXY(skia.Rect.MakeXYWH(x - 12, y - 4, 24, 20), 5, 5),
-                            G.P(BRASS, a * depth, stroke=2.2))
+    with G.layer(c, alpha=a):
+        for k, col in enumerate([PURPLE, PINK, GOLD, GREEN, VIOLET]):
+            ak = k * 2 * math.pi / 5 + 0.4 + 0.25 * (t - t0)
+            reach = lerp(1500, 60, gather)
+            p0 = (CX + math.cos(ak) * reach * 1.3, 540 + math.sin(ak) * reach * 0.8)
+            p3 = (CX + math.cos(ak + 2.4) * reach * 1.3, 540 + math.sin(ak + 2.4) * reach * 0.8)
+            wob = 260 * (1 - gather) + 40
+            c1 = (CX + wob * noise1(t * 0.9 + k, 1), 540 + wob * noise1(t * 0.9 + k, 2))
+            c2 = (CX + wob * noise1(t * 0.9 + k, 3), 540 + wob * noise1(t * 0.9 + k, 4))
+            path = skia.Path()
+            path.moveTo(*p0)
+            path.cubicTo(*c1, *c2, *p3)
+            p = skia.Paint(AntiAlias=True)
+            p.setStyle(skia.Paint.kStroke_Style)
+            p.setStrokeCap(skia.Paint.kRound_Cap)
+            p.setStrokeWidth(lerp(150, 60, gather))
+            p.setColor4f(G.c4(col, 0.5))
+            p.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, lerp(70, 30, gather)))
+            p.setBlendMode(skia.BlendMode.kPlus)
+            c.drawPath(path, p)
+            q = skia.Paint(p)
+            q.setStrokeWidth(lerp(14, 6, gather))
+            q.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, 6))
+            q.setColor4f(G.c4(G.mixc(col, "#ffffff", 0.45), 0.7))
+            c.drawPath(path, q)
 
 
-def draw_crystal(c, x, y, z, kind, lit, idx, a, t):
-    depth = 0.5 + 0.5 * (z + 1) / 2
-    col = GLOW[idx % (len(GLOW) - 1)]
-    if kind == "bulb":
-        if lit > 0:
-            flick = 0.85 + 0.15 * noise1(t * 6 + idx, 2.0)
-            glow_blob(c, x, y, 96 * depth * lit, col, 0.6 * a * lit * flick)
-            glow_blob(c, x, y, 36 * depth, "#ffe9b8", 0.95 * a * lit)
-            G.circle(c, x, y, 8.5 * depth, G.P("#fffaf0", a))
-            G.circle(c, x, y, 8.5 * depth, G.P(GOLD, a * (1 - lit), stroke=2.0))
-            if lit > 0 and z > -0.2:
-                pop = math.exp(-(t - bulb_time(0, 0)) * 0.0) * (0.6 + 0.4 * flick)
-                L = 46 * depth * lit * pop
-                p = G.P("#ffe2a8", 0.8 * a * lit, stroke=2.0, blur=1.0)
-                c.drawLine(x - L, y, x + L, y, p)
-                c.drawLine(x, y - L * 0.6, x, y + L * 0.6, p)
+def blob_path(x, y, r, t):
+    p = skia.Path()
+    n = 72
+    for i in range(n + 1):
+        a = 2 * math.pi * i / n
+        rr_ = r * (1 + 0.07 * noise1(math.cos(a) * 1.3 + t * 1.6, 5) + 0.05 * noise1(math.sin(a) * 1.7 - t * 1.2, 6))
+        px, py = x + rr_ * math.cos(a), y + rr_ * math.sin(a)
+        if i == 0:
+            p.moveTo(px, py)
         else:
-            G.circle(c, x, y, 6 * depth, G.P(BRASS, 0.9 * a, stroke=1.6))
-    else:
-        s = (9.5 if kind == "drop" else 5.5) * depth
-        pts = [(x, y - s * 1.3), (x + s * 0.7, y), (x, y + s * 1.3), (x - s * 0.7, y)]
-        c.drawPath(G.poly(pts), G.P(col, 0.35 * a * max(lit, 0.3)))
-        c.drawPath(G.poly(pts), G.P(BRASS, 0.8 * a, stroke=1.1))
-        if lit > 0:
-            glow_blob(c, x, y, 28 * depth, col, 0.45 * a * lit)
+            p.lineTo(px, py)
+    p.close()
+    return p
+
+
+def orb(c, x, y, r, t, a=1.0):
+    """Liquid light: a wobbling ball of the parade colours turning inside itself."""
+    if r <= 0.5 or a <= 0:
+        return
+    glow_blob(c, x, y, r * 3.4, VIOLET, 0.45 * a)
+    glow_blob(c, x + r * 0.4, y + r * 0.2, r * 2.4, PINK, 0.35 * a)
+    glow_blob(c, x - r * 0.3, y - r * 0.3, r * 2.0, GOLD, 0.25 * a)
+    m = skia.Matrix()
+    m.setRotate(t * 160, x, y)
+    sh = skia.GradientShader.MakeSweep(x, y, [G.cint(col, a) for col in (VIOLET, PINK, GOLD, GREEN, MINT, VIOLET)],
+                                       None, skia.TileMode.kClamp, 0, 360, 0, m)
+    p = skia.Paint(AntiAlias=True)
+    p.setShader(sh)
+    p.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, r * 0.08))
+    c.drawPath(blob_path(x, y, r, t), p)
+    glow_blob(c, x - r * 0.28, y - r * 0.32, r * 0.75, "#ffffff", 0.55 * a)
+    G.circle(c, x - r * 0.34, y - r * 0.4, r * 0.12, G.P("#ffffff", 0.8 * a, blur=r * 0.05))
+
+
+def light_frame(c, x, y, w, h, r, t, a=1.0, fill=None, fill_a=1.0, line_a=0.85):
+    """The frame of light: a turning parade glow, a crisp inner line, an optional fill."""
+    if a <= 0:
+        return
+    glow_rrect(c, x, y, w, h, r, t, a=a, spread=46, width=40, speed=70)
+    glow_rrect(c, x, y, w, h, r, t + 1.3, a=0.8 * a, spread=14, width=10, speed=70)
+    if fill:
+        c.drawRRect(rr(x, y, w, h, r), G.P(fill, fill_a * a))
+    c.drawRRect(rr(x, y, w, h, r), G.P("#fff6ea", line_a * a, stroke=2.2))
+
+
+def pulse(t, beats=(0.95, 1.45, 1.7, 1.95), decay=0.12):
+    v = 0.0
+    for b in beats:
+        if t >= b:
+            v = max(v, math.exp(-(t - b) / decay))
+    return v
 
 
 # ---------------------------------------------------------------- the name
@@ -134,190 +120,174 @@ def name_run():
     return serif(NAME_SIZE).shape(NAME)
 
 
-@lru_cache(maxsize=1)
-def name_path():
-    run = name_run()
-    return run.path(CX - run.width / 2, NAME_BASE)
-
-
-@lru_cache(maxsize=1)
-def name_points():
-    """Evenly spaced points along the outline of the name, one per crystal."""
-    path = name_path()
-    n = len(crystals())
-    meas = skia.PathMeasure(path, False)
-    lens = []
-    while True:
-        lens.append(meas.getLength())
-        if not meas.nextContour():
-            break
-    total = sum(lens)
-    pts = []
-    meas = skia.PathMeasure(path, False)
-    for L in lens:
-        k = max(1, int(round(n * L / total)))
-        for j in range(k):
-            pos, _ = meas.getPosTan(L * (j + 0.5) / k)
-            pts.append((pos.fX, pos.fY))
-        if not meas.nextContour():
-            break
-    pts = pts[:n]
-    while len(pts) < n:
-        pts.append(pts[len(pts) % max(1, len(pts))])
-    return pts
-
-
-@lru_cache(maxsize=1)
-def pairing():
-    """Crystal i flies to target pairing()[i]; both sides sorted left to right so the flight reads as a fall."""
-    items = crystals()
-    src = sorted(range(len(items)), key=lambda i: crystal_pos(items[i], T_MORPH[0])[0])
-    tgt = sorted(range(len(name_points())), key=lambda j: name_points()[j][0])
-    out = [0] * len(items)
-    for a, b in zip(src, tgt):
-        out[a] = b
-    return out
-
-
-def morph_u(i, x_src):
-    t0 = T_MORPH[0] + 0.28 * clamp((x_src - 560) / 800) + 0.06 * float(hash01(i, 3))
-    return t0, t0 + 0.46
-
-
-def name_fill(c, t, a=1.0, sweep_u=None):
-    path = name_path()
-    draw = clamp((t - T_INK[0]) / (T_INK[1] - T_INK[0]))
-    if draw > 0:
-        c.drawPath(path, G.P(INK, a, stroke=2.2, effect=G.trim(0, snap(draw)), join="round"))
-    fill = clamp((t - T_INK[0] - 0.25) / 0.35)
-    if fill > 0:
-        def paint(cc):
-            cc.drawPath(path, G.P(INK, a * fill))
-        if sweep_u is not None and 0 < sweep_u < 1:
-            run = name_run()
-            G.light_sweep(c, paint, CX - run.width / 2 - 200, CX + run.width / 2 + 200, NAME_BASE - 120, sweep_u,
-                          colors=GLOW[:6], width=160, angle=22.0, strength=0.9)
-        else:
-            paint(c)
-
-
-def tagline(c, t, a=1.0):
-    u = clamp((t - T_TAG) / 0.5)
-    if u <= 0:
-        return
-    e = out_cubic(u)
-    f = ui(28, 600)
-    tr = lerp(0.9, 0.42, e)
-    s = "EST. 1918   ·   NEW ORLEANS"
-    T(c, s, CX, NAME_BASE + 110, f, INK, a=a * u, align=0.5, tracking=tr)
-    w = f.width(s, tr)
-    L = 120 * e
-    c.drawLine(CX - w / 2 - 36 - L, NAME_BASE + 100, CX - w / 2 - 36, NAME_BASE + 100, G.P(GREY, a * u, stroke=1.6))
-    c.drawLine(CX + w / 2 + 36, NAME_BASE + 100, CX + w / 2 + 36 + L, NAME_BASE + 100, G.P(GREY, a * u, stroke=1.6))
-
-
-def backdrop_glow(c, t, a=1.0):
-    """Big, slow, soft colour fields, the way the reference lights its white."""
-    for k, (col, ox, oy, r) in enumerate(((GLOW[0], -520, -260, 520), (GLOW[4], 560, 300, 560), (GLOW[3], 480, -330, 420),
-                                          (GLOW[2], -560, 330, 460))):
-        x = CX + ox + 60 * math.sin(t * 0.7 + k)
-        y = 540 + oy + 40 * math.cos(t * 0.6 + k * 2)
-        glow_blob(c, x, y, r, col, 0.16 * a)
-
-
-def intro(c, t):
-    backdrop_glow(c, t)
-    z = 0.93 + 0.07 * out_cubic(clamp(t / 3.6))
-    z *= lerp(1.18, 1.0, snap(clamp((t - T_MORPH[0]) / 0.7)))      # close on the chandelier, then back for the name
-    c.save()
-    c.translate(CX, 540)
-    c.scale(z, z)
-    c.translate(-CX, -540)
-    _intro(c, t)
-    c.restore()
-
-
-def _intro(c, t):
-    items = crystals()
-    targets = name_points()
-    pair = pairing()
-    lines_a = 1 - clamp((t - T_MORPH[0]) / 0.45)
-    chandelier_lines(c, t, lines_a)
-    order = sorted(range(len(items)), key=lambda i: crystal_pos(items[i], min(t, T_MORPH[0]))[2])
-    for i in order:
-        k, idx, kind, sub = items[i]
-        lit = clamp((t - bulb_time(k, idx)) / 0.12)
-        if t < T_LINES[0] + 0.1 * k:
-            continue
-        x0, y0, z0 = crystal_pos(items[i], min(t, T_MORPH[0]))
-        t0, t1 = morph_u(i, x0)
-        if t < t0:
-            show = clamp((t - (T_LINES[0] + 0.25 + 0.08 * k)) / 0.3)
-            draw_crystal(c, x0, y0, z0, kind, lit, i, show, t)
-            continue
-        tx, ty = targets[pair[i]]
-        u = in_out_cubic(clamp((t - t0) / (t1 - t0)))
-        # a curved flight: out and around, then onto the letter
-        mx = lerp(x0, tx, 0.5) + 220 * (float(hash01(i, 7)) - 0.5)
-        my = lerp(y0, ty, 0.5) - 120 * float(hash01(i, 9))
-        x = (1 - u) ** 2 * x0 + 2 * (1 - u) * u * mx + u * u * tx
-        y = (1 - u) ** 2 * y0 + 2 * (1 - u) * u * my + u * u * ty
-        settle = clamp((t - t1) / 0.6)
-        a = 1 - settle * 0.9
-        if a <= 0.02:
-            continue
-        col = GLOW[i % (len(GLOW) - 1)]
-        glow_blob(c, x, y, 26 * (1 - 0.5 * settle), col, 0.55 * a)
-        G.circle(c, x, y, 3.2 + 1.5 * (1 - u), G.P("#fffaf0" if kind == "bulb" else col, a))
-    su = (t - T_SWEEP) / 0.7
-    name_fill(c, t, sweep_u=su)
-    tagline(c, t)
-
-
-# ---------------------------------------------------------------- the end: the name again, with its halo
-
-def outro(c, t, t0):
-    backdrop_glow(c, t, a=1.2)
+def name(c, t, t0, a=1.0, sweep_t=None):
     run = name_run()
     f = serif(NAME_SIZE)
     x0 = CX - run.width / 2
-    base = NAME_BASE - 40
-    # a ring of crystals gathers into a halo around the name, like a chandelier seen side on
-    n = 120
-    gather = out_cubic(clamp((t - t0) / 0.9))
-    for i in range(n):
-        a = 2 * math.pi * i / n + 0.35 * (t - t0)
-        rx, ry = 820, 190
-        hx, hy = CX + rx * math.cos(a), base - 110 + ry * math.sin(a)
-        sx = CX + 1400 * (float(hash01(i, 21)) - 0.5) * 1.6
-        sy = 540 + 900 * (float(hash01(i, 22)) - 0.5)
-        x, y = lerp(sx, hx, gather), lerp(sy, hy, gather)
-        depth = 0.55 + 0.45 * (math.sin(a) + 1) / 2
-        tw = 0.6 + 0.4 * math.sin(t * 7 + i * 1.7)
-        col = GLOW[i % (len(GLOW) - 1)]
-        glow_blob(c, x, y, 24 * depth, col, 0.5 * tw * gather)
-        G.circle(c, x, y, 3.2 * depth, G.P("#fffaf0" if i % 3 else col, 0.95 * gather))
-    # the letters rise in one by one
+
     def letters(cc):
         for i, gid, gx, adv in run.glyphs():
-            u = clamp((t - t0 - 0.25 - 0.05 * i) / 0.45)
+            u = clamp((t - t0 - 0.05 * i) / 0.4)
             if u <= 0:
                 continue
             e = out_cubic(u)
-            with G.xf(cc, x0 + gx + adv / 2, base, s=0.9 + 0.1 * e):
-                G.glyph(cc, f, gid, -adv / 2, 60 * (1 - e), G.P(INK, u))
-    su = (t - t0 - 1.1) / 0.8
-    if 0 < su < 1:
-        G.light_sweep(c, letters, x0 - 200, x0 + run.width + 200, base - 120, su, colors=GLOW[:6], width=170,
-                      angle=22.0, strength=0.9)
+            with G.xf(cc, x0 + gx + adv / 2, NAME_BASE, s=0.92 + 0.08 * e):
+                G.glyph(cc, f, gid, -adv / 2, 70 * (1 - e), G.P("#ffffff", 0.35 * u * a, blur=18 * (1 - e) + 6))
+                G.glyph(cc, f, gid, -adv / 2, 70 * (1 - e), G.P(CREAM_TXT, u * a))
+
+    su = None if sweep_t is None else (t - sweep_t) / 0.7
+    if su is not None and 0 < su < 1:
+        G.light_sweep(c, letters, x0 - 200, x0 + run.width + 200, NAME_BASE - 100, su, colors=MARDI,
+                      width=160, angle=22.0, strength=0.95)
     else:
         letters(c)
-    ut = clamp((t - t0 - 0.8) / 0.5)
-    if ut > 0:
-        ft = ui(26, 600)
-        tr = lerp(0.8, 0.4, out_cubic(ut))
-        T(c, "813 BIENVILLE ST   ·   FRENCH QUARTER   ·   NEW ORLEANS", CX, base + 100, ft, INK, a=ut, align=0.5,
-          tracking=tr)
-    us = clamp((t - t0 - 1.1) / 0.5)
-    if us > 0:
-        T(c, "Since 1918. Tonight, something special.", CX, base + 160, F("serif-italic", 40), GREY, a=us, align=0.5)
+
+
+def tagline(c, t, t0, text, a=1.0, y=NAME_BASE + 104, size=30):
+    u = clamp((t - t0) / 0.5)
+    if u <= 0:
+        return
+    e = out_cubic(u)
+    f = ui(size, 640)
+    tr = lerp(0.8, 0.42, e) if len(text) < 40 else lerp(0.6, 0.3, e)
+    T(c, text, CX, y, f, GOLD, a=a * u, align=0.5, tracking=tr)
+
+
+def night(c, t):
+    c.drawRect(skia.Rect.MakeWH(1920, 1080), G.P(NIGHT))
+    for k, (col, x, y, r) in enumerate(((PURPLE, 220, 860, 700), (GREEN, 1720, 200, 600), (PINK, 1660, 960, 520))):
+        glow_blob(c, x + 60 * math.sin(t * 0.5 + k), y + 40 * math.cos(t * 0.4 + k), r, col, 0.14)
+
+
+def frame_at(t):
+    """(x, y, w, h, r, fill mix) of the frame of light over the intro and into the input box."""
+    fx, fy, fw, fh, fr = FRAME
+    u = clamp((t - T_NAME) / 0.5)
+    e = out_back(u, 1.3) if u < 1 else 1.0
+    size = 2 * 118 * (1 + 0.18 * pulse(t))
+    w, h = lerp(size, fw, e), lerp(size, fh, e)
+    r = lerp(size / 2, fr, clamp(e))
+    x, y = CX - w / 2, 540 - 10 - h / 2 + lerp(0, fy + fh / 2 - 530, clamp(e))
+    m = in_out_cubic(clamp((t - T_WIPE[0]) / (T_WIPE[1] - T_WIPE[0])))
+    ix, iy, iw, ih, ir = INPUT
+    return lerp(x, ix, m), lerp(y, iy, m), lerp(w, iw, m), lerp(h, ih, m), lerp(r, ir, m), m
+
+
+def intro(c, t):
+    m = in_out_cubic(clamp((t - T_WIPE[0]) / (T_WIPE[1] - T_WIPE[0])))
+    night(c, t)
+    if m > 0:
+        c.drawRect(skia.Rect.MakeWH(1920, 1080), G.P(CREAM, clamp((m - 0.2) / 0.8)))
+    gather = in_out_cubic(clamp((t - T_GATHER[0]) / (T_GATHER[1] - T_GATHER[0])))
+    burst = clamp((t - T_NAME) / 0.35)
+    aurora(c, t, gather, a=(1 - 0.75 * burst) * (1 - m))
+    if t < T_NAME + 0.1:
+        r = 118 * spring(t - T_ORB, 2.2, 0.55) * (1 + 0.18 * pulse(t)) if t >= T_ORB else 0.0
+        orb(c, CX, 530, r, t, a=1 - clamp((t - T_NAME) / 0.1))
+    if t >= T_NAME - 0.02:
+        x, y, w, h, r, mm = frame_at(t)
+        # the shockwave of the burst
+        k = t - T_NAME
+        if 0 <= k < 0.6:
+            v = k / 0.6
+            G.circle(c, CX, 530, 120 + 900 * out_cubic(v), G.P("#fff2df", 0.5 * (1 - v), stroke=6 * (1 - v) + 1, blur=4))
+        light_frame(c, x, y, w, h, r, t, a=1.0, fill=G.mixc("#111111", WHITE, mm), fill_a=lerp(0.55, 1.0, mm))
+        fade = 1 - clamp((t - T_WIPE[0]) / 0.2)
+        if fade > 0:
+            name(c, t, T_NAME + 0.08, a=fade, sweep_t=T_SWEEP)
+            tagline(c, t, T_TAG, "EST. 1918   ·   NEW ORLEANS", a=fade)
+    # sparkles thrown by the burst
+    k = t - T_NAME
+    if 0 <= k < 1.2:
+        for i in range(26):
+            ang = 2 * math.pi * float(hash01(i, 3))
+            sp = 300 + 700 * float(hash01(i, 4))
+            x = CX + math.cos(ang) * sp * out_cubic(min(1.0, k / 1.2))
+            y = 530 + math.sin(ang) * sp * 0.6 * out_cubic(min(1.0, k / 1.2))
+            a = (1 - k / 1.2)
+            col = MARDI[i % 4]
+            pts = G.star_points(4, 12 * a + 3, 3, cx=x, cy=y, rot=45 * i)
+            c.drawPath(G.poly(pts), G.P(col, a))
+
+
+# ---------------------------------------------------------------- the end
+
+def outro(c, t, t0):
+    """The orb comes back, bursts on the downbeat into the frame, the name and the address."""
+    night(c, t)
+    k = t - t0
+    gather = in_out_cubic(clamp((k + 0.35) / 0.4))
+    aurora(c, t, gather, a=clamp(1 - k / 0.5), t0=t0)
+    if k < 0.05:
+        orb(c, CX, 530, 118 * (1 + 0.2 * pulse(t, (t0 - 0.25,))), t)
+    off = clamp((t - T_OFF) / 0.28)
+    fx, fy, fw, fh, fr = FRAME
+    u = clamp(k / 0.5)
+    e = out_back(u, 1.3) if u < 1 else 1.0
+    size = 236
+    w, h = lerp(size, fw, e), lerp(size, fh, e)
+    r = lerp(size / 2, fr, clamp(e))
+    # at T_OFF the frame folds back into an orb that drifts to the maker's mark
+    oe = snap(off)
+    w, h = lerp(w, 236, oe), lerp(h, 236, oe)
+    r = lerp(r, 118, oe)
+    x, y = CX - w / 2, lerp(fy, 530 - 118, oe) if e >= 1 else 530 - h / 2
+    if e < 1:
+        y = 530 - h / 2 + lerp(0, fy + fh / 2 - 530, clamp(e))
+    if off < 1:
+        if 0 <= k < 0.6:
+            v = k / 0.6
+            G.circle(c, CX, 530, 120 + 900 * out_cubic(v), G.P("#fff2df", 0.5 * (1 - v), stroke=6 * (1 - v) + 1, blur=4))
+        light_frame(c, x, y, w, h, r, t, a=1.0 - off, fill="#111111", fill_a=0.55)
+        fade = 1 - off
+        name(c, t, t0 + 0.08, a=fade, sweep_t=t0 + 1.0)
+        tagline(c, t, t0 + 0.55, "813 BIENVILLE ST   ·   FRENCH QUARTER   ·   NEW ORLEANS", a=fade, size=26)
+        us = clamp((t - t0 - 0.9) / 0.5) * fade
+        if us > 0:
+            T(c, "Tonight, something special.", CX, fy + fh + 110, F("serif-italic", 48), CREAM_TXT, a=us, align=0.5)
+    if off > 0:
+        credit(c, t)
+
+
+def credit(c, t):
+    """The frame folds into an orb, the orb becomes the maker's mark: MADE BY VEEE."""
+    off = snap(clamp((t - T_OFF) / 0.28))
+    move = in_out_cubic(clamp((t - T_CREDIT) / 0.45))
+    ox = lerp(CX, CX - 470, move)
+    oy = 540
+    r = lerp(118, 96, move) * (1 + 0.12 * pulse(t, (T_CREDIT,), 0.15))
+    orb(c, ox, oy, r * off, t)
+    u = clamp((t - T_CREDIT - 0.15) / 0.5)
+    if u <= 0:
+        return
+    e = out_cubic(u)
+    fm = ui(34, 700)
+    T(c, "MADE BY", CX - 330, oy - 70 + 20 * (1 - e), fm, GOLD, a=u, tracking=0.5)
+    fv = F("archivo", 250, wght=850, wdth=118)
+    run = fv.shape("VEEE")
+    x0 = CX - 340
+    base = oy + 120
+
+    def word(cc):
+        for i, gid, gx, adv in run.glyphs():
+            v = clamp((t - T_CREDIT - 0.2 - 0.07 * i) / 0.35)
+            if v <= 0:
+                continue
+            ev = out_back(v, 1.4)
+            p = skia.Paint(AntiAlias=True)
+            ox = gx + adv / 2          # the gradient spans the whole word, in this glyph's own coordinates
+            p.setShader(G.linear_grad(-ox, 0, run.width - ox, 0, MARDI))
+            p.setAlphaf(clamp(v))
+            with G.xf(cc, x0 + gx + adv / 2, base, s=ev):
+                glow = skia.Paint(p)
+                glow.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, 22))
+                glow.setAlphaf(0.6 * clamp(v))
+                G.glyph(cc, fv, gid, -adv / 2, 0, glow)
+                G.glyph(cc, fv, gid, -adv / 2, 0, p)
+
+    su = (t - T_CREDIT - 0.9) / 0.8
+    if 0 < su < 1:
+        G.light_sweep(c, word, x0 - 200, x0 + run.width + 200, base - 100, su, colors=("#ffffff",), width=140,
+                      angle=22.0, strength=0.7)
+    else:
+        word(c)

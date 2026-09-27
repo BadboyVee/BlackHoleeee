@@ -1,5 +1,4 @@
-"""ARNAUD'S look: the reference's palette and parts (white canvas, rainbow edge glow, lime, orange, the lavender
-caret), plus photos, icons and the phone."""
+"""ARNAUD'S look: white, black, gold and light green. Plus photos, icons, the caret and the phone."""
 import math
 import os
 from functools import lru_cache
@@ -14,18 +13,41 @@ from engine.core import clamp, lerp
 HERE = os.path.dirname(os.path.abspath(__file__))
 PHOTOS = os.path.join(HERE, "..", "photos", "arnauds")
 
+# the palette: white, black, gold and light green
 WHITE = "#ffffff"
-INK = "#0b0b0c"
-GREY = "#8d8d93"
-FAINT = "#c9c9ce"
-LINE = "#ececef"
-LIME = "#c5f168"
-ORANGE = "#fe783a"
-BLUE = "#3868e8"
-LAVENDER = "#a8a8f8"
-CARD = "#0b0b0b"
-GOLD = "#e9b35a"
-GLOW = ["#e858a8", "#f8a0b8", "#fbb07a", "#c8f868", "#68d888", "#8fb4ff", "#f8a8f8", "#e858a8"]
+BLACK = "#0a0a0a"
+GOLD = "#e3b54f"
+GOLD_DEEP = "#b8872a"
+GOLD_PALE = "#f3dc9a"
+LIGHT_GREEN = "#bde9a0"
+GREEN_MID = "#86d36a"
+# grounds
+CREAM = WHITE              # the day scenes
+PAPER = WHITE              # cards and the phone
+NIGHT = BLACK              # the night scenes
+PLUM = "#141414"           # dark cards and glass on black
+FIELD = LIGHT_GREEN        # the field of the thinking scene and the carousel
+# accents, all drawn from the four colours
+PURPLE = GOLD_DEEP
+VIOLET = GREEN_MID
+GREEN = GREEN_MID
+MINT = LIGHT_GREEN
+AMBER = GOLD_PALE
+PINK = GOLD
+# type and lines
+INK = BLACK
+GREY = "#8a8a8a"
+FAINT = "#c8c8c8"
+LINE = "#ececec"
+CARD = PLUM
+# the signature glow: gold and light green, turning slowly around every card
+GLOW = [GOLD, GOLD_PALE, LIGHT_GREEN, GREEN_MID, GOLD_DEEP, LIGHT_GREEN, GOLD_PALE, GOLD]
+MARDI = [GOLD_DEEP, GOLD, GREEN_MID, LIGHT_GREEN]
+# the old names, for code that still speaks them
+LIME = GOLD
+ORANGE = GOLD
+BLUE = GOLD_DEEP
+LAVENDER = GOLD_PALE
 
 
 @lru_cache(maxsize=None)
@@ -82,11 +104,13 @@ def soft_shadow(c, x, y, w, h, r, a=1.0, lift=1.0):
 
 
 def caret(c, x, y_top, h, length, a=1.0):
-    """The lavender block that trails the typing, ending in a solid blue bar."""
+    """The caret: a pink-to-violet trail that ends in a gold bar."""
     if length > 1:
         c.drawRect(skia.Rect.MakeXYWH(x - length, y_top, length, h),
-                   G.P(LAVENDER, a, shader=G.linear_grad(x - length, 0, x, 0, [LAVENDER, LAVENDER], alphas=[0.0, 0.95 * a])))
-    c.drawRect(skia.Rect.MakeXYWH(x - max(3.0, h * 0.06), y_top, max(3.0, h * 0.06), h), G.P(BLUE, a))
+                   G.P(GOLD, a, shader=G.linear_grad(x - length, 0, x, 0, [LIGHT_GREEN, GOLD], alphas=[0.0, 0.9 * a])))
+    bw = max(3.0, h * 0.06)
+    c.drawRect(skia.Rect.MakeXYWH(x - bw - 2, y_top - 4, bw + 4, h + 8), G.P(GOLD, 0.5 * a, blur=6))
+    c.drawRect(skia.Rect.MakeXYWH(x - bw, y_top, bw, h), G.P(GOLD, a))
 
 
 # ---------------------------------------------------------------- photos
@@ -200,8 +224,8 @@ def icon_people(c, x, y, s, col, a=1.0):
 
 def icon_send(c, x, y, r, a=1.0, press=0.0):
     with G.xf(c, x, y, s=1 - 0.1 * press):
-        G.circle(c, 0, 0, r, G.P(BLUE, a))
-        icon_arrow(c, 0, 0, r * 1.05, WHITE, 1, a)
+        c.drawCircle(0, 0, r, G.P(BLACK, a))
+        icon_arrow(c, 0, 0, r * 1.05, GOLD, 1, a)
 
 
 def icon_flame(c, x, y, s, col, a=1.0):
@@ -269,5 +293,17 @@ def status_bar(c, x, y, w, a=1.0, col=INK):
 
 def phone(c, x, y, w, h, a=1.0, r=96):
     soft_shadow(c, x, y, w, h, r, a, lift=1.3)
-    c.drawRRect(rr(x, y, w, h, r), G.P(WHITE, a))
-    c.drawRRect(rr(x + 0.5, y + 0.5, w - 1, h - 1, r), G.P("#000000", 0.05 * a, stroke=1.2))
+    c.drawRRect(rr(x, y, w, h, r), G.P(PAPER, a))
+    c.drawRRect(rr(x + 0.5, y + 0.5, w - 1, h - 1, r), G.P("#000000", 0.06 * a, stroke=1.2))
+
+
+def veee_orb(c, x, y, r, t=0.0, a=1.0):
+    """The concierge's mark: a small orb of the parade colours, slowly turning."""
+    m = skia.Matrix()
+    m.setRotate(t * 90, x, y)
+    sh = skia.GradientShader.MakeSweep(x, y, [G.cint(col, a) for col in (VIOLET, PINK, GOLD, GREEN, VIOLET)], None,
+                                       skia.TileMode.kClamp, 0, 360, 0, m)
+    p = skia.Paint(AntiAlias=True)
+    p.setShader(sh)
+    c.drawCircle(x, y, r, p)
+    c.drawCircle(x - r * 0.3, y - r * 0.32, r * 0.32, G.P(WHITE, 0.55 * a, blur=r * 0.25))

@@ -7,7 +7,8 @@ import skia
 
 from engine import gfx as G
 from engine.core import clamp, lerp, snap, whip, out_cubic, in_out_cubic, spring, out_back, hash01
-from .look import (F, T, ui, rr, WHITE, INK, GREY, FAINT, LIME, ORANGE, BLUE, LAVENDER, GLOW, GOLD,
+from .look import (F, T, ui, rr, WHITE, INK, GREY, FAINT, LIME, ORANGE, BLUE, LAVENDER, GLOW, GOLD, MARDI,
+                   NIGHT, PLUM, FIELD, PURPLE, VIOLET, GREEN, MINT, PINK, AMBER,
                    glow_rrect, glow_blob, caret, image_shader, draw_cover, sweep, photo)
 from .score import (T_GIANT, WORDS, T_FIND, T_DROPS, T_RISE, T_LIME, T_CRAVE, T_ROLL, T_WAIT)
 
@@ -67,22 +68,29 @@ def word_fill(c, it, x, y, t):
         else:
             p.setColor(G.cint(ORANGE))
         c.drawPath(path, p)
-        c.drawPath(path, G.P(INK, 0.9, stroke=3.0, join="round"))
+        c.drawPath(path, G.P(CREAM_TXT, 0.35, stroke=2.4, join="round"))
     elif kind == "glow":
         glow = skia.Paint(AntiAlias=True)
-        glow.setShader(G.linear_grad(x, 0, x + it["w"], 0, GLOW[:6]))
+        glow.setShader(G.linear_grad(x, 0, x + it["w"], 0, MARDI))
         glow.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, 26))
         glow.setAlphaf(0.8)
         c.drawPath(path, glow)
         p = skia.Paint(AntiAlias=True)
-        p.setShader(G.linear_grad(x, 0, x + it["w"], 0, ["#c2358c", "#e8703a", "#7cc242", "#2fb07a", "#4f72e8"]))
+        p.setShader(G.linear_grad(x, 0, x + it["w"], 0, MARDI))
         c.drawPath(path, p)
     else:
-        c.drawPath(path, G.P(INK))
+        c.drawPath(path, G.P(CREAM_TXT))
     return x + run.width
 
 
+CREAM_TXT = "#ffffff"
+
+
 def giant(c, t):
+    c.drawRect(skia.Rect.MakeWH(1920, 1080), G.P(NIGHT))
+    for k, (col, x, y, r) in enumerate(((PURPLE, 260, 900, 700), (GREEN, 1700, 180, 600), (GOLD, 1500, 980, 460),
+                                         (PINK, 300, 120, 420))):
+        glow_blob(c, x + 50 * math.sin(t * 0.9 + k), y, r, col, 0.16)
     lay = giant_layout()
     cam = giant_cam(t)
     c.save()
@@ -101,78 +109,131 @@ def giant(c, t):
     c.restore()
 
 
-# ---------------------------------------------------------------- the bowl that thinks
+# ---------------------------------------------------------------- beads that think, a coin that answers
 
-BOWL = (1030, 640, 250)                   # centre of the rim, radius
+RING = (960, 600, 250)          # centre and radius of the bead ring
 CHIPS = ["pizza", "sushi", "ramen"]
+BEADS = 44
 
 
-def bowl_tilt(t):
-    return 10 * math.sin((t - T_FIND) * 2.4) - 6
+def field(c, t):
+    """The purple field shared by the thinking scene and the carousel."""
+    c.drawRect(skia.Rect.MakeWH(1920, 1080), G.P(FIELD))
+    c.drawCircle(960, 560, 1200, G.P(FIELD, 1, shader=G.radial_grad(960, 560, 1200, ["#d6f2bf", FIELD, "#9fd07d"],
+                                                                     stops=[0.0, 0.55, 1.0])))
+    for k, (col, x, y, r) in enumerate(((GREEN, 1720, 940, 560), (GOLD, 200, 160, 520), (PINK, 1780, 90, 420))):
+        glow_blob(c, x + 50 * math.sin(t * 0.7 + k), y + 30 * math.cos(t * 0.6 + k), r, col, 0.2)
+
+
+def bead(c, x, y, r, col, a=1.0):
+    c.drawCircle(x, y + r * 0.35, r, G.P("#000000", 0.35 * a, blur=r * 0.5))
+    c.drawCircle(x, y, r, G.P(col, a, shader=G.radial_grad(x - r * 0.35, y - r * 0.4, r * 1.6,
+                                                         [G.mixc(col, "#ffffff", 0.55), col, G.mixc(col, "#000000", 0.45)],
+                                                         stops=[0.0, 0.45, 1.0])))
+    G.circle(c, x - r * 0.35, y - r * 0.38, r * 0.22, G.P("#ffffff", 0.85 * a))
+
+
+def doubloon(c, x, y, r, flip, t, a=1.0):
+    """A Mardi Gras doubloon: gold, ridged, stamped with the A. `flip` is the coin's turn in radians."""
+    sx = math.cos(flip)
+    face = abs(sx)
+    with G.layer(c, alpha=a):
+        glow_blob(c, x, y, r * 2.6, GOLD, 0.45)
+        with G.xf(c, x, y, sx=max(0.04, face), sy=1.0):
+            G.circle(c, 0, 0, r, G.P("#b8860b"))
+            c.drawCircle(0, 0, r * 0.97, G.P(GOLD, 1, shader=G.linear_grad(-r, -r, r, r, ["#fff1b8", GOLD, "#c9901a", GOLD])))
+            for k in range(72):
+                ang = 2 * math.pi * k / 72
+                c.drawLine(math.cos(ang) * r * 0.9, math.sin(ang) * r * 0.9, math.cos(ang) * r * 0.97,
+                           math.sin(ang) * r * 0.97, G.P("#a8791a", 0.7, stroke=2))
+            G.circle(c, 0, 0, r * 0.78, G.P("#a8791a", 0.8, stroke=3))
+            if sx > 0:
+                T(c, "A", 0, r * 0.3, F("serif", r * 0.95), "#6b4a0c", align=0.5)
+                ring = "ARNAUD’S  ·  1918  ·  "
+                f = ui(max(10, r * 0.13), 700)
+                run = f.shape(ring, 0.25)
+                for i, gid, gx, adv in run.glyphs():
+                    ang = -math.pi / 2 + 2 * math.pi * (gx + adv / 2) / run.width
+                    with G.xf(c, math.cos(ang) * r * 0.86, math.sin(ang) * r * 0.86, rot=math.degrees(ang) + 90):
+                        G.glyph(c, f, gid, -adv / 2, f.cap / 2, G.P("#6b4a0c"))
+            else:
+                T(c, "1918", 0, r * 0.14, ui(r * 0.4, 800), "#6b4a0c", align=0.5)
+        # a glint crossing the face
+        g = ((t * 0.9) % 1.0)
+        if face > 0.3:
+            with G.clip_rect(c, x - r * face, y - r, 2 * r * face, 2 * r):
+                c.drawLine(x - r + 2 * r * g - 40, y - r, x - r + 2 * r * g + 40, y + r, G.P("#ffffff", 0.35, stroke=26, blur=10))
 
 
 def finding(c, t, enter=1.0):
-    """.Finding something special... over a big white card whose corner glows; the three cravings drop into an
-    orange bowl, and something special rises out of it."""
-    # the card: only its lower right corner is on screen
-    glow_rrect(c, -200, -200, 1640, 1080, 160, t, a=1.0, spread=34, width=30, speed=45)
-    c.drawRRect(rr(-200, -200, 1640, 1080, 160), G.P(WHITE))
-    f = ui(56, 430)
+    """Finding something special: a ring of Mardi Gras beads spins like a loader while the three cravings orbit
+    inside it; one by one they are tossed away, and a gold doubloon flips into the middle."""
+    field(c, t)
+    gone = clamp((t - T_LIME) / 0.35)
+    if gone >= 1:
+        return
+    c.saveLayerAlpha(None, int(255 * (1 - gone)))
+    _finding(c, t)
+    c.restore()
+
+
+def _finding(c, t):
+    f = ui(54, 520)
     dots = int((t - T_FIND) * 6) % 4
-    T(c, ".Finding something special" + "." * dots, 90, 140, f, INK)
-    bx, by, br = BOWL
-    ang = bowl_tilt(t)
-    # bouncing loading dots, as in the reference
-    for k, (col, ph) in enumerate(((LIME, 0.0), ("#68d888", 0.33), ("#9a9aa0", 0.66))):
-        u = ((t - T_FIND) * 1.6 + ph) % 1.0
-        y = by - 360 + 300 * (u * u)
-        x = bx - 120 + 110 * k + 30 * math.sin(t * 2 + k)
-        r = 34 if k == 0 else 26
-        if u < 0.9:
-            glow_blob(c, x, y, r * 2.2, col, 0.35)
-            G.circle(c, x, y, r * (1 - 0.3 * u), G.P(col, 0.95))
-    # the cravings fall in
+    label = "Finding something special"
+    w = f.width(label)
+    T(c, label + "." * dots, 960 - w / 2, 190, f, INK)
+    cx, cy, R = RING
+    found = clamp((t - T_RISE) / 0.5)
+    spin = (t - T_FIND) * 2.6
+    head = spin % (2 * math.pi)
+    Rr = R * (1 - 0.12 * snap(found))
+    for i in range(BEADS):
+        ang = 2 * math.pi * i / BEADS + spin * 0.35
+        d = (head - (2 * math.pi * i / BEADS)) % (2 * math.pi)
+        lit = math.exp(-d * 1.4)                    # a comet of brighter beads chases round the ring
+        col = (GOLD, "#ffffff", "#111111")[i % 3]
+        r = 13 + 6 * lit
+        bead(c, cx + Rr * math.cos(ang), cy + Rr * math.sin(ang), r, col, 0.55 + 0.45 * max(lit, found))
+    # the cravings orbit inside, then get tossed
     for k, (name, td) in enumerate(zip(CHIPS, T_DROPS)):
-        u = (t - (td - 0.4)) / 0.4
-        if u < 0 or u > 1.35:
-            continue
-        y = lerp(by - 520, by + 40, clamp(u) ** 2)
-        x = bx - 60 + 60 * k
-        s = 1.0 if u < 1 else max(0.0, 1 - (u - 1) / 0.35)
-        c.save()
-        clip = skia.Path()
-        clip.addCircle(x, y, 78 * s)
-        c.clipPath(clip, skia.ClipOp.kIntersect, True)
-        draw_cover(c, name, x - 80, y - 80, 160, 160, min_w=300)
-        c.restore()
-        G.circle(c, x, y, 78 * s, G.P(WHITE, 0.9, stroke=6))
-        if 1.0 <= u < 1.35:
-            v = (u - 1) / 0.35
-            for j in range(10):
-                a = j / 10 * math.pi * 2 + k
-                rr_ = 40 + 160 * out_cubic(v)
-                G.circle(c, bx - 60 + 60 * k + math.cos(a) * rr_, by - 20 - abs(math.sin(a)) * rr_ * 0.8, 9 * (1 - v),
-                         G.P(GLOW[j % 7], 1 - v))
-    # the bowl: an orange half disc and a chopstick
-    with G.xf(c, bx, by, rot=ang):
-        path = skia.Path()
-        path.addArc(skia.Rect.MakeXYWH(-br, -br, 2 * br, 2 * br), 0, 180)
-        path.close()
-        c.drawPath(path, G.P(ORANGE))
-        c.drawLine(br * 0.98, 0, br * 1.75, -br * 0.18, G.P(INK, 1, stroke=3.2, cap="round"))
-        G.circle(c, br * 1.75, -br * 0.18, 9, G.P(INK))
-    # something special rises
-    if t >= T_RISE:
-        u = clamp((t - T_RISE) / 0.5)
-        e = out_cubic(u)
-        sx, sy = bx, by - 60 - 360 * e
-        r = 30 + 90 * e
-        glow_blob(c, sx, sy, r * 3.2, GOLD, 0.55)
-        for k in range(6):
-            glow_blob(c, sx + 60 * math.cos(k + t * 3), sy + 60 * math.sin(k + t * 3), r * 1.6, GLOW[k], 0.35)
-        pts = G.star_points(4, r, r * 0.28, rot=45 * e, cx=sx, cy=sy)
-        c.drawPath(G.poly(pts), G.P(WHITE))
-        c.drawPath(G.poly(pts), G.P(GOLD, 1, stroke=3))
+        ang = -math.pi / 2 + 2 * math.pi * k / 3 - (t - T_FIND) * 1.3
+        x, y = cx + 120 * math.cos(ang), cy + 120 * math.sin(ang)
+        s, a = 1.0, 1.0
+        rot = 0.0
+        if t >= td:
+            u = clamp((t - td) / 0.5)
+            e = out_cubic(u)
+            x += math.cos(ang) * 700 * e
+            y += math.sin(ang) * 700 * e - 260 * e + 520 * e * e
+            rot = 540 * e * (1 if k % 2 else -1)
+            s = 1 - 0.4 * e
+            a = 1 - u
+            if a <= 0:
+                continue
+        with G.layer(c, alpha=a * clamp((t - T_FIND) / 0.25)):
+            with G.xf(c, x, y, s=s, rot=rot):
+                c.save()
+                clip = skia.Path()
+                clip.addCircle(0, 0, 62)
+                c.clipPath(clip, skia.ClipOp.kIntersect, True)
+                draw_cover(c, name, -64, -64, 128, 128, min_w=300)
+                c.restore()
+                G.circle(c, 0, 0, 62, G.P("#ffffff", 0.95, stroke=5))
+    # the answer
+    if t >= T_RISE - 0.05:
+        u = clamp((t - T_RISE) / 0.6)
+        flip = 5 * math.pi * (1 - out_cubic(u))
+        r = 90 + 30 * out_cubic(u)
+        doubloon(c, cx, cy - 30 * (1 - u), r, flip, t)
+        if u > 0.6:
+            v = clamp((u - 0.6) / 0.4)
+            for k in range(8):
+                ang = k * math.pi / 4 + t
+                L = 160 + 120 * v
+                px, py = cx + math.cos(ang) * L, cy + math.sin(ang) * L
+                pts = G.star_points(4, 16 * (1 - v * 0.4), 4, cx=px, cy=py)
+                c.drawPath(G.poly(pts), G.P((GOLD, MINT, PINK, VIOLET)[k % 4], 1 - v * 0.6))
 
 
 # ---------------------------------------------------------------- closing lines
@@ -182,6 +243,9 @@ ROLL = [("pizza", "pizza"), ("sushi", "sushi"), ("ramen", "ramen"), ("something 
 
 def crave(c, t):
     """You were craving pizza / sushi / ramen / something special. Now your table is waiting."""
+    c.drawRect(skia.Rect.MakeWH(1920, 1080), G.P(NIGHT))
+    for k, (col, x, y, r) in enumerate(((PURPLE, 300, 820, 640), (GREEN, 1640, 260, 560), (GOLD, 1500, 900, 420))):
+        glow_blob(c, x + 40 * math.sin(t + k), y, r, col, 0.15)
     f = ui(66, 460)
     lead = "You were craving"
     lw = f.width(lead + " ")
@@ -195,7 +259,7 @@ def crave(c, t):
     x = x0
     for k, wd in enumerate(lead.split(" ")):
         u = clamp((t - T_CRAVE - 0.1 * k) / 0.3)
-        T(c, wd, x, y + 14 * (1 - out_cubic(u)), f, G.mixc(FAINT, INK, u), a=u)
+        T(c, wd, x, y + 14 * (1 - out_cubic(u)), f, G.mixc("#4a4a4a", CREAM_TXT, u), a=u)
         x += f.width(wd + " ")
     # the rolling slot
     prev_t = T_ROLL[idx - 1] if idx > 0 else T_CRAVE + 0.25
@@ -213,7 +277,7 @@ def crave(c, t):
         for k, wd in enumerate(words):
             v = clamp((t - T_WAIT - 0.1 - 0.12 * k) / 0.3)
             gap = 40 * (1 - out_cubic(v))
-            T(c, wd, x + gap * k, y + 120, g, G.mixc(FAINT, INK, v), a=v)
+            T(c, wd, x + gap * k, y + 120, g, G.mixc("#4a4a4a", CREAM_TXT, v), a=v)
             x += g.width(wd + " ")
 
 
@@ -225,15 +289,15 @@ def _slot(c, word, chip, x, y, f, a, t):
         c.clipPath(clip, skia.ClipOp.kIntersect, True)
         draw_cover(c, chip, x, y - 60, 72, 72, alpha=a, min_w=200)
         c.restore()
-        T(c, word, x + 92, y, f, INK, a=a)
+        T(c, word, x + 92, y, f, CREAM_TXT, a=a)
     else:
         path = f.shape(word).path(x, y)
         glow = skia.Paint(AntiAlias=True)
-        glow.setShader(G.linear_grad(x, 0, x + f.width(word), 0, GLOW[:6]))
+        glow.setShader(G.linear_grad(x, 0, x + f.width(word), 0, MARDI))
         glow.setMaskFilter(skia.MaskFilter.MakeBlur(skia.kNormal_BlurStyle, 14))
         glow.setAlphaf(0.7 * a)
         c.drawPath(path, glow)
         p = skia.Paint(AntiAlias=True)
-        p.setShader(G.linear_grad(x, 0, x + f.width(word), 0, ["#c2358c", "#e8703a", "#7cc242", "#2fb07a", "#4f72e8"]))
+        p.setShader(G.linear_grad(x, 0, x + f.width(word), 0, MARDI))
         p.setAlphaf(a)
         c.drawPath(path, p)
