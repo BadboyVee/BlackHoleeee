@@ -77,9 +77,9 @@ def ask(c, t):
             break
     typing = T_TYPE[0] <= t < T_TYPE[1]
     if t >= T_SEND:
-        caret(c, cx + 6, cy - 40, 54, 70)
+        caret(c, cx + 6, cy - 40, 54)
     else:
-        caret(c, cx + 6, cy - 40, 54, 70 if typing else 30, a=1.0 if (typing or int(t * 2.4) % 2 == 0) else 0.0)
+        caret(c, cx + 6, cy - 40, 54, a=1.0 if (typing or int(t * 2.4) % 2 == 0) else 0.0)
     c.restore()
     return cx, cy
 
@@ -100,7 +100,7 @@ def caret_local(t):
 
 
 def typed_caret(t):
-    """The caret block's centre on screen (the phone has settled by the time anyone asks)."""
+    """Where the camera dives: just behind the caret, on screen (the phone has settled by then)."""
     cx, cy = caret_local(t)
     s = 1.0 + 0.06 * in_out_cubic(clamp((t - T_TYPE[0]) / 2.0))
     x, y = cx + 6 - 35, cy - 13

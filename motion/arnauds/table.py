@@ -1,7 +1,8 @@
 """The intro: a flat-lay kitchen table in light green. Props drop onto it on the sixteenths, the headline types
-itself in big white letters (Anniversary dinner / means choosing / A lot.), fruit keeps landing until the table
-is crowded, then a white card drops in the middle and becomes the phone's input box."""
+itself in big white letters (Choosing dinner / for your anniversary / is a lot.), fruit keeps landing until the
+table is crowded, then a white card drops in the middle and becomes the phone's input box."""
 import math
+from functools import lru_cache
 
 import skia
 
@@ -179,6 +180,10 @@ PROPS = [
     (server, 1130, 880, 24, 1.0, 0.875),
 ]
 METAL = (fork, spoon, knife, whisk, server)
+# every prop and fruit is drawn within these radii of its centre, which sizes their baked shadows
+PROP_R = 330
+FRUIT_R = 120
+FRUITS = (apple, orange_half, strawberry, chili, bean, tomato)
 FRUIT = [(apple, 900, 660), (orange_half, 1690, 420), (strawberry, 700, 300), (chili, 560, 590), (tomato, 1210, 700),
          (bean, 1010, 210), (apple, 250, 880), (strawberry, 1480, 700), (orange_half, 620, 830), (chili, 1320, 520),
          (bean, 760, 960), (tomato, 430, 720), (apple, 1360, 240), (strawberry, 1050, 1000), (orange_half, 300, 420)]
@@ -191,6 +196,34 @@ def fruit_time(k):
     return T_NAME + 0.125 * (k - 5)
 
 
+@lru_cache(maxsize=None)
+def shadow_image(fn, sigma, green=False):
+    """A prop's silhouette in the shadow colour, blurred once and kept: (image, half size)."""
+    reach = FRUIT_R if fn in FRUITS else PROP_R
+    half = reach + int(3 * sigma) + 4
+    surf = skia.Surface(2 * half, 2 * half)
+    with surf as cc:
+        cc.clear(skia.Color4f(0, 0, 0, 0))
+        cc.translate(half, half)
+        blur = skia.Paint()
+        blur.setImageFilter(skia.ImageFilters.Blur(sigma, sigma))
+        cc.saveLayer(None, blur)
+        cc.saveLayer(None, None)
+        if fn is apple:
+            fn(cc, green=green)
+        else:
+            fn(cc)
+        cc.drawPaint(G.P(SHADOW, 1, blend=skia.BlendMode.kSrcIn))
+        cc.restore()
+        cc.restore()
+    return surf.makeImageSnapshot(), half
+
+
+def draw_shadow(c, fn, sigma, a, green=False):
+    img, half = shadow_image(fn, sigma, green)
+    G.draw_image(c, img, -half, -half, 2 * half, 2 * half, alpha=a)
+
+
 def draw_fruit(c, k, fn, x, y, t, scatter):
     tk = fruit_time(k)
     if t < tk:
@@ -198,11 +231,8 @@ def draw_fruit(c, k, fn, x, y, t, scatter):
     s = spring(t - tk, 3.2, 0.45)
     rot = float(hash01(k, 9)) * 360
     dx, dy = scatter(x, y)
-    with G.layer(c, alpha=0.3, blur=8):
-        with G.xf(c, x + dx + 8, y + dy + 12, rot=rot, s=max(0.0, s)):
-            with G.layer(c):
-                _call(fn, c, k)
-                c.drawPaint(G.P(SHADOW, 1, blend=skia.BlendMode.kSrcIn))
+    with G.xf(c, x + dx + 8, y + dy + 12, rot=rot, s=max(0.0, s)):
+        draw_shadow(c, fn, 8, 0.3, green=(fn is apple and k % 3 == 1))
     with G.xf(c, x + dx, y + dy, rot=rot, s=max(0.0, s)):
         _call(fn, c, k)
 
@@ -224,25 +254,29 @@ def draw_prop(c, fn, x, y, rot, sc, tl, t, scatter):
     s = sc * (1 + 0.25 * lift)
     dx, dy = scatter(x, y)
     off = 10 + 40 * lift
-    with G.layer(c, alpha=0.32 * clamp(u * 2), blur=10 + 16 * lift):
-        with G.xf(c, x + dx + off * 0.6, y + dy + off, rot=rot, s=s):
-            _mono(c, fn)
-    with G.layer(c, alpha=clamp(u * 3)):
-        with G.xf(c, x + dx, y + dy - 30 * lift, rot=rot + 12 * lift, s=s * (0.95 + 0.05 * e)):
+    # the shadow is soft and far while the prop is high, and tightens as it lands
+    a = 0.32 * clamp(u * 2)
+    with G.xf(c, x + dx + off * 0.6, y + dy + off, rot=rot, s=s):
+        draw_shadow(c, fn, 10, a * (1 - lift))
+        if lift > 0:
+            draw_shadow(c, fn, 26, a * lift)
+    fade = clamp(u * 3)
+    body = (x + dx, y + dy - 30 * lift, rot + 12 * lift, s * (0.95 + 0.05 * e))
+    if fade < 1:
+        reach = PROP_R * s * 1.05
+        box = skia.Rect.MakeLTRB(body[0] - reach, body[1] - reach, body[0] + reach, body[1] + reach)
+        with G.layer(c, alpha=fade, bounds=box):
+            with G.xf(c, body[0], body[1], rot=body[2], s=body[3]):
+                fn(c)
+    else:
+        with G.xf(c, body[0], body[1], rot=body[2], s=body[3]):
             fn(c)
-
-
-def _mono(c, fn):
-    """A prop's silhouette, for its shadow."""
-    with G.layer(c, blend=None):
-        fn(c)
-        c.drawPaint(G.P(SHADOW, 1, blend=skia.BlendMode.kSrcIn))
 
 
 # ---------------------------------------------------------------- the headline
 
-PHRASES = [("Anniversary dinner", 0.2, 1.05, 132), ("means choosing", 1.12, 1.85, 132),
-           ("A lot.", T_NAME, T_DROP, 230)]
+PHRASES = [("Choosing dinner", 0.15, 0.95, 132), ("for your anniversary", 1.02, 1.85, 132),
+           ("is a lot.", T_NAME, T_DROP, 230)]
 STAGGER, OUT = 0.02, 0.15
 
 

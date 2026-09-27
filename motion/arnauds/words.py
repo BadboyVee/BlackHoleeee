@@ -1,4 +1,4 @@
-"""Type as picture: the giant words (filled with the food they name), the bowl that thinks, and the closing lines."""
+"""Type as picture: the giant words in black, the ring of beads that thinks, and the closing lines."""
 import math
 from functools import lru_cache
 
@@ -6,8 +6,7 @@ import skia
 
 from engine import gfx as G
 from engine.core import clamp, lerp, snap, whip, out_cubic, in_out_cubic
-from .look import (F, T, ui, WHITE, INK, ORANGE, GOLD, GOLD_DEEP, MARDI, SHADOW,
-                   glow_blob, caret, image_shader, draw_cover, ground)
+from .look import F, T, ui, WHITE, INK, GOLD, SHADOW, glow_blob, caret, caret_trail, draw_cover, ground
 from .score import WORDS, T_FIND, T_DROPS, T_RISE, T_LIME, T_CRAVE, T_ROLL, T_WAIT
 
 GIANT = 380
@@ -47,40 +46,26 @@ def giant_cam(t):
     return x
 
 
+def typed_part(it, t):
+    return it["word"][:_typed(t, it["t"], it["word"])]
+
+
+def typed_end(it, t):
+    part = typed_part(it, t)
+    return it["x"] + (giant_font().shape(part).width if part else 0.0)
+
+
 def word_fill(c, it, x, y, t):
-    f = giant_font()
-    n = _typed(t, it["t"], it["word"])
-    part = it["word"][:n]
+    """A giant word in black, easy to read on the green; the special one glows white behind its letters."""
+    part = typed_part(it, t)
     if not part:
-        return x
-    run = f.shape(part)
-    path = run.path(x, y)
-    kind = it["fill"]
-    with G.xf(c, 0, 16):
-        c.drawPath(path, G.P(SHADOW, 0.3, blur=22))
-    if kind in ("pizza", "sushi", "ramen"):
-        top = y - f.cap - 40
-        sh = image_shader(kind, x, top, it["w"], GIANT * 1.05, fx=0.5, fy=0.55,
-                          zoom=1.0 + 0.05 * (t - it["t"]), min_w=900)
-        p = skia.Paint(AntiAlias=True)
-        if sh is not None:
-            p.setShader(sh)
-        else:
-            p.setColor(G.cint(ORANGE))
-        c.drawPath(path, p)
-        c.drawPath(path, G.P(CREAM_TXT, 0.95, stroke=5, join="round"))
-    elif kind == "glow":
-        c.drawPath(path, G.P(WHITE, 0.7, blur=26))
-        p = skia.Paint(AntiAlias=True)
-        p.setShader(G.linear_grad(x, 0, x + it["w"], 0, MARDI))
-        c.drawPath(path, p)
-        c.drawPath(path, G.P(WHITE, 0.95, stroke=5, join="round"))
-    else:
-        c.drawPath(path, G.P(CREAM_TXT))
-    return x + run.width
-
-
-CREAM_TXT = "#ffffff"
+        return
+    path = giant_font().shape(part).path(x, y)
+    with G.xf(c, 0, 14):
+        c.drawPath(path, G.P(SHADOW, 0.18, blur=20))
+    if it["fill"] == "glow":
+        c.drawPath(path, G.P(WHITE, 0.95, blur=34))
+    c.drawPath(path, G.P(INK))
 
 
 def giant(c, t):
@@ -89,17 +74,18 @@ def giant(c, t):
     cam = giant_cam(t)
     c.save()
     c.translate(-cam, 0)
-    end_x, alive = None, None
-    for it in lay:
-        if t < it["t"]:
-            break
-        end_x = word_fill(c, it, it["x"], BASE, t)
-        alive = it
-    if end_x is not None:
-        typing = t - alive["t"] < 0.2
-        caret(c, end_x + 30, BASE - giant_font().cap - 50, GIANT * 1.02, 520 if typing else 260)
+    alive = [it for it in lay if t >= it["t"]]
+    top, h = BASE - giant_font().cap - 50, GIANT * 1.02
+    # the caret's white highlight goes under the words, the black bar over them
+    if alive:
+        x = typed_end(alive[-1], t) + 30
+        caret_trail(c, x, top, h, 520 if t - alive[-1]["t"] < 0.2 else 260)
+        for it in alive:
+            word_fill(c, it, it["x"], BASE, t)
     else:
-        caret(c, lay[0]["x"] + 10, BASE - giant_font().cap - 50, GIANT * 1.02, 700)
+        x = lay[0]["x"] + 10
+        caret_trail(c, x, top, h, 700)
+    caret(c, x, top, h)
     c.restore()
 
 
@@ -156,7 +142,7 @@ def doubloon(c, x, y, r, flip, t, a=1.0):
 
 
 def finding(c, t, enter=1.0):
-    """Finding something special: a ring of Mardi Gras beads spins like a loader while the three cravings orbit
+    """Finding something special: a ring of white and black beads spins like a loader while the three cravings orbit
     inside it; one by one they are tossed away, and a gold doubloon flips into the middle."""
     field(c, t)
     gone = clamp((t - T_LIME) / 0.35)
@@ -182,7 +168,7 @@ def _finding(c, t):
         ang = 2 * math.pi * i / BEADS + spin * 0.35
         d = (head - (2 * math.pi * i / BEADS)) % (2 * math.pi)
         lit = math.exp(-d * 1.4)                    # a comet of brighter beads chases round the ring
-        col = (GOLD, WHITE, GOLD_DEEP)[i % 3]
+        col = (WHITE, INK)[i % 2]
         r = 13 + 6 * lit
         bead(c, cx + Rr * math.cos(ang), cy + Rr * math.sin(ang), r, col, 0.55 + 0.45 * max(lit, found))
     # the cravings orbit inside, then get tossed
@@ -223,12 +209,13 @@ def _finding(c, t):
                 L = 160 + 120 * v
                 px, py = cx + math.cos(ang) * L, cy + math.sin(ang) * L
                 pts = G.star_points(4, 16 * (1 - v * 0.4), 4, cx=px, cy=py)
-                c.drawPath(G.poly(pts), G.P((GOLD, WHITE, GOLD_DEEP, WHITE)[k % 4], 1 - v * 0.6))
+                c.drawPath(G.poly(pts), G.P(WHITE, 1 - v * 0.6))
 
 
 # ---------------------------------------------------------------- closing lines
 
 ROLL = [("pizza", "pizza"), ("sushi", "sushi"), ("ramen", "ramen"), ("something special", None)]
+SPECIAL = ui(66, 700)     # the answer, in bold black with a white glow behind it
 
 
 def crave(c, t):
@@ -239,7 +226,7 @@ def crave(c, t):
     lw = f.width(lead + " ")
     idx = sum(1 for tr in T_ROLL if t >= tr)
     word, chip = ROLL[idx]
-    ww = f.width(word) + (92 if chip else 0)
+    ww = f.width(word) + 92 if chip else SPECIAL.width(word)
     x0 = 960 - (lw + ww) / 2
     rise = snap(clamp((t - T_WAIT) / 0.4))
     y = 520 - 70 * rise
@@ -279,9 +266,6 @@ def _slot(c, word, chip, x, y, f, a, t):
         c.restore()
         T(c, word, x + 92, y, f, INK, a=a)
     else:
-        path = f.shape(word).path(x, y)
-        c.drawPath(path, G.P(WHITE, 0.6 * a, blur=14))
-        p = skia.Paint(AntiAlias=True)
-        p.setShader(G.linear_grad(x, 0, x + f.width(word), 0, MARDI))
-        p.setAlphaf(a)
-        c.drawPath(path, p)
+        path = SPECIAL.shape(word).path(x, y)
+        c.drawPath(path, G.P(WHITE, 0.8 * a, blur=16))
+        c.drawPath(path, G.P(INK, a))

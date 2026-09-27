@@ -117,14 +117,17 @@ def ground(c, t):
     c.restore()
 
 
-def caret(c, x, y_top, h, length, a=1.0):
-    """The caret: a trail of light that ends in a gold bar."""
+def caret_trail(c, x, y_top, h, length, a=1.0):
+    """The light the caret leaves behind: a white highlight fading in towards it, drawn under the type."""
     if length > 1:
         c.drawRect(skia.Rect.MakeXYWH(x - length, y_top, length, h),
-                   G.P(GOLD, a, shader=G.linear_grad(x - length, 0, x, 0, [LIGHT_GREEN, GOLD], alphas=[0.0, 0.9 * a])))
+                   G.P(WHITE, a, shader=G.linear_grad(x - length, 0, x, 0, [WHITE, WHITE], alphas=[0.0, 0.9 * a])))
+
+
+def caret(c, x, y_top, h, a=1.0):
+    """The caret: a black bar."""
     bw = max(3.0, h * 0.06)
-    c.drawRect(skia.Rect.MakeXYWH(x - bw - 2, y_top - 4, bw + 4, h + 8), G.P(GOLD, 0.5 * a, blur=6))
-    c.drawRect(skia.Rect.MakeXYWH(x - bw, y_top, bw, h), G.P(GOLD, a))
+    c.drawRect(skia.Rect.MakeXYWH(x - bw, y_top, bw, h), G.P(INK, a))
 
 
 # ---------------------------------------------------------------- photos

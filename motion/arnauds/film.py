@@ -9,11 +9,11 @@ from engine import gfx as G   # after the star import: the sheet's musical grid 
 from engine.core import clamp, lerp, snap, whip, in_out_cubic, in_quart
 from engine.render import Film
 from . import intro as I, table as TB, phone as P, words as W, cards as C, map as M, checkout as K
-from .look import GOLD, LIGHT_GREEN, INK, T as txt, ui
+from .look import GOLD, LIGHT_GREEN, INK, WHITE, T as txt, ui
 
 
 def ask_to_giant(c, t):
-    """The camera dives into the caret; its trail fills the frame and the night of giant words begins."""
+    """The camera dives in behind the caret, into the white of the input, and the giant words come up."""
     u = clamp((t - T_SEND) / (T_GIANT + 0.25 - T_SEND))
     e = in_quart(u)
     cx, cy = P.typed_caret(t)
@@ -25,6 +25,9 @@ def ask_to_giant(c, t):
     c.translate(-cx, -cy)
     P.ask(c, t)
     c.restore()
+    wash = clamp((u - 0.45) / 0.3)
+    if wash > 0:
+        c.drawRect(skia.Rect.MakeWH(*SIZE), G.P(WHITE, wash))
     if u > 0.7:
         k = clamp((u - 0.7) / 0.3)
         with G.layer(c, alpha=k):
