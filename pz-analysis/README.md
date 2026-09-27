@@ -46,9 +46,17 @@ judgements based on the company information and public news up to 2025.
 ## The PowerPoint deck
 
 The deck is built on PowerPoint 2013's widescreen Office Theme (Calibri Light titles, Calibri
-text, black on white) with its standard layouts: Title Slide, Title and Content, Two Content and
-Title Only. Tables (Table Grid, grey header row) and grey charts sit in the content placeholders,
-as PowerPoint's Insert Table and Insert Chart icons put them.
+text) with its standard layouts: Title Slide, Title and Content, Two Content and Title Only.
+Tables and charts sit in the content placeholders, as PowerPoint's Insert Table and Insert Chart
+icons put them.
+
+It uses two colours from the theme's palette, with black text on white slides:
+
+- **Dark blue** (Blue, Accent 1, Darker 50%): slide titles, table header rows, chart bars,
+  labels, box outlines and arrows.
+- **Orange** (Orange, Accent 2, Darker 25%): highlights only. That means the most important bar
+  in a chart, the weaknesses and threats in the SWOT, "High" priorities, the strongest of the five
+  forces, and the line under the title on the first and last slides.
 
 1. Title
 2. Company overview
