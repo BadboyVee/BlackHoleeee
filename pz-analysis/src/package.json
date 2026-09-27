@@ -1,0 +1,11 @@
+{
+  "name": "pz-analysis-report",
+  "private": true,
+  "description": "Builds the written PZ Nigeria analysis report (Word)",
+  "scripts": {
+    "build": "bash build.sh"
+  },
+  "dependencies": {
+    "docx": "9.7.2"
+  }
+}

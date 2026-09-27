@@ -1,24 +1,43 @@
 # PZ Nigeria Limited: PESTLE, SWOT and Industry Analysis
 
-An Excel workbook and a PowerPoint deck that analyse PZ Nigeria Limited (Marketing Department,
-Ilupeju, Lagos). The company facts come from the PZ Nigeria slides: brands, electrical
-business, leadership, structure, strengths and weaknesses.
+A written report, an Excel workbook and a PowerPoint deck that analyse PZ Nigeria Limited
+(Marketing Department, Ilupeju, Lagos). The company facts come from the PZ Nigeria slides:
+brands, electrical business, leadership, structure, strengths and weaknesses.
 
 | File | What it is |
 |---|---|
+| [PZ_Nigeria_Analysis_Report.docx](PZ_Nigeria_Analysis_Report.docx) | The written analysis (6 pages). Opens in Word 2013 and later. |
 | [PZ_Nigeria_Analysis.xlsx](PZ_Nigeria_Analysis.xlsx) | The analysis workbook. Opens in Excel 2013 and later. |
 | [PZ_Nigeria_Analysis.pptx](PZ_Nigeria_Analysis.pptx) | The 15-slide presentation. Opens in PowerPoint 2013 and later. |
-| [src/](src/) | The scripts that generated both files. |
+| [src/](src/) | The scripts that generated all three files. |
 
-Both files are made in Office 2013's default style, as if created in Excel 2013 and PowerPoint
-2013 with their normal settings.
+All three files are made in Office 2013's style, as if created in Word, Excel and PowerPoint 2013,
+and share two colours from the Office 2013 theme palette: dark blue (Blue, Accent 1, Darker 50%)
+and orange (Orange, Accent 2, Darker 25%) for highlights. Every figure in the report and the deck
+is read from the workbook, so all three agree.
+
+## The written report
+
+The Word document covers:
+
+1. An introduction to the company.
+2. The PESTLE analysis, one section per factor with each issue's score, and a summary table.
+3. The SWOT analysis, with the IFE/EFE scoring and the strategy it points to.
+4. The industry analysis: an overview, Porter's Five Forces and the main competitors.
+5. Recommendations.
+6. A conclusion.
+
+It is A4, uses Calibri, and is saved in Word 2013 compatibility mode. It has a "Prepared by" line
+to fill in.
 
 ## The Excel workbook
 
-The workbook uses the Office 2013 theme and Calibri 11, with plain grey header rows, thin black
-borders, normal gridlines and Excel 2013's default chart style with grey bars. The ratings and
-weights are typed in; every other figure is a formula, so changing a rating or weight updates
-the scores, summaries, charts and conclusions.
+The workbook uses the Office 2013 theme, Calibri 11, normal gridlines and Excel 2013's default
+chart style. Header rows are dark blue with white text and table lines are light grey. Orange
+marks the harmful side of the SWOT, "High" ratings (by conditional formatting, so it follows
+the formulas) and the top bar in each chart. The ratings and weights are typed in; every other
+figure is a formula, so changing a rating or weight updates the scores, summaries, charts and
+conclusions.
 
 | Sheet | Contents |
 |---|---|
@@ -79,8 +98,8 @@ automatically when the slide appears. Click to go to the next slide.
 
 ## Rebuilding
 
-Run `src/build.sh`. It needs Python with openpyxl, python-pptx, XlsxWriter and lxml, and
-LibreOffice. `src/office2013.py` holds the Office 2013 theme and turns python-pptx's built-in
+Run `src/build.sh`. It needs Python with openpyxl, python-pptx, XlsxWriter and lxml; Node with
+the docx package (run `npm install` in `src/` first); and LibreOffice. `src/office2013.py` holds the Office 2013 theme and turns python-pptx's built-in
 template into PowerPoint 2013's widescreen Office Theme. The build reuses the chart clean-up,
 animation and validation scripts in `../marketing-budget/src`. Set `SCHEMA_DIR` to the ISO/IEC
-29500 transitional schemas to check every part of both files against them.
+29500 transitional schemas to check every part of all three files against them.

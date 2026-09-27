@@ -13,8 +13,8 @@ worksheet must use each table, a table's range must be a real cell range and its
 must match their header cells, and the stylesheet must define cell formats (cellXfs). Chart
 axis ids must stay below 2^31, where every reader can follow them.
 
-Usage: python validate_strict.py SCHEMA_DIR file.pptx [file.xlsx ...]
-  SCHEMA_DIR holds pml.xsd, sml.xsd, dml-main.xsd, dml-chart.xsd, ...
+Usage: python validate_strict.py SCHEMA_DIR file.pptx [file.xlsx file.docx ...]
+  SCHEMA_DIR holds pml.xsd, sml.xsd, wml.xsd, dml-main.xsd, dml-chart.xsd, ...
 """
 import io
 import posixpath
@@ -32,6 +32,7 @@ SCHEMA_BY_NS = {
     "http://schemas.openxmlformats.org/drawingml/2006/main": "dml-main.xsd",
     "http://schemas.openxmlformats.org/drawingml/2006/chart": "dml-chart.xsd",
     "http://schemas.openxmlformats.org/drawingml/2006/spreadsheetDrawing": "dml-spreadsheetDrawing.xsd",
+    "http://schemas.openxmlformats.org/wordprocessingml/2006/main": "wml.xsd",
 }
 SKIP_PREFIXES = ("docProps/", "customXml/", "[Content_Types]", "_rels/")
 P = "{http://schemas.openxmlformats.org/presentationml/2006/main}"

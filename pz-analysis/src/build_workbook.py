@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """Build PZ_Nigeria_Analysis.xlsx: PESTLE, SWOT and industry analysis of PZ Nigeria Limited.
 
-It looks like a workbook made in Excel 2013 with its default settings: the Office 2013 theme,
-Calibri 11, plain grey header rows with thin black borders, normal gridlines, and Excel 2013's
-default chart style with grey bars. Ratings and weights are typed in; every score, average,
+It looks like a workbook made in Excel 2013: the Office 2013 theme, Calibri 11, normal gridlines
+and Excel 2013's default chart style, with the same two colours as the slides, picked from the
+theme palette: dark blue ("Blue, Accent 1, Darker 50%") for titles, header rows and chart bars,
+and orange ("Orange, Accent 2, Darker 25%") for highlights (the harmful side of the SWOT,
+"High" ratings, the top bar in a chart). Table lines are light grey. Ratings and weights are typed in; every score, average,
 count, ranking and conclusion is a live Excel formula, using only functions that exist in Excel 2013: SUM, AVERAGE,
 AVERAGEIF, COUNTIF, COUNTIFS, COUNTA, SUMIF, SUMPRODUCT, MAX, MIN, RANK, INDEX, MATCH, CHOOSE,
 ROUND, TEXT and IF.
@@ -32,7 +34,10 @@ from openpyxl.drawing.text import (
     ParagraphProperties,
     RegularTextRun,
 )
-from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
+from openpyxl.chart.series import DataPoint
+from openpyxl.drawing.colors import ColorChoice, SchemeColor
+from openpyxl.formatting.rule import CellIsRule
+from openpyxl.styles import Alignment, Border, Color, Font, PatternFill, Side
 from openpyxl.utils.indexed_list import IndexedList
 from openpyxl.worksheet.page import PageMargins
 
@@ -160,17 +165,21 @@ FONT = "Calibri"      # Excel 2013's default font (the theme's body font)
 TEXT = "000000"
 INPUT = TEXT          # ratings and weights are typed in, in the normal black
 MUTED = "595959"      # Excel 2013's chart text grey
-HEAD = "D9D9D9"       # header rows: "White, Background 1, Darker 15%"
+# The two colours, as Excel stores a pick from the theme palette (theme 4 = Accent 1, 5 = Accent 2).
+NAVY = Color(theme=4, tint=-0.499984740745262)      # "Blue, Accent 1, Darker 50%"    1F4E79
+ORANGE = Color(theme=5, tint=-0.249977111117893)    # "Orange, Accent 2, Darker 25%"  C55A11
+WHITE = Color(theme=0)                              # "White, Background 1"
+HEAD = NAVY           # header rows: dark blue with white text
 BAND = None           # no fills elsewhere, so the gridlines show as in a normal sheet
 LIGHT = None
 
-thin = Side(style="thin", color=TEXT)
+thin = Side(style="thin", color=Color(theme=0, tint=-0.249977111117893))   # White, Background 1, Darker 25%
 BOX = Border(left=thin, right=thin, top=thin, bottom=thin)   # Home > Borders > All Borders
 TOP_RULE = BOX
 
 
-def fill(hex_):
-    return None if hex_ is None else PatternFill("solid", start_color=hex_, end_color=hex_)
+def fill(colour):
+    return None if colour is None else PatternFill("solid", fgColor=colour)
 
 
 def font(size=11, bold=False, italic=False, color=TEXT):
@@ -210,7 +219,7 @@ def span(ws, first, last, row, value, **kw):
 
 def sheet_title(ws, last_col, title, subtitle, sub_height=32):
     ws.merge_cells(f"A1:{last_col}1")
-    put(ws, "A1", title, f=font(14, bold=True), a=al("center"), bd=None)
+    put(ws, "A1", title, f=font(14, bold=True, color=NAVY), a=al("center"), bd=None)
     ws.row_dimensions[1].height = 21
     ws.merge_cells(f"A2:{last_col}2")
     put(ws, "A2", subtitle, f=font(11, italic=True), a=al("center"), bd=None)
@@ -220,13 +229,13 @@ def sheet_title(ws, last_col, title, subtitle, sub_height=32):
 def header(ws, row, cells, height=24):
     """cells: [(first_col, last_col, text, align)]"""
     for first, last, text, h in cells:
-        span(ws, first, last, row, text, f=font(11, bold=True), fl=fill(HEAD), a=al(h))
+        span(ws, first, last, row, text, f=font(11, bold=True, color=WHITE), fl=fill(HEAD), a=al(h))
     ws.row_dimensions[row].height = height
 
 
 def section(ws, row, last_col, text):
     ws.merge_cells(f"A{row}:{last_col}{row}")
-    put(ws, f"A{row}", text, f=font(12, bold=True), a=al(indent=0), bd=None)
+    put(ws, f"A{row}", text, f=font(12, bold=True, color=NAVY), a=al(indent=0), bd=None)
     ws.row_dimensions[row].height = 18
 
 
@@ -242,7 +251,7 @@ def setup(ws, widths, landscape=False):
     ws.page_margins = PageMargins(left=0.7, right=0.7, top=0.75, bottom=0.75, header=0.3, footer=0.3)
 
 
-# ---------------------------------------------------------------- charts: Excel 2013's default style, grey bars
+# ---------------------------------------------------------------- charts: Excel 2013's default style, blue bars
 def rich(size=900, color=MUTED, bold=False):
     cp = CharacterProperties(latin=DrawingFont(typeface="+mn-lt"), sz=size, b=bold, solidFill=color)
     return RichText(p=[Paragraph(pPr=ParagraphProperties(defRPr=cp), endParaRPr=cp)])
@@ -254,7 +263,14 @@ def chart_title(text):
     return Title(tx=Text(rich=RichText(p=[para])), overlay=False)
 
 
-def grey_bars(ws, anchor, title, values, cats, fmt, vmax, major, width=16.0, height=8.0, horizontal=False):
+def theme_fill(accent, lum_mod):
+    """A chart fill picked from the theme palette, e.g. accent1 at 50% = Accent 1, Darker 50%."""
+    return GraphicalProperties(solidFill=ColorChoice(schemeClr=SchemeColor(val=accent, lumMod=lum_mod)),
+                               ln=LineProperties(noFill=True))
+
+
+def bars(ws, anchor, title, values, cats, fmt, vmax, major, width=16.0, height=8.0, horizontal=False, highlight=()):
+    """Dark-blue bars in Excel 2013's chart style; the bars at the positions in highlight are orange."""
     ch = BarChart()
     ch.type = "bar" if horizontal else "col"
     ch.grouping = "clustered"
@@ -264,7 +280,9 @@ def grey_bars(ws, anchor, title, values, cats, fmt, vmax, major, width=16.0, hei
     ch.gapWidth = 150
     ch.legend = None
     s = ch.series[0]
-    s.graphicalProperties = GraphicalProperties(solidFill="595959", ln=LineProperties(noFill=True))
+    s.graphicalProperties = theme_fill("accent1", 50000)
+    for idx in highlight:
+        s.dPt.append(DataPoint(idx=idx, spPr=theme_fill("accent2", 75000)))
     ch.dataLabels = DataLabelList(showVal=True, showSerName=False, showCatName=False,
                                   showLegendKey=False, showPercent=False)
     ch.dataLabels.numFmt = fmt
@@ -435,9 +453,15 @@ K_LAST = K_FIRST + len(findings) - 1
 
 CH = K_LAST + 2
 section(ws, CH, "H", "Chart: average PESTLE score by factor")
-grey_bars(ws, f"A{CH + 1}", "Average PESTLE Score by Factor (out of 25)",
-          Reference(ws, min_col=3, min_row=S_FIRST, max_row=S_LAST),
-          Reference(ws, min_col=1, min_row=S_FIRST, max_row=S_LAST), "0.0", 25, 5, width=20, height=8)
+averages = [sum(i * l for f, _, _, _, i, l in PESTLE if f == factor) / sum(f == factor for f, *_ in PESTLE)
+            for factor in FACTORS]
+bars(ws, f"A{CH + 1}", "Average PESTLE Score by Factor (out of 25)",
+     Reference(ws, min_col=3, min_row=S_FIRST, max_row=S_LAST),
+     Reference(ws, min_col=1, min_row=S_FIRST, max_row=S_LAST), "0.0", 25, 5, width=20, height=8,
+     highlight=[averages.index(max(averages))])
+# "High" priorities in orange, following the formulas (Home › Conditional Formatting).
+ws.conditional_formatting.add(f"H{P_FIRST}:H{P_LAST}", CellIsRule(
+    operator="equal", formula=['"High"'], font=Font(bold=True, color=ORANGE)))
 for rr in range(CH + 1, CH + 18):
     ws.row_dimensions[rr].height = 15
 ws.freeze_panes = "A5"
@@ -451,8 +475,8 @@ setup(ws, {"A": 13, "B": 66, "C": 66})
 sheet_title(ws, "C", "SWOT ANALYSIS: PZ NIGERIA LIMITED",
             "Strengths and weaknesses are inside the company; opportunities and threats come from outside it")
 put(ws, "A4", None, bd=None)
-put(ws, "B4", "HELPFUL", f=font(11, bold=True), fl=fill(HEAD), a=al("center"))
-put(ws, "C4", "HARMFUL", f=font(11, bold=True), fl=fill(HEAD), a=al("center"))
+put(ws, "B4", "HELPFUL", f=font(11, bold=True, color=WHITE), fl=fill(NAVY), a=al("center"))
+put(ws, "C4", "HARMFUL", f=font(11, bold=True, color=WHITE), fl=fill(ORANGE), a=al("center"))
 ws.row_dimensions[4].height = 24
 ROWS = max(len(STRENGTHS), len(WEAKNESSES), len(OPPORTUNITIES), len(THREATS))
 blocks = [("INTERNAL", 5, [("B", "STRENGTHS", STRENGTHS), ("C", "WEAKNESSES", WEAKNESSES)]),
@@ -460,13 +484,13 @@ blocks = [("INTERNAL", 5, [("B", "STRENGTHS", STRENGTHS), ("C", "WEAKNESSES", WE
 swot_ranges = {}
 for axis, top, quads in blocks:
     ws.merge_cells(f"A{top}:A{top + ROWS}")
-    put(ws, f"A{top}", axis, f=font(11, bold=True), fl=fill(HEAD),
+    put(ws, f"A{top}", axis, f=font(11, bold=True, color=WHITE), fl=fill(NAVY),
         a=Alignment(horizontal="center", vertical="center", text_rotation=90))
     for rr in range(top + 1, top + ROWS + 1):
         ws[f"A{rr}"].border = BOX
     ws.row_dimensions[top].height = 24
     for col, name, points in quads:
-        put(ws, f"{col}{top}", name, f=font(11, bold=True), fl=fill(HEAD))
+        put(ws, f"{col}{top}", name, f=font(11, bold=True, color=WHITE), fl=fill(NAVY if col == "B" else ORANGE))
         for k in range(ROWS):
             rr = top + 1 + k
             text = f"{k + 1}. {points[k][0]}" if k < len(points) else None
@@ -572,9 +596,10 @@ for i, (label, formula, fmt, funcs) in enumerate(position):
 R_LAST = R_FIRST + len(position) - 1
 CH = R_LAST + 2
 section(ws, CH, "E", "Chart: weighted SWOT scores")
-grey_bars(ws, f"A{CH + 1}", "Weighted SWOT Scores",
-          Reference(ws, min_col=3, min_row=R_FIRST, max_row=R_FIRST + 3),
-          Reference(ws, min_col=1, min_row=R_FIRST, max_row=R_FIRST + 3), "0.00", 2.5, 0.5, width=18, height=7.5)
+bars(ws, f"A{CH + 1}", "Weighted SWOT Scores",
+     Reference(ws, min_col=3, min_row=R_FIRST, max_row=R_FIRST + 3),
+     Reference(ws, min_col=1, min_row=R_FIRST, max_row=R_FIRST + 3), "0.00", 2.5, 0.5, width=18, height=7.5,
+     highlight=[1, 3])                    # weaknesses and threats, the harmful side, in orange
 for rr in range(CH + 1, CH + 17):
     ws.row_dimensions[rr].height = 15
 cells["scoring"] = {"ife_first": IFE_FIRST, "ife_last": IFE_LAST, "ife_total": IFE_TOTAL,
@@ -645,9 +670,13 @@ put(ws, f"A{r}", "Number of competitors listed", f=font(11, bold=True), fl=fill(
 span(ws, "B", "D", r, f"=COUNTA(A{M_FIRST}:A{M_LAST})", f=font(11, bold=True), fl=fill(LIGHT), a=al("left"), bd=TOP_RULE)
 CH = r + 2
 section(ws, CH, "D", "Chart: strength of the five forces")
-grey_bars(ws, f"A{CH + 1}", "Porter's Five Forces: Strength (1 to 5)",
-          Reference(ws, min_col=2, min_row=F_FIRST, max_row=F_LAST),
-          Reference(ws, min_col=1, min_row=F_FIRST, max_row=F_LAST), "0", 5, 1, width=20, height=8)
+ratings = [rating for _, rating, _ in FORCES]
+bars(ws, f"A{CH + 1}", "Porter's Five Forces: Strength (1 to 5)",
+     Reference(ws, min_col=2, min_row=F_FIRST, max_row=F_LAST),
+     Reference(ws, min_col=1, min_row=F_FIRST, max_row=F_LAST), "0", 5, 1, width=20, height=8,
+     highlight=[ratings.index(max(ratings))])
+ws.conditional_formatting.add(f"C{F_FIRST}:C{F_LAST}", CellIsRule(
+    operator="equal", formula=['"High"'], font=Font(bold=True, color=ORANGE)))
 for rr in range(CH + 1, CH + 18):
     ws.row_dimensions[rr].height = 15
 cells["industry"] = {"overview_first": 5, "overview_last": 4 + len(OVERVIEW),
