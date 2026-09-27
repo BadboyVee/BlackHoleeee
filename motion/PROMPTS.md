@@ -1,8 +1,8 @@
 # The prompts
 
-One-shot prompts for the three films, one per film. They were written after the fact from what was built; the
+One-shot prompts for the four films, one per film. They were written after the fact from what was built; the
 films themselves came out of a longer back-and-forth. Paste one into a coding agent that has Python, ffmpeg,
-skia-python, numpy and Blender's `bpy` available.
+skia-python, numpy and Blender's `bpy` available. ARNAUD'S also needs its four photographs attached.
 
 [Motion](README.md) · [all projects](../README.md)
 
@@ -73,4 +73,148 @@ Beats:
 8. Ship: press ⌘K, type "ship", press Enter. The palette collapses into a pill that reads "Every frame is code", with the three model logos under it.
 
 Render it, look at your own frames, and fix whatever looks off before you hand it over.
+```
+
+## 4 — ARNAUD'S
+
+```text
+Make ARNAUD'S, a 27.5-second fan-made concept ad for a real restaurant. The story: an AI concierge on a phone picks the perfect anniversary dinner. It should feel like a premium app-launch ad: springy UI, whip pans, and every move on the beat. Deliver one MP4 with sound (1920×1080, 60 fps, under 30 MB) and a separate clip of just the opening, the first 4.5 seconds.
+
+The restaurant is real, so keep the facts straight:
+- Arnaud's, 813 Bienville St, in the French Quarter of New Orleans, serving classic Creole since 1918.
+- Dishes: Soufflé Potatoes, Shrimp Arnaud, Bananas Foster.
+- Don't invent prices.
+- End with a small line: "Fan-made concept · not affiliated with Arnaud's".
+
+I'm attaching four photos: pizza.jpg, sushi.jpg, ramen.jpg, and dining.jpg (Arnaud's main dining room with its chandeliers). Cover-fit and sharpen them, and keep them out of the repository.
+
+Every frame and every sound has to come from code: skia-python for the pictures, numpy for the audio, and ffmpeg for the encode. No editor, no stock footage, no samples.
+- Timing: keep one timing sheet at 120 BPM (a beat is 0.5 s, a bar is 2 s; 13 bars plus a tail). The pictures and the music both read from it, so every cut, letter and hit lands on the grid.
+- Motion blur: accumulate sub-frames, 6 per frame and 12 around cuts, with a 0.6 shutter.
+- Effects: fine film grain, and a short chromatic-aberration hit on the big cuts. No bloom and no vignette, because both grey a light image.
+
+LOOK: four colours, used the same way in every scene, with no scene getting its own colour scheme.
+- Ground: one light green, #BDE9A0, lit from the middle (a radial gradient from #D6F2BF to #BDE9A0 to #9FD07D) with slow drifting glows of gold and white. Every scene sits on this ground, from the first frame to the last. There are no black backgrounds anywhere.
+- White (#FFFFFF): everything physical, meaning the phone, cards, receipt, printer, terminal, map cards and the name frame.
+- Gold (#E3B54F, deep #B8872A, pale #F3DC9A): everything that glows.
+  - The signature "frame of light": a soft, blurred stroke of gold and white light that turns slowly around a card.
+  - Also the route, the pin, the payment card, the stamp, the orb, and MADE BY VEEE.
+- Black (#0A0A0A): type only. Shadows fall dark green (#1D3A12), never black.
+- The one vibrant exception is the thinking ring: vivid gold #FFC400, emerald #12B85A and white.
+- No purple, no pink, no neon.
+- The app inside the phone has no name or mascot. The only signature is MADE BY VEEE at the end.
+
+Type:
+- Fonts: Inter for the UI; Instrument Serif for the name and every big display word, with italic for "special."; JetBrains Mono for the receipt and terminal; Archivo (weight 850, wide) for VEEE.
+- Big display words are white serif with a black outline outside the letters and a soft shadow, so they read as classy and stay legible on the green.
+- Never put gold text or photo-filled letters on the green.
+
+STRUCTURE (times in seconds)
+
+1. The table (0–3.95). A flat-lay kitchen table seen from straight above, in the ground's light green.
+- Props: on the sixteenths from 0 to 0.875 s, these drop onto the table: a crusty loaf, two bananas, gold cutlery (a fork and two spoons), a wooden cutting board, a chef's knife, a whisk and a spaghetti server.
+- Drops: each prop falls in bigger and higher with a soft, far shadow, then lands with a small overshoot and a tight shadow.
+- Performance: bake each prop's blurred silhouette once and reuse it. Blurring full-frame layers per prop makes this scene ten times slower.
+- Headline: it pops in letter by letter in big white Inter ExtraBold with a soft dark-green shadow (0.02 s stagger, back-out ease). Each line leaves up and out before the next one arrives:
+  - "Choosing dinner" (0.15–0.95)
+  - "for your anniversary" (1.02–1.85)
+  - "is a lot." (from 2.0; bigger, with a punch on the downbeat of bar 2)
+- Fruit: apples, orange halves, strawberries, chillies, tomatoes and green beans keep landing. They come on the eighths from 1.0 s, then on every sixteenth once "is a lot." hits, until the table is crowded.
+- The card: at 3.0 a white card with the gold frame of light drops into the middle. From 3.45 the props fly off outward, the green stays, and the card becomes the phone's input box.
+
+2. The ask (3.95–6.12).
+- A big white phone, cropped at the bottom (status bar reads 9:30), rises behind the input card. It has a back arrow, an ×, a +, and a black round send button with a gold arrow.
+- Slow push-in while the prompt types itself with a thin black caret: "It's our anniversary tonight. Pizza, sushi or ramen? I want something special."
+- Send is pressed at 6.12.
+
+3. Giant words (6.12–8.0).
+- The camera dives in just behind the caret, through the white of the input.
+- On the green, the words type at 420 px, one per half beat: "Pizza," "sushi," "ramen?" "something" "special." ("special." in italic).
+- A whip pan between words keeps the caret at about 70% of the frame width. The caret here is a white bar lined in black.
+
+4. Thinking (8.0–10.0).
+- Spin in: rotate from −28° to 0° and scale from 1.5 to 1.
+- The label "Finding something special", with animated dots, is in the white-serif-with-black-outline style.
+- A ring of 44 glossy beads (vivid gold, emerald, white) spins like a loader, with a comet of bigger, brighter beads chasing round it.
+- Pizza, sushi and ramen orbit inside the ring as round photo chips with white rims. On beats 2, 3 and 4, one is tossed out of the ring with a spin.
+- On the "and" of beat 4, a bright gold Mardi Gras doubloon flips into the middle and lands with a glint and sparkles. It is stamped with an A, with "ARNAUD'S · 1918" round the rim.
+
+5. Carousel and the dining room (10.0–12.1).
+- White menu cards race in from the right over the green and brake with a quintic ease-out, so that Arnaud's stops dead centre on the downbeat.
+- Each card has a photo, a badge pill, a rating pill, a serif title, a line of description, time and distance icons, and a gold price:
+  - Pepperoni Pizza: Most Popular, 4.6, $18
+  - Salmon Maki: Fresh Today, 4.7, $16
+  - Shoyu Ramen: Cozy Pick, 4.8, $15
+- Arnaud's card is white edged in gold, with a gold "Something special" badge, "Classic Creole in the French Quarter", "813 Bienville St" and a gold Book pill. It lifts out on a spring while the others dim.
+- Its photo then opens to fill the frame: the dining room with a slow push-in, and the chandelier bulbs (detect them in the photo) glinting on the beat.
+- Title: "Arnaud's", with "CLASSIC CREOLE · FRENCH QUARTER · SINCE 1918" beneath.
+
+6. The cashier (12.1–16.0). A whip down to the counter, back on the green.
+- The receipt: a white thermal printer feeds it out line by line:
+  - Arnaud's
+  - 813 BIENVILLE ST · NEW ORLEANS
+  - CLASSIC CREOLE · EST. 1918
+  - TONIGHT 8:00 PM
+  - TABLE FOR 2 · MAIN DINING ROOM
+  - PRE-ORDER: 1 SOUFFLÉ POTATOES, 1 SHRIMP ARNAUD, 1 BANANAS FOSTER FOR 2
+  - NOTE: HAPPY ANNIVERSARY
+  - DUE NOW $0.00
+  - PAY AT THE TABLE
+  - a barcode
+  - RES 0926 · 1918
+  - MERCI · THANK YOU
+- The terminal: a white payment terminal springs in wearing the frame of light. It shows "Arnaud's", "Table for 2 · 8:00 PM" and "DUE NOW". The amount rolls like a till and lands on $0.00 as the receipt prints the same line. Below it: "Your card holds the table." and a pulsing contactless "Tap to confirm".
+- The tap: a gold metal card (•••• 1918) flies in, taps with rings spreading out, and leaves.
+- Confirmed: the screen floods gold from the tap point, with a white check, "Confirmed" and "See you at 8:00 PM". The receipt is stamped CONFIRMED in deep gold.
+
+7. The walk (16.0–20.0).
+- A gold circle blooms from the tap, and the map opens inside it.
+- The map is a tilted 3D day map of the real French Quarter grid:
+  - Streets: Decatur, Chartres, Royal, Bourbon, Dauphine, Burgundy and N Rampart, crossed by Canal through Dumaine.
+  - Light-green blocks, white streets, the Mississippi in pale teal, and Jackson Square.
+- A gold route with a white casing draws from Canal St down Bourbon to 813 Bienville. A white-and-gold dot walks it.
+- A gold pin with an A carries a white label card.
+- A white booking card drops in at the top: "Table for 2 at Arnaud's · Tonight · 8:00 pm · 813 Bienville St, New Orleans", with a gold check.
+- A chip counts "7 min walk" down to "You're here".
+- The camera follows the dot, then zooms into the pin and settles into the plain green.
+
+8. The line (20.0–22.0).
+- "You were craving" in black Inter, word by word.
+- Then a slot rolls pizza → sushi → ramen, each with its round photo chip, and lands on "something special" in bold black with a soft white glow.
+- Then "Now your table is waiting." rises in, word by word.
+
+9. The end (22.0–27.5).
+- Gold ribbons of light gather and burst on the downbeat into the white frame, edged in turning gold light, with a shockwave ring.
+- Inside it:
+  - "Arnaud's" rises letter by letter in black Instrument Serif, with a gold light sweep.
+  - "813 BIENVILLE ST · FRENCH QUARTER · NEW ORLEANS" follows in tracked gold capitals.
+  - "Tonight, something special." sits beneath in italic.
+- At 24.25 the frame folds into a liquid gold orb that drifts left.
+- At 24.5 the orb signs the film: "MADE BY" in small tracked gold, then "VEEE" in Archivo, graded from deep gold to gold, each letter popping in, followed by a white light sweep.
+- Last come the disclaimer and a fade to the light green, not to black.
+
+SOUND
+
+A warm 120 BPM jazz-pop groove in F, synthesised in numpy. It starts on frame one.
+- Instruments: kick, a rim-and-clap backbeat, swung sixteenth hats, Rhodes comping, a walking bass ducked under the kick, supersaw brass stabs, piano, bells and pads.
+- Chords, one per bar: Fmaj7, Fmaj7, Gm9, C13, Fmaj7, D7, Gm9, C13, Fmaj7, Dm9, B♭maj9, Fmaj7.
+
+Every event gets a sound on the grid:
+- The table:
+  - Every prop knocks as it touches down: a tom body with a papery clack, and the cutlery rings.
+  - The fruit pops climb an F pentatonic scale, and the headline's letters click softly.
+  - A reverse crash leads into "is a lot.", which hits with a brass chord, piano, a sub drop and an impact.
+  - The card lands with a whoosh, a thud and a shimmer.
+- The ask and the words: keys for the prompt, a click and a whoosh on send, and a punch on each giant word.
+- Thinking: the beads rattle, each toss gets a whoosh and a blip, the coin spins and rings, and the groove is muffled behind a low-pass while it thinks.
+- Carousel: clicks as the cards pass, and a brass swell as the dining room opens.
+- Checkout: a printer zip per receipt line over a motor hum, a till roll, the terminal's double beep and approved bells, and a rubber-stamp thump.
+- The walk: a rising tone as the route draws, and footsteps.
+- The end: a final chord at 22.0, a reverse whoosh into the orb, and a hit plus a bell for each letter of VEEE.
+
+Master to −12 LUFS with a −1 dB ceiling.
+
+FINISH
+
+Render in parallel chunks to a near-lossless master, then encode H.264 at about CRF 20 with an 8 Mb/s max rate. Look at contact sheets of your own frames, transitions included. Fix anything off before you hand it over: overlapping text, a cropped word, anything off-palette, anything hard to read on a phone screen.
 ```
