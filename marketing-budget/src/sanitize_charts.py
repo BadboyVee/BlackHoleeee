@@ -5,7 +5,7 @@ pptxgenjs writes chart XML that LibreOffice and some PowerPoint versions forgive
 PowerPoint 2013 rejects with "PowerPoint found a problem with content": a label position
 that line charts don't have (outEnd), bar-only elements inside a line series, series
 children out of schema order, a line chart without <c:grouping>, and a third axis id that
-names no axis. This rewrites those chart parts, then validates each one against
+names no axis. python-pptx, for its part, writes negative axis ids. This rewrites those chart parts, then validates each one against
 dml-chart.xsd and exits non-zero if any chart is still invalid.
 
 It also cleans the small workbook behind each chart (the one "Edit Data" opens in Excel):
@@ -95,6 +95,24 @@ def reorder(el, order, drop_unknown):
 def fix_chart(xml: bytes):
     root = etree.fromstring(xml)
     notes = []
+    # Axis ids must be unsigned, and readers that take them as signed 32-bit numbers lose track
+    # of any id above 2147483647, so keep every id in 1..2147483647, as Office writes them.
+    # python-pptx writes negative ids.
+    id_els = list(root.iter(f"{Q}axId")) + list(root.iter(f"{Q}crossAx"))
+    ids = {el.get("val") for el in id_els}
+    taken = {int(i) for i in ids if 0 < int(i) < 2 ** 31}
+    remap = {}
+    for old in sorted(i for i in ids if not 0 < int(i) < 2 ** 31):
+        new = (int(old) & 0x7FFFFFFF) or 1
+        while new in taken:
+            new = new % (2 ** 31 - 1) + 1
+        taken.add(new)
+        remap[old] = str(new)
+    for el in id_els:
+        if el.get("val") in remap:
+            el.set("val", remap[el.get("val")])
+    if remap:
+        notes.append("moved axis ids into 1..2147483647")
     plot = root.find(f".//{Q}plotArea")
     declared = {ax.find(f"{Q}axId").get("val")
                 for ax in plot if etree.QName(ax).localname in ("catAx", "valAx", "dateAx", "serAx")

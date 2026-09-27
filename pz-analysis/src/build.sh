@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# Rebuild PZ_Nigeria_Analysis.xlsx and PZ_Nigeria_Analysis.pptx.
+# Rebuild PZ_Nigeria_Analysis.xlsx and PZ_Nigeria_Analysis.pptx, both in Office 2013's default
+# style (see office2013.py).
 #
-# Needs python3 with openpyxl, python-pptx and lxml; node with pptxgenjs (run `npm install`
-# in ../../marketing-budget/src, whose chart and slide clean-up scripts this build reuses);
-# and LibreOffice (soffice).
+# Needs python3 with openpyxl, python-pptx, XlsxWriter and lxml, and LibreOffice (soffice).
+# The chart clean-up, animation and validation scripts are shared with ../../marketing-budget/src.
 set -euo pipefail
 
 HERE="$(cd "$(dirname "$0")" && pwd)"
@@ -11,7 +11,6 @@ OUT="$(dirname "$HERE")"
 SHARED="$(cd "$HERE/../../marketing-budget/src" && pwd)"
 TMP="$(mktemp -d)"
 trap 'rm -rf "$TMP"' EXIT
-export NODE_PATH="${NODE_PATH:-$SHARED/node_modules}"
 
 # 1. Workbook with live formulas (openpyxl saves them without results).
 python3 "$HERE/build_workbook.py" "$TMP/raw.xlsx"
@@ -28,9 +27,10 @@ python3 "$SHARED/add_cached_values.py" "$TMP/raw.xlsx" "$TMP/recalc/raw.xlsx" \
 python3 "$HERE/export_slide_data.py" "$OUT/PZ_Nigeria_Analysis.xlsx" "$TMP/raw.xlsx.cells.json" \
   "$TMP/slide_data.json"
 
-# 4. Slides; charts rewritten to the strict chart schema; one paragraph-settings block per
-#    paragraph, a Push transition on every slide and the automatic entrance animations.
-node "$HERE/build_deck.js" "$TMP/slide_data.json" "$TMP/deck.pptx"
+# 4. Slides on PowerPoint 2013's widescreen Office Theme; charts checked against the strict
+#    chart schema; then a Push transition on every slide and the automatic entrance animations.
+python3 "$HERE/office2013.py" "$TMP/template.pptx"
+python3 "$HERE/build_deck.py" "$TMP/slide_data.json" "$TMP/template.pptx" "$TMP/deck.pptx"
 python3 "$SHARED/sanitize_charts.py" "$TMP/deck.pptx" "$TMP/deck_clean.pptx" \
   ${SCHEMA_DIR:+--xsd "$SCHEMA_DIR/dml-chart.xsd"}
 python3 "$SHARED/finish_deck.py" "$TMP/deck_clean.pptx" "$TMP/deck.anim.json" \

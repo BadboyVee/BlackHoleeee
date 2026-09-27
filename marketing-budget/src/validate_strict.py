@@ -10,7 +10,8 @@ ignorable, are removed before checking, as the base schema does not describe the
 Workbooks embedded in a deck (the data behind each chart, and embedded Excel objects) are
 opened and checked the same way. Workbooks also get checks the schema can't make: a
 worksheet must use each table, a table's range must be a real cell range and its column names
-must match their header cells, and the stylesheet must define cell formats (cellXfs).
+must match their header cells, and the stylesheet must define cell formats (cellXfs). Chart
+axis ids must stay below 2^31, where every reader can follow them.
 
 Usage: python validate_strict.py SCHEMA_DIR file.pptx [file.xlsx ...]
   SCHEMA_DIR holds pml.xsd, sml.xsd, dml-main.xsd, dml-chart.xsd, ...
@@ -36,6 +37,7 @@ SKIP_PREFIXES = ("docProps/", "customXml/", "[Content_Types]", "_rels/")
 P = "{http://schemas.openxmlformats.org/presentationml/2006/main}"
 A = "{http://schemas.openxmlformats.org/drawingml/2006/main}"
 S = "{http://schemas.openxmlformats.org/spreadsheetml/2006/main}"
+CHART = "{http://schemas.openxmlformats.org/drawingml/2006/chart}"
 XML_SPACE = "{http://www.w3.org/XML/1998/namespace}space"
 REL = "{http://schemas.openxmlformats.org/package/2006/relationships}Relationship"
 R_ID = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id"
@@ -176,6 +178,13 @@ def check_package(label, data, schema_dir, cache):
                 bad += 1
                 for err in list(schema.error_log)[:3]:
                     print(f"{label}:{name}:{err.line}: {err.message[:220]}")
+            elif xsd == "dml-chart.xsd":
+                # Valid unsigned, but readers that take axis ids as signed ints lose the axes.
+                big = {el.get("val") for tag in ("axId", "crossAx") for el in root.iter(CHART + tag)
+                       if int(el.get("val")) >= 2 ** 31}
+                if big:
+                    bad += 1
+                    print(f"{label}:{name}: axis ids above 2147483647: {sorted(big)}")
         for err in table_errors(z):
             bad += 1
             print(f"{label}:{err}")

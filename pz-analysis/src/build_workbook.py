@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """Build PZ_Nigeria_Analysis.xlsx: PESTLE, SWOT and industry analysis of PZ Nigeria Limited.
 
-Ratings and weights are inputs (blue). Every score, average, count, ranking and conclusion is
-a live Excel formula (black), using only functions that exist in Excel 2013: SUM, AVERAGE,
+It looks like a workbook made in Excel 2013 with its default settings: the Office 2013 theme,
+Calibri 11, plain grey header rows with thin black borders, normal gridlines, and Excel 2013's
+default chart style with grey bars. Ratings and weights are typed in; every score, average,
+count, ranking and conclusion is a live Excel formula, using only functions that exist in Excel 2013: SUM, AVERAGE,
 AVERAGEIF, COUNTIF, COUNTIFS, COUNTA, SUMIF, SUMPRODUCT, MAX, MIN, RANK, INDEX, MATCH, CHOOSE,
 ROUND, TEXT and IF.
 
@@ -33,6 +35,8 @@ from openpyxl.drawing.text import (
 from openpyxl.styles import Alignment, Border, Font, PatternFill, Side
 from openpyxl.utils.indexed_list import IndexedList
 from openpyxl.worksheet.page import PageMargins
+
+from office2013 import THEME_XML
 
 OUT = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parent.parent / "PZ_Nigeria_Analysis.xlsx"
 
@@ -152,27 +156,25 @@ RECOMMENDATIONS = [
 ]
 
 # ================================================================ styling
-FONT = "Arial"
-INK = "1F3864"        # dark blue: titles and header rows (as in the slides)
+FONT = "Calibri"      # Excel 2013's default font (the theme's body font)
 TEXT = "000000"
-INPUT = "0000FF"      # inputs you can change (financial-model convention)
-MUTED = "404040"
-GRID = "BFBFBF"
-BAND = "F2F2F2"       # light grey band
-LIGHT = "DEEBF7"      # light blue, the box colour used on the slides
-WHITE = "FFFFFF"
+INPUT = TEXT          # ratings and weights are typed in, in the normal black
+MUTED = "595959"      # Excel 2013's chart text grey
+HEAD = "D9D9D9"       # header rows: "White, Background 1, Darker 15%"
+BAND = None           # no fills elsewhere, so the gridlines show as in a normal sheet
+LIGHT = None
 
-thin = Side(style="thin", color=GRID)
-BOX = Border(left=thin, right=thin, top=thin, bottom=thin)
-TOP_RULE = Border(left=thin, right=thin, top=Side(style="medium", color=INK), bottom=thin)
+thin = Side(style="thin", color=TEXT)
+BOX = Border(left=thin, right=thin, top=thin, bottom=thin)   # Home > Borders > All Borders
+TOP_RULE = BOX
 
 
 def fill(hex_):
-    return PatternFill("solid", start_color=hex_, end_color=hex_)
+    return None if hex_ is None else PatternFill("solid", start_color=hex_, end_color=hex_)
 
 
-def font(size=10, bold=False, italic=False, color=TEXT):
-    return Font(name=FONT, size=size, bold=bold, italic=italic, color=color)
+def font(size=11, bold=False, italic=False, color=TEXT):
+    return Font(name=FONT, size=size, bold=bold, italic=italic, color=color, family=2, scheme="minor")
 
 
 def al(h="left", wrap=True, indent=1):
@@ -208,29 +210,27 @@ def span(ws, first, last, row, value, **kw):
 
 def sheet_title(ws, last_col, title, subtitle, sub_height=32):
     ws.merge_cells(f"A1:{last_col}1")
-    put(ws, "A1", title, f=font(16, bold=True, color=WHITE), fl=fill(INK), a=al("center"), bd=None)
-    ws.row_dimensions[1].height = 34
+    put(ws, "A1", title, f=font(14, bold=True), a=al("center"), bd=None)
+    ws.row_dimensions[1].height = 21
     ws.merge_cells(f"A2:{last_col}2")
-    put(ws, "A2", subtitle, f=font(10, italic=True, color=MUTED), a=al("center"), bd=None)
+    put(ws, "A2", subtitle, f=font(11, italic=True), a=al("center"), bd=None)
     ws.row_dimensions[2].height = sub_height
-    ws.row_dimensions[3].height = 8
 
 
 def header(ws, row, cells, height=24):
     """cells: [(first_col, last_col, text, align)]"""
     for first, last, text, h in cells:
-        span(ws, first, last, row, text, f=font(10, bold=True, color=WHITE), fl=fill(INK), a=al(h))
+        span(ws, first, last, row, text, f=font(11, bold=True), fl=fill(HEAD), a=al(h))
     ws.row_dimensions[row].height = height
 
 
 def section(ws, row, last_col, text):
-    span(ws, "A", last_col, row, text, f=font(11, bold=True, color=INK), fl=fill(LIGHT), a=al())
-    ws.row_dimensions[row].height = 24
+    ws.merge_cells(f"A{row}:{last_col}{row}")
+    put(ws, f"A{row}", text, f=font(12, bold=True), a=al(indent=0), bd=None)
+    ws.row_dimensions[row].height = 18
 
 
-def setup(ws, widths, tab=INK, landscape=False):
-    ws.sheet_properties.tabColor = tab
-    ws.sheet_view.showGridLines = False
+def setup(ws, widths, landscape=False):
     for col, w in widths.items():
         ws.column_dimensions[col].width = w
     ws.page_setup.orientation = "landscape" if landscape else "portrait"
@@ -239,19 +239,17 @@ def setup(ws, widths, tab=INK, landscape=False):
     ws.page_setup.fitToHeight = 1
     ws.sheet_properties.pageSetUpPr.fitToPage = True
     ws.print_options.horizontalCentered = True
-    ws.page_margins = PageMargins(left=0.4, right=0.4, top=0.5, bottom=0.5, header=0.3, footer=0.3)
-    ws.oddFooter.center.text = "PZ Nigeria Limited - &A - Page &P of &N"
-    ws.oddFooter.center.size = 8
+    ws.page_margins = PageMargins(left=0.7, right=0.7, top=0.75, bottom=0.75, header=0.3, footer=0.3)
 
 
-# ---------------------------------------------------------------- charts (black, grey, white)
-def rich(size=900, color=TEXT, bold=False):
-    cp = CharacterProperties(latin=DrawingFont(typeface=FONT), sz=size, b=bold, solidFill=color)
+# ---------------------------------------------------------------- charts: Excel 2013's default style, grey bars
+def rich(size=900, color=MUTED, bold=False):
+    cp = CharacterProperties(latin=DrawingFont(typeface="+mn-lt"), sz=size, b=bold, solidFill=color)
     return RichText(p=[Paragraph(pPr=ParagraphProperties(defRPr=cp), endParaRPr=cp)])
 
 
 def chart_title(text):
-    cp = CharacterProperties(latin=DrawingFont(typeface=FONT), sz=1200, b=True, solidFill=TEXT)
+    cp = CharacterProperties(latin=DrawingFont(typeface="+mn-lt"), sz=1400, b=False, solidFill=MUTED)
     para = Paragraph(pPr=ParagraphProperties(defRPr=cp), r=[RegularTextRun(rPr=cp, t=text)])
     return Title(tx=Text(rich=RichText(p=[para])), overlay=False)
 
@@ -263,7 +261,7 @@ def grey_bars(ws, anchor, title, values, cats, fmt, vmax, major, width=16.0, hei
     ch.title = chart_title(title)
     ch.add_data(values, titles_from_data=False)
     ch.set_categories(cats)
-    ch.gapWidth = 60
+    ch.gapWidth = 150
     ch.legend = None
     s = ch.series[0]
     s.graphicalProperties = GraphicalProperties(solidFill="595959", ln=LineProperties(noFill=True))
@@ -271,29 +269,30 @@ def grey_bars(ws, anchor, title, values, cats, fmt, vmax, major, width=16.0, hei
                                   showLegendKey=False, showPercent=False)
     ch.dataLabels.numFmt = fmt
     ch.dataLabels.position = "outEnd"
-    ch.dataLabels.txPr = rich(900, TEXT, bold=True)
+    ch.dataLabels.txPr = rich(900, "404040")
     ch.x_axis.delete = False
     ch.y_axis.delete = False
-    ch.x_axis.txPr = rich(900, TEXT)
-    ch.y_axis.txPr = rich(800, MUTED)
+    ch.x_axis.txPr = rich(900)
+    ch.y_axis.txPr = rich(900)
     ch.y_axis.numFmt = fmt
     ch.y_axis.scaling.min = 0
     ch.y_axis.scaling.max = vmax
     ch.y_axis.majorUnit = major
     ch.y_axis.majorGridlines = ChartLines(spPr=GraphicalProperties(ln=LineProperties(solidFill="D9D9D9", w=9525)))
     ch.y_axis.spPr = GraphicalProperties(ln=LineProperties(noFill=True))
-    ch.x_axis.spPr = GraphicalProperties(ln=LineProperties(solidFill="A6A6A6", w=9525))
+    ch.x_axis.spPr = GraphicalProperties(ln=LineProperties(solidFill="D9D9D9", w=9525))
     if horizontal:
         ch.x_axis.scaling.orientation = "maxMin"
-    ch.graphical_properties = GraphicalProperties(ln=LineProperties(solidFill="BFBFBF", w=9525))
+    ch.graphical_properties = GraphicalProperties(ln=LineProperties(solidFill="D9D9D9", w=9525))
     ch.width, ch.height = width, height
     ws.add_chart(ch, anchor)
 
 
 # ================================================================ workbook
 wb = Workbook()
-wb._fonts = IndexedList([Font(name=FONT, size=10, family=2)])
-wb._named_styles["Normal"].font = Font(name=FONT, size=10, family=2)
+wb.loaded_theme = THEME_XML.encode()      # the Office 2013 theme (Calibri, 2013 colours)
+wb._fonts = IndexedList([font()])
+wb._named_styles["Normal"].font = font()
 cells = {}
 
 # ---------------------------------------------------------------- 1. Company Profile
@@ -305,8 +304,8 @@ sheet_title(ws, "B", "PZ NIGERIA LIMITED: COMPANY PROFILE",
 header(ws, 4, [("A", "A", "Item", "left"), ("B", "B", "Details", "left")])
 for i, (label, text) in enumerate(COMPANY):
     r = 5 + i
-    band = fill(BAND) if i % 2 else fill(WHITE)
-    put(ws, f"A{r}", label, f=font(10, bold=True), fl=band)
+    band = None
+    put(ws, f"A{r}", label, f=font(11, bold=True), fl=band)
     put(ws, f"B{r}", text, fl=band)
     ws.row_dimensions[r].height = 22
 r = 5 + len(COMPANY) + 1
@@ -322,19 +321,19 @@ contents = [
 ]
 for i, (name, text) in enumerate(contents):
     rr = r + 1 + i
-    put(ws, f"A{rr}", name, f=font(10, bold=True))
+    put(ws, f"A{rr}", name, f=font(11, bold=True))
     put(ws, f"B{rr}", text)
     ws.row_dimensions[rr].height = 30
 rr = r + len(contents) + 2
 ws.merge_cells(f"A{rr}:B{rr}")
-put(ws, f"A{rr}", "Blue figures are inputs (ratings and weights) you can change. Black figures are formulas: "
-                  "change any blue figure and every score, summary, chart and conclusion updates.",
-    f=font(9, italic=True, color=MUTED), bd=None)
+put(ws, f"A{rr}", "The ratings and weights are typed in; everything else is a formula. Change any rating "
+                  "or weight and every score, summary, chart and conclusion updates.",
+    f=font(11, italic=True), bd=None)
 ws.row_dimensions[rr].height = 28
 
 # ---------------------------------------------------------------- 2. PESTLE
 ws = wb.create_sheet("PESTLE")
-setup(ws, {"A": 16, "B": 36, "C": 54, "D": 13, "E": 11, "F": 12, "G": 14, "H": 11})
+setup(ws, {"A": 16, "B": 36, "C": 54, "D": 13, "E": 13, "F": 16, "G": 14, "H": 11})
 sheet_title(ws, "H", "PESTLE ANALYSIS: PZ NIGERIA LIMITED",
             "Impact and Likelihood are rated 1 (low) to 5 (high). Score = Impact × Likelihood (1 to 25). "
             "Priority: High 16 and above, Medium 9 to 15, Low below 9.")
@@ -346,21 +345,21 @@ P_FIRST = 5
 P_LAST = P_FIRST + len(PESTLE) - 1
 for i, (factor, issue, effect, kind, impact, likely) in enumerate(PESTLE):
     r = P_FIRST + i
-    band = fill(BAND) if FACTORS.index(factor) % 2 else fill(WHITE)
-    put(ws, f"A{r}", factor, f=font(10, bold=True), fl=band)
+    band = None
+    put(ws, f"A{r}", factor, f=font(11, bold=True), fl=band)
     put(ws, f"B{r}", issue, fl=band)
     put(ws, f"C{r}", effect, fl=band)
     put(ws, f"D{r}", kind, fl=band, a=al("center"))
-    put(ws, f"E{r}", impact, f=font(10, color=INPUT), fl=band, a=al("center"))
-    put(ws, f"F{r}", likely, f=font(10, color=INPUT), fl=band, a=al("center"))
-    put(ws, f"G{r}", f"=E{r}*F{r}", f=font(10, bold=True), fl=band, a=al("center"))
+    put(ws, f"E{r}", impact, f=font(11, color=INPUT), fl=band, a=al("center"))
+    put(ws, f"F{r}", likely, f=font(11, color=INPUT), fl=band, a=al("center"))
+    put(ws, f"G{r}", f"=E{r}*F{r}", f=font(11, bold=True), fl=band, a=al("center"))
     put(ws, f"H{r}", f'=IF(G{r}>=16,"High",IF(G{r}>=9,"Medium","Low"))', fl=band, a=al("center"))
     ws.row_dimensions[r].height = 30
 r = P_LAST + 1
-span(ws, "A", "F", r, "Average score (all issues)", f=font(10, bold=True), fl=fill(LIGHT), bd=TOP_RULE)
-put(ws, f"G{r}", f"=AVERAGE(G{P_FIRST}:G{P_LAST})", f=font(10, bold=True), fl=fill(LIGHT), fmt="0.0",
+span(ws, "A", "F", r, "Average score (all issues)", f=font(11, bold=True), fl=fill(LIGHT), bd=TOP_RULE)
+put(ws, f"G{r}", f"=AVERAGE(G{P_FIRST}:G{P_LAST})", f=font(11, bold=True), fl=fill(LIGHT), fmt="0.0",
     a=al("center"), bd=TOP_RULE)
-put(ws, f"H{r}", f'=IF(G{r}>=16,"High",IF(G{r}>=9,"Medium","Low"))', f=font(10, bold=True), fl=fill(LIGHT),
+put(ws, f"H{r}", f'=IF(G{r}>=16,"High",IF(G{r}>=9,"Medium","Low"))', f=font(11, bold=True), fl=fill(LIGHT),
     a=al("center"), bd=TOP_RULE)
 ws.row_dimensions[r].height = 22
 P_AVG = r
@@ -381,10 +380,10 @@ rngG = f"$G${P_FIRST}:$G${P_LAST}"
 rngH = f"$H${P_FIRST}:$H${P_LAST}"
 for i, factor in enumerate(FACTORS):
     r = S_FIRST + i
-    band = fill(BAND) if i % 2 else fill(WHITE)
-    put(ws, f"A{r}", factor, f=font(10, bold=True), fl=band)
+    band = None
+    put(ws, f"A{r}", factor, f=font(11, bold=True), fl=band)
     put(ws, f"B{r}", f"=COUNTIF({rngA},A{r})", fl=band, a=al("center"))
-    put(ws, f"C{r}", f"=AVERAGEIF({rngA},A{r},{rngG})", f=font(10, bold=True), fl=band, fmt="0.0", a=al("center"))
+    put(ws, f"C{r}", f"=AVERAGEIF({rngA},A{r},{rngG})", f=font(11, bold=True), fl=band, fmt="0.0", a=al("center"))
     # MAXIFS is not in Excel 2013; SUMPRODUCT evaluates the array without Ctrl+Shift+Enter.
     put(ws, f"D{r}", f"=SUMPRODUCT(MAX(({rngA}=A{r})*{rngG}))", fl=band, a=al("center"))
     put(ws, f"E{r}", f'=COUNTIFS({rngA},A{r},{rngH},"High")', fl=band, a=al("center"))
@@ -393,7 +392,7 @@ for i, factor in enumerate(FACTORS):
     put(ws, f"H{r}", f"=RANK(C{r},$C${S_FIRST}:$C${S_LAST})", fl=band, a=al("center"))
     ws.row_dimensions[r].height = 21
 r = S_LAST + 1
-put(ws, f"A{r}", "All factors", f=font(10, bold=True), fl=fill(LIGHT), bd=TOP_RULE)
+put(ws, f"A{r}", "All factors", f=font(11, bold=True), fl=fill(LIGHT), bd=TOP_RULE)
 for col, formula, fmt in [("B", f"=SUM(B{S_FIRST}:B{S_LAST})", None),
                           ("C", f"=AVERAGE(G{P_FIRST}:G{P_LAST})", "0.0"),
                           ("D", f"=MAX(G{P_FIRST}:G{P_LAST})", None),
@@ -401,7 +400,7 @@ for col, formula, fmt in [("B", f"=SUM(B{S_FIRST}:B{S_LAST})", None),
                           ("F", f"=SUM(F{S_FIRST}:F{S_LAST})", None),
                           ("G", f"=SUM(G{S_FIRST}:G{S_LAST})", None),
                           ("H", "", None)]:
-    put(ws, f"{col}{r}", formula or None, f=font(10, bold=True), fl=fill(LIGHT), fmt=fmt, a=al("center"), bd=TOP_RULE)
+    put(ws, f"{col}{r}", formula or None, f=font(11, bold=True), fl=fill(LIGHT), fmt=fmt, a=al("center"), bd=TOP_RULE)
 ws.row_dimensions[r].height = 22
 S_TOTAL = r
 
@@ -427,10 +426,10 @@ findings = [
 ]
 for i, (label, formula, funcs) in enumerate(findings):
     r = K_FIRST + i
-    band = fill(BAND) if i % 2 else fill(WHITE)
-    span(ws, "A", "B", r, label, f=font(10, bold=True), fl=band)
+    band = None
+    span(ws, "A", "B", r, label, f=font(11, bold=True), fl=band)
     span(ws, "C", "F", r, formula, fl=band)
-    span(ws, "G", "H", r, funcs, f=font(9, color=MUTED), fl=band, a=al("center"))
+    span(ws, "G", "H", r, funcs, f=font(11), fl=band, a=al("center"))
     ws.row_dimensions[r].height = 21
 K_LAST = K_FIRST + len(findings) - 1
 
@@ -451,9 +450,9 @@ ws = wb.create_sheet("SWOT")
 setup(ws, {"A": 13, "B": 66, "C": 66})
 sheet_title(ws, "C", "SWOT ANALYSIS: PZ NIGERIA LIMITED",
             "Strengths and weaknesses are inside the company; opportunities and threats come from outside it")
-put(ws, "A4", "", fl=fill(WHITE), bd=None)
-put(ws, "B4", "HELPFUL", f=font(11, bold=True, color=WHITE), fl=fill(INK), a=al("center"))
-put(ws, "C4", "HARMFUL", f=font(11, bold=True, color=WHITE), fl=fill(INK), a=al("center"))
+put(ws, "A4", None, bd=None)
+put(ws, "B4", "HELPFUL", f=font(11, bold=True), fl=fill(HEAD), a=al("center"))
+put(ws, "C4", "HARMFUL", f=font(11, bold=True), fl=fill(HEAD), a=al("center"))
 ws.row_dimensions[4].height = 24
 ROWS = max(len(STRENGTHS), len(WEAKNESSES), len(OPPORTUNITIES), len(THREATS))
 blocks = [("INTERNAL", 5, [("B", "STRENGTHS", STRENGTHS), ("C", "WEAKNESSES", WEAKNESSES)]),
@@ -461,13 +460,13 @@ blocks = [("INTERNAL", 5, [("B", "STRENGTHS", STRENGTHS), ("C", "WEAKNESSES", WE
 swot_ranges = {}
 for axis, top, quads in blocks:
     ws.merge_cells(f"A{top}:A{top + ROWS}")
-    put(ws, f"A{top}", axis, f=font(11, bold=True, color=WHITE), fl=fill(INK),
+    put(ws, f"A{top}", axis, f=font(11, bold=True), fl=fill(HEAD),
         a=Alignment(horizontal="center", vertical="center", text_rotation=90))
     for rr in range(top + 1, top + ROWS + 1):
         ws[f"A{rr}"].border = BOX
     ws.row_dimensions[top].height = 24
     for col, name, points in quads:
-        put(ws, f"{col}{top}", name, f=font(11, bold=True), fl=fill(LIGHT))
+        put(ws, f"{col}{top}", name, f=font(11, bold=True), fl=fill(HEAD))
         for k in range(ROWS):
             rr = top + 1 + k
             text = f"{k + 1}. {points[k][0]}" if k < len(points) else None
@@ -479,11 +478,11 @@ header(ws, C_HEAD, [("A", "B", "SWOT count", "left"), ("C", "C", "Number of poin
 for i, name in enumerate(["STRENGTHS", "WEAKNESSES", "OPPORTUNITIES", "THREATS"]):
     col, a, b = swot_ranges[name]
     r = C_HEAD + 1 + i
-    span(ws, "A", "B", r, name.title(), f=font(10, bold=True), fl=fill(BAND) if i % 2 else fill(WHITE))
-    put(ws, f"C{r}", f"=COUNTA({col}{a}:{col}{b})", fl=fill(BAND) if i % 2 else fill(WHITE), a=al("center"))
+    span(ws, "A", "B", r, name.title(), f=font(11, bold=True), fl=None)
+    put(ws, f"C{r}", f"=COUNTA({col}{a}:{col}{b})", fl=None, a=al("center"))
 r = C_HEAD + 5
-span(ws, "A", "B", r, "Total", f=font(10, bold=True), fl=fill(LIGHT), bd=TOP_RULE)
-put(ws, f"C{r}", f"=SUM(C{C_HEAD + 1}:C{C_HEAD + 4})", f=font(10, bold=True), fl=fill(LIGHT), a=al("center"), bd=TOP_RULE)
+span(ws, "A", "B", r, "Total", f=font(11, bold=True), fl=fill(LIGHT), bd=TOP_RULE)
+put(ws, f"C{r}", f"=SUM(C{C_HEAD + 1}:C{C_HEAD + 4})", f=font(11, bold=True), fl=fill(LIGHT), a=al("center"), bd=TOP_RULE)
 cells["swot"] = {k: {"col": v[0], "first": v[1], "last": v[2]} for k, v in swot_ranges.items()}
 
 # ---------------------------------------------------------------- 4. SWOT Scoring (IFE and EFE)
@@ -504,24 +503,24 @@ def factor_matrix(top, title, groups, good_text, bad_text):
     first = r
     for kind, points in groups:
         for k, (text, weight, rating) in enumerate(points):
-            band = fill(BAND) if kind in ("Weakness", "Threat") else fill(WHITE)
-            put(ws, f"A{r}", kind, f=font(10, bold=True), fl=band)
+            band = None
+            put(ws, f"A{r}", kind, f=font(11, bold=True), fl=band)
             put(ws, f"B{r}", text, fl=band)
-            put(ws, f"C{r}", weight, f=font(10, color=INPUT), fl=band, fmt="0.00", a=al("center"))
-            put(ws, f"D{r}", rating, f=font(10, color=INPUT), fl=band, a=al("center"))
-            put(ws, f"E{r}", f"=C{r}*D{r}", f=font(10, bold=True), fl=band, fmt="0.00", a=al("center"))
+            put(ws, f"C{r}", weight, f=font(11, color=INPUT), fl=band, fmt="0.00", a=al("center"))
+            put(ws, f"D{r}", rating, f=font(11, color=INPUT), fl=band, a=al("center"))
+            put(ws, f"E{r}", f"=C{r}*D{r}", f=font(11, bold=True), fl=band, fmt="0.00", a=al("center"))
             ws.row_dimensions[r].height = 20
             r += 1
     last = r - 1
-    span(ws, "A", "B", r, "Total", f=font(10, bold=True), fl=fill(LIGHT), bd=TOP_RULE)
-    put(ws, f"C{r}", f"=SUM(C{first}:C{last})", f=font(10, bold=True), fl=fill(LIGHT), fmt="0.00", a=al("center"), bd=TOP_RULE)
+    span(ws, "A", "B", r, "Total", f=font(11, bold=True), fl=fill(LIGHT), bd=TOP_RULE)
+    put(ws, f"C{r}", f"=SUM(C{first}:C{last})", f=font(11, bold=True), fl=fill(LIGHT), fmt="0.00", a=al("center"), bd=TOP_RULE)
     put(ws, f"D{r}", None, fl=fill(LIGHT), bd=TOP_RULE)
     put(ws, f"E{r}", f"=SUM(E{first}:E{last})", f=font(11, bold=True), fl=fill(LIGHT), fmt="0.00", a=al("center"), bd=TOP_RULE)
     total = r
-    span(ws, "A", "B", r + 1, "Weights check", f=font(10, bold=True))
+    span(ws, "A", "B", r + 1, "Weights check", f=font(11, bold=True))
     span(ws, "C", "E", r + 1, f'=IF(ROUND(C{total},2)=1,"OK: weights add up to 1.00","Check: weights must add up to 1.00")')
-    span(ws, "A", "B", r + 2, "Result", f=font(10, bold=True))
-    span(ws, "C", "E", r + 2, f'=IF(E{total}>=2.5,"{good_text}","{bad_text}")', f=font(10, bold=True))
+    span(ws, "A", "B", r + 2, "Result", f=font(11, bold=True))
+    span(ws, "C", "E", r + 2, f'=IF(E{total}>=2.5,"{good_text}","{bad_text}")', f=font(11, bold=True))
     ws.row_dimensions[r + 2].height = 30
     return first, last, total
 
@@ -565,10 +564,10 @@ position = [
 ]
 for i, (label, formula, fmt, funcs) in enumerate(position):
     r = R_FIRST + i
-    band = fill(BAND) if i % 2 else fill(WHITE)
-    span(ws, "A", "B", r, label, f=font(10, bold=True), fl=band)
-    span(ws, "C", "D", r, formula, f=font(10, bold=True), fl=band, fmt=fmt, a=al("center"))
-    put(ws, f"E{r}", funcs, f=font(9, color=MUTED), fl=band, a=al("center"))
+    band = None
+    span(ws, "A", "B", r, label, f=font(11, bold=True), fl=band)
+    span(ws, "C", "D", r, formula, f=font(11, bold=True), fl=band, fmt=fmt, a=al("center"))
+    put(ws, f"E{r}", funcs, f=font(11), fl=band, a=al("center"))
     ws.row_dimensions[r].height = 30 if i == len(position) - 1 else 21
 R_LAST = R_FIRST + len(position) - 1
 CH = R_LAST + 2
@@ -590,8 +589,8 @@ sheet_title(ws, "D", "INDUSTRY ANALYSIS: NIGERIAN FMCG AND CONSUMER ELECTRICALS"
 section(ws, 4, "D", "Industry overview")
 for i, (label, text) in enumerate(OVERVIEW):
     r = 5 + i
-    band = fill(BAND) if i % 2 else fill(WHITE)
-    put(ws, f"A{r}", label, f=font(10, bold=True), fl=band)
+    band = None
+    put(ws, f"A{r}", label, f=font(11, bold=True), fl=band)
     span(ws, "B", "D", r, text, fl=band)
     ws.row_dimensions[r].height = 30
 F_HEAD = 5 + len(OVERVIEW) + 1
@@ -601,20 +600,20 @@ header(ws, F_HEAD + 1, [("A", "A", "Force", "left"), ("B", "B", "Strength (1-5)"
 F_FIRST = F_HEAD + 2
 for i, (force, rating, why) in enumerate(FORCES):
     r = F_FIRST + i
-    band = fill(BAND) if i % 2 else fill(WHITE)
-    put(ws, f"A{r}", force, f=font(10, bold=True), fl=band)
-    put(ws, f"B{r}", rating, f=font(10, color=INPUT), fl=band, a=al("center"))
-    put(ws, f"C{r}", f'=IF(B{r}>=4,"High",IF(B{r}>=3,"Medium","Low"))', f=font(10, bold=True), fl=band, a=al("center"))
+    band = None
+    put(ws, f"A{r}", force, f=font(11, bold=True), fl=band)
+    put(ws, f"B{r}", rating, f=font(11, color=INPUT), fl=band, a=al("center"))
+    put(ws, f"C{r}", f'=IF(B{r}>=4,"High",IF(B{r}>=3,"Medium","Low"))', f=font(11, bold=True), fl=band, a=al("center"))
     put(ws, f"D{r}", why, fl=band)
     ws.row_dimensions[r].height = 30
 F_LAST = F_FIRST + len(FORCES) - 1
 r = F_LAST + 1
-put(ws, f"A{r}", "Average strength", f=font(10, bold=True), fl=fill(LIGHT), bd=TOP_RULE)
-put(ws, f"B{r}", f"=AVERAGE(B{F_FIRST}:B{F_LAST})", f=font(10, bold=True), fl=fill(LIGHT), fmt="0.0", a=al("center"), bd=TOP_RULE)
-put(ws, f"C{r}", f'=IF(B{r}>=3.5,"High",IF(B{r}>=2.5,"Medium","Low"))', f=font(10, bold=True), fl=fill(LIGHT), a=al("center"), bd=TOP_RULE)
+put(ws, f"A{r}", "Average strength", f=font(11, bold=True), fl=fill(LIGHT), bd=TOP_RULE)
+put(ws, f"B{r}", f"=AVERAGE(B{F_FIRST}:B{F_LAST})", f=font(11, bold=True), fl=fill(LIGHT), fmt="0.0", a=al("center"), bd=TOP_RULE)
+put(ws, f"C{r}", f'=IF(B{r}>=3.5,"High",IF(B{r}>=2.5,"Medium","Low"))', f=font(11, bold=True), fl=fill(LIGHT), a=al("center"), bd=TOP_RULE)
 put(ws, f"D{r}", f'=IF(B{r}>=3.5,"Strong competitive pressure: profits are hard to earn",'
                  f'IF(B{r}>=2.5,"Moderate competitive pressure","Weak competitive pressure: an attractive industry"))',
-    f=font(10, bold=True), fl=fill(LIGHT), bd=TOP_RULE)
+    f=font(11, bold=True), fl=fill(LIGHT), bd=TOP_RULE)
 F_AVG = r
 frng, brng, crng = f"$A${F_FIRST}:$A${F_LAST}", f"$B${F_FIRST}:$B${F_LAST}", f"$C${F_FIRST}:$C${F_LAST}"
 extra = [
@@ -624,7 +623,7 @@ extra = [
 ]
 for i, (label, formula) in enumerate(extra):
     r = F_AVG + 1 + i
-    put(ws, f"A{r}", label, f=font(10, bold=True))
+    put(ws, f"A{r}", label, f=font(11, bold=True))
     span(ws, "B", "D", r, formula)
     ws.row_dimensions[r].height = 21
 F_EXTRA_LAST = F_AVG + len(extra)
@@ -636,14 +635,14 @@ header(ws, M_HEAD + 1, [("A", "A", "Competitor", "left"), ("B", "B", "Key brands
 M_FIRST = M_HEAD + 2
 for i, row in enumerate(COMPETITORS):
     r = M_FIRST + i
-    band = fill(BAND) if i % 2 else fill(WHITE)
+    band = None
     for col, value in zip("ABCD", row):
-        put(ws, f"{col}{r}", value, f=font(10, bold=(col == "A")), fl=band)
+        put(ws, f"{col}{r}", value, f=font(11, bold=(col == "A")), fl=band)
     ws.row_dimensions[r].height = 30
 M_LAST = M_FIRST + len(COMPETITORS) - 1
 r = M_LAST + 1
-put(ws, f"A{r}", "Number of competitors listed", f=font(10, bold=True), fl=fill(LIGHT), bd=TOP_RULE)
-span(ws, "B", "D", r, f"=COUNTA(A{M_FIRST}:A{M_LAST})", f=font(10, bold=True), fl=fill(LIGHT), a=al("left"), bd=TOP_RULE)
+put(ws, f"A{r}", "Number of competitors listed", f=font(11, bold=True), fl=fill(LIGHT), bd=TOP_RULE)
+span(ws, "B", "D", r, f"=COUNTA(A{M_FIRST}:A{M_LAST})", f=font(11, bold=True), fl=fill(LIGHT), a=al("left"), bd=TOP_RULE)
 CH = r + 2
 section(ws, CH, "D", "Chart: strength of the five forces")
 grey_bars(ws, f"A{CH + 1}", "Porter's Five Forces: Strength (1 to 5)",
@@ -677,8 +676,8 @@ summary = [
 ]
 for i, (label, formula) in enumerate(summary):
     r = 5 + i
-    band = fill(BAND) if i % 2 else fill(WHITE)
-    put(ws, f"A{r}", label, f=font(10, bold=True), fl=band)
+    band = None
+    put(ws, f"A{r}", label, f=font(11, bold=True), fl=band)
     put(ws, f"B{r}", formula, fl=band)
     ws.row_dimensions[r].height = 24
 REC_HEAD = 5 + len(summary) + 1
@@ -686,15 +685,15 @@ section(ws, REC_HEAD, "B", "Recommendations")
 header(ws, REC_HEAD + 1, [("A", "A", "Recommendation", "left"), ("B", "B", "Why", "left")])
 for i, (rec, why) in enumerate(RECOMMENDATIONS):
     r = REC_HEAD + 2 + i
-    band = fill(BAND) if i % 2 else fill(WHITE)
-    put(ws, f"A{r}", f"{i + 1}. {rec}", f=font(10, bold=True), fl=band)
+    band = None
+    put(ws, f"A{r}", f"{i + 1}. {rec}", f=font(11, bold=True), fl=band)
     put(ws, f"B{r}", why, fl=band)
     ws.row_dimensions[r].height = 30
 r = REC_HEAD + 2 + len(RECOMMENDATIONS) + 1
 ws.merge_cells(f"A{r}:B{r}")
 put(ws, f"A{r}", "Ratings and weights are the analyst's judgement, based on the company information and "
                  "public news up to 2025. Check the latest figures (exchange rate, inflation) before presenting.",
-    f=font(9, italic=True, color=MUTED), bd=None)
+    f=font(11, italic=True), bd=None)
 ws.row_dimensions[r].height = 28
 cells["summary"] = {"first": 5, "last": 4 + len(summary), "rec_first": REC_HEAD + 2,
                     "rec_last": REC_HEAD + 1 + len(RECOMMENDATIONS)}

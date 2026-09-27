@@ -7,13 +7,18 @@ business, leadership, structure, strengths and weaknesses.
 | File | What it is |
 |---|---|
 | [PZ_Nigeria_Analysis.xlsx](PZ_Nigeria_Analysis.xlsx) | The analysis workbook. Opens in Excel 2013 and later. |
-| [PZ_Nigeria_Analysis.pptx](PZ_Nigeria_Analysis.pptx) | The 13-slide presentation. Opens in PowerPoint 2013 and later. |
+| [PZ_Nigeria_Analysis.pptx](PZ_Nigeria_Analysis.pptx) | The 15-slide presentation. Opens in PowerPoint 2013 and later. |
 | [src/](src/) | The scripts that generated both files. |
+
+Both files are made in Office 2013's default style, as if created in Excel 2013 and PowerPoint
+2013 with their normal settings.
 
 ## The Excel workbook
 
-Blue figures are inputs (ratings and weights). Every black figure is a formula, so changing a
-blue figure updates the scores, summaries, charts and conclusions.
+The workbook uses the Office 2013 theme and Calibri 11, with plain grey header rows, thin black
+borders, normal gridlines and Excel 2013's default chart style with grey bars. The ratings and
+weights are typed in; every other figure is a formula, so changing a rating or weight updates
+the scores, summaries, charts and conclusions.
 
 | Sheet | Contents |
 |---|---|
@@ -40,27 +45,34 @@ judgements based on the company information and public news up to 2025.
 
 ## The PowerPoint deck
 
+The deck is built on PowerPoint 2013's widescreen Office Theme (Calibri Light titles, Calibri
+text, black on white) with its standard layouts: Title Slide, Title and Content, Two Content and
+Title Only. Tables (Table Grid, grey header row) and grey charts sit in the content placeholders,
+as PowerPoint's Insert Table and Insert Chart icons put them.
+
 1. Title
 2. Company overview
-3. PESTLE analysis, part 1 (Political, Economic, Social)
-4. PESTLE analysis, part 2 (Technological, Legal, Environmental)
-5. PESTLE scores (chart and key findings)
-6. SWOT analysis
-7. SWOT scoring (IFE and EFE)
-8. Industry overview
-9. Main competitors
-10. Porter's Five Forces
-11. Five Forces ratings
-12. Recommendations
-13. Conclusion
+3. PESTLE: Political and Economic (table)
+4. PESTLE: Social and Technological (table)
+5. PESTLE: Legal and Environmental (table)
+6. PESTLE scores (chart and key findings)
+7. SWOT analysis (2 × 2 table)
+8. SWOT scoring (IFE and EFE chart)
+9. Industry overview
+10. Main competitors (table)
+11. Porter's Five Forces (diagram)
+12. Five Forces ratings (chart)
+13. Recommendations
+14. Conclusion
+15. Thank you / questions
 
-The deck uses the same plain look as the budget deck: Arial only, black text with dark-blue
-titles, grey charts, and only rectangles, lines and text boxes. Every slide has speaker notes
-and a Push transition, and its content builds itself automatically when the slide appears.
+Every slide has speaker notes and a Push transition, and its content builds itself
+automatically when the slide appears. Click to go to the next slide.
 
 ## Rebuilding
 
-Run `src/build.sh`. It reuses the chart and slide clean-up scripts in
-`../marketing-budget/src` and needs the same tools (Python with openpyxl, python-pptx and lxml;
-Node with pptxgenjs; LibreOffice). Set `SCHEMA_DIR` to the ISO/IEC 29500 transitional schemas to
-check every part of both files against them.
+Run `src/build.sh`. It needs Python with openpyxl, python-pptx, XlsxWriter and lxml, and
+LibreOffice. `src/office2013.py` holds the Office 2013 theme and turns python-pptx's built-in
+template into PowerPoint 2013's widescreen Office Theme. The build reuses the chart clean-up,
+animation and validation scripts in `../marketing-budget/src`. Set `SCHEMA_DIR` to the ISO/IEC
+29500 transitional schemas to check every part of both files against them.
