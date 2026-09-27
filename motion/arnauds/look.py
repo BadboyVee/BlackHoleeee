@@ -21,6 +21,9 @@ GOLD_PALE = "#f3dc9a"
 LIGHT_GREEN = "#bde9a0"
 GREEN_MID = "#86d36a"
 GOLD_INK = "#946a17"        # gold for type on the light ground
+# the thinking ring's beads and coin, in vibrant takes on the palette
+VIVID_GOLD = "#ffc400"
+EMERALD = "#12b85a"
 SHADOW = "#1d3a12"          # shadows fall dark green on the light-green ground
 # one ground for the whole film: light green; white for cards, panels and the phone; black only for type
 CREAM = WHITE

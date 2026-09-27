@@ -6,7 +6,7 @@ import skia
 
 from engine import gfx as G
 from engine.core import clamp, lerp, snap, whip, out_cubic, in_out_cubic
-from .look import F, T, ui, WHITE, INK, GOLD, SHADOW, glow_blob, draw_cover, ground
+from .look import F, T, ui, WHITE, INK, SHADOW, glow_blob, draw_cover, ground, VIVID_GOLD, EMERALD
 from .score import WORDS, T_FIND, T_DROPS, T_RISE, T_LIME, T_CRAVE, T_ROLL, T_WAIT
 
 GIANT = 420
@@ -99,6 +99,7 @@ def giant(c, t):
 RING = (960, 600, 250)          # centre and radius of the bead ring
 CHIPS = ["pizza", "sushi", "ramen"]
 BEADS = 44
+RING_BEADS = (VIVID_GOLD, EMERALD, WHITE)
 
 
 def field(c, t):
@@ -115,18 +116,19 @@ def bead(c, x, y, r, col, a=1.0):
 
 
 def doubloon(c, x, y, r, flip, t, a=1.0):
-    """A Mardi Gras doubloon: gold, ridged, stamped with the A. `flip` is the coin's turn in radians."""
+    """A Mardi Gras doubloon: bright gold, ridged, stamped with the A. `flip` is the coin's turn in radians."""
     sx = math.cos(flip)
     face = abs(sx)
     with G.layer(c, alpha=a):
-        glow_blob(c, x, y, r * 2.6, GOLD, 0.45)
+        glow_blob(c, x, y, r * 2.6, VIVID_GOLD, 0.5)
         with G.xf(c, x, y, sx=max(0.04, face), sy=1.0):
-            G.circle(c, 0, 0, r, G.P("#b8860b"))
-            c.drawCircle(0, 0, r * 0.97, G.P(GOLD, 1, shader=G.linear_grad(-r, -r, r, r, ["#fff1b8", GOLD, "#c9901a", GOLD])))
+            G.circle(c, 0, 0, r, G.P("#c98a00"))
+            c.drawCircle(0, 0, r * 0.97, G.P(VIVID_GOLD, 1, shader=G.linear_grad(
+                -r, -r, r, r, ["#fff3b0", VIVID_GOLD, "#e0a100", VIVID_GOLD])))
             for k in range(72):
                 ang = 2 * math.pi * k / 72
                 c.drawLine(math.cos(ang) * r * 0.9, math.sin(ang) * r * 0.9, math.cos(ang) * r * 0.97,
-                           math.sin(ang) * r * 0.97, G.P("#a8791a", 0.7, stroke=2))
+                           math.sin(ang) * r * 0.97, G.P("#b07800", 0.7, stroke=2))
             G.circle(c, 0, 0, r * 0.78, G.P("#a8791a", 0.8, stroke=3))
             if sx > 0:
                 T(c, "A", 0, r * 0.3, F("serif", r * 0.95), "#6b4a0c", align=0.5)
@@ -147,7 +149,7 @@ def doubloon(c, x, y, r, flip, t, a=1.0):
 
 
 def finding(c, t, enter=1.0):
-    """Finding something special: a ring of white and black beads spins like a loader while the three cravings orbit
+    """Finding something special: a ring of gold, green and white beads spins like a loader while the three cravings orbit
     inside it; one by one they are tossed away, and a gold doubloon flips into the middle."""
     field(c, t)
     gone = clamp((t - T_LIME) / 0.35)
@@ -159,11 +161,15 @@ def finding(c, t, enter=1.0):
 
 
 def _finding(c, t):
-    f = ui(54, 520)
+    # the label in the giant words' style: white serif lined in black
+    f = F("serif", 72)
     dots = int((t - T_FIND) * 6) % 4
     label = "Finding something special"
-    w = f.width(label)
-    T(c, label + "." * dots, 960 - w / 2, 190, f, INK)
+    path = f.shape(label + "." * dots).path(960 - f.width(label) / 2, 196)
+    with G.xf(c, 0, 8):
+        c.drawPath(path, G.P(INK, 0.3, blur=10))
+    c.drawPath(path, G.P(INK, 1, stroke=4.5, join="round"))
+    c.drawPath(path, G.P(WHITE))
     cx, cy, R = RING
     found = clamp((t - T_RISE) / 0.5)
     spin = (t - T_FIND) * 2.6
@@ -172,10 +178,10 @@ def _finding(c, t):
     for i in range(BEADS):
         ang = 2 * math.pi * i / BEADS + spin * 0.35
         d = (head - (2 * math.pi * i / BEADS)) % (2 * math.pi)
-        lit = math.exp(-d * 1.4)                    # a comet of brighter beads chases round the ring
-        col = (WHITE, INK)[i % 2]
+        lit = math.exp(-d * 1.4)                    # a comet of brighter, bigger beads chases round the ring
+        col = G.mixc(RING_BEADS[i % 3], WHITE, 0.3 * max(lit, found))
         r = 13 + 6 * lit
-        bead(c, cx + Rr * math.cos(ang), cy + Rr * math.sin(ang), r, col, 0.55 + 0.45 * max(lit, found))
+        bead(c, cx + Rr * math.cos(ang), cy + Rr * math.sin(ang), r, col)
     # the cravings orbit inside, then get tossed
     for k, (name, td) in enumerate(zip(CHIPS, T_DROPS)):
         ang = -math.pi / 2 + 2 * math.pi * k / 3 - (t - T_FIND) * 1.3
@@ -214,7 +220,7 @@ def _finding(c, t):
                 L = 160 + 120 * v
                 px, py = cx + math.cos(ang) * L, cy + math.sin(ang) * L
                 pts = G.star_points(4, 16 * (1 - v * 0.4), 4, cx=px, cy=py)
-                c.drawPath(G.poly(pts), G.P(WHITE, 1 - v * 0.6))
+                c.drawPath(G.poly(pts), G.P(RING_BEADS[k % 3], 1 - v * 0.6))
 
 
 # ---------------------------------------------------------------- closing lines
