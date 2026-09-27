@@ -78,6 +78,7 @@ def build():
                      voices=6), 0.0, 0.24)
     for k, (fn, x, y, rot, sc, tl) in enumerate(TB.PROPS):       # every prop is set down on the table
         p = float(np.clip((x - 960) / 1100, -0.8, 0.8))
+        tl += 0.05                                               # it touches down just after its sixteenth
         put("sfx", A.tom(95 + 40 * (k % 3), 0.3, seed=200 + k), tl, 0.26, p=p)
         put("sfx", A.flap(seed=210 + k, lock=True), tl, 0.16, p=p)
         if fn in TB.METAL:                                       # cutlery rings
@@ -103,11 +104,12 @@ def build():
     put("fx", A.sub_drop(1.2, 70, 34), T_NAME, 0.45)
     put("fx", A.impact(1.6, seed=4), T_NAME, 0.2)
     # the white card drops onto the table and its edge lights up
-    put("sfx", A.whoosh(0.3, False, 280, 300, 5000, 0.0, 0.0), TB.T_DROP - 0.22, 0.25)
-    put("sfx", A.tom(70, 0.45, seed=281), TB.T_DROP, 0.5)
-    put("sfx", A.flap(seed=282, lock=True), TB.T_DROP, 0.3)
+    hit = TB.T_DROP + 0.13                                       # the card touches down
+    put("sfx", A.whoosh(0.3, False, 280, 300, 5000, 0.0, 0.0), hit - 0.26, 0.25)
+    put("sfx", A.tom(70, 0.45, seed=281), hit, 0.5)
+    put("sfx", A.flap(seed=282, lock=True), hit, 0.3)
     for k, n in enumerate(["C7", "E7", "G7", "A7", "C8"]):
-        put("cel", A.bell(hz(n), 0.8, ratio=2.0, index=0.4, decay=0.3), TB.T_DROP + 0.12 + k * 0.07, 0.07,
+        put("cel", A.bell(hz(n), 0.8, ratio=2.0, index=0.4, decay=0.3), hit + 0.08 + k * 0.07, 0.07,
             p=-0.5 + 0.25 * k)
     put("sfx", A.whoosh(0.55, False, 1, 300, 7000, 0.0, 0.0), T_WIPE[0], 0.4)
     put("sfx", A.blip(880, 0.08), T_WIPE[1] - 0.02, 0.14)
