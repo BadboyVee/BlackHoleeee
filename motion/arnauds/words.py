@@ -6,26 +6,31 @@ import skia
 
 from engine import gfx as G
 from engine.core import clamp, lerp, snap, whip, out_cubic, in_out_cubic
-from .look import F, T, ui, WHITE, INK, GOLD, SHADOW, glow_blob, caret, caret_trail, draw_cover, ground
+from .look import F, T, ui, WHITE, INK, GOLD, SHADOW, glow_blob, draw_cover, ground
 from .score import WORDS, T_FIND, T_DROPS, T_RISE, T_LIME, T_CRAVE, T_ROLL, T_WAIT
 
-GIANT = 380
+GIANT = 420
 BASE = 700
+OUTLINE = 6          # the black line around the white letters, outside them
 
 
 # ---------------------------------------------------------------- giant words
 
 def giant_font():
-    return F("inter", GIANT, wght=520, opsz=32)
+    return F("serif", GIANT)
+
+
+def word_font(fill):
+    """The same serif as the name; the special word leans into italic."""
+    return F("serif-italic", GIANT) if fill == "glow" else giant_font()
 
 
 @lru_cache(maxsize=1)
 def giant_layout():
-    f = giant_font()
-    space = f.width(" ")
+    space = giant_font().width(" ")
     out, x = [], 0.0
     for t0, word, fill in WORDS:
-        w = f.width(word)
+        w = word_font(fill).width(word)
         out.append(dict(t=t0, word=word, fill=fill, x=x, w=w))
         x += w + space
     return out
@@ -52,20 +57,26 @@ def typed_part(it, t):
 
 def typed_end(it, t):
     part = typed_part(it, t)
-    return it["x"] + (giant_font().shape(part).width if part else 0.0)
+    return it["x"] + (word_font(it["fill"]).shape(part).width if part else 0.0)
 
 
 def word_fill(c, it, x, y, t):
-    """A giant word in black, easy to read on the green; the special one glows white behind its letters."""
+    """A giant word in the serif: white letters, a black line around them and a soft black shadow."""
     part = typed_part(it, t)
     if not part:
         return
-    path = giant_font().shape(part).path(x, y)
-    with G.xf(c, 0, 14):
-        c.drawPath(path, G.P(SHADOW, 0.18, blur=20))
-    if it["fill"] == "glow":
-        c.drawPath(path, G.P(WHITE, 0.95, blur=34))
-    c.drawPath(path, G.P(INK))
+    path = word_font(it["fill"]).shape(part).path(x, y)
+    with G.xf(c, 0, 18):
+        c.drawPath(path, G.P(INK, 0.3, blur=24))
+    c.drawPath(path, G.P(INK, 1, stroke=2 * OUTLINE, join="round"))
+    c.drawPath(path, G.P(WHITE))
+
+
+def giant_caret(c, x, top, h):
+    """The caret in the words' own style: a white bar lined in black."""
+    bw = 12
+    c.drawRect(skia.Rect.MakeXYWH(x - bw - OUTLINE, top - OUTLINE, bw + 2 * OUTLINE, h + 2 * OUTLINE), G.P(INK))
+    c.drawRect(skia.Rect.MakeXYWH(x - bw, top, bw, h), G.P(WHITE))
 
 
 def giant(c, t):
@@ -75,17 +86,11 @@ def giant(c, t):
     c.save()
     c.translate(-cam, 0)
     alive = [it for it in lay if t >= it["t"]]
-    top, h = BASE - giant_font().cap - 50, GIANT * 1.02
-    # the caret's white highlight goes under the words, the black bar over them
-    if alive:
-        x = typed_end(alive[-1], t) + 30
-        caret_trail(c, x, top, h, 520 if t - alive[-1]["t"] < 0.2 else 260)
-        for it in alive:
-            word_fill(c, it, it["x"], BASE, t)
-    else:
-        x = lay[0]["x"] + 10
-        caret_trail(c, x, top, h, 700)
-    caret(c, x, top, h)
+    top, h = BASE - giant_font().cap - 40, giant_font().cap + 140
+    for it in alive:
+        word_fill(c, it, it["x"], BASE, t)
+    x = typed_end(alive[-1], t) + 34 if alive else lay[0]["x"] + 10
+    giant_caret(c, x, top, h)
     c.restore()
 
 

@@ -117,13 +117,6 @@ def ground(c, t):
     c.restore()
 
 
-def caret_trail(c, x, y_top, h, length, a=1.0):
-    """The light the caret leaves behind: a white highlight fading in towards it, drawn under the type."""
-    if length > 1:
-        c.drawRect(skia.Rect.MakeXYWH(x - length, y_top, length, h),
-                   G.P(WHITE, a, shader=G.linear_grad(x - length, 0, x, 0, [WHITE, WHITE], alphas=[0.0, 0.9 * a])))
-
-
 def caret(c, x, y_top, h, a=1.0):
     """The caret: a black bar."""
     bw = max(3.0, h * 0.06)

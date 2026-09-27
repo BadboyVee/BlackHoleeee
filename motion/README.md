@@ -84,7 +84,7 @@ signature and MADE BY VEEE the maker's mark.
 | --- | --- | --- |
 | 1–2 | The table | a light-green kitchen table seen from above: bread, gold cutlery, a board and a knife drop onto it on the sixteenths while *Choosing dinner / for your anniversary / is a lot.* pops in, fruit keeps landing until the table is crowded, and a white card with a glowing edge drops in the middle |
 | 3 | The ask | the props fly off the table, the card becomes the phone's input box, the phone rises behind it, and the prompt types in: pizza, sushi or ramen, or something special |
-| 4 | Giant words | *Pizza, sushi, ramen?* typed huge in black, a white highlight trailing into the black caret, then *something special.* with a white glow behind its letters |
+| 4 | Giant words | *Pizza, sushi, ramen?* typed huge in the serif of the name, white letters lined in black with a soft shadow, then *something special.* in italic |
 | 5 | Thinking | a ring of white and black beads spins like a loader; the three cravings orbiting inside are tossed away one by one and a gold doubloon stamped with the A flips into the middle |
 | 6 | Carousel | white menu cards race over the ground and brake on Arnaud's, edged in gold, which opens into the dining room with its chandeliers glinting |
 | 7–8 | The cashier | a white printer feeds out the pre-order (Soufflé Potatoes, Shrimp Arnaud, Bananas Foster), a white terminal rolls the amount due, a gold card taps, the screen goes gold and the receipt is stamped CONFIRMED |
