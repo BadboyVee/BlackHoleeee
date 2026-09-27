@@ -8,9 +8,15 @@ children out of schema order, a line chart without <c:grouping>, and a third axi
 names no axis. This rewrites those chart parts, then validates each one against
 dml-chart.xsd and exits non-zero if any chart is still invalid.
 
+It also cleans the small workbook behind each chart (the one "Edit Data" opens in Excel):
+pptxgenjs adds a table part with a broken range that no worksheet uses, which is removed, and
+leaves the default cell style out of the stylesheet, which is added.
+
 Usage: python sanitize_charts.py deck.pptx out.pptx [--xsd path/to/dml-chart.xsd]
 """
 import argparse
+import io
+import posixpath
 import re
 import shutil
 import sys
@@ -131,6 +137,102 @@ def fix_chart(xml: bytes):
     return out, notes
 
 
+S_NS = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+S = f"{{{S_NS}}}"
+R_ID = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id"
+
+
+STYLE_ORDER = ["numFmts", "fonts", "fills", "borders", "cellStyleXfs", "cellXfs", "cellStyles",
+               "dxfs", "tableStyles", "colors", "extLst"]
+
+
+def complete_stylesheet(xml: bytes):
+    """Give a stylesheet the default cell style Excel writes in every workbook.
+
+    pptxgenjs leaves out cellStyleXfs, cellXfs and cellStyles (so the cells point at a style
+    that doesn't exist) and redefines built-in number format 0, "General".
+    """
+    root = etree.fromstring(xml)
+    notes = []
+    fmts = root.find(f"{S}numFmts")
+    if fmts is not None:
+        for fmt in fmts.findall(f"{S}numFmt"):
+            if int(fmt.get("numFmtId")) < 164:   # ids below 164 are Excel's built-in formats
+                fmts.remove(fmt)
+                notes.append(f"removed redefinition of built-in number format {fmt.get('numFmtId')}")
+        if len(fmts) == 0:
+            root.remove(fmts)
+        else:
+            fmts.set("count", str(len(fmts)))
+    defaults = {
+        "cellStyleXfs": '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs>',
+        "cellXfs": '<cellXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/></cellXfs>',
+        "cellStyles": '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles>',
+    }
+    for name, markup in defaults.items():
+        if root.find(f"{S}{name}") is None:
+            root.append(etree.fromstring(markup.replace(">", f' xmlns="{S_NS}">', 1)))
+            notes.append(f"added default {name}")
+    reorder_children = sorted(root, key=lambda el: STYLE_ORDER.index(etree.QName(el).localname)
+                              if etree.QName(el).localname in STYLE_ORDER else len(STYLE_ORDER))
+    for el in reorder_children:
+        root.append(el)
+    return etree.tostring(root, xml_declaration=True, encoding="UTF-8", standalone=True), notes
+
+
+def fix_chart_workbook(data: bytes):
+    """Clean the workbook behind a chart (the one "Edit Data" opens in Excel).
+
+    - pptxgenjs writes xl/tables/table1.xml with a broken range (ref="A1:B7'") but never
+      links it from the worksheet (no <tableParts>); the unused table is removed.
+    - The stylesheet gets the default cell style Excel always writes (complete_stylesheet).
+    The chart reads its data from the cells, which stay as they are.
+    """
+    with zipfile.ZipFile(io.BytesIO(data)) as zf:
+        names = zf.namelist()
+        infos = zf.infolist()
+        parts = {name: zf.read(name) for name in names}
+    notes = []
+    if "xl/styles.xml" in parts:
+        parts["xl/styles.xml"], notes = complete_stylesheet(parts["xl/styles.xml"])
+    used = set()
+    for sheet_name in [n for n in names if re.fullmatch(r"xl/worksheets/[^/]+\.xml", n)]:
+        sheet = etree.fromstring(parts[sheet_name])
+        ids = {tp.get(R_ID) for tp in sheet.iter(f"{S}tablePart")}
+        folder, base = posixpath.split(sheet_name)
+        rels_name = f"{folder}/_rels/{base}.rels"
+        if rels_name not in parts:
+            continue
+        rels = etree.fromstring(parts[rels_name])
+        for rel in list(rels):
+            target = posixpath.normpath(posixpath.join(folder, rel.get("Target", "")))
+            if rel.get("Type", "").endswith("/table"):
+                if rel.get("Id") in ids:
+                    used.add(target)
+                else:
+                    rels.remove(rel)
+        parts[rels_name] = etree.tostring(rels, xml_declaration=True, encoding="UTF-8", standalone=True)
+        if len(rels) == 0:
+            del parts[rels_name]
+    dropped = [n for n in names if re.fullmatch(r"xl/tables/[^/]+\.xml", n) and n not in used]
+    for name in dropped:
+        del parts[name]
+    if not dropped and not notes:
+        return data, []
+    if dropped:
+        ct = etree.fromstring(parts["[Content_Types].xml"])
+        for override in list(ct):
+            if override.get("PartName", "").lstrip("/") in dropped:
+                ct.remove(override)
+        parts["[Content_Types].xml"] = etree.tostring(ct, xml_declaration=True, encoding="UTF-8", standalone=True)
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w", zipfile.ZIP_DEFLATED) as out:
+        for info in infos:
+            if info.filename in parts:
+                out.writestr(info, parts[info.filename])
+    return buf.getvalue(), notes + [f"removed unused table part {n}" for n in dropped]
+
+
 def schema_errors(xml: bytes, schema):
     doc = etree.fromstring(xml)
     # Office extensions sit in mc:AlternateContent, which the base schema doesn't describe.
@@ -155,6 +257,10 @@ def main():
         with zipfile.ZipFile(out_path, "w", zipfile.ZIP_DEFLATED) as dst:
             for info in src.infolist():
                 data = src.read(info.filename)
+                if re.fullmatch(r"ppt/embeddings/[^/]+\.xlsx", info.filename):
+                    data, notes = fix_chart_workbook(data)
+                    for n in sorted(set(notes)):
+                        print(f"{info.filename}: {n}")
                 if re.fullmatch(r"ppt/charts/chart\d+\.xml", info.filename):
                     data, notes = fix_chart(data)
                     for n in sorted(set(notes)):

@@ -78,11 +78,13 @@ Run `src/build.sh` to regenerate both files. It needs:
 
 PowerPoint 2013 rejects some of the XML that pptxgenjs writes, so the build cleans it up:
 
-- `src/sanitize_charts.py` puts every chart into the order the chart schema requires.
+- `src/sanitize_charts.py` puts every chart into the order the chart schema requires. It also
+  cleans the small workbook behind each chart (what "Edit Data" opens): it removes an unused
+  table part with a broken range and adds the default cell style Excel expects.
 - `src/finish_deck.py` keeps one paragraph-settings block per paragraph. It also adds the
   Push transitions and the automatic entrance animations that `src/build_deck.js` plans in
   `deck.anim.json`.
 
 Set `SCHEMA_DIR` to the ISO/IEC 29500 transitional schemas (`pml.xsd`, `sml.xsd`,
-`dml-chart.xsd`, ...) and `src/validate_strict.py` checks every part of both files. The build
-fails if any part is invalid.
+`dml-chart.xsd`, ...) and `src/validate_strict.py` checks every part of both files, including
+the workbooks embedded in the deck. The build fails if any part is invalid.
