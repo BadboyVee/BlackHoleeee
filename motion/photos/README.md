@@ -14,3 +14,6 @@ belong to their owners, so the repository carries only the code that places them
 AGI WEEK (`python3 -m agiweek.main`) needs `agiweek/amodei.jpg`, `altman.jpg`, `hassabis.jpg`, `zuckerberg.jpg`
 and `musk.jpg` (the founders), and `agiweek/sound.wav`, the reference clip's soundtrack, which the film is cut to:
 `ffmpeg -i clip.mp4 -vn -ac 2 -ar 48000 photos/agiweek/sound.wav`. The sound is git-ignored for the same reason.
+
+DEVDAY 2026 (`python3 -m devday.main`) needs `devday/sound.wav`, the teaser's soundtrack, which the film is cut to:
+`ffmpeg -i teaser.mp4 -vn -ac 2 -ar 48000 photos/devday/sound.wav`. It is git-ignored for the same reason.
