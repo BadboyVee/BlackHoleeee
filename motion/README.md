@@ -117,6 +117,11 @@ claims are the post's, worded as it words them (expected, rumoured, might).
 | 16–17 | The IPO | a calendar flips to November; Anthropic climbs to the top of the stack: *Staying on top.* |
 | 18 | The end | *Big week ahead.* |
 
+Every line of type rises out of its own mask while its variable-font weight grows from hairline to bold. Each lab
+opens inside its own mark (the OpenAI blossom, the Gemini sparkle, the Claude spark), UI panels swing in with a 3D
+tilt, founders open in masked reveals with a slow push, and a camera pushes through every section and bumps on
+every kick. Landings throw sparks and shockwaves, cards catch a glint, and the calendar's pages flip in 3D.
+
 The soundtrack is 128 BPM future house in A minor with a two-bar build under DevDay that drops on *(AGI?)*. The
 Claude, Gemini and Meta marks are Simple Icons paths; OpenAI's is the engine's; the Grok mark is drawn. The
 founders' photographs (`photos/agiweek/`) were supplied for the render and are not in the repository. Fan-made;
@@ -140,7 +145,7 @@ frontier/      film 1: score.py (timing shared by picture and sound), music.py, 
 dario/         film 2: the same layout, plus photos.py for the optional photographs
 interface/     film 3: score.py, film.py (board, camera, cursor), stream.py (the streamed answer), ui.py, music.py
 arnauds/       the concept spot: table.py (the opening), intro.py (the end: the name, the credit), phone.py, words.py, cards.py, checkout.py, map.py, film.py, music.py
-agiweek/       the news film: marks.py (brand marks), look.py (brands, founders, chips), scenes_a/b/c.py, film.py, music.py
+agiweek/       the news film: marks.py (brand marks), look.py (brands, founders, chips), motion.py (the motion kit), scenes_a/b/c.py, film.py, music.py
 fonts/         Archivo, Fraunces, Inter, JetBrains Mono, Instrument Serif (all SIL OFL); DejaVu for ∝ ⌘ ⏎
 ```
 

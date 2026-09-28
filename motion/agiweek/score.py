@@ -22,8 +22,8 @@ T_TICK = G.at(2, 3)                      # the progress bar moves one week close
 T_SLATE = G.at(3)                        # 3.75
 DROP_ORDER = ["meta", "google", "xai", "openai", "anthropic"]    # the last lands on top
 T_DROPS = [G.at(3, 1), G.at(3, 2), G.at(3, 3), G.at(3, 4), G.at(4, 1)]
-T_STACKED = G.at(4, 2)                   # "stacked." lands
-T_FAN = G.at(4, 3, 2)                    # the stack fans out into a row
+T_STACKED = G.at(4, 1, 2)                # "stacked." lands
+T_FAN = G.at(4, 2, 2)                    # the stack fans out into a row
 ROW_ORDER = ["anthropic", "openai", "google", "meta", "xai"]
 T_DIVE = G.at(4, 4, 2)                   # into the Anthropic card
 

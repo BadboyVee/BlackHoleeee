@@ -6,14 +6,17 @@ import skia
 
 from .score import *   # noqa: F401,F403 - the timing sheet is the vocabulary of this file
 from engine import gfx as G   # after the star import: the sheet's musical grid is also called G
-from engine.core import clamp, lerp, in_out_cubic, out_cubic, whip, in_cubic
+from .score import G as GRID
+from engine.core import clamp, lerp, in_out_cubic, whip, in_cubic
 from engine.render import Film
-from . import marks as M
+from . import motion as V
 from .look import BLACK, WHITE, CLAY
 from .scenes_a import cold_open, slate, slate_dive, anthropic, APP
 from .scenes_b import openai, race, xai
 from .scenes_c import devday, drop, ipo, end
 
+GROOVE_BARS = set(range(3, 14)) | {15, 16, 17}     # where the kick plays, so the camera can breathe with it
+SECTIONS = [0.0] + CUTS + [DURATION]
 LIGHT = [(T_DIVE, T_RACE), (T_IPO - 0.3, T_END)]      # ivory and white: no bloom, a lighter grain
 
 
@@ -35,7 +38,34 @@ class AgiWeek(Film):
     def bg(self, t):
         return G.rgb(BLACK)
 
+    def camera(self, t):
+        """(dx, dy, scale): a slow push through every section, a bump on every kick, a knock when things land."""
+        i = max(k for k, s0 in enumerate(SECTIONS[:-1]) if t >= s0)
+        s0, s1 = SECTIONS[i], SECTIONS[i + 1]
+        push = 0.035 * clamp((t - s0) / max(0.1, s1 - s0))
+        bump = 0.0
+        if GRID.bar_of(t) in GROOVE_BARS:
+            bump = 0.009 * math.exp(-((t % GRID.spb) / 0.09))
+        shake = 0.0
+        for t0, amp in [(td, 5.0) for td in T_DROPS] + [(T_AGI, 9.0), (T_STACKED, 6.0), (T_PICK, 3.0),
+                                                         (T_ROLL, 7.0), (T_ON_TOP, 4.0)]:
+            k = t - t0
+            if 0 <= k < 0.4:
+                shake = max(shake, amp * math.exp(-k / 0.1))
+        dx = shake * math.sin(t * 97.0)
+        dy = shake * math.cos(t * 83.0)
+        return dx, dy, 1.0 + push + bump + shake / 900.0
+
     def draw(self, c, t):
+        dx, dy, s = self.camera(t)
+        c.save()
+        c.translate(960 + dx, 540 + dy)
+        c.scale(s, s)
+        c.translate(-960, -540)
+        self._draw(c, t)
+        c.restore()
+
+    def _draw(self, c, t):
         if t < T_SLATE:
             # the open whips up and away into the slate
             u = whip(clamp((t - (T_SLATE - 0.22)) / 0.22))
@@ -51,22 +81,17 @@ class AgiWeek(Film):
             slate_dive(c, t)
         elif t < T_OAI:
             anthropic(c, t)
-            # a white circle opens from the app window into OpenAI
-            u = in_out_cubic(clamp((t - (T_OAI - 0.24)) / 0.24))
+            # OpenAI opens inside its own blossom, grown from the app window
+            u = clamp((t - (T_OAI - 0.34)) / 0.34)
             if u > 0:
-                c.save()
                 cx, cy = APP[0] + APP[2] / 2, APP[1] + APP[3] / 2
-                circle_clip(c, cx, cy, 2300 * u)
-                openai(c, t)
-                c.restore()
+                V.reveal_through(c, "openai", cx, cy, u, openai, t, rot=140 * u, edge="#0d0d0d")
         elif t < T_RACE:
             openai(c, t)
-            u = out_cubic(clamp((t - (T_RACE - 0.2)) / 0.35))
+            # the race opens inside a Gemini sparkle
+            u = clamp((t - (T_RACE - 0.34)) / 0.34)
             if u > 0:
-                c.save()
-                c.clipRect(skia.Rect.MakeLTRB(960 + 960 * (1 - u), 0, 1920, 1080))
-                race(c, t)
-                c.restore()
+                V.reveal_through(c, "gemini", 960, 540, u, race, t, rot=90 * u)
         elif t < T_XAI - 0.25:
             race(c, t)
         elif t < T_XAI + 0.12:
@@ -99,21 +124,16 @@ class AgiWeek(Film):
                 c.drawRect(skia.Rect.MakeWH(*SIZE), G.P(WHITE, u))
         elif t < T_IPO:
             drop(c, t)
-            u = in_out_cubic(clamp((t - (T_IPO - 0.24)) / 0.24))
+            # the IPO opens inside the Claude spark
+            u = clamp((t - (T_IPO - 0.34)) / 0.34)
             if u > 0:
-                c.save()
-                circle_clip(c, 960, 540, 1150 * u)
-                ipo(c, t)
-                c.restore()
-                M.mark(c, "claude", 960, 540, 200 * (1 - u) + 40, CLAY, 1 - u * 0.6, rot=u * 180)
+                V.reveal_through(c, "claude", 960, 540, u, ipo, t, rot=120 * u, edge=CLAY)
         elif t < T_END:
             ipo(c, t)
-            u = in_out_cubic(clamp((t - (T_END - 0.2)) / 0.25))
+            # blinds close the ivory onto the night
+            u = clamp((t - (T_END - 0.3)) / 0.3)
             if u > 0:
-                c.save()
-                c.clipRect(skia.Rect.MakeLTRB(0, 1080 * (1 - u), 1920, 1080))
-                end(c, t)
-                c.restore()
+                V.blinds(c, u, end, t, n=9)
         else:
             end(c, t)
             black(c, clamp((t - T_FADE[0]) / (T_FADE[1] - T_FADE[0])))
