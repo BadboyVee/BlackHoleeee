@@ -11,7 +11,7 @@ from engine.render import Film
 from . import marks as M
 from .look import BLACK, WHITE, CLAY
 from .scenes_a import cold_open, slate, slate_dive, anthropic, APP
-from .scenes_b import openai, race, open_source, xai
+from .scenes_b import openai, race, xai
 from .scenes_c import devday, drop, ipo, end
 
 LIGHT = [(T_DIVE, T_RACE), (T_IPO - 0.3, T_END)]      # ivory and white: no bloom, a lighter grain
@@ -67,32 +67,21 @@ class AgiWeek(Film):
                 c.clipRect(skia.Rect.MakeLTRB(960 + 960 * (1 - u), 0, 1920, 1080))
                 race(c, t)
                 c.restore()
-        elif t < T_OSS:
-            race(c, t)
-            u = out_cubic(clamp((t - (T_OSS - 0.2)) / 0.35))
-            if u > 0:
-                c.save()
-                p = skia.Path()
-                p.addRect(skia.Rect.MakeLTRB(0, 0, 960 * u, 1080))
-                p.addRect(skia.Rect.MakeLTRB(1920 - 960 * u, 0, 1920, 1080))
-                c.clipPath(p, skia.ClipOp.kIntersect, True)
-                open_source(c, t)
-                c.restore()
         elif t < T_XAI - 0.25:
-            open_source(c, t)
+            race(c, t)
         elif t < T_XAI + 0.12:
-            # the halves part and xAI is behind them
+            # the two halves part and xAI is behind them
             xai(c, t)
             spread = in_cubic(clamp((t - (T_XAI - 0.25)) / 0.37))
             c.save()
             c.translate(-960 * spread, 0)
             c.clipRect(skia.Rect.MakeLTRB(0, 0, 960, 1080))
-            open_source(c, t)
+            race(c, t)
             c.restore()
             c.save()
             c.translate(960 * spread, 0)
             c.clipRect(skia.Rect.MakeLTRB(960, 0, 1920, 1080))
-            open_source(c, t)
+            race(c, t)
             c.restore()
         elif t < T_DEV:
             xai(c, t)
@@ -174,8 +163,7 @@ class AgiWeek(Film):
             fx = {"grain": 0.03, "vignette": 0.26, "bloom": 0.35, "bloom_th": 0.72, "bloom_r": 1.2}
         if T_RACE <= t < T_XAI:
             fx.update(grain=0.022, vignette=0.12, bloom=0.0)
-        for c0, amt in ((T_AGI, 8.0), (T_SLATE, 4.0), (T_ANT, 4.0), (T_OAI, 3.0), (T_RACE, 3.0), (T_OSS, 3.0),
-                        (T_XAI, 4.0), (T_ROLL, 6.0), (T_DEV, 5.0), (T_DROP, 14.0), (T_IPO, 4.0), (T_END, 3.0)):
+        for c0, amt in ((T_AGI, 8.0), (T_SLATE, 4.0), (T_ANT, 4.0), (T_OAI, 3.0), (T_RACE, 3.0), (T_XAI, 4.0), (T_ROLL, 6.0), (T_DEV, 5.0), (T_DROP, 14.0), (T_IPO, 4.0), (T_END, 3.0)):
             k = t - c0
             if 0 <= k < 0.3:
                 fx["chroma"] = max(fx.get("chroma", 0.0), amt * (1 - k / 0.3))

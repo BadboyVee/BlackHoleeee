@@ -150,8 +150,8 @@ def stack_pose(i):
 def row_pose(key):
     i = ROW_ORDER.index(key)
     n = len(ROW_ORDER)
-    w = 236
-    gap = 22
+    w = 300
+    gap = 34
     total = n * w + (n - 1) * gap
     x = 960 - total / 2 + w / 2 + i * (w + gap)
     return x, 600, 0.0, w / CARD_W

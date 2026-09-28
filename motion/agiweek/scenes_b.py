@@ -1,14 +1,14 @@
-"""OpenAI, the race (Gemini and Muse), open source (MiniMax and Qwen) and xAI."""
+"""OpenAI, the race (Gemini and Muse) and xAI."""
 import math
 
 import skia
 
 from engine import gfx as G
-from engine.core import clamp, out_cubic, out_back, spring, hash01
+from engine.core import clamp, out_cubic, out_back, spring
 from . import marks as M
 from .look import (BRANDS, BLACK, WHITE, GREY, T, ui, display, rr, ground, blob, chip, eyebrow, rise_text, portrait,
-                   press_of, panel, chevron, arrow_up, download, roll_digit, gemini_shader, GEMINI_GRAD)
-from .score import (T_OAI, T_OAI_TYPE, T_OAI_SEND, T_AGENT, T_OAI_FOUNDER, T_RACE, T_RACE_FOUNDERS, T_OSS, T_OSS_MODELS,
+                   press_of, panel, chevron, arrow_up, roll_digit, gemini_shader, GEMINI_GRAD)
+from .score import (T_OAI, T_OAI_TYPE, T_OAI_SEND, T_AGENT, T_OAI_FOUNDER, T_RACE, T_RACE_FOUNDERS,
                     T_XAI, T_ROLL, T_XAI_FOUNDER)
 
 OAI_INK = "#0d0d0d"
@@ -174,52 +174,7 @@ def _lab(c, t, key, cx, t0, ink, sub):
         T(c, b["company"].upper(), cx, 715, ui(24, 650), sub, a=v, align=0.5, tracking=0.2)
 
 
-# ---------------------------------------------------------------- 6 open source: MiniMax M3.1 and Qwen 4
-
-def open_source(c, t):
-    slide = out_cubic(clamp((t - T_OSS + 0.2) / 0.35))
-    lx = -960 * (1 - slide)
-    rx = 960 + 960 * (1 - slide)
-    _half(c, lx, "minimax", t)
-    _half(c, rx, "qwen", t)
-    u = clamp((t - T_OSS - 0.05) / 0.3)
-    if u > 0:
-        with G.xf(c, 960, 140, s=0.8 + 0.2 * out_back(u, 2)):
-            c.drawRRect(rr(-150, -34 + 8, 300, 68, 34), G.P("#000000", 0.2 * u, blur=14))
-            chip(c, 0, 0, "OPEN SOURCE", WHITE, "#111114", a=u, size=26, align=0.5)
-        T(c, "Two major open-weight models", 960, 230 + 12 * (1 - out_cubic(u)), ui(36, 500), WHITE, a=u * 0.92,
-          align=0.5)
-
-
-def _half(c, x0, key, t):
-    b = BRANDS[key]
-    top, bot = b["bg"]
-    c.drawRect(skia.Rect.MakeXYWH(x0, 0, 960, 1080), G.P(top, 1, shader=G.linear_grad(0, 0, 0, 1080, [top, bot])))
-    # weights drifting upward
-    for i in range(38):
-        u = (float(hash01(i, 11 if key == "qwen" else 12)) + (t - T_OSS) * (0.08 + 0.1 * float(hash01(i, 13)))) % 1.0
-        px = x0 + 40 + 880 * float(hash01(i, 14 if key == "qwen" else 15))
-        py = 1100 - 1180 * u
-        sz = 5 + 9 * float(hash01(i, 16))
-        c.drawRRect(rr(px, py, sz, sz, 2), G.P(WHITE, 0.18 * math.sin(math.pi * u)))
-    cx = x0 + 480
-    t0 = T_OSS_MODELS[0 if key == "minimax" else 1]
-    u = clamp((t - T_OSS - 0.1) / 0.4)
-    if u > 0:
-        s = spring(t - T_OSS - 0.1, 2.4, 0.5)
-        M.mark(c, b["mark"], cx, 400, 150 * (0.5 + 0.5 * s), WHITE, u)
-        T(c, b["company"], cx, 530, ui(34, 650), WHITE, a=u * 0.85, align=0.5)
-    v = clamp((t - t0) / 0.35)
-    if v > 0:
-        punch = 1 + 0.18 * math.exp(-(t - t0) / 0.1)
-        run = display(200, 820).shape(b["model"])
-        with G.xf(c, cx, 690, s=punch):
-            run.draw(c, -run.width / 2, 40 * (1 - out_cubic(v)), G.P(WHITE, v))
-        cw = chip(c, cx - 26, 800, "OPEN WEIGHTS", WHITE, WHITE, a=v, outline=True, align=0.5)
-        download(c, cx + cw / 2 + 10, 800, 30, WHITE, a=v, bob=4 * math.sin((t - t0) * 8))
-
-
-# ---------------------------------------------------------------- 7 xAI: Grok 4.8, maybe
+# ---------------------------------------------------------------- 6 xAI: Grok 4.8, maybe
 
 def xai(c, t):
     ground(c, BLACK)

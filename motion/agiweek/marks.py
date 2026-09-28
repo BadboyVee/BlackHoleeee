@@ -1,5 +1,4 @@
-"""Brand marks for AGI WEEK. Claude, Gemini, Meta, MiniMax and Qwen are the Simple Icons paths (CC0 path data on a
-24-unit grid); OpenAI comes from the engine's set; the Grok mark is drawn here. The marks are the companies'
+"""Brand marks for AGI WEEK. Claude, Gemini and Meta are the Simple Icons paths (CC0 path data on a 24-unit grid); OpenAI comes from the engine's set; the Grok mark is drawn here. The marks are the companies'
 trademarks, shown in a fan-made news piece that names them; nothing here is official or endorsed."""
 import math
 from functools import lru_cache
@@ -29,25 +28,6 @@ CLAUDE = (
     "h-.0546l-6.3385 4.1164-1.1293.1457-.4857-.4554.0608-.7467.2307-.2429 1.9064-1.3114Z"
 )
 
-MINIMAX = (
-    "M11.43 3.92a.86.86 0 1 0-1.718 0v14.236a1.999 1.999 0 0 1-3.997 0V9.022a.86.86 0 1 0-1.718 0v3.87a1.999 1.99"
-    "9 0 0 1-3.997 0V11.49a.57.57 0 0 1 1.139 0v1.404a.86.86 0 0 0 1.719 0V9.022a1.999 1.999 0 0 1 3.997 0v9.134a"
-    ".86.86 0 0 0 1.719 0V3.92a1.998 1.998 0 1 1 3.996 0v11.788a.57.57 0 1 1-1.139 0zm10.572 3.105a2 2 0 0 0-1.99"
-    "9 1.997v7.63a.86.86 0 0 1-1.718 0V3.923a1.999 1.999 0 0 0-3.997 0v16.16a.86.86 0 0 1-1.719 0V18.08a.57.57 0 "
-    "1 0-1.138 0v2a1.998 1.998 0 0 0 3.996 0V3.92a.86.86 0 0 1 1.719 0v12.73a1.999 1.999 0 0 0 3.996 0V9.023a.86."
-    "86 0 1 1 1.72 0v6.686a.57.57 0 0 0 1.138 0V9.022a2 2 0 0 0-1.998-1.997"
-)
-
-QWEN = (
-    "M23.919 14.545 20.817 9.17l1.47-2.544a.56.56 0 0 0 0-.566l-1.633-2.83a.57.57 0 0 0-.49-.283h-6.207L12.487.40"
-    "2a.57.57 0 0 0-.49-.284H8.732a.56.56 0 0 0-.49.284L5.139 5.775h-2.94a.56.56 0 0 0-.49.284L.077 8.887a.56.56 "
-    "0 0 0 0 .567L3.18 14.83l-1.47 2.545a.56.56 0 0 0 0 .566l1.634 2.83a.57.57 0 0 0 .49.283h6.205l1.47 2.545a.57"
-    ".57 0 0 0 .49.284h3.266a.57.57 0 0 0 .49-.284l3.104-5.375h2.94a.57.57 0 0 0 .49-.283l1.634-2.828a.55.55 0 0 "
-    "0-.004-.568M8.733.686l1.634 2.828-1.634 2.828H21.8L20.164 9.17H7.425L5.63 6.06Zm1.306 19.801-6.205-.002 1.63"
-    "4-2.83h3.265L2.201 6.344h3.267q3.182 5.517 6.367 11.032zm10.124-5.66L18.53 12l-6.532 11.315-1.634-2.83c2.129"
-    "-3.673 4.25-7.351 6.373-11.028h3.592l3.102 5.374z"
-)
-
 META = (
     "M6.915 4.03c-1.968 0-3.683 1.28-4.871 3.113C.704 9.208 0 11.883 0 14.449c0 .706.07 1.369.21 1.973a6.624 6.62"
     "4 0 0 0 .265.86 5.297 5.297 0 0 0 .371.761c.696 1.159 1.818 1.927 3.593 1.927 1.497 0 2.633-.671 3.965-2.444"
@@ -69,7 +49,7 @@ GEMINI_SI = (
     " 1-3.81 2.58Q2.49 12 0 12q2.49 0 4.68.96 2.19.93 3.81 2.55t2.55 3.81"
 )
 
-_PATHS = {"claude": CLAUDE, "minimax": MINIMAX, "qwen": QWEN, "meta": META, "gemini": GEMINI_SI}
+_PATHS = {"claude": CLAUDE, "meta": META, "gemini": GEMINI_SI}
 
 
 @lru_cache(maxsize=None)

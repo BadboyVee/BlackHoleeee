@@ -81,8 +81,7 @@ def drop(c, t):
         if key == "google":
             M.mark(c, "gemini", x, y, 110, a=0.9, shader=gemini_shader(x - 55, y - 55, x + 55, y + 55))
         else:
-            M.mark(c, b["mark"], x, y, 110, col if key not in ("minimax", "qwen") else
-                   ("#ff5a86" if key == "minimax" else "#8f82ff"), 0.9, rot=k * 40)
+            M.mark(c, b["mark"], x, y, 110, col, 0.9, rot=k * 40)
     punch = 1 + 0.35 * math.exp(-k / 0.12)
     shake = 10 * math.exp(-k / 0.25)
     sx = shake * math.sin(k * 90)
@@ -223,7 +222,7 @@ def end(c, t):
         u = clamp((t - T_END - 1.3 - 0.07 * i) / 0.3)
         if u <= 0:
             continue
-        x = 960 + (i - 3) * 130
+        x = 960 + (i - 2) * 150
         b = BRANDS[key]
         if key == "google":
             M.mark(c, "gemini", x, 880, 58, a=u, shader=gemini_shader(x - 29, 851, x + 29, 909))

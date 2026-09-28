@@ -100,28 +100,27 @@ affiliated with Arnaud's.
 
 ## AGI WEEK, the last week of September
 
-A 39 s, 1920×1080, 60 fps news hype film, remade from a logo-and-UI montage clip around one post: another week
+A 35 s, 1920×1080, 60 fps news hype film, remade from a logo-and-UI montage clip around one post: another week
 closer to AGI. Each lab appears in its own colours with the model on top of it and its founders beside it; the
 claims are the post's, worded as it words them (expected, rumoured, might).
 
 | Bars | Scene | What happens |
 | --- | --- | --- |
 | 1–2 | The open | *Another week closer to AGI.* a word a beat, a road-to-AGI track that moves one week closer |
-| 3–4 | The slate | seven lab cards, each with its model on top, drop onto a stack on the beat (*is looking stacked.*), Anthropic landing last, on top; the stack fans into a row |
+| 3–4 | The slate | five lab cards, each with its model on top, drop onto a stack on the beat (*is looking stacked.*), Anthropic landing last, on top; the stack fans into a row |
 | 5–6 | Anthropic | the card becomes the room: *Sonnet 5.5*, expected today, picked in the Claude app's model menu; *A Fable moment?*; Dario and Daniela Amodei |
 | 7–8 | OpenAI | *New model + Agent “O”*, a composer asking what's launching at DevDay, a rumoured agent at work; Sam Altman |
 | 9–10 | Also in the race | Google DeepMind's Gemini beside Meta's Muse; Demis Hassabis and Mark Zuckerberg |
-| 11–12 | Open source | MiniMax M3.1 and Qwen 4, open weights, split screen |
-| 13–14 | xAI | *Grok 4.7* rolls to *4.8*, which might drop this week after 4.7's rough reviews; Elon Musk |
-| 15–16 | DevDay | the main event: OpenAI DevDay, tomorrow; question cards gather as the build tightens |
-| 17 | The drop | *(AGI?)*, with every lab's mark in orbit |
-| 18–19 | The IPO | a calendar flips to November; Anthropic climbs to the top of the stack: *Staying on top.* |
-| 20 | The end | *Big week ahead.* |
+| 11–12 | xAI | *Grok 4.7* rolls to *4.8*, which might drop this week after 4.7's rough reviews; Elon Musk |
+| 13–14 | DevDay | the main event: OpenAI DevDay, tomorrow; question cards gather as the build tightens |
+| 15 | The drop | *(AGI?)*, with every lab's mark in orbit |
+| 16–17 | The IPO | a calendar flips to November; Anthropic climbs to the top of the stack: *Staying on top.* |
+| 18 | The end | *Big week ahead.* |
 
 The soundtrack is 128 BPM future house in A minor with a two-bar build under DevDay that drops on *(AGI?)*. The
-Claude, Gemini, Meta, MiniMax and Qwen marks are Simple Icons paths; OpenAI's is the engine's; the Grok mark is
-drawn. The founders' photographs (`photos/agiweek/`) were supplied for the render and are not in the repository.
-Fan-made; not affiliated with any of the companies shown.
+Claude, Gemini and Meta marks are Simple Icons paths; OpenAI's is the engine's; the Grok mark is drawn. The
+founders' photographs (`photos/agiweek/`) were supplied for the render and are not in the repository. Fan-made;
+not affiliated with any of the companies shown.
 
 ## How it is built
 

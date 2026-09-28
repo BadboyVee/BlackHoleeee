@@ -10,7 +10,7 @@ from engine import audio as A
 from engine.audio import hz
 from .score import (G, DURATION, OPEN_WORDS, T_AGI, T_TICK, T_SLATE, T_DROPS, T_STACKED, T_FAN, T_DIVE, T_ANT,
                     T_PICKER, T_PICK, T_ANT_FOUNDERS, T_FABLE, T_OAI, T_OAI_TYPE, T_OAI_SEND, T_AGENT,
-                    T_OAI_FOUNDER, T_RACE, T_RACE_FOUNDERS, T_OSS, T_OSS_MODELS, T_XAI, T_ROLL, T_XAI_FOUNDER,
+                    T_OAI_FOUNDER, T_RACE, T_RACE_FOUNDERS, T_XAI, T_ROLL, T_XAI_FOUNDER,
                     T_DEV, T_TOMORROW, T_BUILD, T_MYSTERY, T_DROP, T_IPO, T_RISE, T_ON_TOP, T_END)
 
 SPB = G.spb
@@ -23,9 +23,9 @@ PROG = [AM, FM, CM, GM]
 
 
 def chord(bar):
-    if bar == 19:
+    if bar == 17:
         return GM
-    if bar >= 20:
+    if bar >= 18:
         return CM
     return PROG[(bar - 1) % 4]
 
@@ -34,9 +34,9 @@ def bar_t(bar, beat=1, six=0.0):
     return G.at(bar, beat, six)
 
 
-# where the full groove plays; bar 16 is the build, bar 20 the end
-GROOVE_BARS = set(range(3, 16)) | {17, 18, 19}
-FULL_BARS = set(range(5, 16)) | {17, 18, 19}      # claps and 16ths from the first lab on
+# where the full groove plays; bar 14 is the build, bar 18 the end
+GROOVE_BARS = set(range(3, 14)) | {15, 16, 17}
+FULL_BARS = set(range(5, 14)) | {15, 16, 17}      # claps and 16ths from the first lab on
 
 
 def brass(notes, length, cutoff=3200.0, attack=0.01):
@@ -135,25 +135,21 @@ def build():
         put("lead", A.pluck(hz(n) * 2, 0.22, bright=4200, decay=0.06, amp_decay=0.12), bar_t(8) + s * S16, 0.1,
             p=(-0.35, 0.35)[s % 2])
 
-    # ------------------------------------------------------------ the race and open source: a bright arp
+    # ------------------------------------------------------------ the race: a bright arp
     put("sfx", A.whoosh(0.4, True, 70, 400, 8000, 0.8, 0.2), T_RACE - 0.22, 0.4)
     for k, t in enumerate((T_RACE + 0.15, T_RACE + 0.3)):
         put("sfx", A.blip((880, 1175)[k], 0.08), t, 0.2, p=(-0.5, 0.5)[k])
     put("sfx", A.whoosh(0.45, True, 71, 300, 7000, 0.0, 0.0), T_RACE_FOUNDERS - 0.1, 0.22)
-    put("sfx", A.whoosh(0.4, True, 72, 400, 8000, -0.8, 0.8), T_OSS - 0.22, 0.4)
-    for k, t in enumerate(T_OSS_MODELS):
-        put("kick", A.kick(f_hi=160, f_lo=60, a_decay=0.12, click=0.6, length=0.2), t, 0.35)
-        put("sfx", A.data_burst(0.16, 110, 73 + k, 2500, 9000), t, 0.14, p=(-0.5, 0.5)[k])
-    for bar in (9, 10, 11, 12):
+    for bar in (9, 10):
         root, voicing = chord(bar)
         for s in range(16):
             n = (voicing + [voicing[1]])[[0, 2, 1, 3, 4, 2][s % 6]]
             put("lead", A.pluck(hz(n) * 2, 0.2, bright=6000, decay=0.05, amp_decay=0.1), bar_t(bar) + s * S16,
-                0.09 if bar < 11 else 0.11, p=(-0.4, 0.4)[s % 2])
+                0.1, p=(-0.4, 0.4)[s % 2])
 
     # ------------------------------------------------------------ xAI: a growl and a glitch
     put("sfx", A.whoosh(0.4, False, 80, 300, 6000, 0.0, 0.0), T_XAI - 0.25, 0.35)
-    for bar in (13, 14):
+    for bar in (11, 12):
         root, _ = chord(bar)
         put("bass", A.reese(hz(root), G.bar_len * 0.95, cutoff=520, lfo=0.5), bar_t(bar), 0.3)
     for k in range(6):

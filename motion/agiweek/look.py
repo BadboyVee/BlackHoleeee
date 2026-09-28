@@ -33,10 +33,6 @@ BRANDS = {
                    ink="#1f1f1f", model="Gemini", status="IN THE RACE"),
     "meta": dict(company="Meta", mark="meta", mark_col=WHITE, bg=["#1a86ff", "#0052cc"], ink=WHITE,
                  model="Muse", status="IN THE RACE"),
-    "minimax": dict(company="MiniMax", mark="minimax", mark_col=WHITE, bg=["#ff5a86", "#c8184d"], ink=WHITE,
-                    model="M3.1", status="OPEN SOURCE"),
-    "qwen": dict(company="Alibaba · Qwen", mark="qwen", mark_col=WHITE, bg=["#8f82ff", "#4a35cf"], ink=WHITE,
-                 model="Qwen 4", status="OPEN SOURCE"),
     "xai": dict(company="xAI", mark="grok", mark_col=WHITE, bg=["#111113", "#050506"], ink=WHITE,
                 model="Grok 4.8", status="THIS WEEK?"),
 }
