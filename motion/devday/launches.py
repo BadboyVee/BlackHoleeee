@@ -31,11 +31,12 @@ def title_word(s, size=TITLE_SIZE, y=TITLE_Y):
 
 
 class Station:
-    """One line in the chain of titles, and how its points get there from the line before."""
+    """One line in the chain of titles, and how its points get there from the line before: the line before starts
+    giving its points back `lead` seconds before the beat, and they fly for `fly` seconds."""
 
-    def __init__(self, T, w, accent, prev=None, fly=FLY, fill_spread=0.12):
-        self.T, self.w, self.accent, self.prev = T, w, accent, prev
-        self.land = T - LEAVE + SPREAD_OUT + fly
+    def __init__(self, T, w, accent, prev=None, fly=FLY, fill_spread=0.12, lead=LEAVE):
+        self.T, self.w, self.accent, self.prev, self.lead = T, w, accent, prev, lead
+        self.land = T - lead + SPREAD_OUT + fly
         self.build = Build(self.land, spread=0.0, outline=0.02, fill=0.06, fill_spread=fill_spread, dots_off=0.14,
                            pop=0.0)
         self.flight = None
@@ -43,21 +44,21 @@ class Station:
             src, dst = pair(prev.w.pts, w.pts)
             span = max(prev.w.x1 - prev.w.x0, 1.0)
             rank = np.clip((src[:, 0] - prev.w.x0) / span, 0, 1)
-            self.flight = Flight(src, dst, T - LEAVE + SPREAD_OUT * rank, fly, prev.accent, accent,
+            self.flight = Flight(src, dst, T - lead + SPREAD_OUT * rank, fly, prev.accent, accent,
                                  r0=prev.w.dot_r, r1=w.dot_r, swell=0.7, bend=0.16, seed=int(T * 10))
 
-    def leaving(self, T_next):
+    def leaving(self, T_next, lead=LEAVE):
         """This station's build, taken apart again for the next one."""
         b = self.build
         return Build(b.t_in, spread=b.spread, outline=b.outline, fill=b.fill, fill_spread=b.fill_spread,
-                     dots_off=b.dots_off, pop=0.0, t_out=T_next - LEAVE, spread_out=SPREAD_OUT)
+                     dots_off=b.dots_off, pop=0.0, t_out=T_next - lead, spread_out=SPREAD_OUT)
 
 
 class LineStation(Station):
     """The teaser's line, already built when the list takes it over."""
 
     def __init__(self):
-        self.T, self.w, self.accent, self.prev, self.flight = None, LINE, ORANGE, None, None
+        self.T, self.w, self.accent, self.prev, self.flight, self.lead = None, LINE, ORANGE, None, None, LEAVE
         self.build = LINE_BUILD
 
 
@@ -67,26 +68,29 @@ AGI_TITLE = "Official launch of"
 def make_chain():
     chain = [LineStation()]
     for i, (title, accent, _) in enumerate(LAUNCHES):
-        chain.append(Station(t_item(i), title_word(title), accent, chain[-1]))
+        # the white line comes apart early, before the iris closes over it
+        lead, fly = (0.22, 0.28) if i == 0 else (LEAVE, FLY)
+        chain.append(Station(t_item(i), title_word(title), accent, chain[-1], fly=fly, lead=lead))
     chain.append(Station(T_AGI, title_word(AGI_TITLE), BLUE, chain[-1]))
     return chain
 
 
 CHAIN = make_chain()
+START = CHAIN[1].T - CHAIN[1].lead          # when the list takes the line over from the opening
 
 
 def draw_chain(c, t, chain, a=1.0, until=None):
     """The title at time t: the line in place, or the points on their way to the next one."""
     for j in range(1, len(chain)):
         st = chain[j]
-        nxt = chain[j + 1].T if j + 1 < len(chain) else until
-        if t < st.T - LEAVE:
+        nxt = chain[j + 1].T - chain[j + 1].lead if j + 1 < len(chain) else until
+        if t < st.T - st.lead:
             continue
-        if nxt is not None and t >= nxt - LEAVE:
+        if nxt is not None and t >= nxt:
             continue
         if t < st.land:
             prev = chain[j - 1]
-            draw_word(c, prev.w, t, prev.leaving(st.T), prev.accent, a=a, dots=False)
+            draw_word(c, prev.w, t, prev.leaving(st.T, st.lead), prev.accent, a=a, dots=False)
             st.flight.draw(c, t, a=a, waiting=True)
         else:
             draw_word(c, st.w, t, st.build, st.accent, a=a)

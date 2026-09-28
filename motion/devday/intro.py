@@ -1,16 +1,18 @@
-"""DevDay 2026, 0-7.3 s: the teaser's own opening, redrawn. A grey face too big for the frame pulls back and turns
-right round; its eyes go * * to - * to - - to o o to > <; the purple, orange, green, dark and blue faces crowd in
-from the edges, pull faces of their own, then fall into the middle one after another and burst into orange points
-that land on "1 day.", join up and fill. When the bass drops out it becomes "1 day. 20+ launches."."""
+"""DevDay 2026, the opening, on white. "Introducing" lands point by point, three points follow it, and the last one
+swells into the teaser's big grey face. Then the teaser's own opening, redrawn: the face pulls back and turns right
+round; its eyes go * * to - * to - - to o o to > <; the purple, orange, green, dark and blue faces crowd in from
+the edges, pull faces of their own, then fall into the middle one after another and burst into orange points that
+land on "1 day.", join up and fill. When the bass drops out it becomes "1 day. 20+ launches."."""
 import math
 
 import numpy as np
 
-from engine.core import clamp, lerp, keys, in_quad, out_cubic, in_out_sine, hash01, noise1
-from .look import WHITE, GREY, PURPLE, ORANGE, GREEN, DARK, BLUE
+from engine import gfx as G
+from engine.core import clamp, lerp, keys, in_quad, out_cubic, in_cubic, in_expo, out_back, in_out_sine, hash01, noise1
+from .look import BLACK, GREY, PURPLE, ORANGE, GREEN, DARK, BLUE
 from .faces import face
 from .type import word, draw_word, Build, Flight
-from .score import T_TURN0, T_TURN1, T_SHRINK, T_LAND, T_LINE, CX, CY
+from .score import T_OPEN, T_WORD, T_DOTS, T_SWELL, T_TURN0, T_TURN1, T_SHRINK, T_LAND, T_LINE, CX, CY
 
 R = 330
 
@@ -60,7 +62,7 @@ def state(name, t):
     s = shrink(t, gone)
     if name == "grey":
         r = 336 + 814 * math.exp(-t / 0.443) if t < 2.4 else lerp(336, 328, clamp((t - 2.4) / 1.4))
-        g = lerp(0.38, 0.45, clamp(t / 1.2))
+        g = lerp(0.38, 0.45, clamp(t / 1.2)) * (out_back(clamp(t / 0.14), 2.0) if t < 0.14 else 1.0)
         if t < T_TURN1:
             yaw = keys(t, [(T_TURN0, 0.0, None), (0.8, math.pi, in_quad), (T_TURN1, 2 * math.pi - 0.18, out_cubic)])
             pitch = lerp(0.2, -0.05, in_out_sine(clamp(t / T_TURN1)))
@@ -94,7 +96,7 @@ def faces(c, t):
 
 # ---------------------------------------------------------------- the points of "1 day."
 
-DAY = word((("1 day.", WHITE),), 330, CX, 640)
+DAY = word((("1 day.", BLACK),), 330, CX, 640)
 DAY_BUILD = Build(T_LAND, spread=0.0, outline=0.07, fill=0.34, fill_spread=0.3, dots_off=0.42, pop=0.0)
 SHARE = [("grey", 0.11), ("orange", 0.13), ("dark", 0.13), ("green", 0.17), ("blue", 0.19), ("purple", 0.27)]
 
@@ -122,20 +124,61 @@ def _day_flight():
 
 DAY_FLIGHT = _day_flight()
 
-LINE = word((("1 day. ", WHITE), ("20+ launches.", WHITE)), 96, CX, 575)
+LINE = word((("1 day. ", BLACK), ("20+ launches.", BLACK)), 96, CX, 575)
 LINE_FIRST = 5                                          # 1 d a y . are already built
 LINE_SPREAD = 0.55
-LINE_BUILD = Build(T_LINE + 0.02 - LINE_SPREAD * LINE.glyphs[LINE_FIRST].rank, spread=LINE_SPREAD, outline=0.05,
+LINE_BUILD = Build(T_OPEN + T_LINE + 0.02 - LINE_SPREAD * LINE.glyphs[LINE_FIRST].rank, spread=LINE_SPREAD,
+                   outline=0.05,
                    fill=0.13, dots_off=0.24)
 
 
-def intro(c, t, line_out=None):
-    """Everything up to the first launch; line_out is the Build that takes the line apart again (launches.py)."""
-    if t < T_LAND:
-        faces(c, t)
-        DAY_FLIGHT.draw(c, t, only_moving=False)
-    elif t < T_LINE:
-        draw_word(c, DAY, t, DAY_BUILD, ORANGE)
+# ---------------------------------------------------------------- Introducing…
+
+OPENER = word((("Introducing...", BLACK),), 150, CX, 594)
+INTRO = word((("Introducing", BLACK),), 150, OPENER.x0, 594, align=0.0)
+DOTS = [(g.path.getBounds().centerX(), g.path.getBounds().centerY(), g.path.getBounds().width() / 2)
+        for g in OPENER.glyphs[-3:]]
+INTRO_SPREAD = 0.45
+INTRO_BUILD = Build(T_WORD, spread=INTRO_SPREAD, outline=0.05, fill=0.14, dots_off=0.26, pop=0.0)
+
+
+def _intro_flight():
+    n = len(INTRO.pts)
+    j = np.arange(n)
+    rank = INTRO.rank
+    src = INTRO.pts + np.stack([(hash01(j, 91) - 0.5) * 440, (hash01(j, 92) - 0.5) * 320], 1)
+    return Flight(src, INTRO.pts, T_WORD + INTRO_SPREAD * rank - 0.22, 0.22, ORANGE, r0=4.0, r1=INTRO.dot_r,
+                  swell=1.0, bend=0.25, seed=13)
+
+
+INTRO_FLIGHT = _intro_flight()
+
+
+def opening(c, t):
+    """Introducing… on white; the last point of the ellipsis swells into the teaser's face."""
+    INTRO_FLIGHT.draw(c, t, only_moving=True)
+    draw_word(c, INTRO, t, INTRO_BUILD, ORANGE)
+    for k, ((x, y, r), t0) in enumerate(zip(DOTS, T_DOTS)):
+        u = clamp((t - t0) / 0.12)
+        if u <= 0:
+            continue
+        s = out_back(u, 2.6) if u < 1 else 1.0
+        if k == 2 and t >= T_SWELL:
+            v = clamp((t - T_SWELL) / (T_OPEN - T_SWELL))
+            col = G.mixc(ORANGE, GREY, clamp(v / 0.3))
+            e = in_cubic(v)
+            c.drawCircle(lerp(x, CX, e), lerp(y, CY, e), r + (1150 - r) * in_expo(v), G.P(col))
+        else:
+            c.drawCircle(x, y, r * s, G.P(ORANGE))
+
+
+def intro(c, t):
+    """The teaser's opening, from T_OPEN up to the first launch (film time t)."""
+    tau = t - T_OPEN
+    if tau < T_LAND:
+        faces(c, tau)
+        DAY_FLIGHT.draw(c, tau, only_moving=False)
+    elif tau < T_LINE:
+        draw_word(c, DAY, tau, DAY_BUILD, ORANGE)
     else:
-        b = line_out or LINE_BUILD
-        draw_word(c, LINE, t, b, ORANGE, first=LINE_FIRST)
+        draw_word(c, LINE, t, LINE_BUILD, ORANGE, first=LINE_FIRST)

@@ -124,23 +124,26 @@ of the companies shown.
 
 ## DEVDAY 2026, twenty launches
 
-A 36.6 s, 1920×1080, 60 fps fan film built on OpenAI's DevDay 2026 teaser (*1 day. 20+ launches.*), which the
-user supplied: it keeps the teaser's sound and its design, and fills in the twenty launches the user predicted, each
-with a drawing and its own motion. It says what it is on screen: fan-made predictions, not affiliated with OpenAI.
+A 38.6 s, 1920×1080, 60 fps fan film built on OpenAI's DevDay 2026 teaser (*1 day. 20+ launches.*), which the
+user supplied: it keeps the teaser's soundtrack and its design, opens on white with *Introducing…*, and fills in the
+twenty launches the user predicted, each with a drawing and its own motion. It says what it is on screen: fan-made
+predictions, not affiliated with OpenAI.
 
 | Time | Moment | What happens |
 | --- | --- | --- |
-| 0–7.3 s | The teaser | redrawn beat for beat: a grey face too big for the frame pulls back and turns right round; its eyes go * * to - - to o o to > <; five more faces crowd in, fall into the middle and burst into orange points that land on *1 day.*, join up and fill; then *1 day. 20+ launches.* |
-| 7.3–26.3 s | The launches | on the drop, two a bar: Astra 6.1, Agent “O”, the $500 plan, Aeon, GPT-6.1 Sol, GPT-6.1 Luna, a Codex update (idk), Chat + Work merging, OpenAI acquiring Google, the first hardware device, a bunch of lil new models, Sora returning, a Sam Altman humanoid robot, Greg, 5 banked resets, cancer solved, OpenAI acquiring McDonald’s, agents escaping again, weather solved |
-| 26.3–32.2 s | AGI | the faces crowd back in and count down in their eyes (3, 2, 1), fall into the middle when the bass drops out and burst into blue points that spell AGI, which fills when the bass comes back and throws them out again like confetti: *Official launch of AGI* |
-| 32.2–36.6 s | The ending | on the teaser's long low note, AGI comes apart into the points of *OpenAI DevDay[2026]*, built left to right as the teaser builds it; *Fan-made predictions. Not affiliated with OpenAI.*; MADE BY VEEE |
+| 0–2 s | Introducing… | on white, *Introducing* lands point by point, three orange points follow it, and the last one swells into the teaser's big grey face |
+| 2–9.3 s | The teaser | redrawn beat for beat, on white: the grey face pulls back and turns right round; its eyes go * * to - - to o o to > <; five more faces crowd in, fall into the middle and burst into orange points that land on *1 day.*, join up and fill; then *1 day. 20+ launches.*, which comes apart into points as a black iris closes on the drop |
+| 9.3–28.3 s | The launches | on black from the drop, two a bar: Astra 6.1, Agent “O”, the $500 plan, Aeon, GPT-6.1 Sol, GPT-6.1 Luna, a Codex update (idk), Chat + Work merging, OpenAI acquiring Google, the first hardware device, a bunch of lil new models, Sora returning, a Sam Altman humanoid robot, Greg, 5 banked resets, cancer solved, OpenAI acquiring McDonald’s, agents escaping again, weather solved |
+| 28.3–34.2 s | AGI | the faces crowd back in and count down in their eyes (3, 2, 1), fall into the middle when the bass drops out and burst into blue points that spell AGI, which fills when the bass comes back and throws them out again like confetti: *Official launch of AGI* |
+| 34.2–38.6 s | The ending | on the teaser's long low note, AGI comes apart into the points of *OpenAI DevDay[2026]*, built left to right as the teaser builds it; *Fan-made predictions. Not affiliated with OpenAI.*; MADE BY VEEE |
 
 Every drawing is in the teaser's own language: flat discs in its six colours with eyes drawn like typed glyphs
 (* o - > < + x ^ / \\, and $ ? 3 2 1 from the font), white strokes on black. Every title is built the way the
 teaser builds its type, from the points a type designer would draw (corners and extremes, read off the font's
 outlines), then the outline, then the fill; between launches the points fly from one title to the next. The sound
-is the teaser's own, cut on its bar lines (120 BPM): its opening as it is, its four bars looped under the launches,
-its last bar and its long low note, held a little longer, at the end. Type is Google Sans, the nearest open face to
+is the teaser's soundtrack and nothing else, cut on its bar lines (120 BPM): its first two beats of clicks twice
+under *Introducing…*, its opening as it is, its four bars looped under the launches, its last bar and its long low
+note, held a little longer, at the end. Type is Google Sans, the nearest open face to
 the teaser's; the maker's mark is Archivo. The teaser's sound (`photos/devday/`) is not in the repository.
 
 ## How it is built
@@ -162,7 +165,7 @@ dario/         film 2: the same layout, plus photos.py for the optional photogra
 interface/     film 3: score.py, film.py (board, camera, cursor), stream.py (the streamed answer), ui.py, music.py
 arnauds/       the concept spot: table.py (the opening), intro.py (the end: the name, the credit), phone.py, words.py, cards.py, checkout.py, map.py, film.py, music.py
 agiweek/       the news film: flash.py (wordmarks, sparkle, collage), gemini.py, chatgpt.py, claude.py, grok.py, look.py, marks.py, sound.py (the supplied sound), film.py
-devday/        the DevDay film: intro.py (the teaser, redrawn), items.py (the twenty launches), launches.py (the list), finale.py (AGI, the ending), faces.py, type.py (type built from its points), sound.py (the teaser's sound, cut on its bars), film.py
+devday/        the DevDay film: intro.py (Introducing…, the teaser redrawn), items.py (the twenty launches), launches.py (the list), finale.py (AGI, the ending), faces.py, type.py (type built from its points), sound.py (the teaser's sound, cut on its bars), film.py
 fonts/         Archivo, Fraunces, Inter, JetBrains Mono, Instrument Serif, Google Sans, Source Serif 4 (all SIL OFL); DejaVu for ∝ ⌘ ⏎
 ```
 

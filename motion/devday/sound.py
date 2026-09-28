@@ -1,14 +1,15 @@
-"""DevDay 2026 sound: the teaser's own soundtrack (photos/devday/sound.wav, not in the repository), cut on its bar
-lines. The teaser runs at 120 BPM with its first downbeat at 1.3 s, so its opening plays as it is up to the drop,
-its four bars then loop under the launches (two launches a bar), and its last bar and long low note end the film.
-The low note is held a little longer by looping one steady stretch of it (a whole number of its cycles, so the
-joins are seamless) under the maker's mark."""
+"""DevDay 2026 sound: the teaser's own soundtrack (photos/devday/sound.wav, not in the repository) and nothing else,
+cut on its bar lines. The teaser runs at 120 BPM with its first downbeat at 1.3 s. Its first two beats of clicks
+play twice under "Introducing…" (two beats, so the clicks stay on the grid), then its opening plays as it is up to
+the drop, its four bars loop under the launches (two launches a bar), and its last bar and long low note end the
+film. The low note is held a little longer by looping one steady stretch of it (a whole number of its cycles, so
+the joins are seamless) under the maker's mark."""
 import wave
 
 import numpy as np
 
 from engine import audio as A
-from .score import DURATION, T_LIST, BAR, LIST_BARS, T_ENDING
+from .score import DURATION, T_OPEN, T_LIST, BAR, LIST_BARS, T_ENDING, OPEN_LOOP
 
 ENDING = (7.29, 12.16)          # the teaser's last bar, its quiet, and its long low note
 HOLD_AT = 11.60                 # where the low note is still steady...
@@ -75,7 +76,11 @@ def add(out, t, seg):
 def prepare(src, dst, peak=0.94):
     x = read_wav(src)
     out = np.zeros((A.n_of(DURATION), 2))
-    add(out, 0.0, piece(x, 0.0, T_LIST - 0.01, fade_in=0.0))
+    a, b = OPEN_LOOP
+    loops = int(round(T_OPEN / (b - a)))
+    for k in range(loops):
+        add(out, k * (b - a), piece(x, a, b, fade_in=0.0 if k == 0 else 0.004))
+    add(out, T_OPEN, piece(x, 0.0, T_LIST - T_OPEN - 0.01))
     for k, b in enumerate(LIST_BARS):
         add(out, T_LIST - 0.01 + BAR * k, piece(x, b, b + BAR))
     spans = [(ENDING[0], HOLD_AT)] + [(HOLD_AT - HOLD_LOOP, HOLD_AT)] * HOLD_TIMES + [(HOLD_AT, ENDING[1])]

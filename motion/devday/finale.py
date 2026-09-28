@@ -183,7 +183,7 @@ def finale(c, t):
         gathering(c, t)
         confetti(c, t)
         agi(c, t)
-        draw_chain(c, t, CHAIN, until=T_LOCKUP + LEAVE)       # the last title holds until the low note
+        draw_chain(c, t, CHAIN, until=T_LOCKUP)               # the last title holds until the low note
         frame(c, t, n=N_LIST + 1, t_n=T_AGI)
         return
     # the long low note: everything becomes the lockup
