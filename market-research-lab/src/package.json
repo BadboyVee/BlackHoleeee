@@ -1,0 +1,9 @@
+{
+  "name": "market-research-lab",
+  "private": true,
+  "description": "Builds the Task 1 (Google Trends) Word page for the Market Research Lab",
+  "dependencies": {
+    "docx": "9.7.2",
+    "jszip": "^3.10.1"
+  }
+}
