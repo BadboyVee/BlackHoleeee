@@ -1,8 +1,12 @@
-"""AGI WEEK: the timing sheet for a 16:9 news hype film about the last week of September 2026. 128 BPM, 18 bars.
+"""AGI WEEK, cut as THE RACE TO AGI: the timing sheet for a 16:9 race broadcast about the last week of September
+2026. 128 BPM, 18 bars.
 
-Another week closer to AGI. The labs stack up with their models on top: Sonnet 5.5 expected today, a new OpenAI
-model and Agent "O" before DevDay, Gemini and Muse in the race, Grok 4.8 maybe. DevDay is tomorrow (AGI?),
-Anthropic plans its IPO for November, and it's a big week ahead.
+Five labs sit on the start-light gantry, a light each, the model over the company. Lights out on the drop: another
+week closer to AGI, and the lap counter (the week of the year) ticks from 39 to 40. Then each team in turn:
+Anthropic on the radio (Sonnet 5.5 expected today), OpenAI with two new entries (a new model and Agent "O"),
+Gemini and Muse also on the grid, xAI in the pits (4.7 off, 4.8 might go on this week). DevDay is up next,
+tomorrow, the anticipation maxes out, the chequered flag asks "AGI?", Anthropic takes P1 with the pit board
+reading IPO: NOV, and it's a big week ahead.
 """
 from engine.core import Grid
 
@@ -12,60 +16,69 @@ DURATION = 35.25
 SIZE = (1920, 1080)
 CX, CY = 960, 540
 
-# ---------------------------------------------------------------- 1 cold open: Another week closer to AGI.
-OPEN_WORDS = [(G.at(1, 1), "Another"), (G.at(1, 2), "week"), (G.at(1, 3), "closer"), (G.at(1, 4), "to"),
-              (G.at(2, 1), "AGI.")]
-T_AGI = G.at(2, 1)                       # 1.875, AGI. lands
-T_TICK = G.at(2, 3)                      # the progress bar moves one week closer
+# ---------------------------------------------------------------- 1 the gantry: five lights, five labs
+LIGHT_ORDER = ["meta", "google", "xai", "openai", "anthropic"]        # left to right; Anthropic's is the last
+T_LIGHTS = [G.at(1, 2), G.at(1, 3), G.at(1, 4), G.at(2, 1), G.at(2, 2)]
+T_CAPTION = 0.12                         # "THE FINAL WEEK OF SEPTEMBER"
+T_STACKED = G.at(2, 3)                   # "IS LOOKING STACKED."
+T_OUT = G.at(3)                          # 3.75, lights out
 
-# ---------------------------------------------------------------- 2 the slate: stacked
-T_SLATE = G.at(3)                        # 3.75
-DROP_ORDER = ["meta", "google", "xai", "openai", "anthropic"]    # the last lands on top
-T_DROPS = [G.at(3, 1), G.at(3, 2), G.at(3, 3), G.at(3, 4), G.at(4, 1)]
-T_STACKED = G.at(4, 1, 2)                # "stacked." lands
-T_FAN = G.at(4, 2, 2)                    # the stack fans out into a row
-ROW_ORDER = ["anthropic", "openai", "google", "meta", "xai"]
-T_DIVE = G.at(4, 4, 2)                   # into the Anthropic card
+# ---------------------------------------------------------------- 2 the title and the lap
+T_LINE1 = T_OUT                          # ANOTHER WEEK
+T_LINE2 = G.at(3, 3)                     # CLOSER TO AGI.
+T_AGI_BOX = G.at(3, 4)
+T_LAP = G.at(4, 1)                       # LAP 39/???
+T_FLIP = G.at(4, 2)                      # 39 -> 40: week 40 of the year
+T_BUG = G.at(4, 4)                       # the counter flies to the corner and stays there
 
-# ---------------------------------------------------------------- 3 Anthropic: Sonnet 5.5, expected today
+# ---------------------------------------------------------------- 3 Anthropic: team radio
 T_ANT = G.at(5)                          # 7.5
-T_PICKER = G.at(5, 3)                    # the model picker opens
-T_PICK = G.at(6, 1)                      # Sonnet 5.5 is chosen
-T_ANT_FOUNDERS = G.at(6, 2)
-T_FABLE = G.at(6, 3)                     # "A Fable moment?"
+T_ANT_RADIO = G.at(5, 3)
+T_ANT_LINE1 = G.at(5, 3, 2)              # "SONNET 5.5 EXPECTED TODAY."
+T_ANT_BOSS = G.at(6, 1)
+T_ANT_LINE2 = G.at(6, 2)                 # "BIG STEP UP. A FABLE MOMENT?"
 
-# ---------------------------------------------------------------- 4 OpenAI: a new model and Agent "O"
+# ---------------------------------------------------------------- 4 OpenAI: two new entries
 T_OAI = G.at(7)                          # 11.25
-T_OAI_TYPE = (G.at(7, 2), G.at(8, 1))    # the prompt types
-T_OAI_SEND = G.at(8, 1, 1)
-T_AGENT = G.at(8, 2)                     # the Agent "O" card
-T_OAI_FOUNDER = G.at(7, 4)
+T_OAI_CAR2 = G.at(7, 2)                  # Agent "O" rolls in
+T_OAI_BOSS = G.at(8, 1)
+T_RC = G.at(8, 3)                        # race control: DevDay tomorrow
 
-# ---------------------------------------------------------------- 5 also in the race: Gemini, Muse
-T_RACE = G.at(9)                         # 15.0
-T_RACE_FOUNDERS = G.at(10, 1)
+# ---------------------------------------------------------------- 5 also on the grid: Gemini, Muse
+T_GRID2 = G.at(9)                        # 15.0
+T_STRAP = G.at(9, 2)
+T_GDM_BOSS = G.at(9, 4)
+T_MTA_BOSS = G.at(10, 1)
 
-# ---------------------------------------------------------------- 6 xAI: Grok 4.8, maybe
+# ---------------------------------------------------------------- 6 xAI in the pits: 4.7 off, 4.8 on?
 T_XAI = G.at(11)                         # 18.75
-T_ROLL = G.at(11, 3)                     # 4.7 rolls to 4.8
-T_XAI_FOUNDER = G.at(12, 1)
+T_BOX = T_XAI + 0.24                     # the car stops in its box
+T_OFF = G.at(11, 2)                      # the 4.7s come off
+T_ON = G.at(11, 3)                       # the 4.8s go on
+T_JACK = G.at(12, 1, 2)                  # jack down, the clock stops
+T_XAI_BOSS = G.at(12, 1)
+T_LAUNCH = G.at(12, 4)
 
-# ---------------------------------------------------------------- 7 DevDay tomorrow
+# ---------------------------------------------------------------- 7 up next: DevDay, tomorrow
 T_DEV = G.at(13)                         # 22.5
-T_TOMORROW = G.at(13, 3)
-T_BUILD = G.at(14)                       # the build to the drop
-T_MYSTERY = [G.at(14, 1), G.at(14, 1, 2), G.at(14, 2), G.at(14, 2, 2), G.at(14, 3), G.at(14, 3, 2)]
+T_BUILD = G.at(14)                       # 24.375: the shift lights fill
+T_LEDS = [T_BUILD + i * G.spb / 4 for i in range(15)]   # one a sixteenth, the sixteenth sixteenth is the shift
+T_SHIFT = T_BUILD + 15 * G.spb / 4
 
-# ---------------------------------------------------------------- 8 the drop: (AGI?)
-T_DROP = G.at(15)                        # 26.25
+# ---------------------------------------------------------------- 8 the drop: AGI?
+T_FLAG = G.at(15)                        # 26.25
+T_CROSS = G.at(15, 4)                    # Anthropic crosses the line
 
-# ---------------------------------------------------------------- 9 Anthropic IPO: November
-T_IPO = G.at(16)                         # 28.125
-T_RISE = G.at(16, 3)                     # Anthropic rises to the top of the stack
-T_ON_TOP = G.at(17, 1)                   # "Staying on top."
+# ---------------------------------------------------------------- 9 P1: staying on top, IPO in November
+T_P1 = G.at(16)                          # 28.125
+T_BOARD = G.at(16, 3)
+T_BOARD_ROWS = [G.at(16, 3, 1), G.at(16, 3, 3), G.at(16, 4, 1), G.at(16, 4, 3)]
+T_IPO = G.at(16, 4)
+T_ON_TOP = G.at(17, 1)
 
-# ---------------------------------------------------------------- 10 end
+# ---------------------------------------------------------------- 10 end: big week ahead
 T_END = G.at(18)                         # 31.875
 T_FADE = (34.45, DURATION)
 
-CUTS = [T_SLATE, T_ANT, T_OAI, T_RACE, T_XAI, T_DEV, T_DROP, T_IPO, T_END]
+STING = 0.5                              # a stinger starts this long before the downbeat it lands on
+CUTS = [T_OUT, T_ANT, T_OAI, T_GRID2, T_XAI, T_DEV, T_FLAG, T_P1, T_END]

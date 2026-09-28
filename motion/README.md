@@ -98,34 +98,39 @@ table and the fruit popping up the scale to the printer, the till and the stamp.
 `sushi.jpg`, `ramen.jpg`, `dining.jpg`) were supplied for the render and are not in the repository. Fan-made; not
 affiliated with Arnaud's.
 
-## AGI WEEK, the last week of September
+## AGI WEEK: THE RACE TO AGI
 
-A 35 s, 1920×1080, 60 fps news hype film, remade from a logo-and-UI montage clip around one post: another week
-closer to AGI. Each lab appears in its own colours with the model on top of it and its founders beside it; the
-claims are the post's, worded as it words them (expected, rumoured, might).
+A 35 s, 1920×1080, 60 fps film about one post (another week closer to AGI), cut as a night-race TV broadcast.
+The labs are teams, their models are the cars, the founders are the team bosses, and the lap counter is the week
+of the year: lap 40 of a race nobody knows the length of. The claims are the post's, worded as it words them
+(expected, might, planned); MiniMax and Qwen are left out.
 
 | Bars | Scene | What happens |
 | --- | --- | --- |
-| 1–2 | The open | *Another week closer to AGI.* a word a beat, a road-to-AGI track that moves one week closer |
-| 3–4 | The slate | five lab cards, each with its model on top, drop onto a stack on the beat (*is looking stacked.*), Anthropic landing last, on top; the stack fans into a row |
-| 5–6 | Anthropic | the card becomes the room: *Sonnet 5.5*, expected today, picked in the Claude app's model menu; *A Fable moment?*; Dario and Daniela Amodei |
-| 7–8 | OpenAI | *New model + Agent “O”*, a composer asking what's launching at DevDay, a rumoured agent at work; Sam Altman |
-| 9–10 | Also in the race | Google DeepMind's Gemini beside Meta's Muse; Demis Hassabis and Mark Zuckerberg |
-| 11–12 | xAI | *Grok 4.7* rolls to *4.8*, which might drop this week after 4.7's rough reviews; Elon Musk |
-| 13–14 | DevDay | the main event: OpenAI DevDay, tomorrow; question cards gather as the build tightens |
-| 15 | The drop | *(AGI?)*, with every lab's mark in orbit |
-| 16–17 | The IPO | a calendar flips to November; Anthropic climbs to the top of the stack: *Staying on top.* |
-| 18 | The end | *Big week ahead.* |
+| 1–2 | The gantry | five columns of start lights, one lab each, with the model above the company (Muse, Gemini, Grok 4.8, New model + Agent “O”, Sonnet 5.5). A light comes on every beat, the engines climb and bounce off the limiter: *The final week of September is looking stacked.* |
+| 3–4 | Lights out | the lights go out, the camera drives under the gantry onto a night straight, *Another week / closer to AGI.* arrives at speed, and the lap counter rolls from 39 to 40 and flies into the corner bug |
+| 5–6 | Anthropic | ivory livery: *Sonnet 5.5*, expected today; the paddock talk says it is a big step up, a Fable moment?; team bosses Dario and Daniela Amodei |
+| 7–8 | OpenAI | two new entries, *New model* and *Agent “O”*; race control: OpenAI DevDay tomorrow; team boss Sam Altman |
+| 9–10 | Also on the grid | a split screen, wheel to wheel: Google DeepMind's *Gemini* and Meta's *Muse*; Demis Hassabis and Mark Zuckerberg |
+| 11–12 | xAI in the pits | *Box, box.* The 4.7 tyres come off after 4.7's bad reviews, the 4.8s go on, *Grok 4.7* rolls to *4.8*: might drop this week; the pit clock stops; team boss Elon Musk |
+| 13–14 | Up next | OpenAI DevDay, tomorrow, Tue 29 Sep: more announcements and releases? The anticipation gauge climbs and the shift lights fill through the build until the row flashes blue |
+| 15 | The drop | a chequered flag asks *AGI?*; Anthropic crosses the line |
+| 16–17 | P1 | *P1 Anthropic. Staying on top.* The pit board reads ANT / P1 / IPO / NOV: IPO planned for November |
+| 18 | The end | *Big week ahead.* The five teams, and next: OpenAI DevDay, tomorrow |
 
-Every line of type rises out of its own mask while its variable-font weight grows from hairline to bold. Each lab
-opens inside its own mark (the OpenAI blossom, the Gemini sparkle, the Claude spark), UI panels swing in with a 3D
-tilt, founders open in masked reveals with a slow push, and a camera pushes through every section and bumps on
-every kick. Landings throw sparks and shockwaves, cards catch a glint, and the calendar's pages flip in 3D.
+Every team arrives behind a stinger of its own livery colours sweeping across the frame, and its car brakes into
+the shot with its model on the sidepod. The graphics are a broadcast package built for the film: wide italic type,
+slanted panels that wipe on and off, a bug that stays in the corner from the lap counter onwards, team radio, race
+control, team-boss cards, a pit clock, shift lights, a waving chequered flag and a pit board. The cars, the LED start
+lights and the flag are drawn in code.
 
-The soundtrack is 128 BPM future house in A minor with a two-bar build under DevDay that drops on *(AGI?)*. The
-Claude, Gemini and Meta marks are Simple Icons paths; OpenAI's is the engine's; the Grok mark is drawn. The
-founders' photographs (`photos/agiweek/`) were supplied for the render and are not in the repository. Fan-made;
-not affiliated with any of the companies shown.
+The soundtrack is 128 BPM in A minor. The start is engines and relays: an idle, a heavy clunk for each light, the
+revs bouncing off the limiter. Lights out drops into a driving sequencer groove with a brass hook. Cars brake down
+through the gears and launch up through them with Doppler pass-bys, and the pit stop has its screech, wheel guns and
+jacks. The build revs an engine against the shift lights, and the drop lands on the flag and a crowd. The Claude,
+Gemini and Meta marks are Simple Icons paths; OpenAI's is the engine's; the Grok mark is drawn. The founders'
+photographs (`photos/agiweek/`) were supplied for the render and are not in the repository. Fan-made; not
+affiliated with any of the companies shown, or with any racing series.
 
 ## How it is built
 
@@ -145,7 +150,7 @@ frontier/      film 1: score.py (timing shared by picture and sound), music.py, 
 dario/         film 2: the same layout, plus photos.py for the optional photographs
 interface/     film 3: score.py, film.py (board, camera, cursor), stream.py (the streamed answer), ui.py, music.py
 arnauds/       the concept spot: table.py (the opening), intro.py (the end: the name, the credit), phone.py, words.py, cards.py, checkout.py, map.py, film.py, music.py
-agiweek/       the news film: marks.py (brand marks), look.py (brands, founders, chips), motion.py (the motion kit), scenes_a/b/c.py, film.py, music.py
+agiweek/       the race film: broadcast.py (the graphics package, cars, lights, flag), grid.py (the gantry, the title), teams.py, finale.py, marks.py, film.py, music.py
 fonts/         Archivo, Fraunces, Inter, JetBrains Mono, Instrument Serif (all SIL OFL); DejaVu for ∝ ⌘ ⏎
 ```
 
