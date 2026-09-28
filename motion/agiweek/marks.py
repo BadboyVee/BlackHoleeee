@@ -1,5 +1,6 @@
-"""Brand marks for AGI WEEK. Claude, Gemini and Meta are the Simple Icons paths (CC0 path data on a 24-unit grid); OpenAI comes from the engine's set; the Grok mark is drawn here. The marks are the companies'
-trademarks, shown in a fan-made news piece that names them; nothing here is official or endorsed."""
+"""Brand marks for AGI WEEK. Claude, Gemini, Meta and X are the Simple Icons paths (CC0 path data on a 24-unit
+grid); OpenAI comes from the engine's set; the Grok mark and Google's four-colour G are drawn here. The marks are
+the companies' trademarks, shown in a fan-made news piece that names them; nothing here is official or endorsed."""
 import math
 from functools import lru_cache
 
@@ -49,7 +50,13 @@ GEMINI_SI = (
     " 1-3.81 2.58Q2.49 12 0 12q2.49 0 4.68.96 2.19.93 3.81 2.55t2.55 3.81"
 )
 
-_PATHS = {"claude": CLAUDE, "meta": META, "gemini": GEMINI_SI}
+X = ("M14.234 10.162 22.977 0h-2.072l-7.591 8.824L7.251 0H.258l9.168 13.343L.258 24H2.33l8.016-9.318L16.749 24h6.993"
+     "zm-2.837 3.299-.929-1.329L3.076 1.56h3.182l5.965 8.532.929 1.329 7.754 11.09h-3.182z")
+
+_PATHS = {"claude": CLAUDE, "meta": META, "gemini": GEMINI_SI, "x": X}
+GEMINI_GRAD = ["#3c78f0", "#6f86f5", "#b084e0"]
+META_GRAD = ["#0064e0", "#0082fb"]
+G_BLUE, G_RED, G_YELLOW, G_GREEN = "#4285f4", "#ea4335", "#fbbc05", "#34a853"
 
 
 @lru_cache(maxsize=None)
@@ -79,29 +86,73 @@ def mark(c, name, cx, cy, size, col="#ffffff", a=1.0, rot=0.0, shader=None):
 
 
 def grok(c, cx, cy, size, col="#ffffff", a=1.0, rot=0.0):
-    """The Grok mark: a ring cut open where a diagonal slash runs through it and out past both sides."""
-    R = size * 0.36
-    w = size * 0.085
+    """The Grok mark: a thick ring, broken where a thin blade runs through it from lower left to upper right and out
+    past both sides. The left arc runs into the blade low down, the right arc runs into it high up; the other two
+    ends stop short of it."""
+    R = size * 0.31
+    w = size * 0.12
     c.save()
     c.translate(cx, cy)
     if rot:
         c.rotate(rot)
-    ring = skia.Path()
-    ring.addArc(skia.Rect.MakeLTRB(-R, -R, R, R), -20, 205)       # lower-right to upper-left, round the bottom
-    c.drawPath(ring, G.P(col, a, stroke=w, cap="butt"))
-    ring2 = skia.Path()
-    ring2.addArc(skia.Rect.MakeLTRB(-R, -R, R, R), 212, 70)       # the short arc up top, left of the cut
-    c.drawPath(ring2, G.P(col, a, stroke=w, cap="butt"))
-    d = size * 0.5
-    ang = math.radians(-50)
-    x0, y0 = -math.cos(ang) * d, -math.sin(ang) * d
-    x1, y1 = math.cos(ang) * d * 1.02, math.sin(ang) * d * 1.02
-    slash = skia.Path()
-    nx, ny = -math.sin(ang), math.cos(ang)
-    t1 = w * 0.62                      # the slash tapers to a point at its lower end
-    slash.moveTo(x0, y0)
-    slash.lineTo(x1 + nx * t1, y1 + ny * t1)
-    slash.lineTo(x1 - nx * t1, y1 - ny * t1)
-    slash.close()
-    c.drawPath(slash, G.P(col, a))
+    box = skia.Rect.MakeLTRB(-R, -R, R, R)
+    for start, sweep in ((318, 150), (132, 158)):
+        arc = skia.Path()
+        arc.addArc(box, start, sweep)
+        c.drawPath(arc, G.P(col, a, stroke=w, cap="butt"))
+    half = size * 0.5
+    wmax = size * 0.024
+    ux, uy = math.cos(math.radians(-45)), math.sin(math.radians(-45))
+    nx, ny = -uy, ux
+    ax, ay = -ux * half * 0.92, -uy * half * 0.92
+    bx, by = ux * half * 0.94, uy * half * 0.94
+    blade = skia.Path()
+    blade.moveTo(ax, ay)
+    blade.quadTo(nx * wmax * 2, ny * wmax * 2, bx, by)
+    blade.quadTo(-nx * wmax * 2, -ny * wmax * 2, ax, ay)
+    blade.close()
+    c.drawPath(blade, G.P(col, a))
     c.restore()
+
+
+def gemini(c, cx, cy, size, a=1.0, rot=0.0):
+    """The Gemini sparkle in its blue-to-violet gradient."""
+    h = size / 2
+    mark(c, "gemini", cx, cy, size, a=a, rot=rot,
+         shader=G.linear_grad(cx - h, cy + h, cx + h, cy - h, GEMINI_GRAD))
+
+
+def meta(c, cx, cy, size, a=1.0):
+    """The Meta infinity in its blue gradient."""
+    h = size / 2
+    mark(c, "meta", cx, cy, size, a=a, shader=G.linear_grad(cx - h, cy, cx + h, cy, META_GRAD))
+
+
+def google_g(c, cx, cy, size, a=1.0, mono=None):
+    """Google's G: a thick ring open at the upper right, a bar into the middle, in its four colours."""
+    R = size * 0.5
+    wd = size * 0.19
+    rc = R - wd / 2
+    box = skia.Rect.MakeLTRB(cx - rc, cy - rc, cx + rc, cy + rc)
+    segs = [(G_RED, 216, 100), (G_YELLOW, 146, 70), (G_GREEN, 36, 110), (G_BLUE, -1, 38)]
+    for col, start, sweep in segs:
+        pth = skia.Path()
+        pth.addArc(box, start, sweep)
+        c.drawPath(pth, G.P(mono or col, a, stroke=wd, cap="butt"))
+    c.drawRect(skia.Rect.MakeLTRB(cx - size * 0.02, cy - size * 0.05, cx + R, cy + wd - size * 0.05),
+               G.P(mono or G_BLUE, a))
+
+
+def mark_path(name, cx, cy, size, rot=0.0):
+    """A mark's outline placed like mark() would draw it: larger side `size`, centred on (cx, cy), turned rot."""
+    p = skia.Path(_path(name))
+    b = p.getBounds()
+    s = size / max(b.width(), b.height())
+    m = skia.Matrix()
+    m.setTranslate(-b.centerX(), -b.centerY())
+    m.postScale(s, s)
+    if rot:
+        m.postRotate(rot)
+    m.postTranslate(cx, cy)
+    p.transform(m)
+    return p

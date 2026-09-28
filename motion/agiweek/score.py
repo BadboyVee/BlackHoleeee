@@ -1,84 +1,52 @@
-"""AGI WEEK, cut as THE RACE TO AGI: the timing sheet for a 16:9 race broadcast about the last week of September
-2026. 128 BPM, 18 bars.
+"""AGI WEEK: the timing sheet. The soundtrack is the reference clip's own sound (19.8 s), and the edit follows that
+clip's edit on it: the wordmarks flash on the clicks with each lab's model on top, the sparkle opens on the drop,
+and every product moment (Gemini, ChatGPT, Claude, Grok) starts on the hit the original gave it. What those
+moments say is the post: another week closer to AGI, a stacked final week of September, Sonnet 5.5 expected
+today, a new OpenAI model and Agent "O" with DevDay tomorrow (AGI?), Grok 4.8 maybe, Anthropic's IPO planned for
+November, and a big week ahead. The founders are in the collage and in their own labs' moments."""
 
-Five labs sit on the start-light gantry, a light each, the model over the company. Lights out on the drop: another
-week closer to AGI, and the lap counter (the week of the year) ticks from 39 to 40. Then each team in turn:
-Anthropic on the radio (Sonnet 5.5 expected today), OpenAI with two new entries (a new model and Agent "O"),
-Gemini and Muse also on the grid, xAI in the pits (4.7 off, 4.8 might go on this week). DevDay is up next,
-tomorrow, the anticipation maxes out, the chequered flag asks "AGI?", Anthropic takes P1 with the pit board
-reading IPO: NOV, and it's a big week ahead.
-"""
-from engine.core import Grid
-
-BPM = 128
-G = Grid(BPM)            # a beat is 0.46875 s, a bar 1.875 s
-DURATION = 35.25
+DURATION = 19.8
 SIZE = (1920, 1080)
 CX, CY = 960, 540
 
-# ---------------------------------------------------------------- 1 the gantry: five lights, five labs
-LIGHT_ORDER = ["meta", "google", "xai", "openai", "anthropic"]        # left to right; Anthropic's is the last
-T_LIGHTS = [G.at(1, 2), G.at(1, 3), G.at(1, 4), G.at(2, 1), G.at(2, 2)]
-T_CAPTION = 0.12                         # "THE FINAL WEEK OF SEPTEMBER"
-T_STACKED = G.at(2, 3)                   # "IS LOOKING STACKED."
-T_OUT = G.at(3)                          # 3.75, lights out
+# ---------------------------------------------------------------- 1 the wordmarks, one on every click
+FLASH = [0.0, 0.25, 0.548, 0.815, 1.082, 1.348, 1.615, 1.882, 2.148, 2.415, 2.682]
+T_SHRINK = 2.98            # the last wordmark shrinks away
+T_DROP = 3.296             # the drop: a sparkle
+T_HOLE = 3.47              # the sparkle opens into the collage
+T_COLLAGE_OUT = 4.12       # the collage blurs away
 
-# ---------------------------------------------------------------- 2 the title and the lap
-T_LINE1 = T_OUT                          # ANOTHER WEEK
-T_LINE2 = G.at(3, 3)                     # CLOSER TO AGI.
-T_AGI_BOX = G.at(3, 4)
-T_LAP = G.at(4, 1)                       # LAP 39/???
-T_FLIP = G.at(4, 2)                      # 39 -> 40: week 40 of the year
-T_BUG = G.at(4, 4)                       # the counter flies to the corner and stays there
+# ---------------------------------------------------------------- 2 Gemini
+T_SEARCH = 4.256           # the search pill
+T_MORPH = 4.95             # the sparkle slides into the pill
+T_DARK = 5.141             # the dark Gemini pill
+T_HEADLINE = 5.70          # Another week closer to AGI.
+T_PHONE = 6.52             # the phone: the final week of September is looking stacked
 
-# ---------------------------------------------------------------- 3 Anthropic: team radio
-T_ANT = G.at(5)                          # 7.5
-T_ANT_RADIO = G.at(5, 3)
-T_ANT_LINE1 = G.at(5, 3, 2)              # "SONNET 5.5 EXPECTED TODAY."
-T_ANT_BOSS = G.at(6, 1)
-T_ANT_LINE2 = G.at(6, 2)                 # "BIG STEP UP. A FABLE MOMENT?"
+# ---------------------------------------------------------------- 3 ChatGPT
+T_OAI = 7.12               # the blossom
+T_COMPOSER = 8.17          # the question types
+T_SEND = 9.10
+T_SOURCES = 9.38           # reading: Sam Altman, OpenAI DevDay
+T_ANSWER = 9.78            # the answer streams in
 
-# ---------------------------------------------------------------- 4 OpenAI: two new entries
-T_OAI = G.at(7)                          # 11.25
-T_OAI_CAR2 = G.at(7, 2)                  # Agent "O" rolls in
-T_OAI_BOSS = G.at(8, 1)
-T_RC = G.at(8, 3)                        # race control: DevDay tomorrow
+# ---------------------------------------------------------------- 4 Claude
+T_CLAUDE = 10.74           # into Claude's cream
+T_SPARK = 10.98
+T_WORDMARK = 11.52         # Claude types in, Sonnet 5.5 on top
+T_GRID = 12.02             # the wall of canvases
+T_CANVAS = 13.22           # the canvas
+T_SWATCH = 13.55           # a swatch is picked
+T_TOOLBAR = 13.82          # into the toolbar
+T_CLICK = 14.45            # Comment, and the note: IPO planned for November
 
-# ---------------------------------------------------------------- 5 also on the grid: Gemini, Muse
-T_GRID2 = G.at(9)                        # 15.0
-T_STRAP = G.at(9, 2)
-T_GDM_BOSS = G.at(9, 4)
-T_MTA_BOSS = G.at(10, 1)
+# ---------------------------------------------------------------- 5 Grok
+T_GROK = 14.78
+T_INPUT = 15.74            # the question types
+T_LAPTOP = 16.68           # the week, in a terminal
+T_ANSWER2 = 17.64          # Grok answers
+T_OUT = 18.70              # everything goes to black
+T_END = 18.98              # Big week ahead.
 
-# ---------------------------------------------------------------- 6 xAI in the pits: 4.7 off, 4.8 on?
-T_XAI = G.at(11)                         # 18.75
-T_BOX = T_XAI + 0.24                     # the car stops in its box
-T_OFF = G.at(11, 2)                      # the 4.7s come off
-T_ON = G.at(11, 3)                       # the 4.8s go on
-T_JACK = G.at(12, 1, 2)                  # jack down, the clock stops
-T_XAI_BOSS = G.at(12, 1)
-T_LAUNCH = G.at(12, 4)
-
-# ---------------------------------------------------------------- 7 up next: DevDay, tomorrow
-T_DEV = G.at(13)                         # 22.5
-T_BUILD = G.at(14)                       # 24.375: the shift lights fill
-T_LEDS = [T_BUILD + i * G.spb / 4 for i in range(15)]   # one a sixteenth, the sixteenth sixteenth is the shift
-T_SHIFT = T_BUILD + 15 * G.spb / 4
-
-# ---------------------------------------------------------------- 8 the drop: AGI?
-T_FLAG = G.at(15)                        # 26.25
-T_CROSS = G.at(15, 4)                    # Anthropic crosses the line
-
-# ---------------------------------------------------------------- 9 P1: staying on top, IPO in November
-T_P1 = G.at(16)                          # 28.125
-T_BOARD = G.at(16, 3)
-T_BOARD_ROWS = [G.at(16, 3, 1), G.at(16, 3, 3), G.at(16, 4, 1), G.at(16, 4, 3)]
-T_IPO = G.at(16, 4)
-T_ON_TOP = G.at(17, 1)
-
-# ---------------------------------------------------------------- 10 end: big week ahead
-T_END = G.at(18)                         # 31.875
-T_FADE = (34.45, DURATION)
-
-STING = 0.5                              # a stinger starts this long before the downbeat it lands on
-CUTS = [T_OUT, T_ANT, T_OAI, T_GRID2, T_XAI, T_DEV, T_FLAG, T_P1, T_END]
+CUTS = [T_DROP, T_SEARCH, T_DARK, T_HEADLINE, T_PHONE, T_OAI, T_COMPOSER, T_SOURCES, T_ANSWER, T_CLAUDE, T_GRID,
+        T_CANVAS, T_TOOLBAR, T_GROK, T_INPUT, T_LAPTOP, T_ANSWER2]

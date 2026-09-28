@@ -10,3 +10,7 @@ The Dario Amodei tribute can include photographs. Put them here and re-render wi
 
 Photos are rendered in the film's ink-and-cream duotone. They are git-ignored on purpose: the photographs
 belong to their owners, so the repository carries only the code that places them.
+
+AGI WEEK (`python3 -m agiweek.main`) needs `agiweek/amodei.jpg`, `altman.jpg`, `hassabis.jpg`, `zuckerberg.jpg`
+and `musk.jpg` (the founders), and `agiweek/sound.wav`, the reference clip's soundtrack, which the film is cut to:
+`ffmpeg -i clip.mp4 -vn -ac 2 -ar 48000 photos/agiweek/sound.wav`. The sound is git-ignored for the same reason.

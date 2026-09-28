@@ -20,6 +20,9 @@ FAMILIES = {
     "serif-italic": "InstrumentSerif-Italic.ttf",
     "dejavu-serif-italic": "DejaVuSerif-Italic.ttf",   # math symbols the display faces lack (∝)
     "dejavu-sans-bold": "DejaVuSans-Bold.ttf",         # key symbols the UI face lacks (⌘ ⏎)
+    "gsans": "GoogleSans-Regular.ttf",
+    "gsans-medium": "GoogleSans-Medium.ttf",
+    "source-serif": "SourceSerif4-Var.ttf",
 }
 
 
