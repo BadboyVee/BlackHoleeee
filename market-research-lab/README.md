@@ -6,7 +6,7 @@ five programme areas on Google Trends.
 
 | File | What it is |
 |---|---|
-| [Task1_Google_Trends.docx](Task1_Google_Trends.docx) | The completed Task 1 write-up, ready to copy into the Module 2 document. Opens in Word 2013 and later. |
+| [Task1_Google_Trends.docx](Task1_Google_Trends.docx) | The completed Task 1 write-up (2 pages, short plain sentences), ready to copy into the Module 2 document. Opens in Word 2013 and later. |
 | [src/build_task1.js](src/build_task1.js) | The script that builds it (`npm install` in `src/`, then `node build_task1.js ../Task1_Google_Trends.docx`). |
 
 It records the six items the task asks for: time period, location, relative-interest
@@ -20,12 +20,12 @@ were Nigeria, past 12 months, all categories and web search. The screenshots wer
 - each programme's "Rising" related topics and related queries
 
 The averages are read from the chart's "Average" bars, so they are given as approximate
-("about 43").
+("around 43").
 
 | Programme | Average interest | Rank |
 |---|---|---|
-| Cybersecurity | about 43 | 1 |
-| Digital Marketing | about 33 | 2 |
-| Data Analytics | about 18 | 3 |
-| Generative AI & Prompt Engineering | about 13 | 4 (joint) |
-| Web Development | about 13 | 4 (joint) |
+| Cybersecurity | around 43 | 1 |
+| Digital Marketing | around 33 | 2 |
+| Data Analytics | around 18 | 3 |
+| Generative AI & Prompt Engineering | around 13 | 4 (joint) |
+| Web Development | around 13 | 4 (joint) |
