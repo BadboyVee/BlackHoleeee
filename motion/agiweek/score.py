@@ -3,9 +3,10 @@ clip's edit on it: the wordmarks flash on the clicks with each lab's model on to
 and every product moment (Gemini, ChatGPT, Claude, Grok) starts on the hit the original gave it. What those
 moments say is the post: another week closer to AGI, a stacked final week of September, Sonnet 5.5 expected
 today, a new OpenAI model and Agent "O" with DevDay tomorrow (AGI?), Grok 4.8 maybe, Anthropic's IPO planned for
-November, and a big week ahead. The founders are in the collage and in their own labs' moments."""
+November, and a big week ahead. The founders are in the collage and in their own labs' moments. It is signed
+MADE BY VEEE."""
 
-DURATION = 19.8
+DURATION = 20.8           # the sound runs 19.8 s; the last second holds the maker's mark
 SIZE = (1920, 1080)
 CX, CY = 960, 540
 
@@ -47,6 +48,7 @@ T_LAPTOP = 16.68           # the week, in a terminal
 T_ANSWER2 = 17.64          # Grok answers
 T_OUT = 18.70              # everything goes to black
 T_END = 18.98              # Big week ahead.
+T_CREDIT = 19.5            # MADE BY VEEE
 
 CUTS = [T_DROP, T_SEARCH, T_DARK, T_HEADLINE, T_PHONE, T_OAI, T_COMPOSER, T_SOURCES, T_ANSWER, T_CLAUDE, T_GRID,
         T_CANVAS, T_TOOLBAR, T_GROK, T_INPUT, T_LAPTOP, T_ANSWER2]

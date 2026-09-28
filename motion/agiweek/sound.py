@@ -1,6 +1,6 @@
 """AGI WEEK sound: the reference clip's own soundtrack, supplied with it (photos/agiweek/sound.wav, not in the
-repository). It is trimmed or padded to the film, eased out over its last moments, and kept just under full scale
-so the delivery encode has room."""
+repository). It is eased out over its own last moments, then trimmed or padded with silence to the film (whose
+last second holds the maker's mark), and kept just under full scale so the delivery encode has room."""
 import wave
 
 import numpy as np
@@ -29,11 +29,11 @@ def read_wav(path):
 def prepare(src, dst, fade=0.35, peak=0.94):
     x = read_wav(src)
     n = A.n_of(DURATION)
+    x = x[:n].copy()
+    m = min(len(x), A.n_of(fade))
+    x[-m:] *= np.linspace(1.0, 0.0, m)[:, None] ** 1.5
     if len(x) < n:
         x = np.vstack([x, np.zeros((n - len(x), 2))])
-    x = x[:n].copy()
-    m = A.n_of(fade)
-    x[-m:] *= np.linspace(1.0, 0.0, m)[:, None] ** 1.5
     top = np.abs(x).max()
     if top > peak:
         x *= peak / top

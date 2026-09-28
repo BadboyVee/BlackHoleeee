@@ -1,18 +1,18 @@
-"""AGI WEEK, 14.8-19.8 s: Grok, and the end.
+"""AGI WEEK, 14.8-20.8 s: Grok, and the end.
 
 On black the Grok wordmark comes up out of the dark with 4.8 on top of it, the input bar takes the question
 (is Grok 4.8 dropping this week?), a laptop shows the whole week in a terminal, and Grok answers: 4.8 might drop,
 expected after 4.7's bad reviews; Sonnet 5.5 today, DevDay tomorrow, the IPO planned for November; with Elon
-Musk's card beside it. Then everything goes dark: Big week ahead."""
+Musk's card beside it. Then everything goes dark: Big week ahead., signed MADE BY VEEE."""
 import math
 
 import skia
 
 from engine import gfx as G
-from engine.core import clamp, lerp, out_cubic, out_expo
+from engine.core import clamp, lerp, out_cubic, out_expo, out_back, in_out_cubic
 from . import marks as M
-from .look import WHITE, T, gs, gsm, mono, rr, typed, caret, rich, picture, ease_push, blob
-from .score import T_GROK, T_INPUT, T_LAPTOP, T_ANSWER2, T_OUT, T_END, DURATION
+from .look import WHITE, F, T, gs, gsm, inter, mono, rr, typed, caret, rich, picture, ease_push, blob
+from .score import T_GROK, T_INPUT, T_LAPTOP, T_ANSWER2, T_OUT, T_END, T_CREDIT, DURATION
 
 QUESTION = "is Grok 4.8 dropping this week?"
 
@@ -193,8 +193,40 @@ def end(c, t):
         return
     f = gsm(128)
     s = lerp(0.94, 1.0, u) + 0.02 * clamp((t - T_END) / (DURATION - T_END))
-    with G.xf(c, 960, 540, s=s):
+    up = in_out_cubic(clamp((t - T_CREDIT) / 0.45))
+    with G.xf(c, 960, lerp(540, 430, up), s=s):
         T(c, "Big week ahead.", 0, f.cap / 2 + 30 * (1 - u), f, WHITE, u, align=0.5)
+    credit(c, t)
+
+
+def credit(c, t):
+    """The maker's mark, as it signs every film of Veee's: MADE BY in small tracked caps, then VEEE, each letter
+    popping in, and a band of light across it."""
+    v = clamp((t - T_CREDIT - 0.12) / 0.4)
+    if v <= 0:
+        return
+    fm = inter(30, 620)
+    T(c, "MADE BY", 960, 612 + 16 * (1 - out_cubic(v)), fm, "#8e8e93", v, align=0.5, tracking=0.5)
+    fv = F("archivo", 150, wght=850, wdth=118)
+    run = fv.shape("VEEE")
+    x0 = 960 - run.width / 2
+    base = 790
+
+    def word(cc):
+        for i, gid, gx, adv in run.glyphs():
+            k = clamp((t - T_CREDIT - 0.2 - 0.07 * i) / 0.35)
+            if k <= 0:
+                continue
+            with G.xf(cc, x0 + gx + adv / 2, base, s=out_back(k, 1.4)):
+                G.glyph(cc, fv, gid, -adv / 2, 0, G.P(WHITE, 0.35 * k, blur=18))
+                G.glyph(cc, fv, gid, -adv / 2, 0, G.P(WHITE, k))
+
+    su = (t - T_CREDIT - 0.6) / 0.7
+    if 0 < su < 1:
+        G.light_sweep(c, word, x0 - 200, x0 + run.width + 200, base - 60, su, colors=("#9fb4ff", "#ffffff"),
+                      width=150, angle=22.0, strength=0.8)
+    else:
+        word(c)
 
 
 def grok(c, t):

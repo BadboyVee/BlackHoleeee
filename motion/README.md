@@ -100,7 +100,7 @@ affiliated with Arnaud's.
 
 ## AGI WEEK, the last week of September
 
-A 19.8 s, 1920×1080, 60 fps film about one post (another week closer to AGI), built on a reference clip the user
+A 20.8 s, 1920×1080, 60 fps film about one post (another week closer to AGI), built on a reference clip the user
 supplied: it keeps that clip's sound and its design, then adds this week's models on top of the labs, the founders,
 and the post's news. The claims are the post's, worded as it words them (expected, might, planned); MiniMax and
 Qwen are left out.
@@ -113,6 +113,7 @@ Qwen are left out.
 | 7.1–10.9 s | ChatGPT | the blossom with *New model + Agent “O”* on top; the composer asks what OpenAI is launching this week, reads Sam Altman and OpenAI DevDay, and answers: DevDay is tomorrow, even more announcements and releases (AGI?) |
 | 10.9–14.8 s | Claude | the spark, *Claude* typing in with *Sonnet 5.5* on top; a wall of canvases (the model, expected today, the Amodeis, a Fable moment?, the IPO in November, staying on top); a dive into the toolbar and a click on Comment: *IPO planned for November. Staying on top.* |
 | 14.8–19.8 s | Grok | the wordmark with *4.8 · this week?* on top; *@X is Grok 4.8 dropping this week?*; the week in a terminal; Grok's answer (might drop, after 4.7's bad reviews) beside Elon Musk's card; *Big week ahead.* |
+| 19.5–20.8 s | Credit | the maker's mark: MADE BY VEEE, each letter popping in under a band of light, held a second past the end of the sound |
 
 Each lab is drawn in its own product's look and type: Google Sans for Google and Gemini, Source Serif for Claude,
 Inter for ChatGPT. The cuts follow the reference's edit on its sound, the wordmarks flash on its clicks, and the
