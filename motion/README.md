@@ -98,6 +98,31 @@ table and the fruit popping up the scale to the printer, the till and the stamp.
 `sushi.jpg`, `ramen.jpg`, `dining.jpg`) were supplied for the render and are not in the repository. Fan-made; not
 affiliated with Arnaud's.
 
+## AGI WEEK, the last week of September
+
+A 39 s, 1920×1080, 60 fps news hype film, remade from a logo-and-UI montage clip around one post: another week
+closer to AGI. Each lab appears in its own colours with the model on top of it and its founders beside it; the
+claims are the post's, worded as it words them (expected, rumoured, might).
+
+| Bars | Scene | What happens |
+| --- | --- | --- |
+| 1–2 | The open | *Another week closer to AGI.* a word a beat, a road-to-AGI track that moves one week closer |
+| 3–4 | The slate | seven lab cards, each with its model on top, drop onto a stack on the beat (*is looking stacked.*), Anthropic landing last, on top; the stack fans into a row |
+| 5–6 | Anthropic | the card becomes the room: *Sonnet 5.5*, expected today, picked in the Claude app's model menu; *A Fable moment?*; Dario and Daniela Amodei |
+| 7–8 | OpenAI | *New model + Agent “O”*, a composer asking what's launching at DevDay, a rumoured agent at work; Sam Altman |
+| 9–10 | Also in the race | Google DeepMind's Gemini beside Meta's Muse; Demis Hassabis and Mark Zuckerberg |
+| 11–12 | Open source | MiniMax M3.1 and Qwen 4, open weights, split screen |
+| 13–14 | xAI | *Grok 4.7* rolls to *4.8*, which might drop this week after 4.7's rough reviews; Elon Musk |
+| 15–16 | DevDay | the main event: OpenAI DevDay, tomorrow; question cards gather as the build tightens |
+| 17 | The drop | *(AGI?)*, with every lab's mark in orbit |
+| 18–19 | The IPO | a calendar flips to November; Anthropic climbs to the top of the stack: *Staying on top.* |
+| 20 | The end | *Big week ahead.* |
+
+The soundtrack is 128 BPM future house in A minor with a two-bar build under DevDay that drops on *(AGI?)*. The
+Claude, Gemini, Meta, MiniMax and Qwen marks are Simple Icons paths; OpenAI's is the engine's; the Grok mark is
+drawn. The founders' photographs (`photos/agiweek/`) were supplied for the render and are not in the repository.
+Fan-made; not affiliated with any of the companies shown.
+
 ## How it is built
 
 ```
@@ -116,6 +141,7 @@ frontier/      film 1: score.py (timing shared by picture and sound), music.py, 
 dario/         film 2: the same layout, plus photos.py for the optional photographs
 interface/     film 3: score.py, film.py (board, camera, cursor), stream.py (the streamed answer), ui.py, music.py
 arnauds/       the concept spot: table.py (the opening), intro.py (the end: the name, the credit), phone.py, words.py, cards.py, checkout.py, map.py, film.py, music.py
+agiweek/       the news film: marks.py (brand marks), look.py (brands, founders, chips), scenes_a/b/c.py, film.py, music.py
 fonts/         Archivo, Fraunces, Inter, JetBrains Mono, Instrument Serif (all SIL OFL); DejaVu for ∝ ⌘ ⏎
 ```
 
@@ -138,6 +164,7 @@ python3 -m dario.main    --plate /tmp/plates/datacenter
 ffmpeg -i out/the-frontier.mp4 -vf fps=30,scale=1280:720 -q:v 3 out/player_frames/f%04d.jpg   # for the player
 python3 -m interface.main
 python3 -m arnauds.main            # needs the four photographs in photos/arnauds/
+python3 -m agiweek.main            # needs the founders' photographs in photos/agiweek/
 ```
 
 `--scale 0.5 --mb 3 --step 2` renders a quick half-resolution, 30 fps preview. Without a plate directory the

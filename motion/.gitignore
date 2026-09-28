@@ -10,3 +10,5 @@ photos/*
 # the Arnaud's spot is built from photographs supplied for it, so its render stays local like the photos
 out/arnauds.mp4
 out/arnauds_intro.mp4
+# AGI WEEK uses the founders' photographs supplied for it, so its render stays local too
+out/agiweek.mp4
