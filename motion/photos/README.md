@@ -16,4 +16,6 @@ and `musk.jpg` (the founders), and `agiweek/sound.wav`, the reference clip's sou
 `ffmpeg -i clip.mp4 -vn -ac 2 -ar 48000 photos/agiweek/sound.wav`. The sound is git-ignored for the same reason.
 
 DEVDAY 2026 (`python3 -m devday.main`) needs `devday/sound.wav`, the teaser's soundtrack, which the film is cut to:
-`ffmpeg -i teaser.mp4 -vn -ac 2 -ar 48000 photos/devday/sound.wav`. It is git-ignored for the same reason.
+`ffmpeg -i teaser.mp4 -vn -ac 2 -ar 48000 photos/devday/sound.wav`. The team chart takes `devday/altman.jpg`,
+`chen.jpg`, `brockman.jpg` and `sottiaux.jpg` (head and shoulders; anyone without one is shown by initials, and
+`CROP` in `devday/team.py` sets the square to use). All of it is git-ignored for the same reason.

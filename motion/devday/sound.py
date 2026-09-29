@@ -1,20 +1,19 @@
 """DevDay 2026 sound: the teaser's own soundtrack (photos/devday/sound.wav, not in the repository) and nothing else,
 cut on its bar lines. The teaser runs at 120 BPM with its first downbeat at 1.3 s. Its first two beats of clicks
 play twice under "Introducing…" (two beats, so the clicks stay on the grid), then its opening plays as it is up to
-the drop, its four bars loop under the launches (two launches a bar), and its last bar and long low note end the
-film. The low note is held a little longer by looping one steady stretch of it (a whole number of its cycles, so
+the drop, its four bars loop under the team, the 78 countries and the launches (two launches a bar), and its last
+bar and long low note end the film. The low note is held a little longer by looping one steady stretch of it (a whole number of its cycles, so
 the joins are seamless) under the maker's mark."""
 import wave
 
 import numpy as np
 
 from engine import audio as A
-from .score import DURATION, T_OPEN, T_LIST, BAR, LIST_BARS, T_ENDING, OPEN_LOOP
+from .score import DURATION, T_OPEN, T_DROP, BAR, LIST_BARS, T_ENDING, OPEN_LOOP, HOLD_TIMES
 
 ENDING = (7.29, 12.16)          # the teaser's last bar, its quiet, and its long low note
 HOLD_AT = 11.60                 # where the low note is still steady...
 HOLD_LOOP = 0.98275             # ...and one stretch of it that loops cleanly (34 cycles of its 34.6 Hz)
-HOLD_TIMES = 2
 
 
 def read_wav(path):
@@ -80,9 +79,9 @@ def prepare(src, dst, peak=0.94):
     loops = int(round(T_OPEN / (b - a)))
     for k in range(loops):
         add(out, k * (b - a), piece(x, a, b, fade_in=0.0 if k == 0 else 0.004))
-    add(out, T_OPEN, piece(x, 0.0, T_LIST - T_OPEN - 0.01))
+    add(out, T_OPEN, piece(x, 0.0, T_DROP - T_OPEN - 0.01))
     for k, b in enumerate(LIST_BARS):
-        add(out, T_LIST - 0.01 + BAR * k, piece(x, b, b + BAR))
+        add(out, T_DROP - 0.01 + BAR * k, piece(x, b, b + BAR))
     spans = [(ENDING[0], HOLD_AT)] + [(HOLD_AT - HOLD_LOOP, HOLD_AT)] * HOLD_TIMES + [(HOLD_AT, ENDING[1])]
     ending = join(x, spans)
     ending[:A.n_of(0.004)] *= np.linspace(0, 1, A.n_of(0.004))[:, None]

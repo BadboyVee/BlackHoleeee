@@ -122,29 +122,33 @@ the Grok mark and Google's G are drawn. The founders' photographs and the refere
 (`photos/agiweek/`) were supplied for the render and are not in the repository. Fan-made; not affiliated with any
 of the companies shown.
 
-## DEVDAY 2026, twenty launches
+## DEVDAY 2026, twenty product launches
 
-A 38.6 s, 1920×1080, 60 fps fan film built on OpenAI's DevDay 2026 teaser (*1 day. 20+ launches.*), which the
-user supplied: it keeps the teaser's soundtrack and its design, opens on white with *Introducing…*, and fills in the
-twenty launches the user predicted, each with a drawing and its own motion. It says what it is on screen: fan-made
-predictions, not affiliated with OpenAI.
+A 47.6 s, 1920×1080, 60 fps fan film for DevDay, built on OpenAI's DevDay 2026 teaser, which the user supplied: it
+keeps the teaser's soundtrack and its design, opens on white with *Introducing…*, brings on the OpenAI team and the
+developers from 78 countries, and fills in the twenty product launches the user predicted, each with a drawing and
+its own motion. It says what it is on screen: fan-made predictions, not affiliated with OpenAI.
 
 | Time | Moment | What happens |
 | --- | --- | --- |
 | 0–2 s | Introducing… | on white, *Introducing* lands point by point, three orange points follow it, and the last one swells into the teaser's big grey face |
-| 2–9.3 s | The teaser | redrawn beat for beat, on white: the grey face pulls back and turns right round; its eyes go * * to - - to o o to > <; five more faces crowd in, fall into the middle and burst into orange points that land on *1 day.*, join up and fill; then *1 day. 20+ launches.*, which comes apart into points as a black iris closes on the drop |
-| 9.3–28.3 s | The launches | on black from the drop, two a bar: Astra 6.1, Agent “O”, the $500 plan, Aeon, GPT-6.1 Sol, GPT-6.1 Luna, a Codex update (idk), Chat + Work merging, OpenAI acquiring Google, the first hardware device, a bunch of lil new models, Sora returning, a Sam Altman humanoid robot, Greg, 5 banked resets, cancer solved, OpenAI acquiring McDonald’s, agents escaping again, weather solved |
-| 28.3–34.2 s | AGI | the faces crowd back in and count down in their eyes (3, 2, 1), fall into the middle when the bass drops out and burst into blue points that spell AGI, which fills when the bass comes back and throws them out again like confetti: *Official launch of AGI* |
-| 34.2–38.6 s | The ending | on the teaser's long low note, AGI comes apart into the points of *OpenAI DevDay[2026]*, built left to right as the teaser builds it; *Fan-made predictions. Not affiliated with OpenAI.*; MADE BY VEEE |
+| 2–9.3 s | The teaser | redrawn beat for beat, on white: the grey face pulls back and turns right round; its eyes go * * to - - to o o to > <; five more faces crowd in, fall into the middle and burst into orange points that land on the OpenAI mark and *DevDay*, join up and fill; then *DevDay. 20 product launches.* |
+| 9.3–13.3 s | The team | on the drop a black iris closes and the line's points fly up into the OpenAI mark; the chart grows from it on the beat: Sam Altman (CEO) at the top, then Mark Chen (Chief Research Officer), Greg Brockman (President) and Thibault Sottiaux (Codex lead), each in a ring of the teaser's colours, their names and roles built from points |
+| 13.3–17.3 s | 78 countries | a crowd of exactly 78 of the teaser's faces, thirteen across and six deep, pops in while the number beside them counts up with them to *DEVELOPERS FROM 78 countries*; they look over at it, cheer when the bass comes back, and fold away into points |
+| 17.3–36.3 s | The launches | two a bar: Astra 6.1, Agent “O”, the $500 plan, Aeon, GPT-6.1 Sol, GPT-6.1 Luna, a Codex update (idk), Chat + Work merging, OpenAI acquiring Google, the first hardware device, a bunch of lil new models, Sora returning, a Sam Altman humanoid robot, Greg, 5 banked resets, cancer solved, OpenAI acquiring McDonald’s, agents escaping again, weather solved |
+| 36.3–42.2 s | AGI | the faces crowd back in and count down in their eyes (3, 2, 1), fall into the middle when the bass drops out and burst into blue points that spell AGI, which fills when the bass comes back and throws them out again like confetti: *Official launch of AGI* |
+| 42.2–47.6 s | The ending | on the teaser's long low note, AGI comes apart into the points of the OpenAI mark and *OpenAI DevDay[2026]*, built left to right as the teaser builds it, over *FAN-MADE PREDICTIONS. NOT AFFILIATED WITH OPENAI.*; then its points fly into the maker's mark, on a card of its own and spaced out: MADE BY VEEE |
 
 Every drawing is in the teaser's own language: flat discs in its six colours with eyes drawn like typed glyphs
 (* o - > < + x ^ / \\, and $ ? 3 2 1 from the font), white strokes on black. Every title is built the way the
-teaser builds its type, from the points a type designer would draw (corners and extremes, read off the font's
-outlines), then the outline, then the fill; between launches the points fly from one title to the next. The sound
-is the teaser's soundtrack and nothing else, cut on its bar lines (120 BPM): its first two beats of clicks twice
-under *Introducing…*, its opening as it is, its four bars looped under the launches, its last bar and its long low
-note, held a little longer, at the end. Type is Google Sans, the nearest open face to
-the teaser's; the maker's mark is Archivo. The teaser's sound (`photos/devday/`) is not in the repository.
+teaser builds its type, from the points a type designer would draw (corners and extremes, read off the outlines,
+the OpenAI mark's included), then the outline, then the fill; between launches the points fly from one title to
+the next. The sound is the teaser's soundtrack and nothing else, cut on its bar lines (120 BPM): its first two
+beats of clicks twice under *Introducing…*, its opening as it is, its four bars looped under the team, the 78
+countries and the launches, its last bar and its long low note, held a little longer, at the end. Type is Geist,
+with Geist Mono for the labels; the maker's mark is Archivo. The teaser's sound and the team's photographs, which
+the user supplied (`photos/devday/`), are not in the repository; anyone without a photograph there is shown by
+initials.
 
 ## How it is built
 
@@ -165,8 +169,8 @@ dario/         film 2: the same layout, plus photos.py for the optional photogra
 interface/     film 3: score.py, film.py (board, camera, cursor), stream.py (the streamed answer), ui.py, music.py
 arnauds/       the concept spot: table.py (the opening), intro.py (the end: the name, the credit), phone.py, words.py, cards.py, checkout.py, map.py, film.py, music.py
 agiweek/       the news film: flash.py (wordmarks, sparkle, collage), gemini.py, chatgpt.py, claude.py, grok.py, look.py, marks.py, sound.py (the supplied sound), film.py
-devday/        the DevDay film: intro.py (Introducing…, the teaser redrawn), items.py (the twenty launches), launches.py (the list), finale.py (AGI, the ending), faces.py, type.py (type built from its points), sound.py (the teaser's sound, cut on its bars), film.py
-fonts/         Archivo, Fraunces, Inter, JetBrains Mono, Instrument Serif, Google Sans, Source Serif 4 (all SIL OFL); DejaVu for ∝ ⌘ ⏎
+devday/        the DevDay film: intro.py (Introducing…, the teaser redrawn), team.py (the OpenAI team), world.py (the 78), items.py (the twenty launches), launches.py (the list), finale.py (AGI, the ending), faces.py, type.py (type built from its points), sound.py (the teaser's sound, cut on its bars), film.py
+fonts/         Archivo, Fraunces, Inter, JetBrains Mono, Instrument Serif, Google Sans, Source Serif 4, Geist, Geist Mono (all SIL OFL); DejaVu for ∝ ⌘ ⏎
 ```
 
 Picture and sound read the same timing sheet (`score.py`), so every cut, letter and flash lands on the beat it was
@@ -189,7 +193,7 @@ ffmpeg -i out/the-frontier.mp4 -vf fps=30,scale=1280:720 -q:v 3 out/player_frame
 python3 -m interface.main
 python3 -m arnauds.main            # needs the four photographs in photos/arnauds/
 python3 -m agiweek.main            # needs the founders' photographs and the reference sound in photos/agiweek/
-python3 -m devday.main             # needs the teaser's sound in photos/devday/
+python3 -m devday.main             # needs the teaser's sound and the team's photographs in photos/devday/
 ```
 
 `--scale 0.5 --mb 3 --step 2` renders a quick half-resolution, 30 fps preview. Without a plate directory the

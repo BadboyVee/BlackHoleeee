@@ -8,7 +8,7 @@ import skia
 
 from engine import gfx as G
 from engine.core import clamp
-from .look import F, BLACK, WHITE, DARK
+from .look import F, SANS, BLACK, WHITE, DARK
 
 FONT_EYES = set("$?!321zZ@#%&")
 
@@ -73,7 +73,7 @@ def stroke_eye(kind):
 @lru_cache(maxsize=None)
 def font_eye(kind):
     """A glyph from the font, centred in a unit box, and how thick its stems already are there."""
-    f = F("gsans-medium", 100)
+    f = F(SANS, 100, wght=640)
     run = f.shape(kind)
     path = skia.Path(f.glyph_path(run.gids[0]))
     b = path.getBounds()
@@ -83,7 +83,8 @@ def font_eye(kind):
     m.setScale(s, s)
     m.preTranslate(-b.centerX(), -b.centerY())
     path.transform(m)
-    return path, 11.0 * s                                # Google Sans Medium stems are about 11 units at 100
+    stem = f.glyph_path(f.shape("l").gids[0]).getBounds().width()   # how thick an l is at this weight
+    return path, stem * s
 
 
 def heart_path():

@@ -1,17 +1,17 @@
-"""DevDay 2026, 7.3-26.3 s: the launches, two to a bar. Each picture pops in on its beat and is swallowed on the
-next; each title is built from the points of the one before, which fly across, change colour and join up, the
-way the teaser builds "20+ launches.". A counter keeps score at the top, and the corner says what this is: a
-fan-made set of predictions."""
+"""DevDay 2026, the launches, two to a bar. Each picture pops in on its beat and is swallowed on the next; each
+title is built from the points of the one before (the first from the 78's), which fly across, change colour and
+join up, the way the teaser builds its lines. The OpenAI mark and DevDay head the frame, a counter keeps score,
+and the corner says what this is: a fan-made set of predictions."""
 import math
 
 import numpy as np
 
 from engine import gfx as G
 from engine.core import clamp, in_cubic, out_cubic, hash01
-from .look import gs, WHITE, PURPLE, ORANGE, BLUE, DIM, pop
+from .look import gs, WHITE, PURPLE, ORANGE, BLUE, DIM, MONO, pop
 from .items import LAUNCHES
-from .type import word, draw_word, Build, Flight, pair
-from .intro import LINE, LINE_BUILD
+from .type import word, with_mark, draw_word, Build, Flight, pair
+from .world import W78, B78
 from .score import T_LIST, N_LIST, t_item, T_AGI, CX
 
 PIC = (960.0, 470.0)          # the middle of the picture
@@ -54,29 +54,29 @@ class Station:
                      dots_off=b.dots_off, pop=0.0, t_out=T_next - lead, spread_out=SPREAD_OUT)
 
 
-class LineStation(Station):
-    """The teaser's line, already built when the list takes it over."""
+class StartStation(Station):
+    """A line built by its own section, which the chain takes over from."""
 
-    def __init__(self):
-        self.T, self.w, self.accent, self.prev, self.flight, self.lead = None, LINE, ORANGE, None, None, LEAVE
-        self.build = LINE_BUILD
+    def __init__(self, w, build, accent):
+        self.T, self.w, self.accent, self.prev, self.flight, self.lead = None, w, accent, None, None, LEAVE
+        self.build = build
 
 
 AGI_TITLE = "Official launch of"
 
 
 def make_chain():
-    chain = [LineStation()]
+    chain = [StartStation(W78, B78, ORANGE)]
     for i, (title, accent, _) in enumerate(LAUNCHES):
-        # the white line comes apart early, before the iris closes over it
-        lead, fly = (0.22, 0.28) if i == 0 else (LEAVE, FLY)
+        # the 78's big points have further to go
+        lead, fly = (0.16, 0.24) if i == 0 else (LEAVE, FLY)
         chain.append(Station(t_item(i), title_word(title), accent, chain[-1], fly=fly, lead=lead))
     chain.append(Station(T_AGI, title_word(AGI_TITLE), BLUE, chain[-1]))
     return chain
 
 
 CHAIN = make_chain()
-START = CHAIN[1].T - CHAIN[1].lead          # when the list takes the line over from the opening
+START = CHAIN[1].T - CHAIN[1].lead          # when the list takes the 78 over
 
 
 def draw_chain(c, t, chain, a=1.0, until=None):
@@ -126,15 +126,17 @@ def picture(c, t):
 
 # ---------------------------------------------------------------- what frames the list
 
-HEADER = word((("1 day. 20+ launches.", WHITE),), 36, 84, 108, align=0.0)
+HEADER = with_mark(word((("DevDay · 20 product launches", WHITE),), 34, 0, 108, align=0.0), "openai", WHITE, 40,
+                   16, 84, 108, align=0.0)
 HEADER_BUILD = Build(T_LIST + 0.05, spread=0.3, outline=0.03, fill=0.1, dots_off=0.18)
-FOOTER = word((("Fan-made predictions · not affiliated with OpenAI", DIM),), 26, 84, 1010, align=0.0)
+FOOTER = word((("FAN-MADE PREDICTIONS · NOT AFFILIATED WITH OPENAI", DIM),), 19, 84, 1010, align=0.0, fam=MONO,
+              axes=(("wght", 500),), tracking=0.06)
 FOOTER_BUILD = Build(T_LIST + 0.3, spread=0.5, outline=0.03, fill=0.1, dots_off=0.18)
 
 
 def counter_word(n):
-    return word((("[", WHITE), (f"{n:02d}", PURPLE), ("/20", DIM), ("]", WHITE)), 36, 1836, 108, align=1.0,
-                gaps=((0, 7.0), (2, 7.0)))
+    return word((("[", WHITE), (f"{n:02d}", PURPLE), ("/20", DIM), ("]", WHITE)), 34, 1836, 108, align=1.0,
+                fam=MONO, axes=(("wght", 500),), gaps=((0, 6.0), (2, 6.0)))
 
 
 def frame(c, t, n=None, t_n=None, a=1.0):

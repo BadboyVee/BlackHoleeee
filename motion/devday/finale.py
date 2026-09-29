@@ -1,4 +1,4 @@
-"""DevDay 2026, 26.3 s to the end: the twentieth launch and the teaser's own ending. The six faces crowd back in,
+"""DevDay 2026, from the twentieth launch to the end: AGI and the teaser's own ending. The six faces crowd back in,
 count down in their eyes (3, 2, 1), fall into the middle when the bass drops out and burst into blue points that
 spell AGI, which fills when the bass comes back, throwing the faces out again like confetti. On the long low note
 AGI comes apart into the points of OpenAI DevDay[2026], built left to right the way the teaser builds it. Then the
@@ -8,12 +8,12 @@ import math
 import numpy as np
 
 from engine import gfx as G
-from engine.core import clamp, lerp, out_cubic, in_out_cubic, out_back, hash01
-from .look import gs, WHITE, PURPLE, ORANGE, GREEN, BLUE, DIM, FACES, hit
+from engine.core import clamp, lerp, out_cubic, out_back, hash01
+from .look import WHITE, PURPLE, ORANGE, GREEN, BLUE, DIM, FAINT, FACES, MONO, hit
 from .faces import face
-from .type import word, draw_word, Build, Flight, pair_index
+from .type import word, with_mark, draw_word, Build, Flight, pair_index
 from .intro import CAST, ORDER
-from .launches import CHAIN, draw_chain, frame, PIC, LEAVE
+from .launches import CHAIN, Station, StartStation, draw_chain, frame, PIC, LEAVE
 from .score import T_AGI, T_COUNT, T_FALL, T_DECODE, T_REVEAL, T_LOCKUP, T_NOTE, T_CREDIT, CX, CY, N_LIST
 
 GATHER_R = 118
@@ -137,8 +137,8 @@ def agi(c, t):
 # ---------------------------------------------------------------- the teaser's own ending
 
 LOCK_Y = 575
-LOCK = word((("OpenAI ", WHITE), ("DevDay", GREEN), ("[", WHITE), ("2026", PURPLE), ("]", WHITE)), 96, CX, LOCK_Y,
-            gaps=((1, 10.0), (2, 16.0), (3, 16.0)))
+LOCK = with_mark(word((("OpenAI ", WHITE), ("DevDay", GREEN), ("[", WHITE), ("2026", PURPLE), ("]", WHITE)), 100, 0,
+                      LOCK_Y, align=0.0, gaps=((1, 10.0), (2, 16.0), (3, 16.0))), "openai", WHITE, 92, 30, CX, LOCK_Y)
 LOCK_FLY = 0.3
 LOCK_LAND = T_LOCKUP + LOCK_FLY - 0.02
 LOCK_SPREAD = 0.55
@@ -158,25 +158,33 @@ def _lock_flight():
 LOCK_FLIGHT = _lock_flight()
 AGI_OUT = Build(AGI_BUILD.t_in, spread=0.0, outline=AGI_BUILD.outline, fill=AGI_BUILD.fill, fill_spread=0.0,
                 dots_off=AGI_BUILD.dots_off, pop=0.0, t_out=T_LOCKUP - 0.02, spread_out=0.0)
-NOTE = word((("Fan-made predictions. Not affiliated with OpenAI.", DIM),), 30, CX, LOCK_Y + 78)
-NOTE_BUILD = Build(T_NOTE, spread=0.45, outline=0.03, fill=0.1, dots_off=0.18)
-VEEE = word((("VEEE", WHITE),), 170, CX, 840, fam="archivo", axes=(("wght", 850), ("wdth", 118)))
-VEEE_BUILD = Build(T_CREDIT + 0.2, spread=0.3, outline=0.05, fill=0.16, dots_off=0.26)
-LIFT = 170.0
+NOTE = word((("FAN-MADE PREDICTIONS. NOT AFFILIATED WITH OPENAI.", DIM),), 22, CX, LOCK_Y + 112, fam=MONO,
+            axes=(("wght", 500),), tracking=0.1)
+NOTE_BUILD = Build(T_NOTE, spread=0.45, outline=0.03, fill=0.1, dots_off=0.18, t_out=T_CREDIT - 0.16, vanish=0.14)
+
+# the maker's mark, on a card of its own: the lockup's points fly into it
+MADE = word((("MADE BY", DIM),), 30, CX, 452, fam=MONO, axes=(("wght", 500),), tracking=0.6)
+MADE_BUILD = Build(T_CREDIT + 0.3, spread=0.3, outline=0.03, fill=0.1, dots_off=0.18)
+VEEE = word((("VEEE", WHITE),), 210, CX, 700, fam="archivo", axes=(("wght", 850), ("wdth", 118)), tracking=0.16)
+_LOCKED = StartStation(LOCK, LOCK_BUILD, BLUE)
+CREDIT = [_LOCKED, Station(T_CREDIT, VEEE, ORANGE, _LOCKED, lead=0.16, fly=0.4, fill_spread=0.3)]
+FAN = word((("FAN-MADE · NOT AFFILIATED WITH OPENAI", FAINT),), 18, CX, 1012, fam=MONO, axes=(("wght", 500),),
+           tracking=0.1)
+FAN_BUILD = Build(T_CREDIT + 0.7, spread=0.4, outline=0.03, fill=0.1, dots_off=0.18)
 
 
 def ending(c, t):
-    lift = LIFT * in_out_cubic(clamp((t - T_CREDIT) / 0.5))
-    with G.xf(c, 0, -lift):
+    if t < T_CREDIT - CREDIT[1].lead:
         draw_word(c, LOCK, t, LOCK_BUILD, BLUE)
-        draw_word(c, NOTE, t, NOTE_BUILD, ORANGE)
+    else:
+        draw_chain(c, t, CREDIT)
+    draw_word(c, NOTE, t, NOTE_BUILD, ORANGE)
     if t >= T_CREDIT:
-        u = clamp((t - T_CREDIT - 0.1) / 0.35)
-        G.text(c, "MADE BY", CX, 650 + 18 * (1 - out_cubic(u)), gs(28), G.P(DIM, u), align=0.5, tracking=0.3)
-        draw_word(c, VEEE, t, VEEE_BUILD, ORANGE)
+        draw_word(c, MADE, t, MADE_BUILD, ORANGE)
+        draw_word(c, FAN, t, FAN_BUILD, ORANGE)
 
 
-# ---------------------------------------------------------------- 26.3 s to the end
+# ---------------------------------------------------------------- from the twentieth launch to the end
 
 def finale(c, t):
     if t < T_LOCKUP:

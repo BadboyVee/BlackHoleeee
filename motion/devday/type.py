@@ -8,8 +8,9 @@ import numpy as np
 import skia
 
 from engine import gfx as G
+from engine import logos
 from engine.core import clamp, hash01
-from .look import F
+from .look import F, SANS, TEXT
 
 
 # ---------------------------------------------------------------- the nodes of an outline
@@ -73,7 +74,7 @@ class Word:
     """A line of type laid out once: each glyph's outline in frame space, its colour and its nodes.
     parts is [(text, colour), ...]; gaps adds space after a part (the teaser sets its brackets apart)."""
 
-    def __init__(self, parts, size, x, y, align=0.5, fam="gsans", axes=(), gaps=(), tracking=0.0):
+    def __init__(self, parts, size, x, y, align=0.5, fam=SANS, axes=TEXT, gaps=(), tracking=0.0):
         font = F(fam, size, **dict(axes))
         gaps = dict(gaps)
         runs = [font.shape(s, tracking) for s, _ in parts]
@@ -91,6 +92,9 @@ class Word:
                 p.offset(cx + gx, y)
                 self.glyphs.append(Glyph(p, np.array(nodes(p), float), col, cx + gx + adv / 2))
             cx += run.width + gaps.get(i, 0.0)
+        self._index()
+
+    def _index(self):
         span = max(self.x1 - self.x0, 1.0)
         for g in self.glyphs:
             g.rank = clamp((g.cx - self.x0) / span)
@@ -98,6 +102,16 @@ class Word:
         self.owner = np.concatenate([np.full(len(g.pts), i) for i, g in enumerate(self.glyphs)]) \
             if self.glyphs else np.zeros(0, int)
         self.rank = np.array([self.glyphs[i].rank for i in self.owner]) if self.glyphs else np.zeros(0)
+
+    @classmethod
+    def of(cls, glyphs, size, y):
+        """A line made of glyphs laid out elsewhere (type and marks together)."""
+        w = cls.__new__(cls)
+        w.size, w.font, w.y, w.glyphs = size, None, y, list(glyphs)
+        xs = [g.path.getBounds() for g in w.glyphs]
+        w.x0, w.x1 = min(b.left() for b in xs), max(b.right() for b in xs)
+        w._index()
+        return w
 
     @property
     def dot_r(self):
@@ -115,8 +129,31 @@ class Word:
 
 
 @lru_cache(maxsize=256)
-def word(parts, size, x, y, align=0.5, fam="gsans", axes=(), gaps=(), tracking=0.0):
+def word(parts, size, x, y, align=0.5, fam=SANS, axes=TEXT, gaps=(), tracking=0.0):
     return Word(parts, size, x, y, align, fam, axes, gaps, tracking)
+
+
+def moved(g, dx, dy=0.0):
+    p = skia.Path(g.path)
+    p.offset(dx, dy)
+    return Glyph(p, g.pts + np.array([dx, dy]), g.col, g.cx + dx)
+
+
+def mark_glyph(name, cx, cy, size, col):
+    """A brand mark as one more glyph: its outline and its nodes."""
+    p = logos.mark_path(name, cx, cy, size)
+    return Glyph(p, np.array(nodes(p), float), col, cx)
+
+
+def with_mark(text, name, col, mark_size, gap, cx, y, cy=None, align=0.5):
+    """The mark, then the line of type, set together on cx (centred, or from its left with align=0). text is a
+    Word laid out anywhere."""
+    width = mark_size + gap + (text.x1 - text.x0)
+    left = cx - width * align
+    cy = y - text.font.cap / 2 if cy is None else cy
+    g0 = mark_glyph(name, left + mark_size / 2, cy, mark_size, col)
+    dx = left + mark_size + gap - text.x0
+    return Word.of([g0] + [moved(g, dx, y - text.y) for g in text.glyphs], text.size, y)
 
 
 # ---------------------------------------------------------------- building a line
@@ -127,13 +164,14 @@ class Build:
     last. t_out (optional) is when the fill starts giving way to points again, sweeping the same way."""
 
     def __init__(self, t_in, spread=0.3, outline=0.07, fill=0.17, dots_off=0.3, t_out=None, spread_out=None,
-                 hold_dots=False, fill_spread=None, pop=0.05):
+                 hold_dots=False, fill_spread=None, pop=0.05, vanish=None):
         self.t_in, self.spread, self.outline, self.fill, self.dots_off = t_in, spread, outline, fill, dots_off
         self.t_out = t_out
         self.spread_out = spread if spread_out is None else spread_out
         self.fill_spread = spread if fill_spread is None else fill_spread
         self.hold_dots = hold_dots
         self.pop = pop
+        self.vanish = vanish            # after t_out, the points shrink away over this long (else they stay)
 
     def glyph(self, rank, t):
         """(dots, outline, fill) strengths of a glyph at this rank."""
@@ -153,6 +191,8 @@ class Build:
                 fill *= 1 - k
                 outline *= 1 - k
                 dots = max(dots, k)
+                if self.vanish:
+                    dots *= 1 - clamp((to - 0.04) / self.vanish)
         return dots, outline, fill
 
 

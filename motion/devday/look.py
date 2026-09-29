@@ -1,6 +1,6 @@
-"""DevDay 2026 look: the teaser's own. Black ground, six flat colours for the faces, white type set in Google
-Sans (the nearest open face to the teaser's), and the accents the teaser builds its type from: orange points for
-the first line, blue for the lockup."""
+"""DevDay 2026 look: the teaser's own. Black ground (white for the opening), six flat colours for the faces, type
+set in Geist with Geist Mono for the labels, and the accents the teaser builds its type from: orange points for the
+first lines, blue for the lockup."""
 from functools import lru_cache
 
 import skia
@@ -30,21 +30,27 @@ PATTY = "#5b2e12"
 SKY = "#6aa8ff"
 
 
+SANS = "geist"                 # Geist for everything set in type, Geist Mono for the labels
+MONO = "geist-mono"
+TEXT = (("wght", 500),)
+DISPLAY = (("wght", 600),)
+
+
 @lru_cache(maxsize=None)
 def F(fam, size, **axes):
     return G.Font(fam, size, **axes)
 
 
-def gs(size):
-    return F("gsans", size)
+def gs(size, w=500):
+    return F(SANS, size, wght=w)
 
 
 def gsm(size):
-    return F("gsans-medium", size)
+    return F(SANS, size, wght=640)
 
 
-def mono(size, w=520):
-    return F("mono", size, wght=w)
+def mono(size, w=480):
+    return F(MONO, size, wght=w)
 
 
 def T(c, s, x, y, font, col, a=1.0, align=0.0, tracking=0.0):

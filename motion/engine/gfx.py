@@ -23,6 +23,8 @@ FAMILIES = {
     "gsans": "GoogleSans-Regular.ttf",
     "gsans-medium": "GoogleSans-Medium.ttf",
     "source-serif": "SourceSerif4-Var.ttf",
+    "geist": "Geist-Var.ttf",
+    "geist-mono": "GeistMono-Var.ttf",
 }
 
 

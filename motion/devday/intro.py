@@ -2,16 +2,17 @@
 swells into the teaser's big grey face. Then the teaser's own opening, redrawn: the face pulls back and turns right
 round; its eyes go * * to - * to - - to o o to > <; the purple, orange, green, dark and blue faces crowd in from
 the edges, pull faces of their own, then fall into the middle one after another and burst into orange points that
-land on "1 day.", join up and fill. When the bass drops out it becomes "1 day. 20+ launches."."""
+land on the OpenAI mark and "DevDay", join up and fill. When the bass drops out it becomes
+"DevDay. 20 product launches."."""
 import math
 
 import numpy as np
 
 from engine import gfx as G
 from engine.core import clamp, lerp, keys, in_quad, out_cubic, in_cubic, in_expo, out_back, in_out_sine, hash01, noise1
-from .look import BLACK, GREY, PURPLE, ORANGE, GREEN, DARK, BLUE
+from .look import BLACK, GREY, PURPLE, ORANGE, GREEN, DARK, BLUE, DISPLAY
 from .faces import face
-from .type import word, draw_word, Build, Flight
+from .type import word, with_mark, draw_word, Build, Flight
 from .score import T_OPEN, T_WORD, T_DOTS, T_SWELL, T_TURN0, T_TURN1, T_SHRINK, T_LAND, T_LINE, CX, CY
 
 R = 330
@@ -96,7 +97,7 @@ def faces(c, t):
 
 # ---------------------------------------------------------------- the points of "1 day."
 
-DAY = word((("1 day.", BLACK),), 330, CX, 640)
+DAY = with_mark(word((("DevDay", BLACK),), 270, 0, 640, align=0.0, axes=DISPLAY), "openai", BLACK, 236, 64, CX, 640)
 DAY_BUILD = Build(T_LAND, spread=0.0, outline=0.07, fill=0.34, fill_spread=0.3, dots_off=0.42, pop=0.0)
 SHARE = [("grey", 0.11), ("orange", 0.13), ("dark", 0.13), ("green", 0.17), ("blue", 0.19), ("purple", 0.27)]
 
@@ -124,8 +125,8 @@ def _day_flight():
 
 DAY_FLIGHT = _day_flight()
 
-LINE = word((("1 day. ", BLACK), ("20+ launches.", BLACK)), 96, CX, 575)
-LINE_FIRST = 5                                          # 1 d a y . are already built
+LINE = word((("DevDay. ", BLACK), ("20 product launches.", BLACK)), 88, CX, 575)
+LINE_FIRST = 6                                          # D e v D a y are already built
 LINE_SPREAD = 0.55
 LINE_BUILD = Build(T_OPEN + T_LINE + 0.02 - LINE_SPREAD * LINE.glyphs[LINE_FIRST].rank, spread=LINE_SPREAD,
                    outline=0.05,
