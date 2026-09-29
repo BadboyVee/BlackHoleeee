@@ -12,7 +12,7 @@ from engine import gfx as G
 from engine.core import clamp, lerp, out_back, in_back, in_out_sine
 from .look import gsm, WHITE, DIM, PURPLE, ORANGE, GREEN, BLUE, MONO
 from .type import Word, word, mark_glyph, draw_word, Build
-from .launches import Station, StartStation, draw_chain
+from .chain import Station, StartStation, draw_chain
 from .intro import LINE, LINE_BUILD
 from .score import T_TEAM, T_WORLD, CX
 

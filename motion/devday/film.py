@@ -1,12 +1,12 @@
 """DevDay 2026: the film. Introducing… and the teaser's opening on white; on the drop, black: the OpenAI team, the
-developers from 78 countries, twenty launches, the official launch of AGI, and the teaser's own ending, marked
-fan-made and signed."""
+developers from 78 countries, Dots (OpenAI's agent bot), twenty launches, the official launch of AGI, and the
+teaser's own ending, marked fan-made and signed."""
 from engine import gfx as G
 from engine.core import clamp, in_cubic
 from engine.render import Film
-from . import intro, team, world, launches, finale
+from . import intro, team, world, dots, launches, finale
 from .launches import PIC
-from .score import DURATION, SIZE, T_OPEN, T_DROP, IRIS, T_WORLD, T_LIST, T_AGI
+from .score import DURATION, SIZE, T_OPEN, T_DROP, IRIS, T_WORLD, T_BOT, T_LIST, T_AGI
 
 TEAM_START = team.CHAIN[1].T - team.CHAIN[1].lead      # the white line starts coming apart for the team
 
@@ -30,8 +30,10 @@ class DevDay(Film):
         elif t < T_WORLD:
             team.team(c, t)
         else:
-            if t < T_LIST:
-                world.world(c, t, with_78=t < launches.START)
+            if t < T_BOT:
+                world.world(c, t, with_78=t < dots.START)
+            if dots.START <= t < T_LIST:
+                dots.dots(c, t, with_word=t < launches.START)
             if t >= T_AGI:
                 finale.finale(c, t)
             elif t >= launches.START:

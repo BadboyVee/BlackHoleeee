@@ -124,10 +124,10 @@ of the companies shown.
 
 ## DEVDAY 2026, twenty product launches
 
-A 47.6 s, 1920×1080, 60 fps fan film for DevDay, built on OpenAI's DevDay 2026 teaser, which the user supplied: it
-keeps the teaser's soundtrack and its design, opens on white with *Introducing…*, brings on the OpenAI team and the
-developers from 78 countries, and fills in the twenty product launches the user predicted, each with a drawing and
-its own motion. It says what it is on screen: fan-made predictions, not affiliated with OpenAI.
+A 51.6 s, 1920×1080, 60 fps fan film for DevDay, built on OpenAI's DevDay 2026 teaser, which the user supplied: it
+keeps the teaser's soundtrack and its design, opens on white with *Introducing…*, brings on the OpenAI team, the
+developers from 78 countries and Dots, and fills in the twenty product launches the user predicted, each with a
+drawing and its own motion. It says what it is on screen: fan-made predictions, not affiliated with OpenAI.
 
 | Time | Moment | What happens |
 | --- | --- | --- |
@@ -135,9 +135,10 @@ its own motion. It says what it is on screen: fan-made predictions, not affiliat
 | 2–9.3 s | The teaser | redrawn beat for beat, on white: the grey face pulls back and turns right round; its eyes go * * to - - to o o to > <; five more faces crowd in, fall into the middle and burst into orange points that land on the OpenAI mark and *DevDay*, join up and fill; then *DevDay. 20 product launches.* |
 | 9.3–13.3 s | The team | on the drop a black iris closes and the line's points fly up into the OpenAI mark; the chart grows from it on the beat: Sam Altman (CEO) at the top, then Mark Chen (Chief Research Officer), Greg Brockman (President) and Thibault Sottiaux (Codex lead), each in a ring of the teaser's colours, their names and roles built from points |
 | 13.3–17.3 s | 78 countries | a crowd of exactly 78 of the teaser's faces, thirteen across and six deep, pops in while the number beside them counts up with them to *DEVELOPERS FROM 78 countries*; they look over at it, cheer when the bass comes back, and fold away into points |
-| 17.3–36.3 s | The launches | two a bar: Astra 6.1, Agent “O”, the $500 plan, Aeon, GPT-6.1 Sol, GPT-6.1 Luna, a Codex update (idk), Chat + Work merging, OpenAI acquiring Google, the first hardware device, a bunch of lil new models, Sora returning, a Sam Altman humanoid robot, Greg, 5 banked resets, cancer solved, OpenAI acquiring McDonald’s, agents escaping again, weather solved |
-| 36.3–42.2 s | AGI | the faces crowd back in and count down in their eyes (3, 2, 1), fall into the middle when the bass drops out and burst into blue points that spell AGI, which fills when the bass comes back and throws them out again like confetti: *Official launch of AGI* |
-| 42.2–47.6 s | The ending | on the teaser's long low note, AGI comes apart into the points of the OpenAI mark and *OpenAI DevDay[2026]*, built left to right as the teaser builds it, over *FAN-MADE PREDICTIONS. NOT AFFILIATED WITH OPENAI.*; then its points fly into the maker's mark, on a card of its own and spaced out: MADE BY VEEE |
+| 17.3–21.3 s | Dots | OpenAI's agent bot, a Muse Agent and Grokbot competitor: the 78's points fly in to build *Dots* while the user's sheet of its looks comes alive beside it, nine tiles (round shades, sleepy lids, a monocle, sparkles, round specs, shiny eyes, wayfarers, ovals, googly eyes) that pop in on the groove and flip to the next look twice on the beat |
+| 21.3–40.3 s | The launches | two a bar: Astra 6.1, Agent “O”, the $500 plan, Aeon, GPT-6.1 Sol, GPT-6.1 Luna, a Codex update (idk), Chat + Work merging, OpenAI acquiring Google, the first hardware device, a bunch of lil new models, Sora returning, a Sam Altman humanoid robot, Greg, 5 banked resets, cancer solved, OpenAI acquiring McDonald’s, agents escaping again, weather solved |
+| 40.3–46.2 s | AGI | the faces crowd back in and count down in their eyes (3, 2, 1), fall into the middle when the bass drops out and burst into blue points that spell AGI, which fills when the bass comes back and throws them out again like confetti: *Official launch of AGI* |
+| 46.2–51.6 s | The ending | on the teaser's long low note, AGI comes apart into the points of the OpenAI mark and *OpenAI DevDay[2026]*, built left to right as the teaser builds it, over *FAN-MADE PREDICTIONS. NOT AFFILIATED WITH OPENAI.*; then its points fly into the maker's mark, on a card of its own and spaced out: MADE BY VEEE |
 
 Every drawing is in the teaser's own language: flat discs in its six colours with eyes drawn like typed glyphs
 (* o - > < + x ^ / \\, and $ ? 3 2 1 from the font), white strokes on black. Every title is built the way the
@@ -145,7 +146,7 @@ teaser builds its type, from the points a type designer would draw (corners and 
 the OpenAI mark's included), then the outline, then the fill; between launches the points fly from one title to
 the next. The sound is the teaser's soundtrack and nothing else, cut on its bar lines (120 BPM): its first two
 beats of clicks twice under *Introducing…*, its opening as it is, its four bars looped under the team, the 78
-countries and the launches, its last bar and its long low note, held a little longer, at the end. Type is Geist,
+countries, Dots and the launches, its last bar and its long low note, held a little longer, at the end. Type is Geist,
 with Geist Mono for the labels; the maker's mark is Archivo. The teaser's sound and the team's photographs, which
 the user supplied (`photos/devday/`), are not in the repository; anyone without a photograph there is shown by
 initials.
@@ -169,7 +170,7 @@ dario/         film 2: the same layout, plus photos.py for the optional photogra
 interface/     film 3: score.py, film.py (board, camera, cursor), stream.py (the streamed answer), ui.py, music.py
 arnauds/       the concept spot: table.py (the opening), intro.py (the end: the name, the credit), phone.py, words.py, cards.py, checkout.py, map.py, film.py, music.py
 agiweek/       the news film: flash.py (wordmarks, sparkle, collage), gemini.py, chatgpt.py, claude.py, grok.py, look.py, marks.py, sound.py (the supplied sound), film.py
-devday/        the DevDay film: intro.py (Introducing…, the teaser redrawn), team.py (the OpenAI team), world.py (the 78), items.py (the twenty launches), launches.py (the list), finale.py (AGI, the ending), faces.py, type.py (type built from its points), sound.py (the teaser's sound, cut on its bars), film.py
+devday/        the DevDay film: intro.py (Introducing…, the teaser redrawn), team.py (the OpenAI team), world.py (the 78), dots.py (Dots), chain.py (lines built from each other's points), items.py (the twenty launches), launches.py (the list), finale.py (AGI, the ending), faces.py, type.py (type built from its points), sound.py (the teaser's sound, cut on its bars), film.py
 fonts/         Archivo, Fraunces, Inter, JetBrains Mono, Instrument Serif, Google Sans, Source Serif 4, Geist, Geist Mono (all SIL OFL); DejaVu for ∝ ⌘ ⏎
 ```
 

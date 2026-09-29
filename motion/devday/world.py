@@ -1,7 +1,7 @@
 """DevDay 2026: developers from 78 countries. A crowd of exactly 78 of the teaser's faces (thirteen across, six
 deep) pops in on the right, one after another, while the number beside them counts up with them; when the last
 one lands, the 78 flashes its points. The crowd looks over at it, bobs with the beat, cheers when the bass comes
-back, and folds away into points as the 78 flies into the first launch's title."""
+back, and folds away into points as the 78 flies into "Dots"."""
 import math
 
 from engine import gfx as G
@@ -9,14 +9,14 @@ from engine.core import clamp, out_back, in_back, hash01
 from .look import WHITE, DIM, ORANGE, PURPLE, GREY, GREEN, BLUE, DARK, MONO, DISPLAY, F, SANS
 from .faces import face
 from .type import word, draw_word, Build
-from .score import T_WORLD, T_LIST
+from .score import T_WORLD, T_BOT
 
 COLS, ROWS = 13, 6
 AREA = (830.0, 250.0, 1000.0, 580.0)           # where the crowd stands, on the right
 T_COUNT0 = T_WORLD + 0.12                      # the first face pops in...
 T_DONE = T_WORLD + 1.48                        # ...and the 78th
 T_PULSE = T_WORLD + 2.76                       # the bass comes back: they cheer
-T_SHUT = T_LIST - 0.38                         # they fold away
+T_SHUT = T_BOT - 0.38                          # they fold away
 
 LABEL = word((("DEVELOPERS FROM", DIM),), 32, 150, 318, align=0.0, fam=MONO, axes=(("wght", 500),), tracking=0.14)
 W78 = word((("78", WHITE),), 440, 132, 690, align=0.0, axes=DISPLAY)

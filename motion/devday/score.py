@@ -4,7 +4,8 @@ last point of the ellipsis swelling into the teaser's big grey face. Then the te
 white: the face turning, the faces gathering, falling into the middle and bursting into the points of the OpenAI
 mark and "DevDay", then "DevDay. 20 product launches.". On the drop a black iris closes and the teaser's four
 bars loop on: two bars for the OpenAI team (Sam Altman, then Greg Brockman, Mark Chen and Thibault Sottiaux, as a
-hierarchy), two for the developers from 78 countries, then the twenty launches, two to a bar. The last of them,
+hierarchy), two for the developers from 78 countries, two for Dots, OpenAI's agent bot, then the twenty launches,
+two to a bar. The last of them,
 the official launch of AGI, takes the teaser's last bar and its long low note; the teaser's own ending,
 OpenAI DevDay[2026], follows, marked as a fan-made set of predictions, and the maker's mark gets a card of its own:
 MADE BY VEEE."""
@@ -32,7 +33,8 @@ T_DROP = T_OPEN + 7.30             # the drop
 IRIS = 0.2                         # the black iris that closes on it
 T_TEAM = T_DROP                    # the OpenAI team, two bars
 T_WORLD = T_DROP + 2 * BAR         # developers from 78 countries, two bars (the teaser's break is in them)
-T_LIST = T_DROP + 4 * BAR          # the launches, two to a bar
+T_BOT = T_DROP + 4 * BAR           # Dots, OpenAI's agent bot, two bars of the groove
+T_LIST = T_DROP + 6 * BAR          # the launches, two to a bar
 ITEM = 1.0
 N_LIST = 19                        # the twentieth gets the ending
 
@@ -55,6 +57,6 @@ DURATION = T_AGI + 11.30
 # ---------------------------------------------------------------- the sound, cut from the teaser's
 OPEN_LOOP = (0.0, 1.0)             # its first two beats of clicks, played twice under "Introducing…"
 PHRASE = [1.29, 3.29, 5.29, 7.29]  # its four bars, from a hair before each downbeat
-LIST_BARS = PHRASE * 3 + PHRASE[:3]
+LIST_BARS = PHRASE + PHRASE[:2] + PHRASE * 2 + PHRASE[:3]   # team, 78 | Dots | the launches
 T_ENDING = T_DROP - 0.01 + BAR * len(LIST_BARS)   # its last bar and its ending
 HOLD_TIMES = 3                     # how many more times the steady stretch of its low note plays

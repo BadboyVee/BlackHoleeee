@@ -1,8 +1,8 @@
 """DevDay 2026 sound: the teaser's own soundtrack (photos/devday/sound.wav, not in the repository) and nothing else,
 cut on its bar lines. The teaser runs at 120 BPM with its first downbeat at 1.3 s. Its first two beats of clicks
 play twice under "Introducing…" (two beats, so the clicks stay on the grid), then its opening plays as it is up to
-the drop, its four bars loop under the team, the 78 countries and the launches (two launches a bar), and its last
-bar and long low note end the film. The low note is held a little longer by looping one steady stretch of it (a whole number of its cycles, so
+the drop, its four bars loop under the team, the 78 countries, Dots and the launches (two launches a bar), and its
+last bar and long low note end the film. The low note is held a little longer by looping one steady stretch of it (a whole number of its cycles, so
 the joins are seamless) under the maker's mark."""
 import wave
 

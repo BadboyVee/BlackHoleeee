@@ -13,7 +13,8 @@ from .look import WHITE, PURPLE, ORANGE, GREEN, BLUE, DIM, FAINT, FACES, MONO, h
 from .faces import face
 from .type import word, with_mark, draw_word, Build, Flight, pair_index
 from .intro import CAST, ORDER
-from .launches import CHAIN, Station, StartStation, draw_chain, frame, PIC, LEAVE
+from .chain import Station, StartStation, draw_chain, LEAVE
+from .launches import CHAIN, frame, PIC
 from .score import T_AGI, T_COUNT, T_FALL, T_DECODE, T_REVEAL, T_LOCKUP, T_NOTE, T_CREDIT, CX, CY, N_LIST
 
 GATHER_R = 118
