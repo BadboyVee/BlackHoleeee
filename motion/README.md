@@ -151,6 +151,29 @@ with Geist Mono for the labels; the maker's mark is Archivo. The teaser's sound 
 the user supplied (`photos/devday/`), are not in the repository; anyone without a photograph there is shown by
 initials.
 
+## VEEE, a spot for the studio
+
+A 15 s, 1920×1080, 60 fps spot for VEEE, the studio that signs these films, made in the style of a product ad the
+user supplied (a mascot printed in 1-bit dots, a clean white, one blue, a black card, a wordmark) and cut to that
+ad's own soundtrack (123 BPM), but with its own story, its own mascot and our own work on the cards. The grade
+matches the reference's: white `#ffffff`, paper `#fafafa`, blue `#2361ea`, ink `#0a0a0a`.
+
+| Time | Moment | What happens |
+| --- | --- | --- |
+| 0–2.4 s | The hook | Vee, the studio's mascot (a knitted beanie, round glasses, a hoodie with a V on it), slides in from the right, winks and whispers *psst…*; *Launch day coming soon?* builds word by word while he reads along, and the blue grows out of *soon?* |
+| 2.4–4.4 s | The work | on blue, Vee rises and winks as three of our own films fly in as cards on the beat, each one playing, printed in dots: launch films (THE FRONTIER), AI news (AGI WEEK), keynotes (DevDay 2026) |
+| 4.4–7.3 s | The studio | the blue folds into a phone that becomes *Your launch*, three cuts ready to watch; beside it *VEEE turns it into / a film / on the beat.*, the last word bumping on the beats; a cursor taps *Watch* and the camera whips into it |
+| 7.3–11.2 s | Rendered | the camera pulls out of *Make it move* onto the render dashboard: the brief is typed, the tempo counts up to 123 BPM and its dots light on the beats, Vee dances on air, the cut on every beat and the vertical cut are ticked, the render farm's chips tick, the frames count to 1,800, and *Rendered.* is stamped across it all; then the black spills out of Vee's beanie |
+| 11.2–13.4 s | You | on black: *You launch. / We make it move.*, the last word sliding in from Vee's side |
+| 13.4–15 s | The wordmark | white spills out of *move.*, VEEE drops in letter by letter, Vee climbs up behind it and winks: *Launch films for the frontier.*, *Start a film*, and the small print, *6 films · 60 fps · every frame is code* |
+
+Vee is drawn in soft greys like a little 3D toy and printed through an 8×8 Bayer screen on a small offscreen canvas,
+so he comes out as hard 1-bit dots however he moves; the film clips on the cards and thumbnails are printed the
+same way, from our own renders in `out/` (dark films inverted, ink on paper). The black and white wipes are discs
+with dithered edges. Type is Geist, with Geist Mono for the comments in the corners (and a running 60 fps
+timecode), Instrument Serif italic for the word each line turns on, and Archivo for the wordmark. The reference
+ad's sound, which the user supplied (`photos/veee/`), is not in the repository, so the render stays local.
+
 ## How it is built
 
 ```
@@ -170,6 +193,7 @@ dario/         film 2: the same layout, plus photos.py for the optional photogra
 interface/     film 3: score.py, film.py (board, camera, cursor), stream.py (the streamed answer), ui.py, music.py
 arnauds/       the concept spot: table.py (the opening), intro.py (the end: the name, the credit), phone.py, words.py, cards.py, checkout.py, map.py, film.py, music.py
 agiweek/       the news film: flash.py (wordmarks, sparkle, collage), gemini.py, chatgpt.py, claude.py, grok.py, look.py, marks.py, sound.py (the supplied sound), film.py
+veee/          the studio spot: hook.py, work.py (the film cards, the fold), studio.py (the phone, the whip), dash.py (the render dashboard, the stamp), outro.py (the black card, the wordmark), mascot.py (Vee), dither.py (1-bit printing, film clips, dithered wipes), look.py, sound.py (the supplied sound), film.py
 devday/        the DevDay film: intro.py (Introducing…, the teaser redrawn), team.py (the OpenAI team), world.py (the 78), dots.py (Dots), chain.py (lines built from each other's points), items.py (the twenty launches), launches.py (the list), finale.py (AGI, the ending), faces.py, type.py (type built from its points), sound.py (the teaser's sound, cut on its bars), film.py
 fonts/         Archivo, Fraunces, Inter, JetBrains Mono, Instrument Serif, Google Sans, Source Serif 4, Geist, Geist Mono (all SIL OFL); DejaVu for ∝ ⌘ ⏎
 ```
@@ -195,6 +219,7 @@ python3 -m interface.main
 python3 -m arnauds.main            # needs the four photographs in photos/arnauds/
 python3 -m agiweek.main            # needs the founders' photographs and the reference sound in photos/agiweek/
 python3 -m devday.main             # needs the teaser's sound and the team's photographs in photos/devday/
+python3 -m veee.main               # needs the reference spot's sound in photos/veee/, and the films above rendered
 ```
 
 `--scale 0.5 --mb 3 --step 2` renders a quick half-resolution, 30 fps preview. Without a plate directory the

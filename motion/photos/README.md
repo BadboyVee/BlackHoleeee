@@ -19,3 +19,7 @@ DEVDAY 2026 (`python3 -m devday.main`) needs `devday/sound.wav`, the teaser's so
 `ffmpeg -i teaser.mp4 -vn -ac 2 -ar 48000 photos/devday/sound.wav`. The team chart takes `devday/altman.jpg`,
 `chen.jpg`, `brockman.jpg` and `sottiaux.jpg` (head and shoulders; anyone without one is shown by initials, and
 `CROP` in `devday/team.py` sets the square to use). All of it is git-ignored for the same reason.
+
+VEEE (`python3 -m veee.main`) needs `veee/sound.wav`, the reference spot's soundtrack, which the film is cut to:
+`ffmpeg -i spot.mp4 -vn -ac 2 -ar 48000 photos/veee/sound.wav`. Git-ignored for the same reason. Its cards and
+thumbnails play our own renders (`out/the-frontier.mp4`, `out/agiweek.mp4`, `out/devday.mp4`), printed in dots.
