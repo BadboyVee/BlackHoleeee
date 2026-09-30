@@ -174,6 +174,57 @@ with dithered edges. Type is Geist, with Geist Mono for the comments in the corn
 timecode), Instrument Serif italic for the word each line turns on, and Archivo for the wordmark. The reference
 ad's sound, which the user supplied (`photos/veee/`), is not in the repository, so the render stays local.
 
+## HORIZON, your AI-race intelligence
+
+A 53 s, 1920×1080, 60 fps concept spot for an app that watches the AI race, made in the style of a product film
+the user supplied (thin type on black and white, a laptop and a phone out in green hills, the sea at sunset) and cut
+to that film's own soundtrack (112.5 BPM), but with its own story and brand: Horizon, a sunrise on three horizon
+lines, and two agents, Scout (ask it) and Radar (it tells you). What Scout and Radar say is this week's talk from
+our own chat, each item marked for what it is: likely, next, watch, rumour. Predictions, not news; the end card says
+so.
+
+| Time | Moment | What happens |
+| --- | --- | --- |
+| 0–4.6 s | The line | on white a pen draws a flourish that runs off into a line and leaves *The frontier moves every week.*; black bands sweep over *See it before it ships.* |
+| 4.6–13.1 s | Introducing | *Introducing*, bars rising into a grid of tiles, the mark building (the lines slide in, the sun rises), *Your AI-race intelligence / for founders and builders* zooming out of its first word, a chart of the frontier (Sonnet 5, Gemini 3.8, Astra 6, Fable 5.1, Sonnet 5.5?) and a curve that sweeps up and out |
+| 13.1–16.3 s | The race | a laptop on the green hills, *See the race behind the headlines*; the camera pushes into its screen, onto the Frontier Index, where a violet light passes |
+| 16.3–25.9 s | Scout | the Scout icon; a phone slides in: *what's coming this week?*, thinking, and the read: Sonnet 5.5 rolling out (routed from Sonnet 5, same price, free users likely), a new OpenAI model and Agent “O” around DevDay, Grok 4.8 maybe, Anthropic IPO talk (unconfirmed); the phone in a meadow, then close on the read |
+| 25.9–37.7 s | Radar | a lens opens between two circles: RADAR, *Your early-warning engine*; birds cross the hills: *Watches, Spots, Alerts*; on black, *Searching…* and *NEW LAUNCH SPOTTED*, field by field |
+| 37.7–45.1 s | The sea | a phone held up to the sea at sunset: *New launch spotted*; *Stay ahead of the race* in a crosshair; *Right from your pocket*, the phone rising out of the hills with its alerts; *Horizon* over the hills |
+| 45.1–53 s | The mark | the mark built over the hills, then alone on black, with the small print: a concept film, predictions not news, not affiliated with any lab named, made by VEEE |
+
+The hills and the sunset are Blender Cycles renders (`blender/hills.py`): a hand-placed countryside of steep rolling
+hills with trees, its sky left clear so the film paints its own (a blue gradient and noise-shaped cumulus that drift),
+and a glossy sea under a painted dusk with a sun disc; the film grades them vivid (the greens pushed toward a sunlit
+yellow-green) and moves over them in 2D. The laptop, the phones, the icons and every screen are drawn. Type is
+Inter, light for what is said. The reference film's sound, which the user supplied (`photos/horizon/`), is not in
+the repository, so the render stays local.
+
+## CLAUDE CODE, a fan-made spot
+
+A 49.6 s, 1920×1080, 60 fps fan-made spot for Claude Code, made in the style of a product film the user supplied
+(fuzzy toy agents on white, one heavy word under each) and timed to that film's own soundtrack, but with our own
+crew and what Claude Code actually does. Not affiliated with Anthropic; the end card says so.
+
+The crew are five plush agents, rendered in fur with Blender (`blender/plush.py`: a sphere with hair particles
+and a principled hair shader, and one accessory each): a coral fixer in a hard hat, a mint tester with goggles, a
+lavender reader in glasses, a sky-blue planner in a propeller beanie and an indigo night owl in a nightcap. Their
+faces are drawn by the film, so they can look about, blink, smile, talk and doze, and they squash when they land.
+
+| Time | Line | What happens |
+| --- | --- | --- |
+| 0–5.4 s | meet · Claude Code · for your code. | the fixer stands in for the o of *Code*; the crew line up: *agents in your terminal* |
+| 5.4–10.7 s | reads your repo · runs your terminal · all your tools | the reader, a file tree it reads down, a terminal (`npm test`, `git status`), tool chips orbiting it |
+| 10.7–15.5 s | learns your rules | the tester and CLAUDE.md, its rules ticked one by one |
+| 15.5–22.5 s | ask it anything · or just @claude. | the planner among prompts (*fix the flaky test*, *why is login slow?*, *add dark mode*), then rings out from an @claude mention |
+| 22.5–32.6 s | a bug? · on it. · reviewed. · tests pass. · CI red? · back to green. | a beetle in the code until the fixer lands on it; review comments and a pull request whose checks tick; CI bars going from red to green |
+| 32.6–40.4 s | while you sleep · it asks first. · you're in control. | the night owl dozes by a migration running in the cloud; a permission prompt (`npm install zod`) it allows; the allow / ask / deny rules |
+| 40.4–45.5 s | one agent. · or subagents, · a whole team. | the fixer, then the five, then a grid of them hopping in waves |
+| 45.5–49.6 s | Claude Code | *Get back to building.* and the small print: fan-made, not affiliated with Anthropic, made by VEEE |
+
+Type is Inter, black weight, tightly tracked, with small grey captions. The reference film's sound, which the user
+supplied (`photos/crew/`), is not in the repository, so the render stays local.
+
 ## How it is built
 
 ```
@@ -187,12 +238,14 @@ engine/        the shared engine
   hud.py       the broadcast frame: brackets, timecode, bar counter, a live level meter
   audio.py     oscillators with PolyBLEP, drum and synth voices, foley clicks, convolution reverb,
                sidechain, glue compression, a look-ahead limiter and LUFS normalisation
-blender/       the two Cycles plates (monoliths, datacenter)
+blender/       the Cycles plates (monoliths, datacenter; hills and the sea at sunset) and the plush crew
 frontier/      film 1: score.py (timing shared by picture and sound), music.py, scenes, film.py
 dario/         film 2: the same layout, plus photos.py for the optional photographs
 interface/     film 3: score.py, film.py (board, camera, cursor), stream.py (the streamed answer), ui.py, music.py
 arnauds/       the concept spot: table.py (the opening), intro.py (the end: the name, the credit), phone.py, words.py, cards.py, checkout.py, map.py, film.py, music.py
 agiweek/       the news film: flash.py (wordmarks, sparkle, collage), gemini.py, chatgpt.py, claude.py, grok.py, look.py, marks.py, sound.py (the supplied sound), film.py
+horizon/       the Horizon spot: opening.py (the line, the bands, Introducing, the mark, the chart), scout.py (the laptop, the index, the phone, the meadow), radar.py (the lens, the verbs, the card, the sunset), finale.py, marks.py (the mark, the icons), sky.py (clouds, birds), plates.py (grading the Blender plates), devices.py, chat.py (what Scout says), sound.py, film.py
+crew/          the Claude Code spot: cast.py (the plush crew and their drawn faces), ui.py (the little screens), scenes.py, sound.py, film.py
 veee/          the studio spot: hook.py, work.py (the film cards, the fold), studio.py (the phone, the whip), dash.py (the render dashboard, the stamp), outro.py (the black card, the wordmark), mascot.py (Vee), dither.py (1-bit printing, film clips, dithered wipes), look.py, sound.py (the supplied sound), film.py
 devday/        the DevDay film: intro.py (Introducing…, the teaser redrawn), team.py (the OpenAI team), world.py (the 78), dots.py (Dots), chain.py (lines built from each other's points), items.py (the twenty launches), launches.py (the list), finale.py (AGI, the ending), faces.py, type.py (type built from its points), sound.py (the teaser's sound, cut on its bars), film.py
 fonts/         Archivo, Fraunces, Inter, JetBrains Mono, Instrument Serif, Google Sans, Source Serif 4, Geist, Geist Mono (all SIL OFL); DejaVu for ∝ ⌘ ⏎
@@ -220,6 +273,10 @@ python3 -m arnauds.main            # needs the four photographs in photos/arnaud
 python3 -m agiweek.main            # needs the founders' photographs and the reference sound in photos/agiweek/
 python3 -m devday.main             # needs the teaser's sound and the team's photographs in photos/devday/
 python3 -m veee.main               # needs the reference spot's sound in photos/veee/, and the films above rendered
+python3 blender/hills.py out/plates/horizon all      # the Horizon plates
+python3 -m horizon.main            # needs the reference film's sound in photos/horizon/
+python3 blender/plush.py out/plates/plush            # the plush crew
+python3 -m crew.main               # needs the reference film's sound in photos/crew/
 ```
 
 `--scale 0.5 --mb 3 --step 2` renders a quick half-resolution, 30 fps preview. Without a plate directory the
