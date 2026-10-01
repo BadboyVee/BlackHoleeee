@@ -6,6 +6,20 @@
 <title>Kumoniwa — a voxel garden above the clouds</title>
 <meta name="description" content="A voxel Japanese garden on a floating island, built with three.js: a five-story pagoda that opens up, tiny villagers going about their day, a dragon that flies, coils and calls the rain, four seasons and a day-night cycle." />
 <meta name="theme-color" content="#f7f2e7" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="BlackHoleeee" />
+<meta property="og:title" content="Kumoniwa — a voxel garden above the clouds" />
+<meta property="og:description" content="A voxel Japanese garden on a floating island, built with three.js: a pagoda that opens storey by storey, tiny villagers going about their day, a dragon that coils around the pagoda when you ring the bell, four seasons and fireworks at night." />
+<meta property="og:url" content="https://badboyvee.github.io/BlackHoleeee/voxel-garden/" />
+<meta property="og:image" content="https://badboyvee.github.io/BlackHoleeee/voxel-garden/card.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Kumoniwa: a floating voxel island with a red five-storey pagoda, cherry trees and a green dragon coiled around the pagoda's top" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Kumoniwa — a voxel garden above the clouds" />
+<meta name="twitter:description" content="A voxel Japanese garden on a floating island, built with three.js: a pagoda that opens, tiny villagers, a dragon that answers the temple bell, four seasons and fireworks." />
+<meta name="twitter:image" content="https://badboyvee.github.io/BlackHoleeee/voxel-garden/card.jpg" />
+<meta name="twitter:image:alt" content="Kumoniwa: a floating voxel island with a red five-storey pagoda, cherry trees and a green dragon coiled around the pagoda's top" />
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23f7f2e7'/%3E%3Cpath d='M7 14h50v6H7zM13 25h38v4H13zM18 20h5v36h-5zM41 20h5v36h-5z' fill='%23c8372d'/%3E%3C/svg%3E" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -2800,21 +2814,25 @@ function makeCloudMaterial() {
   const m = new THREE.MeshLambertMaterial({ color: 0xffffff, emissive: 0x6a7a8a, emissiveIntensity: 0.55 });
   return m;
 }
-// A voxel cumulus heap: wide boxes at the bottom, smaller ones piled on top.
-function cloudHeap(out, cx, cy, cz, R, seed) {
+// A voxel cumulus: uniform cubes filling a lumpy half-ellipsoid. Only cubes
+// on the surface are kept, so a big heap costs a few dozen instances.
+function cloudHeap(out, cx, cy, cz, R, seed, s = 7) {
   const r = mulberry32(seed);
-  const n = 4 + Math.floor(R / 6);
-  for (let i = 0; i < n; i++) {
-    const a = r() * TAU, d = r() * R * 0.55;
-    const s = R * (0.45 + r() * 0.4);
-    out.push([cx + Math.cos(a) * d, cy + s * 0.08, cz + Math.sin(a) * d, s, s * (0.16 + r() * 0.1), s * (0.7 + r() * 0.5)]);
+  const rx = (R / s) * (0.9 + r() * 0.4), rz = (R / s) * (0.8 + r() * 0.4), ry = (R / s) * (0.45 + r() * 0.3);
+  const bumps = [];
+  for (let b = 0; b < 4; b++) bumps.push([(r() - 0.5) * rx * 1.2, ry * (0.3 + r() * 0.6), (r() - 0.5) * rz * 1.2, ry * (0.5 + r() * 0.5)]);
+  const inside = (i, j, k) => {
+    if (j < 0) return false;
+    let d = (i / rx) ** 2 + (j / ry) ** 2 + (k / rz) ** 2;
+    for (const [bx, by, bz, br] of bumps) d = Math.min(d, ((i - bx) ** 2 + (j - by) ** 2 + (k - bz) ** 2) / (br * br));
+    return d < 1 - hash3(i + seed, j * 7 + 3, k - seed) * 0.22;
+  };
+  const nx = Math.ceil(rx * 1.3), ny = Math.ceil(ry * 1.6), nz = Math.ceil(rz * 1.3);
+  for (let j = 0; j <= ny; j++) for (let k = -nz; k <= nz; k++) for (let i = -nx; i <= nx; i++) {
+    if (!inside(i, j, k)) continue;
+    if (inside(i + 1, j, k) && inside(i - 1, j, k) && inside(i, j + 1, k) && inside(i, j, k + 1) && inside(i, j, k - 1)) continue;
+    out.push([cx + i * s, cy + j * s + s * 0.5, cz + k * s, s, s, s]);
   }
-  for (let i = 0; i < 2 + n / 3; i++) {
-    const a = r() * TAU, d = r() * R * 0.3;
-    const s = R * (0.3 + r() * 0.25);
-    out.push([cx + Math.cos(a) * d, cy + R * 0.14 + s * 0.16, cz + Math.sin(a) * d, s, s * (0.34 + r() * 0.16), s * (0.8 + r() * 0.4)]);
-  }
-  if (R > 14) out.push([cx + (r() - 0.5) * R * 0.3, cy + R * 0.42, cz + (r() - 0.5) * R * 0.3, R * 0.28, R * 0.24, R * 0.3]);
 }
 function boxesToMesh(boxes, mat) {
   const mesh = new THREE.InstancedMesh(new THREE.BoxGeometry(1, 1, 1), mat, boxes.length);
@@ -2832,10 +2850,10 @@ function makeCloudSea(mat) {
     const r = Math.hypot(cx, cz);
     if (r > 720) continue;
     const n = fbm2(cx * 0.004 + 7, cz * 0.004 - 3, 3);
-    if (n < 0.47 && r > 90) continue;
-    if (hash2(gx * 5 + 1, gz * 9) < 0.3) continue;
-    const R = 14 + 22 * hash2(gx * 7, gz * 3) + (r < 160 ? 6 : 0);
-    cloudHeap(boxes, cx, -86 + (n - 0.5) * 10, cz, R, (gx + 50) * 131 + gz);
+    if (n < 0.55) continue;
+    if (hash2(gx * 5 + 1, gz * 9) < 0.42) continue;
+    const R = 14 + 20 * hash2(gx * 7, gz * 3);
+    cloudHeap(boxes, cx, -92 + (n - 0.5) * 8, cz, R, (gx + 50) * 131 + gz, r < 300 ? 6 : 9);
   }
   group.add(boxesToMesh(boxes, mat));
   const floorMat = new THREE.ShaderMaterial({
@@ -2878,10 +2896,10 @@ function makeCloudSea(mat) {
 const CLOUD_CLUSTERS = [];
 function makeNearClouds(mat) {
   const list = [];
-  for (let c = 0; c < 16; c++) {
-    const a = (c / 16) * TAU + rnd(-0.2, 0.2), r = rnd(100, 230), y = rnd(-34, 64);
+  for (let c = 0; c < 11; c++) {
+    const a = (c / 11) * TAU + rnd(-0.25, 0.25), r = rnd(120, 240), y = rnd(-40, 58);
     const cl = { a, r, y, speed: rnd(0.004, 0.009) * (chance(0.5) ? 1 : 0.6), bob: rnd(0, TAU), boxes: [] };
-    cloudHeap(cl.boxes, 0, 0, 0, rnd(7, 15), 900 + c * 17);
+    cloudHeap(cl.boxes, 0, 0, 0, rnd(7, 13), 900 + c * 17, 3);
     CLOUD_CLUSTERS.push(cl);
     list.push(...cl.boxes);
   }
@@ -5164,11 +5182,14 @@ const VIEWS = [
   ['shrine', 'Bamboo & fox shrine', [-14, 15, -12], [-40, 4, -36]],
   ['below', 'Beneath the island', [96, -68, 78], [0, -26, 0]],
 ];
+// Tall (portrait) screens see less sideways, so viewpoints back off a little.
+const viewFit = () => (camera.aspect < 1 ? clamp(1.05 / camera.aspect, 1, 2.1) : 1);
 function flyTo(pos, target, dur = 2.4) {
   CAM.mode = 'orbit'; CAM.follow = null;
   document.body.classList.remove('riding');
   controls.enabled = true;
-  CAM.tween = { p0: camera.position.clone(), t0: controls.target.clone(), p1: new THREE.Vector3(...pos), t1: new THREE.Vector3(...target), t: 0, dur };
+  const t1 = new THREE.Vector3(...target), p1 = new THREE.Vector3(...pos).sub(t1).multiplyScalar(viewFit()).add(t1);
+  CAM.tween = { p0: camera.position.clone(), t0: controls.target.clone(), p1, t1, t: 0, dur };
 }
 function setView(id) {
   if (id === 'ride') return toggleRide(true);
@@ -5224,10 +5245,10 @@ function updateCamera(dt) {
   }
   if (CAM.mode === 'ride' && dragon) {
     const f = dragon.fwd, u = dragon.up;
-    const back = _rt.copy(f).multiplyScalar(-8.5).addScaledVector(u, 3.0).applyAxisAngle(u, CAM.rideYaw);
+    const back = _rt.copy(f).multiplyScalar(-10).addScaledVector(u, 4.6).applyAxisAngle(u, CAM.rideYaw);
     _rp.copy(dragon.pos).add(back);
     camera.position.lerp(_rp, 1 - Math.exp(-7 * dt));
-    const look = _rt.copy(dragon.pos).addScaledVector(f, 7).addScaledVector(u, 1.4 + CAM.ridePitch * 6);
+    const look = _rt.copy(dragon.pos).addScaledVector(f, 9).addScaledVector(u, 2.2 + CAM.ridePitch * 6);
     _rm.lookAt(camera.position, look, _up.clone().lerp(u, 0.5).normalize());
     _rq.setFromRotationMatrix(_rm);
     camera.quaternion.slerp(_rq, 1 - Math.exp(-6 * dt));
@@ -5336,6 +5357,14 @@ function wireUI() {
 const QS = new URLSearchParams(location.search);
 const LITE = isTouch || QS.has('lite');
 const app = document.getElementById('app');
+// three.js needs WebGL 2; say so plainly instead of hanging on the loading screen.
+if (!document.createElement('canvas').getContext('webgl2')) {
+  const el = document.getElementById('load-error');
+  el.hidden = false;
+  el.textContent = 'This browser could not start WebGL 2, which the garden needs. Try a recent Chrome, Edge, Firefox or Safari, and check that hardware acceleration is switched on.';
+  document.getElementById('load-status').textContent = '';
+  throw new Error('WebGL 2 unavailable');
+}
 const renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'high-performance' });
 const MAX_DPR = LITE ? 1.25 : 1.6;
 let dpr = Math.min(devicePixelRatio || 1, MAX_DPR);
@@ -5419,7 +5448,9 @@ tiltV.uniforms.uDir.value.set(0, 1);
 composer.addPass(tiltH); composer.addPass(tiltV);
 composer.addPass(new OutputPass());
 function resize() {
-  camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix();
+  camera.aspect = innerWidth / innerHeight;
+  camera.fov = camera.aspect < 0.8 ? 46 : 36;
+  camera.updateProjectionMatrix();
   renderer.setPixelRatio(dpr); renderer.setSize(innerWidth, innerHeight);
   composer.setPixelRatio(dpr); composer.setSize(innerWidth, innerHeight);
   for (const p of [tiltH, tiltV]) p.uniforms.uRes.value.set(innerWidth * dpr, innerHeight * dpr);
@@ -5508,7 +5539,7 @@ function updateEnvironment() {
   VU.uNight.value = night;
   if (skyMesh) { const u = skyMesh.material.uniforms; u.uNight.value = night; u.uTime.value = state.t; u.uCloudy.value = r; }
   if (cloudMat) {
-    cloudMat.emissive.copy(SKY.horizon).lerp(SKY.zenith, 0.4).multiplyScalar(lerp(0.12, 0.5, day) * (1 + night * 0.6));
+    cloudMat.emissive.copy(SKY.horizon).lerp(SKY.zenith, 0.4).multiplyScalar(lerp(0.12, 0.66, day) * (1 + night * 0.6));
     cloudMat.color.setRGB(1, 1, 1).lerp(_grey, r * 0.6);
   }
   WU.uSkyRefl.value.copy(SKY.zenith).lerp(SKY.horizon, 0.5);

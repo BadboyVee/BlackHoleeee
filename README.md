@@ -5,6 +5,15 @@ any of them — every project is an `index.html` you can open directly.
 
 ## Projects
 
+### ⛩️ [Kumoniwa](voxel-garden/)
+
+A voxel Japanese garden on a floating island above a sea of clouds. A five-storey pagoda that
+opens storey by storey, tiny villagers with daily routines, a dragon that coils around the pagoda
+when you ring the temple bell, koi, deer and a cat, four seasons, day and night, rain, fireworks
+and synthesised sound — and almost everything answers when you click it.
+
+**▶ [Open it](https://badboyvee.github.io/BlackHoleeee/voxel-garden/)** · [source & prompt](voxel-garden/)
+
 ### 🌊 [Saltwind Cove](ocean/)
 
 A WebGPU ocean you can walk, swim, sail and dive in. It has FFT waves, breakers that curl and
