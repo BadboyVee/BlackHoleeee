@@ -1902,7 +1902,7 @@ const waterU = {
   uHor: skyUniforms.uHor, uTop: skyUniforms.uTop, uSunDir: skyUniforms.uSunDir, uSunCol: skyUniforms.uSunCol, uSunI: skyUniforms.uSunI,
   uSnow: U.uSnow, uLamps: U.uLamps, uLampCol: U.uLampCol,
   uShallow: { value: new THREE.Color("#7ad7de") }, uDeep: { value: new THREE.Color("#1d6f9b") },
-  uIce: { value: 0 },
+  uIce: { value: 0 }, uDay: seaU.uDay,
 };
 function addRipple(x, z, amp = 1) {
   RIPPLES.push({ x, z, age: 0, amp });
@@ -1928,7 +1928,7 @@ function makeWaterMaterial() {
         #include <fog_vertex>
       }`,
     fragmentShader: /* glsl */`
-      uniform float uTime, uSunI, uSnow, uIce;
+      uniform float uTime, uSunI, uSnow, uIce, uDay;
       uniform vec4 uRip[${RIPPLE_N}];
       uniform vec3 uHor, uTop, uSunDir, uSunCol, uShallow, uDeep, uLampCol;
       uniform vec4 uLamps[${LAMP_N}];
@@ -1968,6 +1968,7 @@ function makeWaterMaterial() {
         float glint = pow(max(dot(R, uSunDir), 0.0), 220.0) * 6.0 * uSunI + pow(max(dot(R, uSunDir), 0.0), 20.0) * 0.25 * uSunI;
         float depth = clamp(vInfo.x, 0.0, 1.0);
         vec3 body = mix(uShallow, uDeep, smoothstep(0.0, 1.0, depth));
+        body *= mix(vec3(0.12, 0.18, 0.3), vec3(1.0), uDay);                    // the water is dark at night
         // pixel-art sparkle: blocky cells that twinkle
         vec2 cell = floor(q * 0.9);
         float tw = step(0.93, h21(cell + floor(uTime * 1.2 + h21(cell) * 6.0))) ;
@@ -1976,13 +1977,14 @@ function makeWaterMaterial() {
         // shore foam and lantern glow on the water
         float foam = smoothstep(0.5, 1.0, vInfo.y) * (0.55 + 0.35 * sin(uTime * 1.2 + vW.x * 0.8 + vW.z * 0.7));
         col = mix(col, vec3(0.92, 0.97, 1.0), foam * 0.35);
-        vec3 lamp = vec3(0.0);
+        float lamp = 0.0;
         for (int i = 0; i < ${LAMP_N}; i++) {
           vec4 L = uLamps[i]; if (L.w <= 0.001) continue;
           vec3 dv = L.xyz - vW; float d2 = dot(dv, dv);
-          lamp += uLampCol * L.w * (1.0 / (1.0 + d2 * 0.012)) * (1.0 - smoothstep(400.0, 2200.0, d2));
+          lamp += L.w * (1.0 / (1.0 + d2 * 0.05)) * (1.0 - smoothstep(300.0, 1400.0, d2));
         }
-        col += lamp * 0.5 * (0.3 + pow(1.0 - max(V.y, 0.0), 2.0));
+        // soft limit: a crowd of lanterns makes the water glow warm instead of blowing out to white
+        col += uLampCol * (1.0 - exp(-lamp * 0.6)) * 0.4 * (0.3 + pow(1.0 - max(V.y, 0.0), 2.0));
         col = mix(col, vec3(0.86, 0.93, 0.98), uIce);
         float alpha = mix(0.62, 0.93, smoothstep(0.1, 1.0, depth)) + fres * 0.15 + foam * 0.15;
         alpha = mix(alpha, 0.97, uIce);
@@ -4353,6 +4355,7 @@ async function boot() {
 }
 
 GARDEN.palSize = () => PAL.length;
+GARDEN.setSeason = setSeason;
 GARDEN.AUDIO = AUDIO;
 GARDEN.pickAt = (x, y) => pickAt(x, y);
 window.__garden = GARDEN;
