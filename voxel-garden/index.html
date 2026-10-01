@@ -6,6 +6,20 @@
 <title>Tenkū no Niwa — a voxel garden in the sky</title>
 <meta name="description" content="A voxel Japanese garden floating above the clouds: a five-storey pagoda, tiny villagers, a koi pond, a flying dragon, four seasons and a day-night cycle. Built with three.js, no assets." />
 <meta name="theme-color" content="#0e1530" />
+<meta property="og:type" content="website" />
+<meta property="og:site_name" content="BlackHoleeee" />
+<meta property="og:title" content="Tenkū no Niwa — a voxel garden in the sky" />
+<meta property="og:description" content="A voxel Japanese garden floating above the clouds: a five-storey pagoda, tiny villagers, a koi pond, a flying dragon, four seasons and a day-night cycle. Built with three.js, no assets." />
+<meta property="og:url" content="https://badboyvee.github.io/BlackHoleeee/voxel-garden/" />
+<meta property="og:image" content="https://badboyvee.github.io/BlackHoleeee/voxel-garden/card.jpg" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="Tenkū no Niwa: a voxel pagoda in a Japanese garden floating above the clouds at sunset, with a dragon coiling over its roof" />
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content="Tenkū no Niwa — a voxel garden in the sky" />
+<meta name="twitter:description" content="A voxel Japanese garden floating above the clouds: a five-storey pagoda, tiny villagers, a koi pond, a flying dragon, four seasons and a day-night cycle. Built with three.js, no assets." />
+<meta name="twitter:image" content="https://badboyvee.github.io/BlackHoleeee/voxel-garden/card.jpg" />
+<meta name="twitter:image:alt" content="Tenkū no Niwa: a voxel pagoda in a Japanese garden floating above the clouds at sunset, with a dragon coiling over its roof" />
 <style>
   :root {
     --ink: #fdf3e2; --dim: rgba(253, 243, 226, 0.66);
@@ -90,6 +104,7 @@
     .group button { padding: 6px 8px; font-size: 12px; }
   }
   @media (hover: none) { #tip { display: none; } }
+  @media (pointer: coarse) { #help p { display: none; } }
   @media (prefers-reduced-motion: reduce) { .bubble, #toast, #help { transition: none; } }
 </style>
 </head>
@@ -787,7 +802,7 @@ function makeSky(scene) {
         vec3 d = normalize(vDir);
         float h = d.y;
         vec3 col = mix(uHor, uTop, pow(clamp(h, 0.0, 1.0), 0.5));
-        col = mix(col, uBelow, smoothstep(0.02, -0.2, h));
+        col = mix(uBelow, col, smoothstep(-0.02, 0.17, h));            // haze: the sky meets the fogged cloud sea in the fog colour, so there is no hard horizon
         float sd = max(dot(d, uSunDir), 0.0);
         col += uSunCol * (pow(sd, 1500.0) * 9.0 + pow(sd, 60.0) * 0.55 + pow(sd, 7.0) * 0.16) * uSunI;
         // moon
@@ -855,7 +870,7 @@ function applyTimeOfDay(rig, hour) {
   rig.exposure = k.ex;
   seasonTint(_tint); rig.sun.color.multiply(_tint); rig.hemi.color.multiply(_tint);
   const u = skyUniforms;
-  u.uTop.value.copy(k.top); u.uHor.value.copy(k.hor); u.uBelow.value.copy(k.hor).lerp(k.fog, 0.6);
+  u.uTop.value.copy(k.top); u.uHor.value.copy(k.hor); u.uBelow.value.copy(k.fog);
   u.uSunDir.value.copy(TOD.sunDir); u.uSunCol.value.copy(sunCol); u.uSunI.value = smooth(-0.1, 0.1, s);
   u.uMoonDir.value.copy(TOD.moonDir); u.uMoonVis.value = smooth(-0.02, 0.1, m) * (1 - smooth(0.05, 0.3, s));
   u.uStar.value = TOD.night;
@@ -1592,15 +1607,20 @@ function buildZenGarden(g) {
   rakeSand(g, true);
   return { sy };
 }
-// Draw the traditional raked pattern: ripples around the stones, straight furrows elsewhere.
+// Draw the traditional raked pattern: straight furrows that part and flow around each stone
+// (the stream function of flow past a circle, so the lines hug the stones like water).
 function rakeSand(g, initial) {
   const sy = ZEN.y;
   for (let z = ZEN.z0; z <= ZEN.z1; z++) for (let x = ZEN.x0; x <= ZEN.x1; x++) {
     if (g.get(x, sy + 1, z)) continue;               // stone on top
-    let dmin = 1e9;
-    for (const r of ZEN.rocks) dmin = Math.min(dmin, Math.hypot(x + 0.5 - r.x, z + 0.5 - r.z) - r.r);
-    const groove = dmin < 9 ? (Math.floor(dmin + 100) % 3 === 0) : (z % 3 === 0);
-    if (dmin < 0.2) { g.set(x, sy, z, C.sand1); continue; }
+    let psi = z + 0.5, inside = false;
+    for (const r of ZEN.rocks) {
+      const dx = x + 0.5 - r.x, dz = z + 0.5 - r.z, R = r.r + 1.4, d2 = dx * dx + dz * dz;
+      if (d2 < (r.r * 0.95) * (r.r * 0.95)) { inside = true; break; }
+      psi -= R * R * dz / Math.max(d2, R * R * 0.6);
+    }
+    if (inside) { g.set(x, sy, z, C.sand1); continue; }
+    const groove = ((Math.floor(psi) % 3) + 3) % 3 === 0;
     g.set(x, sy, z, groove ? 0 : ((x + z) & 1 ? C.sand1 : C.sand2));
   }
 }
@@ -1627,6 +1647,8 @@ function buildGateAndBridge(g) {
 const TREES = [];                          // {kind, x, y, z, r, top} for petals, shaking, wildlife
 
 const surfaceY = (g, x, z) => g.topY(x, z, GROUND + 16) + 1;     // first free voxel above the ground
+// first free voxel above the solid column that rises from the island body: ignores canopies and roofs overhead
+const groundY = (g, x, z) => { let y = GROUND - 6; while (y < g.sy - 1 && g.get(x, y, z)) y++; return y; };
 function stroke(g, x0, y0, z0, x1, y1, z1, t, id) {                 // thick line, t = edge length of the brush
   const n = Math.ceil(Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0), Math.abs(z1 - z0))) * 2 + 1, o = (t - 1) / 2;
   for (let i = 0; i <= n; i++) {
@@ -1833,7 +1855,7 @@ function plantGarden(g) {
   const sak = [[-9, 74], [-27, 49], [-5, 11], [-24, -9], [-49, -5], [34, -12], [-58, 22], [70, 64]];
   for (const [u, v] of sak) { const [x, z] = P(u, v); if (canPlant(x, z, 2)) plantSakura(g, x, z); }
   // maples around the tea house and the north bank
-  const map = [[34, -46], [76, -50], [82, -26], [36, -22], [30, -34], [66, -6], [38, -4], [86, -10], [62, -64], [48, -60], [20, -50], [-10, -50]];
+  const map = [[34, -46], [76, -50], [82, -26], [36, -22], [30, -34], [38, -4], [86, -10], [62, -64], [48, -60], [20, -50], [-10, -50]];
   for (const [u, v] of map) { const [x, z] = P(u, v); if (canPlant(x, z, 2)) plantMaple(g, x, z); }
   // pines near the rock garden, rim and platform
   const pines = [[-50, 42], [-46, 0], [-90, 12], [-62, 40], [60, 74], [84, 48], [-28, 88], [90, -4], [20, -74], [-12, -72], [-62, -70], [76, -62], [-96, 30], [38, 78]];
@@ -2149,7 +2171,7 @@ function lanternGrids() {
   return { body, glow };
 }
 function makeLantern(scene, mats, x, z, o = {}) {
-  const y0 = o.y ?? surfaceY(GARDEN.grid, x, z);
+  const y0 = o.y ?? groundY(GARDEN.grid, x, z);
   if (!LANTERN_GEO) LANTERN_GEO = lanternGrids();
   const root = new THREE.Group();
   root.position.set(x + 0.5, y0, z + 0.5);
@@ -2304,7 +2326,7 @@ function updateShishi(dt) {
 
 // ---- benches, fences, shrine and the row of small torii
 function bench(g, x, z, rot) {
-  const y0 = surfaceY(g, x, z);
+  const y0 = groundY(g, x, z);
   for (let a = -3; a <= 3; a++) for (let b = -1; b <= 1; b++) {
     const px = rot ? x + b : x + a, pz = rot ? z + a : z + b;
     g.set(px, y0 + 2, pz, b === 0 ? C.wood3 : C.wood1);
@@ -3046,8 +3068,9 @@ function updateKoi(dt, t) {
 // ---- birds
 const BIRDS = { mesh: null, items: [] };
 function makeBirds(scene, mats) {
-  const bg = new Grid(5, 2, 3);
-  bg.box(2, 0, 0, 3, 1, 3, C.black2); bg.box(0, 1, 1, 5, 2, 2, C.black1); bg.set(2, 0, 2, C.kWhite);
+  const bg = new Grid(9, 3, 3);
+  bg.box(4, 0, 0, 5, 1, 3, C.kWhite); bg.set(4, 1, 2, C.black2); bg.set(4, 1, 1, C.black2);               // body
+  for (let k = 1; k <= 4; k++) for (const sx of [-1, 1]) { bg.set(4 + sx * k, k > 2 ? 2 : 1, 1, C.black1); bg.set(4 + sx * k, k > 2 ? 2 : 1, 2, C.black2); }
   const geo = buildGeometry(bg, 0, 0, 0, bg.sx, bg.sy, bg.sz, null);
   const mesh = new THREE.InstancedMesh(geo, mats.mat, 14); mesh.frustumCulled = false; mesh.castShadow = true; mesh.customDepthMaterial = mats.depth;
   scene.add(mesh); BIRDS.mesh = mesh;
@@ -3068,7 +3091,7 @@ function updateBirds(dt, t) {
     const hd = Math.atan2(-Math.sin(b.a) * Math.sign(b.sp), Math.cos(b.a) * Math.sign(b.sp));
     _be.set(0, Math.PI / 2 - hd, 0.25 * Math.sign(b.sp) + Math.sin(t * 3 + b.ph) * 0.05); _bq.setFromEuler(_be);
     const flap = 0.35 + 0.65 * Math.abs(Math.sin(t * (7 + b.flee * 4) + b.ph));
-    _bp.set(x, y, z); _bs.set(0.5, flap * 0.55 + 0.1, 0.5);
+    _bp.set(x, y, z); _bs.set(0.62, flap * 0.7 + 0.15, 0.62);
     _bm.compose(_bp, _bq, _bs); BIRDS.mesh.setMatrixAt(i, _bm);
   });
   BIRDS.mesh.instanceMatrix.needsUpdate = true;
@@ -3549,7 +3572,8 @@ function updateCranes(dt, t) {
       const pk = c.peck > 0 ? Math.sin(Math.min(1, (1.2 - c.peck) / 1.2) * Math.PI) : 0;
       c.neckPiv.rotation.x = 0.35 + pk * 1.5 + Math.sin(t * 0.7 + c.ph) * 0.04;
       c.neckPiv.rotation.y = Math.sin(t * 0.4 + c.ph) * 0.25;
-      for (const w of c.wings) { w.g.rotation.z = -w.s * 0.15; w.g.rotation.x = 0; }
+      c.fold = damp(c.fold ?? 1, 1, 5, dt);
+      for (const w of c.wings) { w.g.rotation.y = w.s * Math.PI * 0.5 * c.fold; w.g.rotation.z = -w.s * 0.12; w.g.rotation.x = 0; }
       c.root.rotation.y = dampAngle(c.root.rotation.y, c.hy, 3, dt);
       c.root.position.copy(c.home); c.body.position.y = 8; c.body.rotation.x = 0;
       // startled by the dragon
@@ -3562,7 +3586,8 @@ function updateCranes(dt, t) {
       c.root.rotation.y = Math.atan2(d.x, d.z);
       c.body.rotation.x = -Math.atan2(d.y, Math.hypot(d.x, d.z)) * 0.8;
       const landing = u > 0.88, flap = landing ? 0.6 : 1;
-      for (const w of c.wings) { w.g.rotation.z = w.s * (0.1 + Math.sin(t * 7 + c.ph) * 0.9 * flap); }
+      c.fold = damp(c.fold ?? 1, 0, 6, dt);
+      for (const w of c.wings) { w.g.rotation.y = w.s * Math.PI * 0.5 * c.fold; w.g.rotation.z = w.s * (0.1 + Math.sin(t * 7 + c.ph) * 0.9 * flap) * (1 - c.fold * 0.7); }
       c.neckPiv.rotation.x = -0.15 + Math.sin(t * 7) * 0.05; c.neckPiv.rotation.y = 0;
       for (const l of c.legs) l.rotation.x = 0.9;                              // trailing legs
       if (u >= 1) { c.state = "stand"; c.t = 0; c.next = 3; for (const l of c.legs) l.rotation.x = 0; addRipple(c.home.x, c.home.z, 0.8); AUDIO.plop?.(0.6); }
@@ -3917,15 +3942,15 @@ const RIG = { tween: null, follow: null, idle: 0, auto: true, view: "overview" }
 function easeIO(t) { return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
 function poseOf(v) {
   const t = new THREE.Vector3(...v.tgt);
-  return { target: t, pos: new THREE.Vector3(t.x + Math.sin(v.az) * Math.cos(v.el) * v.dist, t.y + Math.sin(v.el) * v.dist, t.z + Math.cos(v.az) * Math.cos(v.el) * v.dist) };
+  return { target: t, pos: new THREE.Vector3(t.x + Math.sin(v.az) * Math.cos(v.el) * v.dist * GARDEN.viewK, t.y + Math.sin(v.el) * v.dist * GARDEN.viewK, t.z + Math.cos(v.az) * Math.cos(v.el) * v.dist * GARDEN.viewK) };
 }
 function buildViews() {
   UI.views = {
     overview: { az: 0.62, el: 0.5, dist: 300, tgt: [CX, GROUND + 12, CZ + 6] },
     pagoda: { az: 0.3, el: 0.2, dist: 140, tgt: [PAGODA.cx, GROUND + 38, PAGODA.cz + 8] },
     pond: { az: 1.0, el: 0.4, dist: 92, tgt: [gx(30), GROUND + 2, gz(24)] },
-    tea: { az: 0.18, el: 0.26, dist: 84, tgt: [TEA.cx, TEA.fy + 6, TEA.cz + 6] },
-    zen: { az: -0.55, el: 0.55, dist: 86, tgt: [(ZEN.x0 + ZEN.x1) / 2, GROUND, (ZEN.z0 + ZEN.z1) / 2] },
+    tea: { az: 0.1, el: 0.3, dist: 90, tgt: [TEA.cx, TEA.fy + 6, TEA.cz + 5] },
+    zen: { az: 0.95, el: 0.62, dist: 90, tgt: [(ZEN.x0 + ZEN.x1) / 2, GROUND, (ZEN.z0 + ZEN.z1) / 2] },
   };
 }
 function flyTo(name, dur = 2.6) {
@@ -3958,8 +3983,8 @@ function updateRig(dt) {
   }
   if (RIG.follow) {
     const hp = DRAGON.pos, d = DRAGON.dir;
-    _cp.copy(hp).addScaledVector(d, -46).add(_tmpV.set(0, 15, 0)).addScaledVector(_tmpV.set(d.z, 0, -d.x).normalize(), 12);
-    _ct.copy(hp).addScaledVector(d, 18);
+    _cp.copy(hp).addScaledVector(d, -66).add(_tmpV.set(0, 22, 0)).addScaledVector(_tmpV.set(d.z, 0, -d.x).normalize(), 17);
+    _ct.copy(hp).addScaledVector(d, 26);
     if (!RIG.fp) { RIG.fp = _cp.clone(); RIG.ft = _ct.clone(); RIG.blend = 0; }
     const s = 1 - Math.exp(-2.6 * dt);
     RIG.fp.lerp(_cp, s); RIG.ft.lerp(_ct, s);
@@ -3984,10 +4009,16 @@ function toast(msg, ms = 2600) { const t = $("#toast"); t.textContent = msg; t.c
 function setActive(sel, val, key) { for (const b of document.querySelectorAll(sel + " button")) b.classList.toggle("on", b.dataset[key] === String(val)); }
 const fmtHour = (h) => { const hh = Math.floor(h) % 24, mm = Math.floor((h % 1) * 60); return String(hh).padStart(2, "0") + ":" + String(mm).padStart(2, "0"); };
 const bubbleEls = new Map();
+const COARSE = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+const REDUCED = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
 
 function setupUI() {
   const { renderer, camera, controls } = GARDEN, canvas = renderer.domElement;
   buildPickList(); buildViews();
+  if (COARSE) {                                           // phrase the help for fingers, not a mouse
+    $("#help li em").textContent = "👆";
+    for (const el of document.querySelectorAll("#help li span, #follow")) el.innerHTML = el.innerHTML.replace(/\bClick\b/g, "Tap").replace(/\bclick\b/g, "tap").replace("<b>scroll</b> or pinch to zoom, right-drag to pan", "<b>pinch</b> to zoom, two fingers to pan");
+  }
   const gesture = () => { if (!UI.firstGesture) { UI.firstGesture = true; AUDIO.init(); } else if (AUDIO.ctx && AUDIO.ctx.state === "suspended") AUDIO.ctx.resume(); };
   const tip = UI.tipEl = $("#tip");
   let down = null, lastMove = 0, ptr = { x: -1, y: -1, active: false };
@@ -4038,7 +4069,7 @@ function setupUI() {
   $("#btnMusic").addEventListener("click", () => { gesture(); AUDIO.setMusic(!AUDIO.music); $("#btnMusic").classList.toggle("off", !AUDIO.music); });
   $("#btnHelp").addEventListener("click", () => $("#help").classList.toggle("show"));
   $("#btnFull").addEventListener("click", toggleFull);
-  $("#btnQuality").addEventListener("click", () => { UI.quality = (UI.quality + 1) % 3; applyQuality(UI.quality); toast("Graphics: " + ["Low", "Medium", "High"][UI.quality]); });
+  $("#btnQuality").addEventListener("click", () => { UI.quality = (UI.quality + 1) % 3; GARDEN.applyQuality(UI.quality); toast("Graphics: " + ["Low", "Medium", "High"][UI.quality]); });
   document.addEventListener("click", (e) => { const h = $("#help"); if (h.classList.contains("show") && !h.contains(e.target) && e.target.id !== "btnHelp") h.classList.remove("show"); });
   setActive("#seasons", "0", "s"); setActive("#views", "overview", "v");
   syncClock();
@@ -4162,7 +4193,7 @@ async function boot() {
   generateTerrain(grid);
   buildNav();
   buildPagoda(grid); buildTeaHouse(grid); buildZenGarden(grid); buildGateAndBridge(grid); buildBellTower(grid); buildShrine(grid);
-  Object.assign(GARDEN, { grid, mats });
+  Object.assign(GARDEN, { grid, mats, PAL, C });
   buildShishi(scene, grid, mats);
   paintPaths(grid);
   tt.terrain = performance.now() - t0;
@@ -4214,12 +4245,28 @@ async function boot() {
   setView(0.62, 0.5, 300);
 
   let composer = null, finish = null;
-  const coarse = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+  const coarse = COARSE;
   UI.quality = params.has("q") ? +params.get("q") : (coarse ? 1 : 2);
+  // portrait screens get a wider lens and a longer pull-back so the whole island still fits
+  GARDEN.viewK = 1;
+  function fitLens() {
+    const k0 = GARDEN.viewK;
+    camera.fov = 32 + 18 * clamp((1.1 - camera.aspect) / 0.6, 0, 1);
+    camera.updateProjectionMatrix();
+    const half = 300 * Math.tan(camera.fov * Math.PI / 360) * camera.aspect;     // half the visible width at the overview distance
+    GARDEN.viewK = clamp(113 / half, 1, 2.2);
+    controls.maxDistance = 560 * GARDEN.viewK;
+    return GARDEN.viewK / k0;
+  }
   function resize() {
     const w = stage.clientWidth, h = stage.clientHeight, dpr = Math.min(window.devicePixelRatio || 1, QUALITY[UI.quality].dpr, GARDEN.maxDpr || 9);
     renderer.setPixelRatio(dpr); renderer.setSize(w, h, false);
-    camera.aspect = w / h; camera.updateProjectionMatrix();
+    camera.aspect = w / h;
+    const kr = fitLens();
+    if (Math.abs(kr - 1) > 1e-3 && !RIG.follow) {                                // keep the framing when the screen turns
+      camera.position.sub(controls.target).multiplyScalar(kr).add(controls.target);
+      if (RIG.tween) { RIG.tween.tp.sub(RIG.tween.tt).multiplyScalar(kr).add(RIG.tween.tt); }
+    }
     if (composer) composer.setSize(w, h);
     if (finish) { finish.uniforms.uAspect.value = w / h; finish.uniforms.uRes.value.set(w * dpr, h * dpr); }
   }
@@ -4238,7 +4285,7 @@ async function boot() {
     GARDEN.composer = composer;
     resize();
   }
-  window.applyQuality = GARDEN.applyQuality = (lvl) => {
+  GARDEN.applyQuality = (lvl) => {
     UI.quality = lvl; const q = QUALITY[lvl];
     sun.shadow.mapSize.set(q.shadow, q.shadow); if (sun.shadow.map) { sun.shadow.map.dispose(); sun.shadow.map = null; }
     buildComposer();
@@ -4286,15 +4333,16 @@ async function boot() {
   GARDEN.update = update; GARDEN.render = render;
   GARDEN.step = (dt, n = 1) => { for (let i = 0; i < n; i++) update(dt); };
   GARDEN.ready = true;
-  if (!MANUAL && !params.has("nointro")) { setView(0.15, 0.78, 560); RIG.view = "overview"; setTimeout(() => flyTo("overview", 6.5), 700); }
+  if (REDUCED) RIG.auto = false;
+  if (!MANUAL && !params.has("nointro") && !REDUCED) { setView(0.15, 0.78, 560 * GARDEN.viewK); RIG.view = "overview"; setTimeout(() => flyTo("overview", 6.5), 700); }
   if (MANUAL) $("#loader").style.display = "none";
-  else { $("#loader").classList.add("done"); setTimeout(() => toast("Drag to look around · click anything to interact", 7000), 1200); }
+  else { $("#loader").classList.add("done"); setTimeout(() => toast(COARSE ? "Drag to look around · tap anything to interact" : "Drag to look around · click anything to interact", 7000), 1200); }
   if (!MANUAL) renderer.setAnimationLoop(() => {
     const now = performance.now(), ms = now - lastT; lastT = now;
     if (document.hidden) return;
     update(Math.min(ms / 1000, 0.1));
     render();
-    frameEma = lerp(frameEma, ms, 0.04);
+    if (ms < 1200) frameEma = lerp(frameEma, Math.min(ms, 250), 0.04); else lastAdapt = now;       // a long gap (tab switch, shader compile) is not a slow frame
     if (frameEma > 30 && now - lastAdapt > 4000) {              // running slowly: step quality down
       lastAdapt = now;
       if (UI.quality > 0) GARDEN.applyQuality(UI.quality - 1);
