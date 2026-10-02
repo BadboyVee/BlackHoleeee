@@ -3865,7 +3865,7 @@ function updateSkyLanterns(dt, t) {
 function rakeStroke(x0, z0, x1, z1) {
   const g = GARDEN.grid, wv = GARDEN.world, sy = ZEN.y;
   const dx = x1 - x0, dz = z1 - z0, L = Math.hypot(dx, dz);
-  if (L < 0.4) return false;
+  if (L < 1.4) return false;                                          // long enough segments keep the grooves straight when the drag is slow
   const ux = dx / L, uz = dz / L, px = -uz, pz = ux, steps = Math.ceil(L * 2);
   for (let i = 0; i <= steps; i++) {
     const x = x0 + ux * L * i / steps, z = z0 + uz * L * i / steps;
