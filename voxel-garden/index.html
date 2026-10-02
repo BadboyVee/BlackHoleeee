@@ -4381,21 +4381,21 @@ function launchFirework(wx, wz, hgt) {
 }
 function burstFirework(x, y, z) {
   const c1 = pick(FW_COLORS), c2 = pick(FW_COLORS);
-  const n = 150, ring = chance(0.25), willow = chance(0.2);
+  const n = 180, ring = chance(0.25), willow = chance(0.2);
   for (let k = 0; k < n; k++) {
     let dx, dy, dz;
     if (ring) { const a = (k / n) * TAU; dx = Math.cos(a); dy = Math.sin(a) * 0.35; dz = Math.sin(a); }
     else { const u = rnd(-1, 1), a = rnd(0, TAU), s = Math.sqrt(1 - u * u); dx = s * Math.cos(a); dy = u; dz = s * Math.sin(a); }
-    const sp = (willow ? 6 : 10) * rnd(0.85, 1.05);
+    const sp = (willow ? 9 : 16) * rnd(0.85, 1.05);
     const c = k % 3 === 0 ? c2 : c1;
     _c.setRGB(c[0], c[1], c[2]);
-    FX.glow.spawn(PK.SPARK, x, y, z, dx * sp, dy * sp, dz * sp, willow ? rnd(2.6, 3.4) : rnd(1.6, 2.4), rnd(0.16, 0.24), _c);
+    FX.glow.spawn(PK.SPARK, x, y, z, dx * sp, dy * sp, dz * sp, willow ? rnd(2.6, 3.4) : rnd(1.6, 2.4), rnd(0.3, 0.42), _c);
   }
   sfx.boom(Math.hypot(x - camera.position.x, y - camera.position.y, z - camera.position.z));
   flashLight(x, y, z, c1);
 }
-const fwLight = new THREE.PointLight(0xffffff, 0, 260, 1.4);
-function flashLight(x, y, z, c) { fwLight.position.set(x, y, z); fwLight.color.setRGB(c[0] / 3, c[1] / 3, c[2] / 3); fwLight.intensity = 30000; }
+const fwLight = new THREE.PointLight(0xffffff, 0, 300, 1.0);
+function flashLight(x, y, z, c) { fwLight.position.set(x, y, z); fwLight.color.setRGB(c[0] / 3, c[1] / 3, c[2] / 3); fwLight.intensity = 300; }
 
 let windT = 0;
 function updateFX(dt, t) {
@@ -5540,7 +5540,7 @@ function updateEnvironment() {
   if (skyMesh) { const u = skyMesh.material.uniforms; u.uNight.value = night; u.uTime.value = state.t; u.uCloudy.value = r; }
   if (cloudMat) {
     cloudMat.emissive.copy(SKY.horizon).lerp(SKY.zenith, 0.4).multiplyScalar(lerp(0.12, 0.66, day) * (1 + night * 0.6));
-    cloudMat.color.setRGB(1, 1, 1).lerp(_grey, r * 0.6);
+    cloudMat.color.setRGB(1, 1, 1).lerp(_grey, r * 0.6).multiplyScalar(lerp(0.32, 1, day));
   }
   WU.uSkyRefl.value.copy(SKY.zenith).lerp(SKY.horizon, 0.5);
   if (cloudSea) {
@@ -5725,7 +5725,7 @@ window.__garden = {
   frames(n = 1, dt = 1 / 30) { for (let i = 0; i < n; i++) renderFrame(dt); },
   sim(n = 1, dt = 1 / 30) { for (let i = 0; i < n; i++) simulate(dt); },
   stats() { return { calls: renderer.info.render.calls, tris: renderer.info.render.triangles, geos: renderer.info.memory.geometries, progs: renderer.info.programs.length }; },
-  api: { camera, voxelRay, V, MAT, INTER, ringBell, togglePagoda, toggleLantern, shakeTree, dropFood, tipShishi, launchFirework, toggleRide, setView, chooseSeason, knockHouse, pickAt, clickPick, get dragon() { return dragon; }, get villagers() { return VILLAGERS; }, get cat() { return cat; }, get deer() { return DEER; }, state, POI, CAM },
+  api: { camera, voxelRay, V, MAT, INTER, PAGODA, ZEN, UI, rakeStroke, get koi() { return KOI; }, ringBell, togglePagoda, toggleLantern, shakeTree, dropFood, tipShishi, launchFirework, toggleRide, setView, chooseSeason, knockHouse, pickAt, clickPick, get dragon() { return dragon; }, get villagers() { return VILLAGERS; }, get cat() { return cat; }, get deer() { return DEER; }, state, POI, CAM },
 };
 init().catch((e) => {
   console.error(e);
