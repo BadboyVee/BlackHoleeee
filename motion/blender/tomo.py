@@ -347,45 +347,99 @@ def product_stage(size=(900, 900)):
     camera((0, -7.2, 3.6), (0, 0, 0.55), 58)
 
 
-def cloth(name, col):
+def cloth(name, col, band=None):
+    """Terry towelling: fluffy loops in the bump and a soft sheen, and across one end the flat woven band that
+    every bath towel has, a shade darker."""
     m = mat(name, col, rough=0.95)
     b = m.node_tree.nodes["Principled BSDF"]
-    b.inputs["Sheen Weight"].default_value = 0.9
+    b.inputs["Sheen Weight"].default_value = 0.5
     N, L = m.node_tree.nodes, m.node_tree.links
+    tc = N.new("ShaderNodeTexCoord")
     n = N.new("ShaderNodeTexNoise")                                   # terry loops
-    n.inputs["Scale"].default_value = 420.0
-    n.inputs["Detail"].default_value = 6.0
-    w = N.new("ShaderNodeTexWave")                                    # and the weave
-    w.inputs["Scale"].default_value = 60.0
-    w.inputs["Distortion"].default_value = 2.0
+    n.inputs["Scale"].default_value = 70.0
+    n.inputs["Detail"].default_value = 4.0
+    n.inputs["Roughness"].default_value = 0.7
+    L.new(tc.outputs["Object"], n.inputs["Vector"])
+    fine = N.new("ShaderNodeTexNoise")
+    fine.inputs["Scale"].default_value = 240.0
+    L.new(tc.outputs["Object"], fine.inputs["Vector"])
     mx = N.new("ShaderNodeMath")
-    mx.operation = "ADD"
-    L.new(n.outputs["Fac"], mx.inputs[0])
-    L.new(w.outputs["Fac"], mx.inputs[1])
+    mx.operation = "MULTIPLY_ADD"
+    mx.inputs[1].default_value = 0.5
+    L.new(fine.outputs["Fac"], mx.inputs[0])
+    L.new(n.outputs["Fac"], mx.inputs[2])
+    height = mx.outputs["Value"]
+    if band is not None:                                              # the band: a stripe across x near one end
+        sep = N.new("ShaderNodeSeparateXYZ")
+        L.new(tc.outputs["Object"], sep.inputs["Vector"])
+        d = N.new("ShaderNodeMath")
+        d.operation = "ABSOLUTE"
+        sub = N.new("ShaderNodeMath")
+        sub.operation = "SUBTRACT"
+        sub.inputs[1].default_value = band
+        L.new(sep.outputs["X"], sub.inputs[0])
+        L.new(sub.outputs["Value"], d.inputs[0])
+        st = N.new("ShaderNodeMapRange")
+        st.inputs["From Min"].default_value = 0.09
+        st.inputs["From Max"].default_value = 0.07
+        L.new(d.outputs["Value"], st.inputs["Value"])
+        tint = N.new("ShaderNodeMix")
+        tint.data_type = "RGBA"
+        tint.inputs["A"].default_value = (*col, 1)
+        tint.inputs["B"].default_value = (col[0] * 0.78, col[1] * 0.78, col[2] * 0.76, 1)
+        L.new(st.outputs["Result"], tint.inputs["Factor"])
+        L.new(tint.outputs["Result"], b.inputs["Base Color"])
+        flat = N.new("ShaderNodeMath")                                # the band is woven flat, not looped
+        flat.operation = "MULTIPLY_ADD"
+        flat.inputs[1].default_value = -0.8
+        flat.inputs[2].default_value = 1.0
+        L.new(st.outputs["Result"], flat.inputs[0])
+        hb = N.new("ShaderNodeMath")
+        hb.operation = "MULTIPLY"
+        L.new(height, hb.inputs[0])
+        L.new(flat.outputs["Value"], hb.inputs[1])
+        height = hb.outputs["Value"]
     bu = N.new("ShaderNodeBump")
-    bu.inputs["Strength"].default_value = 0.45
-    L.new(mx.outputs["Value"], bu.inputs["Height"])
+    bu.inputs["Strength"].default_value = 0.6
+    bu.inputs["Distance"].default_value = 0.02
+    L.new(height, bu.inputs["Height"])
     L.new(bu.outputs["Normal"], b.inputs["Normal"])
     return m
 
 
 def towels():
+    """Four bath towels folded and stacked, each a soft slab with its fold rounded at the front, slumping a little
+    under the ones above it."""
     product_stage()
+    bpy.context.scene.view_settings.exposure = -1.0                   # white cloth: keep the folds and loops
     cols = ["#f4f1ea", "#9db8a4", "#e6cfb0", "#f4f1ea"]
     z = 0.0
     for i, c in enumerate(cols):
-        h = 0.26
-        bpy.ops.mesh.primitive_cube_add(size=1, location=(0.03 * (i % 2) - 0.015, 0.02 * i, z + h / 2))
+        h = 0.27
+        bpy.ops.mesh.primitive_cube_add(size=1, location=(0, 0, 0))
         t = bpy.context.object
         t.scale = (2.0, 1.4, h)
-        t.rotation_euler = (0, 0, math.radians(-2.5 + 2.2 * i))
         bpy.ops.object.transform_apply(scale=True)
-        smooth(t, 3, bevel=0.12)
-        # soft, a little slumped: bulge the middle and round the fold at the front
-        for v in t.data.vertices:
-            v.co.z += 0.03 * (1 - (v.co.x / 1.0) ** 2) * (1 if v.co.z > z + h / 2 else -0.3)
-        t.data.materials.append(cloth(f"towel{i}", srgb(c)))
-        z += h * 0.96
+        bv = t.modifiers.new("bevel", "BEVEL")                        # the folds: rounded almost to half their height
+        bv.width = h * 0.46
+        bv.segments = 6
+        bv.limit_method = "ANGLE"
+        bpy.ops.object.modifier_apply(modifier="bevel")
+        sd = t.modifiers.new("sub", "SUBSURF")
+        sd.levels = sd.render_levels = 2
+        bpy.ops.object.modifier_apply(modifier="sub")
+        rng = (i * 7919) % 97 / 97.0
+        for v in t.data.vertices:                                     # soft and a little slumped, never quite square
+            x, y, zz = v.co
+            top = zz > 0
+            v.co.z += (0.035 * (1 - (x / 1.0) ** 2) * (1 - (y / 0.7) ** 2)) * (1 if top else -0.25)
+            v.co.z += 0.012 * math.sin(3.1 * x + 6 * rng) * math.cos(2.3 * y + 3 * rng)
+            v.co.x *= 1 + 0.012 * math.sin(4 * y + rng * 5)
+        bpy.ops.object.shade_smooth()
+        t.location = (0.035 * ((i * 37) % 3 - 1), 0.025 * i - 0.03, z + h / 2)
+        t.rotation_euler = (0, 0, math.radians(-2.5 + 2.2 * i))
+        t.data.materials.append(cloth(f"towel{i}", srgb(c), band=0.62))
+        z += h * 0.93
     bpy.context.scene.render.filepath = os.path.join(OUT, "towels.png")
     bpy.ops.render.render(write_still=True)
 
