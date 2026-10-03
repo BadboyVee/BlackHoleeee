@@ -18,7 +18,7 @@ PREVIEW = "--preview" in sys.argv
 W, H = (768, 432) if PREVIEW else (2304, 1296)        # 1.2 x the frame, for the 2D moves
 SKY_SUN = float(os.environ.get("SKY_SUN", "200"))
 VIEW = os.environ.get("VIEW", "Standard")
-LIGHT_ROT = float(os.environ.get("LIGHT_ROT", "330"))
+LIGHT_ROT = float(os.environ.get("LIGHT_ROT", "300"))     # the sun the clouds are lit by (blender/clouds.py)
 
 
 def reset():
@@ -83,71 +83,6 @@ def terrain_mesh(name, X, Y, Z, mat):
     return ob
 
 
-def grass_material(haze, near=(0.10, 0.42, 0.05), far=(0.20, 0.55, 0.10), haze_start=120.0, haze_end=900.0):
-    """Grass: two greens broken up by noise, fine streaky bump, and aerial haze by view distance."""
-    m = bpy.data.materials.new("grass")
-    m.use_nodes = True
-    nt = m.node_tree
-    N, L = nt.nodes, nt.links
-    bsdf = N["Principled BSDF"]
-    bsdf.inputs["Roughness"].default_value = 0.85
-    bsdf.inputs["Specular IOR Level"].default_value = 0.25
-    bsdf.inputs["Sheen Weight"].default_value = 0.6
-    bsdf.inputs["Sheen Tint"].default_value = (0.85, 1.0, 0.6, 1)
-    tex = N.new("ShaderNodeTexCoord")
-    noise = N.new("ShaderNodeTexNoise")
-    noise.inputs["Scale"].default_value = 0.012
-    noise.inputs["Detail"].default_value = 6.0
-    L.new(tex.outputs["Object"], noise.inputs["Vector"])
-    ramp = N.new("ShaderNodeValToRGB")
-    ramp.color_ramp.elements[0].position = 0.35
-    ramp.color_ramp.elements[0].color = (*near, 1)
-    ramp.color_ramp.elements[1].position = 0.7
-    ramp.color_ramp.elements[1].color = (*far, 1)
-    mottle = N.new("ShaderNodeTexNoise")
-    mottle.inputs["Scale"].default_value = 0.6
-    mottle.inputs["Detail"].default_value = 4.0
-    L.new(tex.outputs["Object"], mottle.inputs["Vector"])
-    mix0 = N.new("ShaderNodeMath")
-    mix0.operation = "MULTIPLY_ADD"
-    mix0.inputs[1].default_value = 0.25
-    L.new(mottle.outputs["Fac"], mix0.inputs[0])
-    L.new(noise.outputs["Fac"], mix0.inputs[2])
-    L.new(mix0.outputs["Value"], ramp.inputs["Fac"])
-    # fine grass streaks for the bump
-    streak = N.new("ShaderNodeTexNoise")
-    streak.inputs["Scale"].default_value = 60.0
-    streak.inputs["Detail"].default_value = 3.0
-    mapn = N.new("ShaderNodeMapping")
-    mapn.inputs["Scale"].default_value = (1.0, 1.0, 12.0)
-    L.new(tex.outputs["Object"], mapn.inputs["Vector"])
-    L.new(mapn.outputs["Vector"], streak.inputs["Vector"])
-    bump = N.new("ShaderNodeBump")
-    bump.inputs["Strength"].default_value = 0.35
-    L.new(streak.outputs["Fac"], bump.inputs["Height"])
-    L.new(bump.outputs["Normal"], bsdf.inputs["Normal"])
-    # aerial haze: blend toward the sky's colour with distance
-    cam = N.new("ShaderNodeCameraData")
-    mr = N.new("ShaderNodeMapRange")
-    mr.inputs["From Min"].default_value = haze_start
-    mr.inputs["From Max"].default_value = haze_end
-    L.new(cam.outputs["View Distance"], mr.inputs["Value"])
-    mix = N.new("ShaderNodeMix")
-    mix.data_type = "RGBA"
-    mix.inputs["B"].default_value = (*haze, 1)
-    L.new(mr.outputs["Result"], mix.inputs["Factor"])
-    L.new(ramp.outputs["Color"], mix.inputs["A"])
-    L.new(mix.outputs["Result"], bsdf.inputs["Base Color"])
-    # the haze also glows a little, as the lit air does
-    em = N.new("ShaderNodeMath")
-    em.operation = "MULTIPLY"
-    em.inputs[1].default_value = 0.8
-    L.new(mr.outputs["Result"], em.inputs[0])
-    bsdf.inputs["Emission Color"].default_value = (*haze, 1)
-    L.new(em.outputs["Value"], bsdf.inputs["Emission Strength"])
-    return m
-
-
 def sky(sun_elev, sun_rot, strength=1.0, air=1.0, dust=1.0, ozone=1.0, sun_disc=False):
     world = bpy.data.worlds.new("sky")
     bpy.context.scene.world = world
@@ -196,31 +131,6 @@ def camera(loc, look, lens=35.0, dof=None):
     return o
 
 
-def tree_material():
-    m = bpy.data.materials.new("tree")
-    m.use_nodes = True
-    b = m.node_tree.nodes["Principled BSDF"]
-    b.inputs["Base Color"].default_value = (0.03, 0.12, 0.02, 1)
-    b.inputs["Roughness"].default_value = 0.9
-    return m
-
-
-def trees(terrain_z, positions, mat, scale=(4.0, 7.0)):
-    """Round broadleaf trees, a few clumps of icospheres on a short trunk."""
-    rng = np.random.default_rng(3)
-    for (x, y) in positions:
-        z = terrain_z(x, y)
-        s = rng.uniform(*scale)
-        for k in range(3):
-            bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=2, radius=s * rng.uniform(0.5, 0.75),
-                                                  location=(x + rng.uniform(-0.4, 0.4) * s,
-                                                            y + rng.uniform(-0.4, 0.4) * s,
-                                                            z + s * rng.uniform(0.9, 1.3)))
-            o = bpy.context.object
-            o.data.materials.append(mat)
-            bpy.ops.object.shade_smooth()
-
-
 def gradient_sky(horizon, zenith, light=0.35, ground=(0.05, 0.08, 0.04)):
     """A clean sky: horizon to zenith by the view's height, seen at full strength by the camera and at `light`
     by everything it lights."""
@@ -261,29 +171,38 @@ HILLS = [   # (x, y, radius, height), placed by hand like a countryside seen fro
 
 
 def hills():
+    """The countryside under the sky: the hills laid out by hand, dressed as fields with hedgerows and trees, in
+    a low afternoon sun from the left, cloud shadows passing over them. The sky is left clear for the film."""
+    import country
     reset()
-    render_settings(48)
+    render_settings(64)
     horizon, zenith = (0.60, 0.77, 0.98), (0.08, 0.25, 0.76)
     gradient_sky(horizon, zenith, light=0.32)
-    sun(22, LIGHT_ROT, 1.9, color=(1.0, 0.95, 0.85))
-    mat = grass_material((0.50, 0.67, 0.95), near=(0.06, 0.36, 0.006), far=(0.16, 0.52, 0.012),
-                         haze_start=700.0, haze_end=4200.0)
-    # the near country, fine enough for the small hills in front
-    X, Y, Z = heightfield(640, 4000.0, 7, [(x, y - 1800, r, h) for x, y, r, h in HILLS], base_noise=0.35)
-    terrain_mesh("hills", X, Y + 1800, Z, mat)
-    # (the mountains behind are painted by the film, in the haze, so the sky stays open)
+    sun(22, LIGHT_ROT, 2.1, color=(1.0, 0.95, 0.85))
+    haze = (0.50, 0.67, 0.95)
+    haze_start, haze_end = 700.0, 6500.0
+    mat = country.grass(haze, haze_start, haze_end)
+    X, Y, Z = heightfield(800, 4000.0, 7, [(x, y - 1800, r, h) for x, y, r, h in HILLS], base_noise=1.2)
+    ground = terrain_mesh("hills", X, Y + 1800, Z, mat)
+    leaf = country.leaves("leaves", (0.020, 0.085, 0.012), (0.045, 0.130, 0.018), haze, haze_start, haze_end)
+    hedge_leaf = country.leaves("hedge", (0.018, 0.075, 0.010), (0.035, 0.115, 0.014), haze, haze_start, haze_end)
+    bark = bpy.data.materials.new("bark")
+    bark.use_nodes = True
+    bark.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.05, 0.04, 0.03, 1)
+    shrub = country.bush(hedge_leaf)
+    oaks = (country.tree(leaf, bark, 1), country.tree(leaf, bark, 2))
+    country.countryside(ground, shrub, oaks, near=180.0)
+    country.cloud_shadows()
+    n = X.shape[0]
 
     def z_at(x, y):
-        i = int(round((y - 1800 + 2000) / 4000 * 639))
-        j = int(round((x + 2000) / 4000 * 639))
-        return float(Z[min(max(i, 0), 639), min(max(j, 0), 639)])
+        i = int(round((y - 1800 + 2000) / 4000 * (n - 1)))
+        j = int(round((x + 2000) / 4000 * (n - 1)))
+        return float(Z[min(max(i, 0), n - 1), min(max(j, 0), n - 1)])
 
-    rng = np.random.default_rng(5)
-    tm = tree_material()
-    spots = [(rng.uniform(-600, 600), rng.uniform(300, 1100)) for _ in range(80)]
-    trees(z_at, spots, tm, scale=(2.5, 4.5))
     camera((0, 0, z_at(0, 0) + 3), (0, 800, 88), lens=30)
-    bpy.context.scene.render.film_transparent = True        # the film paints its own sky, with clouds
+    print("camera z", z_at(0, 0) + 3, flush=True)
+    bpy.context.scene.render.film_transparent = True        # the film lays its own sky and the clouds behind
     bpy.context.scene.render.image_settings.color_mode = "RGBA"
     bpy.context.scene.render.filepath = os.path.join(OUT, "hills.png")
     bpy.ops.render.render(write_still=True)

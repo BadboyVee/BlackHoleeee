@@ -250,6 +250,14 @@ def flower(c, x, y, s, col):
 
 
 def meadow_front(c, t, blur=14.0):
+    """The flowers and grass in front of the lens, swaying a little; blur past 14 softens them further."""
+    img = plates.meadow()
+    if img is not None:
+        with G.layer(c, 1.0, blur=max(0.0, blur - 14.0)):
+            with G.xf(c, 960 + 5 * math.sin(0.9 * t), 1080, rot=0.3 * math.sin(0.7 * t)):
+                c.drawImageRect(img, skia.Rect.MakeXYWH(-980, -1090, 1960, 1100),
+                                skia.SamplingOptions(skia.FilterMode.kLinear))
+        return
     with G.layer(c, 1.0, blur=blur):
         for i in range(40):                                              # grass blades
             x = hash01(i, 21) * 1920

@@ -20,10 +20,7 @@ DEVDAY 2026 (`python3 -m devday.main`) needs `devday/sound.wav`, the teaser's so
 `chen.jpg`, `brockman.jpg` and `sottiaux.jpg` (head and shoulders; anyone without one is shown by initials, and
 `CROP` in `devday/team.py` sets the square to use). All of it is git-ignored for the same reason.
 
-VEEE (`python3 -m veee.main`) needs `veee/sound.wav`, the reference spot's soundtrack, which the film is cut to:
-`ffmpeg -i spot.mp4 -vn -ac 2 -ar 48000 photos/veee/sound.wav`. Git-ignored for the same reason. Its cards and
-thumbnails play our own renders (`out/the-frontier.mp4`, `out/agiweek.mp4`, `out/devday.mp4`), printed in dots.
-
-HORIZON (`python3 -m horizon.main`) and the CLAUDE CODE spot (`python3 -m crew.main`) need `horizon/sound.wav` and
-`crew/sound.wav`, their reference films' soundtracks, which they are cut to (extracted the same way). Git-ignored
-for the same reason. Their Blender plates and sprites are rendered into `out/plates/` (see the main README).
+HORIZON (`python3 -m horizon.main`), SPARKS (`python3 -m sparks.main`) and TOMO (`python3 -m tomo.main`) need
+`horizon/sound.wav`, `sparks/sound.wav` and `tomo/sound.wav`, their reference films' soundtracks, which they are
+cut to (extracted the same way). Git-ignored for the same reason. Their Blender renders go into `out/plates/` (see
+the main README).

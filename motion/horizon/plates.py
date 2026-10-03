@@ -1,6 +1,7 @@
-"""HORIZON's plates: the hills and the sunset rendered with Blender (blender/hills.py), graded here, vivid and
-clean. The hills come with their sky left clear, so the film's own sky and clouds show through. Without the
-renders, a painted stand-in keeps the film whole."""
+"""HORIZON's plates: the countryside and the sunset rendered with Blender (blender/hills.py), and the cumulus over
+them as real volumes in three layers (blender/clouds.py), graded here, vivid and clean. The hills come with their
+sky left clear, so the film's own sky shows through, with the cloud layers drifting in it. Without the renders,
+painted stand-ins keep the film whole."""
 import os
 from functools import lru_cache
 
@@ -9,7 +10,7 @@ import numpy as np
 import skia
 
 from engine import gfx as G
-from . import sky
+from . import devices, sky
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 DIR = os.environ.get("HORIZON_PLATES", os.path.join(HERE, "..", "out", "plates", "horizon"))
@@ -33,14 +34,14 @@ def _grade_green(rgb):
     return cv2.cvtColor(np.stack([h, s, v], -1), cv2.COLOR_HSV2RGB)
 
 
-def _read(name):
+def _read(name, size=(PW, PH)):
     path = os.path.join(DIR, name)
     if not os.path.exists(path):
         return None
     im = cv2.imread(path, cv2.IMREAD_UNCHANGED)
     if im is None:
         return None
-    im = cv2.resize(im, (PW, PH), interpolation=cv2.INTER_AREA)
+    im = cv2.resize(im, size, interpolation=cv2.INTER_AREA)
     scale = 65535.0 if im.dtype == np.uint16 else 255.0
     im = im.astype(np.float32) / scale
     if im.shape[2] == 3:
@@ -74,6 +75,18 @@ def sunset():
     return _image(np.clip(out * 255 + 0.5, 0, 255).astype(np.uint8))
 
 
+@lru_cache(maxsize=None)
+def meadow():
+    """The wildflowers and long grass right in front of the lens (blender/meadow.py), graded like the hills,
+    premultiplied, frame-sized; None without the render."""
+    im = _read("meadow.png", (1920, 1080))
+    if im is None:
+        return None
+    rgb = _grade_green(np.clip(im[..., :3], 0, 1))
+    a = im[..., 3:4]
+    return _image(np.clip(np.concatenate([rgb * a, a], -1) * 255 + 0.5, 0, 255).astype(np.uint8))
+
+
 def _painted_hills():
     """A stand-in when the render is missing: three soft green rises."""
     arr = np.zeros((PH, PW, 4), np.uint8)
@@ -104,9 +117,40 @@ def _painted_sunset():
     return _image(arr)
 
 
+CW = 2880                               # the cloud layers are 1.25 x as wide as the hills, so they can drift
+CLOUD_LAYERS = (("far", 2.0, 0.40), ("mid", 4.0, 0.18), ("near", 7.0, 0.04))   # name, drift px/s, haze
+T_MID = 26.5                            # the drift is centred on the middle of the film
+
+
+@lru_cache(maxsize=None)
+def cloud_layer(name, haze):
+    """One layer of the cumulus field (blender/clouds.py), hazed toward the horizon's colour by its distance and
+    given a touch more snap, premultiplied; None without the render."""
+    im = _read(f"clouds_{name}.png", (CW, PH))
+    if im is None:
+        return None
+    rgb, a = np.clip(im[..., :3], 0, 1), im[..., 3:4]
+    hor = np.array([int(sky.HORIZON[i:i + 2], 16) / 255 for i in (1, 3, 5)], np.float32)
+    rgb = np.clip((rgb - 0.5) * 1.1 + 0.62, 0, 1)                    # the sunlit tops to white (AgX keeps them at 0.84)
+    rgb = rgb * (1 - haze) + hor * haze
+    out = np.concatenate([rgb * a, a], -1)
+    return _image(np.clip(out * 255 + 0.5, 0, 255).astype(np.uint8))
+
+
+def clouds(c, t):
+    """The real clouds, each layer drifting at its own speed (the far ones slowest); the painted ones without."""
+    layers = [(cloud_layer(n, h), v) for n, v, h in CLOUD_LAYERS]
+    if any(img is None for img, _ in layers):
+        sky.clouds(c, t, dy=-30)
+        return
+    for img, v in layers:
+        x = -(CW - PW) / 2 - v * (t - T_MID)
+        c.drawImageRect(img, skia.Rect.MakeXYWH(x, 0, CW, PH), skia.SamplingOptions(skia.FilterMode.kLinear))
+
+
 def _day_content(c, t):
     sky.gradient(c, -200, -400, PW + 400, PH + 400, HORIZON_Y)
-    sky.clouds(c, t, dy=-30)
+    clouds(c, t)
     c.drawImageRect(hills(), skia.Rect.MakeWH(PW, PH), skia.SamplingOptions(skia.FilterMode.kLinear))
 
 
@@ -148,8 +192,12 @@ def dusk(c, t, zoom=1.0, cx=0.5, cy=0.5):
 
 
 def preload():
+    devices.preload()
     hills()
     sunset()
+    meadow()
+    for n, _, h in CLOUD_LAYERS:
+        cloud_layer(n, h)
     for r in SOFT:
         day_soft(r)
 
