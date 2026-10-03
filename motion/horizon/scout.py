@@ -67,7 +67,7 @@ def index_card(c, t):
     c.drawRRect(rr(x + 0.5, y + 0.5, w - 1, h - 1, 26), G.P("#e6e8ef", 1, stroke=1.4))
     marks.mark(c, x + 58, y + 64, 40)
     T(c, "FRONTIER INDEX", x + 92, y + 60, sans(16, 650), INK, tracking=0.12)
-    T(c, "Fable 5.1 leads", x + 92, y + 84, sans(15, 420), GREY)
+    T(c, "14 labs, one race", x + 92, y + 84, sans(15, 420), GREY)
     k = out_cubic(clamp(tau / 0.5))
     T(c, f"{int(1445 + 42 * k):,}", x + 44, y + 170, sans(76, 500), INK, tracking=-0.02)
     T(c, "+42 this week", x + 44, y + 206, sans(19, 520), "#1f9d55")

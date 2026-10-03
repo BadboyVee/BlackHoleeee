@@ -1,6 +1,6 @@
 """HORIZON 4, the end. On white, "Stay ahead of the race." in a crosshair; on black, "Right from your", and a
 phone rising out of the hills with its alerts: "pocket". Then the name over the hills, the mark built over them,
-and the mark alone on black, with the small print: a concept, predictions not news, made by VEEE."""
+and the mark alone on black, over its name and the small print: a concept, predictions not news."""
 import skia
 
 from engine import gfx as G
@@ -36,7 +36,7 @@ def crosshair(c, t):
 # ---------------------------------------------------------------- right from your pocket
 
 NOTES = [("Radar", "New launch spotted: Sonnet 5.5", "now"), ("Scout", "Your read for this week is ready", "2m"),
-         ("Radar", "DevDay starts in 2 days", "1h")]
+         ("Radar", "Grok 4.8 chatter is up this week", "1h")]
 
 
 def lock_screen(c, sx, sy, sw, sh, t):
@@ -120,8 +120,7 @@ def end(c, t):
     f = sans(19, 400)
     note = "A concept film  ·  predictions, not news  ·  not affiliated with any lab named"
     blur_in(c, note, 960, 1006, f, "#85858c", t, T_NOTE, dur=0.6, align=0.5, tracking=0.02)
-    blur_in(c, "MADE BY VEEE", 960, 700, sans(17, 600), "#9a9aa1", t, T_NOTE + 0.4, dur=0.6, align=0.5,
-            tracking=0.4)
+    blur_in(c, "Horizon", 960, 700, sans(30, 560), "#d8d8de", t, T_NOTE - 0.4, dur=0.6, align=0.5, tracking=-0.01)
     fade = clamp((t - (DURATION - 0.7)) / 0.7)
     if fade > 0:
         c.drawRect(skia.Rect.MakeWH(1920, 1080), G.P("#000000", fade))

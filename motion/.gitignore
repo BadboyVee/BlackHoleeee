@@ -17,8 +17,10 @@ out/agiweek_preview.mp4
 out/devday.mp4
 # VEEE carries the reference spot's own soundtrack, supplied for it, so its render stays local too
 out/veee.mp4
-# HORIZON and the CLAUDE CODE spot carry their reference spots' own soundtracks, so their renders stay local too;
-# their Blender plates and sprites are rebuilt by blender/hills.py and blender/plush.py
+# HORIZON, SPARKS and TOMO carry their reference spots' own soundtracks, so their renders stay local too; their
+# Blender plates and sprites are rebuilt by the scripts in blender/
 out/horizon.mp4
 out/claude-code.mp4
+out/sparks.mp4
+out/tomo.mp4
 out/plates/

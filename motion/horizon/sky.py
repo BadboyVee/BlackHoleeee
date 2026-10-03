@@ -32,33 +32,64 @@ def _fbm(h, w, rng, octaves=5, base=4):
     return np.clip(out / tot, 0, 1)
 
 
+def _warp(h, w, rng, amp):
+    """A smooth random displacement field, for billows that are not round."""
+    dx = (_fbm(h, w, rng, octaves=3, base=3) - 0.5) * amp
+    dy = (_fbm(h, w, rng, octaves=3, base=3) - 0.5) * amp
+    return dx, dy
+
+
 @lru_cache(maxsize=None)
 def cloud(seed, w, h):
-    """One cumulus, w x h, as an RGBA image: towers heaped on a flat base, their edges worn by noise, white where
-    the sun catches the tops and a cool grey underneath."""
+    """One cumulus, w x h, as an RGBA image. Its density is a heap of billows on a flat base, warped and worn by
+    noise; it is lit from the sun up and to the left by marching through its own density (so its tops glow and its
+    folds and underside fall into cool shadow), with a silver lining where it is thin."""
     rng = np.random.default_rng(seed)
     yy, xx = np.mgrid[0:h, 0:w].astype(np.float32)
     u, v = xx / w, yy / h
+    dx, dy = _warp(h, w, rng, 0.08)
+    uw, vw = u + dx, v + dy
     env = np.full((h, w), -1.0, np.float32)
-    for k in range(rng.integers(8, 12)):                    # the towers: big ones in the middle, small ones about
+    towers = []
+    for k in range(rng.integers(5, 8)):                               # the main towers, taller in the middle
         cx = rng.uniform(0.18, 0.82)
-        big = 1 - abs(cx - 0.5) * 1.6
-        cy = rng.uniform(0.42, 0.66) - 0.12 * big
-        rx = rng.uniform(0.07, 0.13) + 0.10 * big
-        ry = rx * w / h * rng.uniform(0.75, 1.0)
-        env = np.maximum(env, 1 - ((u - cx) / rx) ** 2 - ((v - cy) / ry) ** 2)
-    n = _fbm(h, w, rng)
-    fine = _fbm(h, w, rng, octaves=3, base=16)
-    edge = np.clip(np.minimum.reduce([u, 1 - u, v, 1 - v]) / 0.08, 0, 1)
-    dens = (env + 0.6 * (n - 0.5) + 0.22 * (fine - 0.5)) * edge
-    base = 0.8
-    dens *= np.clip((base - v) / 0.035, 0, 1)               # a flat bottom, softly cut
-    alpha = np.clip((dens - 0.05) / 0.18, 0, 1)
-    light = np.clip(1.0 - 0.55 * np.clip((v - 0.3) / (base - 0.3), 0, 1) ** 1.2 + 0.16 * (fine - 0.5)
-                    - 0.10 * (1 - np.clip(dens * 2.5, 0, 1)), 0, 1)
-    top = np.array([1.0, 1.0, 1.0], np.float32)
-    under = np.array([0.66, 0.73, 0.86], np.float32)
-    rgb = under + (top - under) * light[..., None]
+        big = 1 - abs(cx - 0.5) * 1.5
+        rx = rng.uniform(0.07, 0.11) + 0.1 * big
+        top = 0.62 - (0.18 + 0.3 * big) * rng.uniform(0.7, 1.0)
+        towers.append((cx, rx, top))
+        cy = (top + 0.7) / 2
+        ry = (0.7 - top) / 2 + 0.04
+        env = np.maximum(env, 1 - ((uw - cx) / rx) ** 2 - ((vw - cy) / ry) ** 2)
+    for cx, rx, top in towers:                                        # cauliflower billows round their tops
+        for j in range(rng.integers(4, 7)):
+            a = rng.uniform(-2.6, -0.5)
+            bx = cx + math.cos(a) * rx * 0.85
+            by = top + 0.1 + math.sin(a) * 0.12
+            br = rx * rng.uniform(0.3, 0.5)
+            env = np.maximum(env, 1 - ((uw - bx) / br) ** 2 - ((vw - by) / (br * w / h * 0.9)) ** 2)
+    n = _fbm(h, w, rng, octaves=6, base=4)
+    fine = _fbm(h, w, rng, octaves=4, base=28)
+    edge = np.clip(np.minimum.reduce([u, 1 - u, v, 1 - v]) / 0.07, 0, 1)
+    base = 0.76
+    dens = (env + 0.55 * (n - 0.5) + 0.45 * (fine - 0.5) * np.clip(1.2 - env, 0, 1)) * edge
+    dens *= np.clip((base - vw) / 0.035, 0, 1)
+    dens = np.clip(dens, 0, None)
+    depth = np.zeros_like(dens)
+    sx, sy = -0.5, -0.9
+    step = max(2, int(0.01 * w))
+    for i in range(1, 16):
+        ox, oy = int(round(sx * step * i)), int(round(sy * step * i))
+        sh = np.roll(np.roll(dens, -oy, axis=0), -ox, axis=1)
+        depth += sh * (1.0 - i / 18)
+    light = np.exp(-0.3 * depth)
+    ambient = 0.62 + 0.38 * np.clip(1 - vw / base, 0, 1)
+    alpha = np.clip(dens / 0.18, 0, 1) ** 1.1
+    lit = np.array([1.0, 1.0, 0.985], np.float32)
+    shade = np.array([0.60, 0.67, 0.79], np.float32)
+    k = np.clip(0.35 + 0.9 * light * ambient, 0, 1)[..., None]
+    rgb = shade + (lit - shade) * k
+    rim = np.clip(1 - alpha, 0, 1) * np.clip(light, 0, 1)
+    rgb = np.clip(rgb + 0.1 * rim[..., None], 0, 1)
     out = np.zeros((h, w, 4), np.uint8)
     out[..., :3] = np.clip(rgb * alpha[..., None] * 255, 0, 255)
     out[..., 3] = np.clip(alpha * 255, 0, 255)
