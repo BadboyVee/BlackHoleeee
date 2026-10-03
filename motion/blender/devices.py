@@ -60,14 +60,14 @@ def reset(w_mm, h_mm, samples=96, px=PX):
     L.new(tc.outputs["Generated"], sep.inputs["Vector"])
     ramp = N.new("ShaderNodeValToRGB")
     e = ramp.color_ramp.elements
-    e[0].position, e[0].color = 0.35, (0.02, 0.02, 0.025, 1)
-    e[1].position, e[1].color = 0.75, (0.55, 0.56, 0.6, 1)
+    e[0].position, e[0].color = 0.30, (0.20, 0.21, 0.23, 1)           # a light room, so aluminium reads as silver
+    e[1].position, e[1].color = 0.75, (0.85, 0.86, 0.90, 1)
     mr = N.new("ShaderNodeMapRange")
     mr.inputs["From Min"].default_value = -1.0
     L.new(sep.outputs["Z"], mr.inputs["Value"])
     L.new(mr.outputs["Result"], ramp.inputs["Fac"])
     L.new(ramp.outputs["Color"], N["Background"].inputs["Color"])
-    N["Background"].inputs["Strength"].default_value = 0.6
+    N["Background"].inputs["Strength"].default_value = 0.8
 
 
 def softbox(name, loc, rot, radiance, size, sy=None):
@@ -196,7 +196,7 @@ def phone():
         btn.data.materials.append(titanium)
     # the studio: a long soft strip high on the left that runs down the band, a key, a kicker on the right
     softbox("strip", (-90, 40, 160), (0, -30, 0), 9.0, 40, 400)
-    softbox("key", (60, 120, 220), (-25, 15, 0), 4.0, 160)
+    softbox("key", (60, 120, 220), (-25, 15, 0), 4.0, 160).visible_glossy = False   # no hard edge in the glass
     softbox("kick", (140, -60, 60), (40, 60, 0), 5.0, 60, 300)
     ortho_camera(w, h)
     write_rects("phone", {"body": [(-PHONE_W / 2, -PHONE_H / 2, 0), (PHONE_W / 2, PHONE_H / 2, 0)]})
@@ -240,7 +240,7 @@ def laptop():
         o.location = (0, LAP_H / 2 * math.sin(lean), LAP_H / 2 * math.cos(lean))
     for o in base:
         o.location = (o.location.x, -deck_d / 2 - 2.0 + o.location.y, o.location.z - 1.0)
-    softbox("key", (-160, -260, 320), (40, 0, -20), 3.0, 300)
+    softbox("key", (-160, -260, 320), (40, 0, -20), 3.0, 300).visible_glossy = False
     softbox("strip", (200, -200, 120), (60, 0, 35), 6.0, 60, 500)
     softbox("top", (0, 80, 420), (0, 0, 0), 2.0, 400, 200)
     ortho_camera(w, h, tilt=90 - tilt, target=(0, -12, LAP_H * 0.40))

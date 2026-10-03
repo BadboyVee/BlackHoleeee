@@ -71,8 +71,17 @@ def sunset():
     hsv[..., 1] = np.clip(hsv[..., 1] * 1.12, 0, 1)
     hsv[..., 2] = np.clip((hsv[..., 2] - 0.5) * 1.1 + 0.5, 0, 1)
     rgb = cv2.cvtColor(hsv, cv2.COLOR_HSV2RGB)
+    # the glow of the low sun in the haze, as a lens sees it: a hot core and a wide warm bloom, screened over
+    yy, xx = np.mgrid[0:PH, 0:PW].astype(np.float32)
+    d = np.hypot(xx - SUN_XY[0], (yy - SUN_XY[1]) * 1.15)
+    glow = (np.exp(-(d / 75.0) ** 2)[..., None] * np.array([1.0, 0.92, 0.72], np.float32) * 0.7
+            + np.exp(-(d / 430.0) ** 1.3)[..., None] * np.array([1.0, 0.52, 0.2], np.float32) * 0.26)
+    rgb = 1 - (1 - rgb) * (1 - np.clip(glow, 0, 1))
     out = np.concatenate([rgb, np.ones_like(rgb[..., :1])], -1)
     return _image(np.clip(out * 255 + 0.5, 0, 255).astype(np.uint8))
+
+
+SUN_XY = (1224.0, 568.0)                # where the sun's disc sits in the sunset plate
 
 
 @lru_cache(maxsize=None)

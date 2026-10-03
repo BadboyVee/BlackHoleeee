@@ -243,9 +243,9 @@ def sunset():
     N, L = disc.node_tree.nodes, disc.node_tree.links
     em = N.new("ShaderNodeEmission")
     em.inputs["Color"].default_value = (1.0, 0.72, 0.38, 1)
-    em.inputs["Strength"].default_value = 6.0
+    em.inputs["Strength"].default_value = 16.0
     L.new(em.outputs["Emission"], N["Material Output"].inputs["Surface"])
-    bpy.ops.mesh.primitive_uv_sphere_add(radius=60, location=(120, 4000, 150))
+    bpy.ops.mesh.primitive_uv_sphere_add(radius=34, location=(120, 4000, 150))   # small and hot, so the sea glitters
     bpy.context.object.data.materials.append(disc)
     bpy.ops.object.shade_smooth()
     # the sea: small waves in the bump, glossy, so the sun lays a road of light across it
@@ -256,18 +256,32 @@ def sunset():
     b.inputs["Base Color"].default_value = (0.01, 0.015, 0.03, 1)
     b.inputs["Roughness"].default_value = 0.05
     b.inputs["Specular IOR Level"].default_value = 0.7
+    # waves: three trains of noise at different sizes and headings, summed so the slopes spread like a real sea's
+    # and the road of light fades out at its sides instead of stopping
     tex = N.new("ShaderNodeTexCoord")
-    mapn = N.new("ShaderNodeMapping")
-    mapn.inputs["Scale"].default_value = (1.0, 4.0, 1.0)
-    L.new(tex.outputs["Object"], mapn.inputs["Vector"])
-    wave = N.new("ShaderNodeTexNoise")
-    wave.inputs["Scale"].default_value = 0.9
-    wave.inputs["Detail"].default_value = 10.0
-    wave.inputs["Roughness"].default_value = 0.62
-    L.new(mapn.outputs["Vector"], wave.inputs["Vector"])
+    height = None
+    for scale, stretch, turn, amp in ((0.6, 3.5, 0.0, 1.0), (2.3, 3.0, 4.0, 0.5), (8.0, 2.5, -3.0, 0.35)):
+        mapn = N.new("ShaderNodeMapping")
+        mapn.inputs["Scale"].default_value = (1.0, stretch, 1.0)
+        mapn.inputs["Rotation"].default_value = (0, 0, math.radians(turn))
+        L.new(tex.outputs["Object"], mapn.inputs["Vector"])
+        wave = N.new("ShaderNodeTexNoise")
+        wave.inputs["Scale"].default_value = scale
+        wave.inputs["Detail"].default_value = 4.0
+        L.new(mapn.outputs["Vector"], wave.inputs["Vector"])
+        k = N.new("ShaderNodeMath")
+        k.operation = "MULTIPLY_ADD"
+        k.inputs[1].default_value = amp
+        L.new(wave.outputs["Fac"], k.inputs[0])
+        if height is None:
+            k.inputs[2].default_value = 0.0
+        else:
+            L.new(height, k.inputs[2])
+        height = k.outputs[0]
+    b.inputs["Roughness"].default_value = 0.03
     bump = N.new("ShaderNodeBump")
-    bump.inputs["Strength"].default_value = 0.55
-    L.new(wave.outputs["Fac"], bump.inputs["Height"])
+    bump.inputs["Strength"].default_value = 0.3
+    L.new(height, bump.inputs["Height"])
     L.new(bump.outputs["Normal"], b.inputs["Normal"])
     bpy.ops.mesh.primitive_plane_add(size=12000, location=(0, 0, 0))
     bpy.context.object.data.materials.append(m)
@@ -280,6 +294,8 @@ def sunset():
     X, Y, Zh = heightfield(120, 1400, 5, [(0, 0, 220, 70), (260, 90, 170, 46), (-240, 60, 150, 30)])
     terrain_mesh("headland", X - 1500, Y + 3300, Zh - 6, land)
     camera((0, -10, 2.6), (0, 400, 4.5), lens=38)
+    bpy.context.scene.cycles.use_denoising = False          # the denoiser would melt the glitter into a smear
+    bpy.context.scene.cycles.samples = 24 if PREVIEW else 256
     bpy.context.scene.render.filepath = os.path.join(OUT, "sunset.png")
     bpy.ops.render.render(write_still=True)
 
