@@ -3,13 +3,14 @@
 
 - Keeps one paragraph-settings block (<a:pPr>) per paragraph. pptxgenjs writes one before
   every text run, which the schema forbids and PowerPoint 2013 may reject.
-- Adds a Push transition to every slide (or a Fade, with --transition fade).
+- Adds a Push transition to every slide, or the transitions --transition names: one for every
+  slide, or a comma-separated list used slide by slide (fade, push, wipe, split, cover).
 - Adds entrance animations from the plan build_deck.js wrote (deck.anim.json). Objects that
   share a step appear together. Step 1 starts by itself when the slide appears, and each
   later step starts when the one before it ends ("After Previous"), so nothing needs a
   click. Moving to the next slide still takes a click.
 
-Usage: python finish_deck.py deck.pptx plan.json out.pptx [--transition push|fade]
+Usage: python finish_deck.py deck.pptx plan.json out.pptx [--transition fade,push,...]
 """
 import argparse
 import json
@@ -28,7 +29,14 @@ EFFECTS = {
     "wipe-up": (22, 4, "wipe(up)"),        # Wipe, From Bottom
 }
 CHART_URI = "http://schemas.openxmlformats.org/drawingml/2006/chart"
-TRANSITIONS = {"push": '<p:push dir="u"/>', "fade": "<p:fade/>"}
+# transition -> its PowerPoint XML (Transitions tab, with the effect option noted)
+TRANSITIONS = {
+    "fade": "<p:fade/>",                               # Fade, Smoothly
+    "push": '<p:push dir="u"/>',                       # Push, From Bottom
+    "wipe": '<p:wipe dir="r"/>',                       # Wipe, From Left
+    "split": '<p:split orient="vert" dir="out"/>',     # Split, Vertical Out
+    "cover": '<p:cover dir="l"/>',                     # Cover, From Right
+}
 
 
 def single_ppr(root):
@@ -135,6 +143,10 @@ def set_transition_and_timing(sld, timing_el, transition):
 
 
 def main(deck, plan_path, out, transition="push"):
+    transitions = transition.split(",")
+    unknown = [t for t in transitions if t not in TRANSITIONS]
+    if unknown:
+        sys.exit(f"unknown transition(s) {unknown}; choose from {', '.join(TRANSITIONS)}")
     prs = Presentation(deck)
     with open(plan_path) as fh:
         plan = json.load(fh)
@@ -148,9 +160,9 @@ def main(deck, plan_path, out, transition="push"):
         if entries:
             timing_el, steps, shapes = timing(slide, entries)
             animated += shapes
-        set_transition_and_timing(slide._element, timing_el, transition)
+        set_transition_and_timing(slide._element, timing_el, transitions[(number - 1) % len(transitions)])
     prs.save(out)
-    print(f"{transition} transition on {len(prs.slides)} slides, {animated} shapes animated, "
+    print(f"{transition} transitions on {len(prs.slides)} slides, {animated} shapes animated, "
           f"{dropped} duplicate paragraph blocks removed -> {out}")
 
 
@@ -159,6 +171,8 @@ if __name__ == "__main__":
     ap.add_argument("deck")
     ap.add_argument("plan", help="the animation plan (JSON); {} for none")
     ap.add_argument("out")
-    ap.add_argument("--transition", choices=sorted(TRANSITIONS), default="push")
+    ap.add_argument("--transition", default="push",
+                    help=f"one transition for every slide, or a comma-separated list used slide by slide "
+                         f"(repeating): {', '.join(TRANSITIONS)}")
     args = ap.parse_args()
     main(args.deck, args.plan, args.out, args.transition)

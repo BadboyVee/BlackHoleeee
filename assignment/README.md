@@ -4,11 +4,12 @@
 |---|---|
 | [Student_Test_Results.xlsx](Student_Test_Results.xlsx) | The test results of 25 students in 7 subjects, with the grade of each subject. Opens in Excel 2013 and later. |
 | [Relative_Interest_Pie_Chart.xlsx](Relative_Interest_Pie_Chart.xlsx) | The relative-interest observations from Task 1 and their pie chart. Opens in Excel 2013 and later. |
-| [Relative_Interest_Pie_Chart.pptx](Relative_Interest_Pie_Chart.pptx) | A 6-slide presentation built around the pie chart. Opens in PowerPoint 2013 and later. |
+| [Relative_Interest_Pie_Chart.pptx](Relative_Interest_Pie_Chart.pptx) | A short, plain 5-slide presentation with the pie chart. Opens in PowerPoint 2013 and later. |
 | [src/](src/) | The scripts that build all three files. |
 
-The workbooks use Office 2013's default look (the Office theme and Calibri), with dark blue
-header rows and orange highlights. The deck has its own navy and orange theme, also in Calibri.
+All three use Office 2013's default look (the Office theme and Calibri). The test results
+workbook has dark blue header rows and orange highlights. The pie chart workbook and the
+presentation are black, grey and white.
 
 ## Test results
 
@@ -56,29 +57,26 @@ The pie chart shows the relative-interest observations from Market Research Lab 
 | Generative AI & Prompt Engineering | 13 | 4 | 11% |
 | Web Development | 13 | 4 | 11% |
 
-Each programme has its own colour: orange for Cybersecurity, the top programme, then blue,
-green, violet and plum. Each slice shows its share of the total in white. The colours were
-checked with a colour-blindness simulation: neighbouring slices, including the last and the
-first, stay easy to tell apart, and all five colours carry white text.
+The slices go from black for Cybersecurity, the top programme, to light grey, with white lines
+between them. Each slice shows its share of the total, and the legend names the programmes.
 
 ## The presentation
 
-The deck uses PowerPoint 2013's widescreen size with a navy and orange theme. Each programme
-keeps its colour and its icon on every slide.
+The deck is plain and simple, as if made in PowerPoint 2013 with its standard layouts. The
+first and last slides have a black background with white text, and the others are black on
+white.
 
-| Slide | What it shows |
-|---|---|
-| 1. Title | The title, with the five programmes' icons in a ring (navy background) |
-| 2. How the Data Was Collected | The tool, location, time period and measure, and the five programmes |
-| 3. Cybersecurity Leads Search Interest | The pie chart, the headline figure (36%), and a key with each programme's score and share |
-| 4. Two Programmes Draw Almost Two-Thirds of Interest | What the chart shows, programme by programme |
-| 5. What This Means for Promotion | Three recommendations, beside the two leading shares |
-| 6. Thank You | Questions (navy background) |
+| Slide | What it shows | Transition |
+|---|---|---|
+| 1. Relative Interest in Digital Skills Programmes | The title | Fade |
+| 2. Relative-Interest Observations | The table of average scores and ranks | Push |
+| 3. Relative Interest by Programme | The pie chart | Wipe |
+| 4. Observations | What the chart shows, in short sentences | Split |
+| 5. Thank You | Any questions? | Cover |
 
-The pie chart is a real PowerPoint chart with the same colours and labels as the Excel chart.
-Its data sits in an embedded workbook (right-click the chart, then Edit Data). The slide
-titles, footer and slide numbers come from the slide layouts. Every slide has speaker notes
-and a Fade transition.
+The pie chart is a real PowerPoint chart with the same shades and labels as the Excel chart.
+Its data sits in an embedded workbook (right-click the chart, then Edit Data). Every slide has
+short speaker notes.
 
 Every part of all three files is checked against the Office Open XML schemas that Office 2013
 follows.
@@ -88,10 +86,9 @@ the slide in PowerPoint and press Ctrl+V.
 
 ## Rebuilding
 
-Run `src/build.sh`. It needs Python with openpyxl, python-pptx and lxml; Node with the
-packages in `src/package.json` (run `npm install` in `src/` first); and LibreOffice, which
-calculates the formulas so previewers show the results. The deck's figures are read from the
-finished workbook, so the two always agree. The build reuses `../pz-analysis/src/office2013.py`
-for the workbooks' Office 2013 theme, and the chart clean-up, finishing and validation scripts in
-`../marketing-budget/src`. Set `SCHEMA_DIR` to the ISO/IEC 29500 transitional schemas to check
+Run `src/build.sh`. It needs Python with openpyxl, python-pptx, XlsxWriter and lxml, and
+LibreOffice, which calculates the formulas so previewers show the results. The deck's figures
+are read from the finished workbook, so the two always agree. The build reuses
+`../pz-analysis/src/office2013.py` for the Office 2013 theme and slide template, and the chart
+clean-up, transition and validation scripts in `../marketing-budget/src`. Set `SCHEMA_DIR` to the ISO/IEC 29500 transitional schemas to check
 every part of the three files against them.

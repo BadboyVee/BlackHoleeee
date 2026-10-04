@@ -6,8 +6,7 @@
 - PROGRAMMES: the relative-interest observations from Market Research Lab Task 1: each
   programme's average Google Trends interest (0 to 100; Nigeria, past 12 months), read off the
   "Interest over time" chart, so approximate.
-- SLICES: each programme's colour, used for its pie slice in Excel and PowerPoint and for its
-  icon on the slides.
+- SLICES: each programme's shade of grey, used for its pie slice in Excel and PowerPoint.
 """
 
 SUBJECTS = ["Mathematics", "English Language", "Physics", "Chemistry", "Biology", "Economics",
@@ -78,13 +77,11 @@ PROGRAMMES = [
 ]
 SOURCE = "Google Trends, Nigeria, past 12 months (28 September 2025 to 28 September 2026)"
 
-# One colour per programme, in the order above: orange (the deck's accent) for the top
-# programme, then blue, green, violet and plum. Written as hex so the chart keeps its colours
-# wherever it is pasted. Checked with the data-viz palette validator (OKLab, Machado 2009
-# colour-blindness simulation): neighbouring slices, the last and first included, stay apart
-# for protan and deutan viewers (worst pair Delta E 8.3) and with full colour vision (18.7), and
-# every colour carries white text at 4.3:1 or more.
-SLICES = ["C55A11", "2A78D6", "0F8A5F", "4A3AA7", "B03A8C"]
+# One shade per programme, in the order above, from black for the top programme to light grey:
+# Black, Text 1 (000000); Black, Text 1, Lighter 25% (404040) and Lighter 50% (7F7F7F); White,
+# Background 1, Darker 35% (A6A6A6) and Darker 15% (D9D9D9). Written as hex so the chart keeps
+# its colours wherever it is pasted.
+SLICES = ["000000", "404040", "7F7F7F", "A6A6A6", "D9D9D9"]
 
 
 def share(score):

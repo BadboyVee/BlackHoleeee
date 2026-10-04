@@ -13,11 +13,11 @@
    Task 1 (Google Trends), with each programme's rank (RANK) and share of the total, and a pie
    chart of them, ready to copy into PowerPoint.
 
-Both use the Office 2013 theme, Calibri 11 and Excel 2013's default chart style, with dark blue
-("Blue, Accent 1, Darker 50%") header rows and orange ("Orange, Accent 2, Darker 25%") for F9
-grades and the largest slice. Only functions that exist in Excel 2013 are used. The student
-names and scores are sample data: type over them and every grade, total, average, position and
-count updates.
+Both use the Office 2013 theme, Calibri 11 and Excel 2013's default chart style. The test
+results have dark blue ("Blue, Accent 1, Darker 50%") header rows and orange ("Orange, Accent 2,
+Darker 25%") F9 grades; the pie chart workbook is black and grey, like the slides. Only
+functions that exist in Excel 2013 are used. The student names and scores are sample data: type
+over them and every grade, total, average, position and count updates.
 
 Usage: python build_workbooks.py results.xlsx interest.xlsx
 """
@@ -55,6 +55,8 @@ results_path, interest_path = sys.argv[1:3]
 NAVY = Color(theme=4, tint=-0.499984740745262)      # "Blue, Accent 1, Darker 50%"    1F4E79
 ORANGE = Color(theme=5, tint=-0.249977111117893)    # "Orange, Accent 2, Darker 25%"  C55A11
 WHITE = Color(theme=0)                              # "White, Background 1"
+BLACK = Color(theme=1)                              # "Black, Text 1"
+HEADER = NAVY         # the header and title colour; the pie chart workbook uses BLACK
 MUTED = "595959"                                    # Excel 2013's chart text grey
 thin = Side(style="thin", color=Color(theme=0, tint=-0.249977111117893))   # White, Background 1, Darker 25%
 BOX = Border(left=thin, right=thin, top=thin, bottom=thin)                  # Home > Borders > All Borders
@@ -95,13 +97,13 @@ def span(ws, first, last, value, **kw):
 
 
 def head(ws, first, last, text, wrap=True):
-    """A header cell (or merged block): dark blue, white bold text."""
-    return span(ws, first, last, text, f=font(bold=True, color=WHITE), fill=NAVY, a=al(wrap=wrap))
+    """A header cell (or merged block): dark blue (black in the pie chart workbook), white bold text."""
+    return span(ws, first, last, text, f=font(bold=True, color=WHITE), fill=HEADER, a=al(wrap=wrap))
 
 
 def title(ws, last_col, text, subtitle):
     ws.merge_cells(f"A1:{last_col}1")
-    put(ws, "A1", text, f=font(14, bold=True, color=NAVY), a=al(), bd=None)
+    put(ws, "A1", text, f=font(14, bold=True, color=HEADER), a=al(), bd=None)
     ws.row_dimensions[1].height = 21
     ws.merge_cells(f"A2:{last_col}2")
     put(ws, "A2", subtitle, f=font(italic=True), a=al(), bd=None)
@@ -230,6 +232,7 @@ wb.save(results_path)
 print(f"wrote {results_path}")
 
 # ================================================================ 2. relative interest and pie chart
+HEADER = BLACK        # black and greys, like the slides
 wb = new_workbook("Relative-interest observations from Google Trends, with a pie chart")
 wb.properties.title = "Relative-Interest Observations"
 ws = wb.active
@@ -271,7 +274,7 @@ def chart_title(text):
 
 
 def slice_fill(colour):
-    """A slice in the programme's colour, edged in white as in Excel 2013's default pie style."""
+    """A slice in the programme's shade, edged in white as in Excel 2013's default pie style."""
     return GraphicalProperties(solidFill=colour, ln=LineProperties(solidFill="FFFFFF", w=19050))
 
 
@@ -283,16 +286,17 @@ pie.firstSliceAng = 0
 series = pie.series[0]
 for i, colour in enumerate(SLICES):
     series.dPt.append(DataPoint(idx=i, spPr=slice_fill(colour)))
-# Each slice shows its share of the total in white, inside the slice, as on the slide.
+# Each slice shows its share of the total in black, just outside the slice, as on the slide.
 pie.dataLabels = DataLabelList(showVal=False, showPercent=True, showCatName=False, showSerName=False,
-                               showLegendKey=False, showLeaderLines=False)
-pie.dataLabels.position = "inEnd"
-pie.dataLabels.txPr = rich(1100, "FFFFFF", bold=True)
+                               showLegendKey=False, showLeaderLines=True)
+pie.dataLabels.position = "outEnd"
+pie.dataLabels.txPr = rich(1100, "000000", bold=True)
 pie.legend.position = "r"
 pie.legend.txPr = rich(1000)
-# The pie on the left, under the title, with room for the legend on the right.
+# The pie on the left, under the title, with room for the labels around it and the legend on
+# the right.
 pie.layout = Layout(manualLayout=ManualLayout(layoutTarget="inner", xMode="edge", yMode="edge",
-                                              x=0.06, y=0.17, w=0.46, h=0.78))
+                                              x=0.09, y=0.21, w=0.41, h=0.7))
 pie.graphical_properties = GraphicalProperties(ln=LineProperties(solidFill="D9D9D9", w=9525))
 pie.width, pie.height = 16.5, 9.5
 ws.add_chart(pie, f"A{P_TOTAL + 2}")
