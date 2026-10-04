@@ -6,7 +6,8 @@
 - PROGRAMMES: the relative-interest observations from Market Research Lab Task 1: each
   programme's average Google Trends interest (0 to 100; Nigeria, past 12 months), read off the
   "Interest over time" chart, so approximate.
-- SLICES: each programme's shade of grey, used for its pie slice in Excel and PowerPoint.
+- SLICES: each programme's shade of grey in the workbook's pie chart (the decks' palettes are
+  in build_deck.py).
 """
 
 SUBJECTS = ["Mathematics", "English Language", "Physics", "Chemistry", "Biology", "Economics",
@@ -77,11 +78,12 @@ PROGRAMMES = [
 ]
 SOURCE = "Google Trends, Nigeria, past 12 months (28 September 2025 to 28 September 2026)"
 
-# One shade per programme, in the order above, from black for the top programme to light grey:
-# Black, Text 1 (000000); Black, Text 1, Lighter 25% (404040) and Lighter 50% (7F7F7F); White,
-# Background 1, Darker 35% (A6A6A6) and Darker 15% (D9D9D9). Written as hex so the chart keeps
-# its colours wherever it is pasted.
-SLICES = ["000000", "404040", "7F7F7F", "A6A6A6", "D9D9D9"]
+# One shade of grey per programme, in the order above, as in the Marketing Budget deck's pie:
+# neighbouring slices far apart in lightness. Black, Text 1, Lighter 15% (262626); White,
+# Background 1, Darker 35% (A6A6A6); Black, Text 1, Lighter 35% (595959); White, Background 1,
+# Darker 15% (D9D9D9); Black, Text 1, Lighter 50% (7F7F7F). Written as hex so the chart keeps its
+# colours wherever it is pasted.
+SLICES = ["262626", "A6A6A6", "595959", "D9D9D9", "7F7F7F"]
 
 
 def share(score):

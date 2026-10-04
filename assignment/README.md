@@ -4,12 +4,14 @@
 |---|---|
 | [Student_Test_Results.xlsx](Student_Test_Results.xlsx) | The test results of 25 students in 7 subjects, with the grade of each subject. Opens in Excel 2013 and later. |
 | [Relative_Interest_Pie_Chart.xlsx](Relative_Interest_Pie_Chart.xlsx) | The relative-interest observations from Task 1 and their pie chart. Opens in Excel 2013 and later. |
-| [Relative_Interest_Pie_Chart.pptx](Relative_Interest_Pie_Chart.pptx) | A short, plain 5-slide presentation with the pie chart. Opens in PowerPoint 2013 and later. |
+| [Relative_Interest_Pie_Chart_Marketing.pptx](Relative_Interest_Pie_Chart_Marketing.pptx) | The 5-slide presentation in the Marketing Budget deck's colours. Opens in PowerPoint 2013 and later. |
+| [Relative_Interest_Pie_Chart_PZ.pptx](Relative_Interest_Pie_Chart_PZ.pptx) | The same presentation in the PZ Nigeria deck's wood design. |
+| [Relative_Interest_Pie_Chart_Mixed.pptx](Relative_Interest_Pie_Chart_Mixed.pptx) | The same presentation with both palettes mixed. |
 | [src/](src/) | The scripts that build all three files. |
 
-All three use Office 2013's default look (the Office theme and Calibri). The test results
-workbook has dark blue header rows and orange highlights. The pie chart workbook and the
-presentation are black, grey and white.
+The workbooks use Office 2013's default look (the Office theme and Calibri). The test results
+workbook has dark blue header rows and orange highlights; the pie chart workbook is black, grey
+and white, like the Marketing Budget deck's charts.
 
 ## Test results
 
@@ -57,28 +59,37 @@ The pie chart shows the relative-interest observations from Market Research Lab 
 | Generative AI & Prompt Engineering | 13 | 4 | 11% |
 | Web Development | 13 | 4 | 11% |
 
-The slices go from black for Cybersecurity, the top programme, to light grey, with white lines
-between them. Each slice shows its share of the total, and the legend names the programmes.
+The slices are in shades of grey, with neighbouring slices far apart in lightness and white
+lines between them, as in the Marketing Budget deck. Each slice shows its share of the total,
+and the legend names the programmes.
 
-## The presentation
+## The presentations
 
-The deck is plain and simple, as if made in PowerPoint 2013 with its standard layouts. The
-first and last slides have a black background with white text, and the others are black on
-white.
+The presentation comes in three colour palettes. The slides are the same in all three, simple,
+as if made in PowerPoint 2013, and each slide has a transition:
 
 | Slide | What it shows | Transition |
 |---|---|---|
-| 1. Relative Interest in Digital Skills Programmes | The title | Fade |
+| 1. Relative Interest | The title | Fade |
 | 2. Relative-Interest Observations | The table of average scores and ranks | Push |
-| 3. Relative Interest by Programme | The pie chart | Wipe |
+| 3. Relative Interest by Programme | The pie chart, with a key giving each programme's score and share | Wipe |
 | 4. Observations | What the chart shows, in short sentences | Split |
 | 5. Thank You | Any questions? | Cover |
 
-The pie chart is a real PowerPoint chart with the same shades and labels as the Excel chart.
-Its data sits in an embedded workbook (right-click the chart, then Edit Data). Every slide has
-short speaker notes.
+| Version | Palette |
+|---|---|
+| Marketing | The Marketing Budget deck's: Arial, dark-blue titles over a dark-blue line, a thin light-blue frame, light-blue boxes, and the pie chart in black and greys |
+| PZ | The PZ Nigeria deck's wood design: a wood background with white cards and a thin orange border, two dark straps on the first and last slides, Rockwell type, orange-brown lines and table headers, and the pie chart in browns and oranges |
+| Mixed | Both together: the wood title and closing slides, and white content slides with dark-blue titles, orange lines, peach and light-blue boxes, and a navy, orange and grey pie chart |
 
-Every part of all three files is checked against the Office Open XML schemas that Office 2013
+Each deck's theme carries its palette and fonts, so PowerPoint's colour lists (Shape Fill, Font
+Color) offer the same colours. The wood background is a picture drawn by `src/make_wood.py`.
+The PZ and Mixed versions use the Rockwell fonts that come with Office.
+
+The pie chart is a real PowerPoint chart. Its data sits in an embedded workbook (right-click
+the chart, then Edit Data). Every slide has short speaker notes.
+
+Every part of every file is checked against the Office Open XML schemas that Office 2013
 follows.
 
 To copy the chart from Excel yourself, click the chart's border and press Ctrl+C. Then go to
@@ -88,7 +99,8 @@ the slide in PowerPoint and press Ctrl+V.
 
 Run `src/build.sh`. It needs Python with openpyxl, python-pptx, XlsxWriter and lxml, and
 LibreOffice, which calculates the formulas so previewers show the results. The deck's figures
-are read from the finished workbook, so the two always agree. The build reuses
+are read from the finished workbook, so they always agree. It needs numpy and Pillow for the
+wood picture. The build reuses
 `../pz-analysis/src/office2013.py` for the Office 2013 theme and slide template, and the chart
 clean-up, transition and validation scripts in `../marketing-budget/src`. Set `SCHEMA_DIR` to the ISO/IEC 29500 transitional schemas to check
 every part of the three files against them.
