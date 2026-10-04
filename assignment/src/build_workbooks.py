@@ -21,13 +21,8 @@ count updates.
 
 Usage: python build_workbooks.py results.xlsx interest.xlsx
 """
-import re
-import shutil
 import sys
-import tempfile
-import zipfile
 
-from lxml import etree
 from openpyxl import Workbook
 from openpyxl.chart import PieChart, Reference
 from openpyxl.chart.label import DataLabelList
@@ -36,7 +31,6 @@ from openpyxl.chart.series import DataPoint
 from openpyxl.chart.shapes import GraphicalProperties
 from openpyxl.chart.text import RichText, Text
 from openpyxl.chart.title import Title
-from openpyxl.drawing.colors import ColorChoice, SchemeColor
 from openpyxl.drawing.line import LineProperties
 from openpyxl.drawing.text import (
     CharacterProperties,
@@ -276,18 +270,9 @@ def chart_title(text):
     return Title(tx=Text(rich=RichText(p=[para])), overlay=False)
 
 
-def slice_fill(accent, brightness):
-    """A slice in a theme colour with PowerPoint's Lighter/Darker setting, edged in white as in
-    Excel 2013's default pie style."""
-    if brightness < 0:
-        colour = SchemeColor(val=accent, lumMod=round((1 + brightness) * 100000))
-    elif brightness > 0:
-        colour = SchemeColor(val=accent, lumMod=round((1 - brightness) * 100000),
-                             lumOff=round(brightness * 100000))
-    else:
-        colour = SchemeColor(val=accent)
-    return GraphicalProperties(solidFill=ColorChoice(schemeClr=colour),
-                               ln=LineProperties(solidFill=ColorChoice(schemeClr=SchemeColor(val="bg1")), w=19050))
+def slice_fill(colour):
+    """A slice in the programme's colour, edged in white as in Excel 2013's default pie style."""
+    return GraphicalProperties(solidFill=colour, ln=LineProperties(solidFill="FFFFFF", w=19050))
 
 
 pie = PieChart()
@@ -296,44 +281,20 @@ pie.add_data(Reference(ws, min_col=2, min_row=4, max_row=P_LAST), titles_from_da
 pie.set_categories(Reference(ws, min_col=1, min_row=P_FIRST, max_row=P_LAST))
 pie.firstSliceAng = 0
 series = pie.series[0]
-for i, (accent, brightness) in enumerate(SLICES):
-    series.dPt.append(DataPoint(idx=i, spPr=slice_fill(accent, brightness)))
-# Each slice shows its score and its share of the total, outside the pie.
-pie.dataLabels = DataLabelList(showVal=True, showPercent=True, showCatName=False, showSerName=False,
-                               showLegendKey=False, showLeaderLines=True, separator="\n")
-pie.dataLabels.position = "outEnd"
-pie.dataLabels.txPr = rich(1000, "404040", bold=True)
+for i, colour in enumerate(SLICES):
+    series.dPt.append(DataPoint(idx=i, spPr=slice_fill(colour)))
+# Each slice shows its share of the total in white, inside the slice, as on the slide.
+pie.dataLabels = DataLabelList(showVal=False, showPercent=True, showCatName=False, showSerName=False,
+                               showLegendKey=False, showLeaderLines=False)
+pie.dataLabels.position = "inEnd"
+pie.dataLabels.txPr = rich(1100, "FFFFFF", bold=True)
 pie.legend.position = "r"
 pie.legend.txPr = rich(1000)
-# Leave room for the labels around the pie and the legend on the right.
+# The pie on the left, under the title, with room for the legend on the right.
 pie.layout = Layout(manualLayout=ManualLayout(layoutTarget="inner", xMode="edge", yMode="edge",
-                                              x=0.07, y=0.2, w=0.42, h=0.7))
+                                              x=0.06, y=0.17, w=0.46, h=0.78))
 pie.graphical_properties = GraphicalProperties(ln=LineProperties(solidFill="D9D9D9", w=9525))
 pie.width, pie.height = 16.5, 9.5
 ws.add_chart(pie, f"A{P_TOTAL + 2}")
 wb.save(interest_path)
-
-
-def fix_separators(path):
-    """openpyxl writes a data label separator as <c:separator val="..."/> after
-    <c:showLeaderLines>; the chart schema wants the text inside the element, before it."""
-    c = "{http://schemas.openxmlformats.org/drawingml/2006/chart}"
-    with zipfile.ZipFile(path) as zin, tempfile.NamedTemporaryFile(suffix=".xlsx", delete=False) as tmp:
-        with zipfile.ZipFile(tmp, "w", zipfile.ZIP_DEFLATED) as zout:
-            for info in zin.infolist():
-                data = zin.read(info.filename)
-                if re.fullmatch(r"xl/charts/chart\d+\.xml", info.filename):
-                    root = etree.fromstring(data)
-                    for sep in list(root.iter(f"{c}separator")):
-                        if "val" in sep.attrib:
-                            sep.text = sep.attrib.pop("val")
-                        leader = sep.getparent().find(f"{c}showLeaderLines")
-                        if leader is not None:
-                            leader.addprevious(sep)
-                    data = etree.tostring(root, xml_declaration=True, encoding="UTF-8", standalone=True)
-                zout.writestr(info, data)
-    shutil.move(tmp.name, path)
-
-
-fix_separators(interest_path)
 print(f"wrote {interest_path}")

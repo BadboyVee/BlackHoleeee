@@ -6,9 +6,8 @@
 - PROGRAMMES: the relative-interest observations from Market Research Lab Task 1: each
   programme's average Google Trends interest (0 to 100; Nigeria, past 12 months), read off the
   "Interest over time" chart, so approximate.
-- SLICES: the pie chart's slice colours, picked from the Office 2013 theme palette as
-  (theme colour, PowerPoint's Lighter/Darker setting): orange for the top programme, then
-  dark to light blue.
+- SLICES: each programme's colour, used for its pie slice in Excel and PowerPoint and for its
+  icon on the slides.
 """
 
 SUBJECTS = ["Mathematics", "English Language", "Physics", "Chemistry", "Biology", "Economics",
@@ -79,11 +78,13 @@ PROGRAMMES = [
 ]
 SOURCE = "Google Trends, Nigeria, past 12 months (28 September 2025 to 28 September 2026)"
 
-SLICES = [("accent2", -0.25),   # Orange, Accent 2, Darker 25%   C55A11
-          ("accent1", -0.5),    # Blue, Accent 1, Darker 50%     1F4E79
-          ("accent1", -0.25),   # Blue, Accent 1, Darker 25%     2E75B6
-          ("accent1", 0),       # Blue, Accent 1                 5B9BD5
-          ("accent1", 0.4)]     # Blue, Accent 1, Lighter 40%    9DC3E6
+# One colour per programme, in the order above: orange (the deck's accent) for the top
+# programme, then blue, green, violet and plum. Written as hex so the chart keeps its colours
+# wherever it is pasted. Checked with the data-viz palette validator (OKLab, Machado 2009
+# colour-blindness simulation): neighbouring slices, the last and first included, stay apart
+# for protan and deutan viewers (worst pair Delta E 8.3) and with full colour vision (18.7), and
+# every colour carries white text at 4.3:1 or more.
+SLICES = ["C55A11", "2A78D6", "0F8A5F", "4A3AA7", "B03A8C"]
 
 
 def share(score):

@@ -3,14 +3,15 @@
 
 - Keeps one paragraph-settings block (<a:pPr>) per paragraph. pptxgenjs writes one before
   every text run, which the schema forbids and PowerPoint 2013 may reject.
-- Adds a Push transition to every slide.
+- Adds a Push transition to every slide (or a Fade, with --transition fade).
 - Adds entrance animations from the plan build_deck.js wrote (deck.anim.json). Objects that
   share a step appear together. Step 1 starts by itself when the slide appears, and each
   later step starts when the one before it ends ("After Previous"), so nothing needs a
   click. Moving to the next slide still takes a click.
 
-Usage: python finish_deck.py deck.pptx plan.json out.pptx
+Usage: python finish_deck.py deck.pptx plan.json out.pptx [--transition push|fade]
 """
+import argparse
 import json
 import sys
 from collections import defaultdict
@@ -27,6 +28,7 @@ EFFECTS = {
     "wipe-up": (22, 4, "wipe(up)"),        # Wipe, From Bottom
 }
 CHART_URI = "http://schemas.openxmlformats.org/drawingml/2006/chart"
+TRANSITIONS = {"push": '<p:push dir="u"/>', "fade": "<p:fade/>"}
 
 
 def single_ppr(root):
@@ -118,11 +120,11 @@ def timing(slide, plan):
     return etree.fromstring(xml), len(steps), len(plan)
 
 
-def set_transition_and_timing(sld, timing_el):
+def set_transition_and_timing(sld, timing_el, transition):
     for tag in ("p:transition", "p:timing"):
         for old in sld.findall(qn(tag)):
             sld.remove(old)
-    trans = etree.fromstring(f'<p:transition {nsdecls("p")} spd="med"><p:push dir="u"/></p:transition>')
+    trans = etree.fromstring(f'<p:transition {nsdecls("p")} spd="med">{TRANSITIONS[transition]}</p:transition>')
     # CT_Slide order: cSld, clrMapOvr, transition, timing, extLst
     anchor = sld.find(qn("p:clrMapOvr"))
     if anchor is None:
@@ -132,7 +134,7 @@ def set_transition_and_timing(sld, timing_el):
         trans.addnext(timing_el)
 
 
-def main(deck, plan_path, out):
+def main(deck, plan_path, out, transition="push"):
     prs = Presentation(deck)
     with open(plan_path) as fh:
         plan = json.load(fh)
@@ -146,11 +148,17 @@ def main(deck, plan_path, out):
         if entries:
             timing_el, steps, shapes = timing(slide, entries)
             animated += shapes
-        set_transition_and_timing(slide._element, timing_el)
+        set_transition_and_timing(slide._element, timing_el, transition)
     prs.save(out)
-    print(f"push transition on {len(prs.slides)} slides, {animated} shapes animated, "
+    print(f"{transition} transition on {len(prs.slides)} slides, {animated} shapes animated, "
           f"{dropped} duplicate paragraph blocks removed -> {out}")
 
 
 if __name__ == "__main__":
-    main(*sys.argv[1:4])
+    ap = argparse.ArgumentParser(description="Clean paragraphs, add transitions and automatic animations.")
+    ap.add_argument("deck")
+    ap.add_argument("plan", help="the animation plan (JSON); {} for none")
+    ap.add_argument("out")
+    ap.add_argument("--transition", choices=sorted(TRANSITIONS), default="push")
+    args = ap.parse_args()
+    main(args.deck, args.plan, args.out, args.transition)
