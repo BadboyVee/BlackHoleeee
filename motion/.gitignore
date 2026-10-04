@@ -18,9 +18,8 @@ out/devday.mp4
 # VEEE carries the reference spot's own soundtrack, supplied for it, so its render stays local too
 out/veee.mp4
 # HORIZON, SPARKS and TOMO carry their reference spots' own soundtracks, so their renders stay local too; their
-# Blender plates and sprites are rebuilt by the scripts in blender/
+# Blender plates and sprites are kept (out/plates/), so the films rebuild without rendering them again
 out/horizon.mp4
 out/claude-code.mp4
 out/sparks.mp4
 out/tomo.mp4
-out/plates/
