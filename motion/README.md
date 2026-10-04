@@ -1,16 +1,25 @@
 # Motion — every frame is code
 
-Three motion-design films at 60 fps, written entirely in Python. No editor, no stock footage, no samples:
-pictures are drawn with [skia-python](https://github.com/kyamagu/skia-python), the 3D is rendered
-with Blender's Cycles through the `bpy` module, and every sound is synthesised with numpy.
+Motion-design films at 60 fps, written entirely in Python. No editor, no stock footage: pictures are drawn with
+[skia-python](https://github.com/kyamagu/skia-python), the 3D is rendered with Blender's Cycles through the `bpy`
+module, and every sound is synthesised with numpy, except where a film is cut to a reference soundtrack that was
+supplied for it.
 
 | Film | Format | Tempo | File |
 | --- | --- | --- | --- |
 | **THE FRONTIER** — Astra 6 · Gemini 3.8 · Fable 5.1 | 26.4 s, 1920×1080 | 150 BPM, F minor | [out/the-frontier.mp4](out/the-frontier.mp4) |
 | **DARIO AMODEI**, a tribute | 32.8 s, 1920×1080 | 120 BPM, B minor → D major | [out/dario-amodei-tribute.mp4](out/dario-amodei-tribute.mp4) |
 | **INTERFACE** — Fable 5.1 answers, on one board | 25 s, 1440×1440 | 120 BPM, F♯ minor | [out/interface.mp4](out/interface.mp4) |
+| **ARNAUD'S**, a concept spot (and its intro alone) | 27.5 s (4.5 s), 1920×1080 | 120 BPM, F, jazz-pop | [out/arnauds.mp4](out/arnauds.mp4) · [intro](out/arnauds_intro.mp4) |
+| **AGI WEEK**, the last week of September (and an earlier cut) | 20.8 s (35.3 s), 1920×1080 | the reference clip's | [out/agiweek.mp4](out/agiweek.mp4) · [earlier cut](out/agiweek_preview.mp4) |
+| **DEVDAY 2026**, twenty product launches | 51.6 s, 1920×1080 | 120 BPM, the teaser's | [out/devday.mp4](out/devday.mp4) |
+| **HORIZON**, your AI-race intelligence | 53 s, 1920×1080 | 112.5 BPM, the reference film's | [out/horizon.mp4](out/horizon.mp4) |
+| **SPARKS**, always-on Claude agents (a fan concept) | 49.6 s, 1920×1080 | the reference film's | [out/sparks.mp4](out/sparks.mp4) |
+| **TOMO**, a home robot | 15 s, 1920×1080 | 123 BPM, the reference ad's | [out/tomo.mp4](out/tomo.mp4) |
+| **VEEE**, the studio spot (replaced by TOMO) | 15 s, 1920×1080 | 123 BPM, the reference ad's | [out/veee.mp4](out/veee.mp4) |
 
-**▶ [Watch them](https://badboyvee.github.io/BlackHoleeee/motion/)** · [the prompts](PROMPTS.md)
+**▶ [Watch them](https://badboyvee.github.io/BlackHoleeee/motion/)** · [the prompts](PROMPTS.md) · [the chat](CHAT.md), every
+request in order · [references/](references/), every video and image sent with them
 
 ## THE FRONTIER
 
@@ -46,7 +55,7 @@ light, closing on his portrait.
 
 The finale uses a portrait when `photos/dario.jpg` is present (the published render uses one supplied for it);
 chapter 04 can show the Anthropic office from `photos/anthropic-hq.jpg`. Photos are rendered in the film's
-duotone and are git-ignored: see [photos/README.md](photos/README.md).
+duotone and kept in `photos/`: see [photos/README.md](photos/README.md).
 
 ## INTERFACE
 
@@ -95,7 +104,7 @@ signature and MADE BY VEEE the maker's mark.
 The soundtrack is a 120 BPM jazz-pop groove in F with a sound for every event, from each prop knocking onto the
 table and the fruit popping up the scale to the printer, the till and the stamp. The receipt shows no dish prices
 (the published menu could not be checked for this render). The photographs (`photos/arnauds/pizza.jpg`,
-`sushi.jpg`, `ramen.jpg`, `dining.jpg`) were supplied for the render and are not in the repository. Fan-made; not
+`sushi.jpg`, `ramen.jpg`, `dining.jpg`) were supplied for the render and are kept with it. Fan-made; not
 affiliated with Arnaud's.
 
 ## AGI WEEK, the last week of September
@@ -119,7 +128,7 @@ Each lab is drawn in its own product's look and type: Google Sans for Google and
 Inter for ChatGPT. The cuts follow the reference's edit on its sound, the wordmarks flash on its clicks, and the
 sparkle opens on its drop. The Claude, Gemini, Meta and X marks are Simple Icons paths; OpenAI's is the engine's;
 the Grok mark and Google's G are drawn. The founders' photographs and the reference clip's sound
-(`photos/agiweek/`) were supplied for the render and are not in the repository. Fan-made; not affiliated with any
+(`photos/agiweek/`) were supplied for the render and are kept with it. Fan-made; not affiliated with any
 of the companies shown.
 
 ## DEVDAY 2026, twenty product launches
@@ -148,7 +157,7 @@ the next. The sound is the teaser's soundtrack and nothing else, cut on its bar 
 beats of clicks twice under *Introducing…*, its opening as it is, its four bars looped under the team, the 78
 countries, Dots and the launches, its last bar and its long low note, held a little longer, at the end. Type is Geist,
 with Geist Mono for the labels; the maker's mark is Archivo. The teaser's sound and the team's photographs, which
-the user supplied (`photos/devday/`), are not in the repository; anyone without a photograph there is shown by
+the user supplied (`photos/devday/`), are kept with it; anyone without a photograph there is shown by
 initials.
 
 ## TOMO, a home robot
@@ -170,8 +179,7 @@ lit by the film on the visor itself, at the points the render measured, so they 
 | 13.4–15 s | The wordmark | white opens from its eyes, *tomo* drops in letter by letter with Tomo peeking over it: *The home robot that helps.*, *Reserve yours*, ships 2027, and the specs |
 
 Type is Geist with Geist Mono for the corners, Instrument Serif italic for the word each line turns on, and Fraunces
-for the wordmark. The reference ad's sound, which the user supplied (`photos/tomo/`), is not in the repository, so
-the render stays local.
+for the wordmark. The reference ad's sound, which the user supplied, is kept in `photos/tomo/`.
 
 ## HORIZON, your AI-race intelligence
 
@@ -204,8 +212,7 @@ titanium and aluminium rendered from the front with their screens cut out, so th
 behind the glass; the wildflowers and long grass in front of the lens in the meadow (`blender/meadow.py`) are
 rendered wide open, in bokeh; the sea at sunset is a glossy plane under a painted dusk. The film grades the plates
 vivid (the greens pushed toward a sunlit yellow-green) and moves over them in 2D. Type is Inter, light for what is
-said. The reference film's sound, which the user supplied (`photos/horizon/`), is not in the repository, so the
-render stays local.
+said. The reference film's sound, which the user supplied, is kept in `photos/horizon/`.
 
 ## SPARKS, a fan concept
 
@@ -231,7 +238,7 @@ its shadow on its own, so they can hop off the floor and land on it again; the f
 | 45.5–49.6 s | sparks | *Your time, back.* and the small print: a fan concept, not affiliated with Anthropic |
 
 Type is Inter, black weight, tightly tracked, with small grey captions. The reference film's sound, which the user
-supplied (`photos/sparks/`), is not in the repository, so the render stays local.
+supplied, is kept in `photos/sparks/`.
 
 ## How it is built
 
