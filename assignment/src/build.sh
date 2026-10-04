@@ -55,6 +55,8 @@ for style in marketing pz mixed; do
     --transition fade,push,wipe,split,cover
   DECKS+=("$deck")
 done
+# Every text box must fit its text, measured with fonts as wide as Office's (Calibri, Cambria).
+python3 "$HERE/check_fit.py" "${DECKS[@]}"
 
 # 4. Strict schema check of every file (SCHEMA_DIR: the ISO/IEC 29500 transitional schemas).
 if [ -n "${SCHEMA_DIR:-}" ]; then

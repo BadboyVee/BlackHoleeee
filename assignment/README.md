@@ -78,13 +78,17 @@ as if made in PowerPoint 2013, and each slide has a transition:
 
 | Version | Palette |
 |---|---|
-| Marketing | The Marketing Budget deck's: Arial, dark-blue titles over a dark-blue line, a thin light-blue frame, light-blue boxes, and the pie chart in black and greys |
-| PZ | The PZ Nigeria deck's wood design: a wood background with white cards and a thin orange border, two dark straps on the first and last slides, Rockwell type, orange-brown lines and table headers, and the pie chart in browns and oranges |
+| Marketing | The Marketing Budget deck's: dark-blue titles over a dark-blue line, a thin light-blue frame, light-blue boxes, and the pie chart in black and greys |
+| PZ | The PZ Nigeria deck's wood design: a wood background with white cards and a thin orange border, two dark straps on the first and last slides, orange-brown lines and table headers, and the pie chart in browns and oranges |
 | Mixed | Both together: the wood title and closing slides, and white content slides with dark-blue titles, orange lines, peach and light-blue boxes, and a navy, orange and grey pie chart |
+
+The text is in Calibri, with titles in Calibri Bold (Marketing) or Cambria Bold (PZ and Mixed).
+Both fonts come with Office, so the slides look the same on any computer with PowerPoint. The
+build checks that every text box fits its text (`src/check_fit.py`), measuring the words with
+fonts exactly as wide as Calibri and Cambria.
 
 Each deck's theme carries its palette and fonts, so PowerPoint's colour lists (Shape Fill, Font
 Color) offer the same colours. The wood background is a picture drawn by `src/make_wood.py`.
-The PZ and Mixed versions use the Rockwell fonts that come with Office.
 
 The pie chart is a real PowerPoint chart. Its data sits in an embedded workbook (right-click
 the chart, then Edit Data). Every slide has short speaker notes.

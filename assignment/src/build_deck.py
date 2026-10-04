@@ -4,11 +4,11 @@ would be in PowerPoint 2013.
 
 Usage: python build_deck.py deck_data.json template.pptx wood.jpg STYLE out.pptx
   STYLE is one of:
-  marketing  the palette of the Marketing Department Budget deck: Arial, dark-blue (1F3864)
+  marketing  the palette of the Marketing Department Budget deck: Calibri, dark-blue (1F3864)
              titles over a dark-blue line, a thin light-blue frame round each slide, light-blue
              (DEEBF7) boxes, and the pie chart in black and greys.
   pz         the palette of the PZ Nigeria Limited deck (PowerPoint's wood design): a wood
-             background (make_wood.py), white cards with a thin orange border, Rockwell type,
+             background (make_wood.py), white cards with a thin orange border, Cambria titles,
              orange-brown (C55A11) lines and table headers, and the pie chart in browns and
              oranges.
   mixed      both together: the wood title and closing slides of the PZ deck, and white
@@ -16,7 +16,8 @@ Usage: python build_deck.py deck_data.json template.pptx wood.jpg STYLE out.pptx
              a navy, orange and grey pie chart.
 
 All three have the same five simple slides: 1. title, 2. the scores, 3. the pie chart,
-4. observations, 5. thank you. deck_data.json comes from export_deck_data.py, which reads the
+4. observations, 5. thank you. Text is in Office's own fonts, Calibri, with Cambria titles in the
+pz and mixed styles; check_fit.py confirms every text box fits its text. deck_data.json comes from export_deck_data.py, which reads the
 scores, ranks and shares out of the finished Relative_Interest_Pie_Chart.xlsx, so the slides
 match the workbook. The deck's theme carries the style's colours and fonts, so PowerPoint's
 colour palette (Shape Fill, Font Color) offers them. build.sh then gives each slide its
@@ -49,8 +50,8 @@ TABLE_GRID = "{5940675A-B579-460E-94D1-54222C63F5DA}"   # PowerPoint's "No Style
 STYLES = {
     "marketing": {
         "palette": None,                                 # the Office 2013 colours, as that deck
-        "head_font": "Arial", "body_font": "Arial",
-        "title_size": 36, "title_bold": True, "title_caps": False, "title_shadow": False,
+        "head_font": "Calibri", "body_font": "Calibri",
+        "title_size": 36, "card_caps": False, "card_shadow": False,
         "title": "1F3864", "text": "000000", "muted": "404040", "names": "000000",
         "rule": "1F3864", "frame": "8FAADC", "wood": (), "cards": False,
         "head_fill": "1F3864", "band": "DEEBF7", "grid": "BFBFBF", "box": "DEEBF7",
@@ -60,8 +61,8 @@ STYLES = {
         "palette": ("PZ Wood", {"dk2": "4E3B30", "lt2": "F2E6D9", "accent1": "C55A11", "accent2": "6B3A1E",
                                 "accent3": "BF8F00", "accent4": "A0662F", "accent5": "F4B183",
                                 "accent6": "7F7F7F", "hlink": "C55A11", "folHlink": "6B3A1E"}),
-        "head_font": "Rockwell Condensed", "body_font": "Rockwell",
-        "title_size": 40, "title_bold": False, "title_caps": True, "title_shadow": True,
+        "head_font": "Cambria", "body_font": "Calibri",
+        "title_size": 36, "card_caps": True, "card_shadow": True,
         "title": "3F3F3F", "text": "3B2A20", "muted": "5E4B3F", "names": "6B3A1E",
         "rule": "C55A11", "frame": None, "wood": ("title", "content", "end"), "cards": True,
         "head_fill": "C55A11", "band": "FBE5D6", "grid": "D9C3A5", "box": "FBE5D6",
@@ -71,8 +72,8 @@ STYLES = {
         "palette": ("Navy and Wood", {"dk2": "1F3864", "lt2": "DEEBF7", "accent1": "1F3864", "accent2": "C55A11",
                                       "accent3": "9DC3E6", "accent4": "F4B183", "accent5": "7F7F7F",
                                       "accent6": "6B3A1E", "hlink": "2E75B6", "folHlink": "7F7F7F"}),
-        "head_font": "Rockwell Condensed", "body_font": "Arial",
-        "title_size": 40, "title_bold": False, "title_caps": True, "title_shadow": False,
+        "head_font": "Cambria", "body_font": "Calibri",
+        "title_size": 36, "card_caps": True, "card_shadow": False,
         "title": "1F3864", "text": "000000", "muted": "404040", "names": "1F3864",
         "rule": "C55A11", "frame": "F4B183", "wood": ("title", "end"), "cards": False,
         "head_fill": "1F3864", "band": "FBE5D6", "grid": "BFBFBF", "box": "DEEBF7",
@@ -190,7 +191,8 @@ def place(shape, x, y, w, h):
 
 # ------------------------------------------------------------------ slide frames
 def caps(text):
-    return text.upper() if S["title_caps"] else text
+    """The first and last slides' titles: capitals on the wood cards, as in the PZ deck."""
+    return text.upper() if S["card_caps"] else text
 
 
 def title_card(slide, title, lines):
@@ -208,8 +210,8 @@ def title_card(slide, title, lines):
         for shape in reversed((card, border)):
             to_back(shape)
         place(head, Inches(2.25), Inches(2.5), W - Inches(4.5), Inches(1.1))
-        write(head.text_frame, [caps(title)], size=50, colour=S["title"], font=S["head_font"],
-              bold=S["title_bold"], align=PP_ALIGN.CENTER, shadow=S["title_shadow"])
+        write(head.text_frame, [caps(title)], size=48, colour=S["title"], font=S["head_font"],
+              bold=True, align=PP_ALIGN.CENTER, shadow=S["card_shadow"])
         rule(slide, Inches(3.2), W - Inches(3.2), Inches(3.75), S["rule"])
         place(sub, Inches(2.3), Inches(3.9), W - Inches(4.6), Inches(1.55))
         write(sub.text_frame, lines, size=24, colour=S["text"], align=PP_ALIGN.CENTER, after=6)
@@ -217,8 +219,8 @@ def title_card(slide, title, lines):
     else:
         frame(slide)
         place(head, Inches(0.8), Inches(2.15), W - Inches(1.6), Inches(1.1))
-        write(head.text_frame, [caps(title)], size=44, colour=S["title"], font=S["head_font"],
-              bold=S["title_bold"], align=PP_ALIGN.CENTER)
+        write(head.text_frame, [caps(title)], size=48, colour=S["title"], font=S["head_font"],
+              bold=True, align=PP_ALIGN.CENTER)
         rule(slide, Inches(2.5), W - Inches(2.5), Inches(3.45), S["rule"])
         place(sub, Inches(0.8), Inches(3.65), W - Inches(1.6), Inches(2.4))
         write(sub.text_frame, lines, size=28, colour=S["text"], align=PP_ALIGN.CENTER, after=14)
@@ -245,8 +247,8 @@ def content(slide, title, subtitle):
     else:
         frame(slide)
     place(head, Inches(0.8), Inches(0.55), W - Inches(1.6), Inches(0.8))
-    write(head.text_frame, [caps(title)], size=S["title_size"], colour=S["title"], font=S["head_font"],
-          bold=S["title_bold"], align=PP_ALIGN.CENTER, shadow=S["title_shadow"])
+    write(head.text_frame, [title], size=S["title_size"], colour=S["title"], font=S["head_font"], bold=True,
+          align=PP_ALIGN.CENTER)
     head.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
     rule(slide, Inches(1.0), W - Inches(1.0), Inches(1.42), S["rule"])
     textbox(slide, Inches(0.8), Inches(1.5), W - Inches(1.6), Inches(0.45), [subtitle], size=18, colour=S["muted"],
@@ -371,8 +373,8 @@ for i, (p, colour) in enumerate(zip(P, S["pie"])):
     y = top + Inches(0.25) + Inches(0.86) * i
     rect(s, Inches(7.85), y + Inches(0.06), Inches(0.28), Inches(0.28), fill=colour, line=S["key_line"], width=0.75)
     key = textbox(s, Inches(8.25), y - Inches(0.04), Inches(4.5), Inches(0.82),
-                  [[(p["name"], True)], f"Score {p['score']}  ·  {pct(p['share'])}"], size=15, colour=S["text"])
-    key.text_frame.paragraphs[1].runs[0].font.size = Pt(14)
+                  [[(p["name"], True)], f"Score {p['score']}  ·  {pct(p['share'])}"], size=16, colour=S["text"])
+    key.text_frame.paragraphs[1].runs[0].font.size = Pt(15)
 textbox(s, Inches(1.0), H - Inches(0.8), W - Inches(2.0), Inches(0.3),
         ["Source: Google Trends, Nigeria, past 12 months (28 September 2025 to 28 September 2026)."],
         size=12, colour=S["muted"], align=PP_ALIGN.CENTER)
@@ -399,7 +401,8 @@ write(body.text_frame, [
     [name(lowest[0]), (" and ", False), name(lowest[1]),
      (f" had the lowest interest, with {pct(lowest[0]['share'])} each.", False)],
     [(f"This means {P[0]['name']} and {P[1]['name']} should be promoted first.", False)],
-], size=22, colour=S["text"], after=10)
+], size=24, colour=S["text"], after=10)
+body.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE     # the sentences centred in their box
 for para in body.text_frame.paragraphs:                 # programme names in the style's colour
     for run in para.runs:
         if run.font.bold:
