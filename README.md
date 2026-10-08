@@ -29,6 +29,11 @@ A procedural BMW M5 CS model rendered in a studio lighting setup.
 
 **▶ [View it](https://badboyvee.github.io/BlackHoleeee/bmw-m5-cs/)** · [source](bmw-m5-cs/)
 
+## Notes
+
+[`video-craft/`](video-craft/) holds how the films here are made: a [playbook](video-craft/PLAYBOOK.md),
+frame-by-frame studies of reference films, and the [tools](video-craft/tools/) that measure them.
+
 ## Hosting
 
 `netlify.toml` publishes `bmw-m5-cs/` as the Netlify site root. GitHub Pages serves the whole

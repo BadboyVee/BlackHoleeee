@@ -1,0 +1,982 @@
+{
+ "source": {
+  "title": "Tender launch film (\"Introducing Tender\")",
+  "file": "VID-20261008-WA0039.mp4 (WhatsApp copy)",
+  "duration_s": 30.883,
+  "video": "1280x720, 25 fps, H.264 High, ~4.95 Mbps, 772 frames",
+  "audio": "AAC LC 44.1 kHz stereo 255 kbps"
+ },
+ "music": {
+  "bpm": 124.582,
+  "beat_s": 0.48161,
+  "bar_s": 1.9264,
+  "meter": "4/4",
+  "key": "F major (bass holds F throughout)",
+  "downbeats_s": [
+   0.104,
+   2.03,
+   3.957,
+   5.883,
+   7.81,
+   9.736,
+   11.663,
+   13.589,
+   15.516,
+   17.442,
+   19.368,
+   21.295,
+   23.221,
+   25.148,
+   27.074,
+   29.001,
+   30.927
+  ],
+  "bars_in_film": 16,
+  "grid_fit": "locked to claps (beats 2 & 4), residual 2.8 ms rms",
+  "groove": "claps on 2 and 4; kick/808 on 16ths 0, 3, 6, 10 (1, a-of-1, and-of-2, and-of-3); off-beat hats; long sub tails with sidechain pump",
+  "arrangement": {
+   "bars_1_2": "intro, no sub/bass, ~12 dB quieter, syncopated chord stabs; build-up hits from 2.6 s",
+   "bar_3": "drop: sub +44 dB, loudest bar",
+   "bars_4_7": "groove",
+   "bar_8": "brighter riser (centroid ~3 kHz), stutter hits at 14.54/14.66/14.79/15.02 s, 0.36 s near-silent gap before bar 9",
+   "bars_9_15": "groove",
+   "bar_16": "closing riser, final hits 29.96 and 30.06 s, music stops at ~30.56 s before bar 17"
+  },
+  "loudness": {
+   "integrated_lufs": -11.4,
+   "lra_lu": 2.3,
+   "true_peak_dbfs": 0.3
+  }
+ },
+ "shots": [
+  {
+   "frames": [
+    0,
+    13
+   ],
+   "t": [
+    0.0,
+    0.56
+   ],
+   "bar": 1,
+   "kind": "type",
+   "what": "Logo mark (black, centred) on white"
+  },
+  {
+   "frames": [
+    14,
+    20
+   ],
+   "t": [
+    0.56,
+    0.84
+   ],
+   "bar": 1,
+   "kind": "type",
+   "what": "\"Introducing\" - serif, centred"
+  },
+  {
+   "frames": [
+    21,
+    32
+   ],
+   "t": [
+    0.84,
+    1.32
+   ],
+   "bar": 1,
+   "kind": "type",
+   "what": "\"Tender\""
+  },
+  {
+   "frames": [
+    33,
+    44
+   ],
+   "t": [
+    1.32,
+    1.8
+   ],
+   "bar": 1,
+   "kind": "type",
+   "what": "\"Any coin\""
+  },
+  {
+   "frames": [
+    45,
+    50
+   ],
+   "t": [
+    1.8,
+    2.04
+   ],
+   "bar": 1,
+   "kind": "type",
+   "what": "\"in.\""
+  },
+  {
+   "frames": [
+    51,
+    97
+   ],
+   "t": [
+    2.04,
+    3.92
+   ],
+   "bar": 2,
+   "kind": "type->3D",
+   "what": "\"One asset out.\" holds 1 beat, then accelerating 3D dive (x8.4 zoom, +62 deg roll); the O becomes a 3D ring/lens with echo trails"
+  },
+  {
+   "frames": [
+    98,
+    115
+   ],
+   "t": [
+    3.92,
+    4.64
+   ],
+   "bar": 3,
+   "kind": "3D",
+   "what": "DROP. Morph cut into lens macro; decelerating pull-back reveals graphite phone back, echo trails"
+  },
+  {
+   "frames": [
+    116,
+    127
+   ],
+   "t": [
+    4.64,
+    5.12
+   ],
+   "bar": 3,
+   "kind": "3D",
+   "what": "Whip to phone edge/corner, black on white"
+  },
+  {
+   "frames": [
+    128,
+    145
+   ],
+   "t": [
+    5.12,
+    5.84
+   ],
+   "bar": 3,
+   "kind": "3D+type",
+   "what": "Light-streak wipe reveals camera module; \"Scan with any camera\" set on an arc, word by word (light grey -> black); accelerating push into the lens"
+  },
+  {
+   "frames": [
+    146,
+    192
+   ],
+   "t": [
+    5.84,
+    7.72
+   ],
+   "bar": 4,
+   "kind": "3D+UI",
+   "what": "Sky time-lapse (day -> sunset -> night) behind a tilted phone; \"Always on. 24/7.\" on the phone plane; UI runs Pay -> BTC -> Slide to pay -> Paying -> Detected/Confirmed/Settled -> $49.00 Payment Settled! -> You just got paid; white-out with phones flying out"
+  },
+  {
+   "frames": [
+    193,
+    251
+   ],
+   "t": [
+    7.72,
+    10.08
+   ],
+   "bar": 5,
+   "kind": "3D+type",
+   "what": "White void, floating phones; \"30\" (beat 2) -> \"chains\" (beat 3) -> \"Accepted\" (beat 4) with letters coloured by what passes behind them"
+  },
+  {
+   "frames": [
+    252,
+    292
+   ],
+   "t": [
+    10.08,
+    11.72
+   ],
+   "bar": 6,
+   "kind": "3D",
+   "what": "Letters scatter as 3D glyphs; phones regroup (white, black, gold with X); dive toward a black phone showing Pay $49.00 + QR"
+  },
+  {
+   "frames": [
+    293,
+    332
+   ],
+   "t": [
+    11.72,
+    13.32
+   ],
+   "bar": 7,
+   "kind": "3D",
+   "what": "Three phones edge-on, crossed into an X (logo echo); ease-out zoom then slow drift"
+  },
+  {
+   "frames": [
+    333,
+    362
+   ],
+   "t": [
+    13.32,
+    14.52
+   ],
+   "bar": 8,
+   "kind": "3D",
+   "what": "Background white -> grey; accelerating push into the gold side rail; extreme macro of edges (cream/dark diagonal)"
+  },
+  {
+   "frames": [
+    363,
+    383
+   ],
+   "t": [
+    14.52,
+    15.36
+   ],
+   "bar": 8,
+   "kind": "strobe",
+   "what": "Strobe on stutter hits: white+diagonal line, black, white, black, gold #C68535, white"
+  },
+  {
+   "frames": [
+    384,
+    417
+   ],
+   "t": [
+    15.36,
+    16.72
+   ],
+   "bar": 9,
+   "kind": "type",
+   "what": "SECOND HALF. \"All new checkout design\" - words land one by one at scattered positions/sizes, camera zooms"
+  },
+  {
+   "frames": [
+    418,
+    423
+   ],
+   "t": [
+    16.72,
+    16.96
+   ],
+   "bar": 9,
+   "kind": "type",
+   "what": "\"Tender\" small, fading in"
+  },
+  {
+   "frames": [
+    424,
+    436
+   ],
+   "t": [
+    16.96,
+    17.48
+   ],
+   "bar": 9,
+   "kind": "brand",
+   "what": "\"Tender\" + logo tile on blurred bronze-gold gradient, then greys out"
+  },
+  {
+   "frames": [
+    437,
+    483
+   ],
+   "t": [
+    17.48,
+    19.36
+   ],
+   "bar": 10,
+   "kind": "3D+UI",
+   "what": "Symmetrical fan of 5 phones on white, each a different screen; ease-out zoom, drift, ease-in into a whip"
+  },
+  {
+   "frames": [
+    484,
+    531
+   ],
+   "t": [
+    19.36,
+    21.28
+   ],
+   "bar": 11,
+   "kind": "UI+type",
+   "what": "Black. \"One QR, every chain.\" left; checkout QR cycles chains (BTC, SOL, USDT, USDC, ETH) on 8th notes with glitch swaps; QR shatters into gold-rimmed shards"
+  },
+  {
+   "frames": [
+    532,
+    578
+   ],
+   "t": [
+    21.28,
+    23.16
+   ],
+   "bar": 12,
+   "kind": "UI",
+   "what": "Native iOS camera: menu collapses to viewfinder, QR detected (yellow brackets + \"tenderr.xyz\" pill), zoom into pill"
+  },
+  {
+   "frames": [
+    579,
+    591
+   ],
+   "t": [
+    23.16,
+    23.68
+   ],
+   "bar": 13,
+   "kind": "UI",
+   "what": "Merchant payments list (All / Paid / Seen on chain / Needs recovery) - filter pill moves"
+  },
+  {
+   "frames": [
+    592,
+    606
+   ],
+   "t": [
+    23.68,
+    24.28
+   ],
+   "bar": 13,
+   "kind": "UI",
+   "what": "Chain checklist - rows check one by one (press-lift then fill black)"
+  },
+  {
+   "frames": [
+    607,
+    612
+   ],
+   "t": [
+    24.28,
+    24.52
+   ],
+   "bar": 13,
+   "kind": "UI+3D",
+   "what": "Lock-screen notification \"You just got paid - $49.00\" over the black Tender card (gold rim light)"
+  },
+  {
+   "frames": [
+    613,
+    622
+   ],
+   "t": [
+    24.52,
+    24.92
+   ],
+   "bar": 13,
+   "kind": "UI",
+   "what": "Home screen pull-back from Settings icon to grid with the Tender app"
+  },
+  {
+   "frames": [
+    623,
+    674
+   ],
+   "t": [
+    24.92,
+    27.0
+   ],
+   "bar": 14,
+   "kind": "UI",
+   "what": "App-open zoom into assistant: peach gradient, mascot, \"Good afternoon\"; types \"How much have I been paid?\"; send; answer card \"$1,284.50 this week, from 38 payments.\""
+  },
+  {
+   "frames": [
+    675,
+    723
+   ],
+   "t": [
+    27.0,
+    28.96
+   ],
+   "bar": 15,
+   "kind": "type",
+   "what": "\"Scan.\" / \"Send.\" (grey) / \"Settled.\" - mask-rise reveals; Settled flips bold sans -> gold mono caps -> serif"
+  },
+  {
+   "frames": [
+    724,
+    747
+   ],
+   "t": [
+    28.96,
+    29.92
+   ],
+   "bar": 16,
+   "kind": "type",
+   "what": "\"That's\" (beat 1) \"Tender.\" gold gradient (beat 2) - mask-rise"
+  },
+  {
+   "frames": [
+    748,
+    750
+   ],
+   "t": [
+    29.92,
+    30.04
+   ],
+   "bar": 16,
+   "kind": "brand",
+   "what": "Logo mark on white"
+  },
+  {
+   "frames": [
+    751,
+    753
+   ],
+   "t": [
+    30.04,
+    30.16
+   ],
+   "bar": 16,
+   "kind": "brand",
+   "what": "Inverse flash: white mark on #101010 (on the final hit)"
+  },
+  {
+   "frames": [
+    754,
+    759
+   ],
+   "t": [
+    30.16,
+    30.4
+   ],
+   "bar": 16,
+   "kind": "tag",
+   "what": "LIVE ON MONAD - 30 CHAINS (mono caps)"
+  },
+  {
+   "frames": [
+    760,
+    765
+   ],
+   "t": [
+    30.4,
+    30.64
+   ],
+   "bar": 16,
+   "kind": "tag",
+   "what": "ANY COIN IN. ONE ASSET OUT."
+  },
+  {
+   "frames": [
+    766,
+    771
+   ],
+   "t": [
+    30.64,
+    30.88
+   ],
+   "bar": 16,
+   "kind": "tag",
+   "what": "TENDERR.XYZ"
+  }
+ ],
+ "sync_events": [
+  {
+   "frame": 14,
+   "t": 0.56,
+   "bar": -1,
+   "beat": 1.95,
+   "nearest_beat": 0.586,
+   "offset_ms": -26,
+   "label": "\"Introducing\""
+  },
+  {
+   "frame": 21,
+   "t": 0.84,
+   "bar": -1,
+   "beat": 2.53,
+   "nearest_beat": 1.067,
+   "offset_ms": -227,
+   "label": "\"Tender\""
+  },
+  {
+   "frame": 33,
+   "t": 1.32,
+   "bar": -1,
+   "beat": 3.52,
+   "nearest_beat": 1.549,
+   "offset_ms": -229,
+   "label": "\"Any coin\""
+  },
+  {
+   "frame": 45,
+   "t": 1.8,
+   "bar": -1,
+   "beat": 4.52,
+   "nearest_beat": 2.03,
+   "offset_ms": -230,
+   "label": "\"in.\""
+  },
+  {
+   "frame": 51,
+   "t": 2.04,
+   "bar": 0,
+   "beat": 1.02,
+   "nearest_beat": 2.03,
+   "offset_ms": 10,
+   "label": "\"One asset out.\" appears"
+  },
+  {
+   "frame": 98,
+   "t": 3.92,
+   "bar": 0,
+   "beat": 4.92,
+   "nearest_beat": 3.957,
+   "offset_ms": -37,
+   "label": "morph cut: O-lens -> camera macro"
+  },
+  {
+   "frame": 146,
+   "t": 5.84,
+   "bar": 1,
+   "beat": 4.91,
+   "nearest_beat": 5.883,
+   "offset_ms": -43,
+   "label": "cut: lens -> sky/phone"
+  },
+  {
+   "frame": 193,
+   "t": 7.72,
+   "bar": 2,
+   "beat": 4.81,
+   "nearest_beat": 7.81,
+   "offset_ms": -90,
+   "label": "transition to white/floating phones"
+  },
+  {
+   "frame": 206,
+   "t": 8.24,
+   "bar": 3,
+   "beat": 1.89,
+   "nearest_beat": 8.291,
+   "offset_ms": -51,
+   "label": "\"30\" appears"
+  },
+  {
+   "frame": 218,
+   "t": 8.72,
+   "bar": 3,
+   "beat": 2.89,
+   "nearest_beat": 8.773,
+   "offset_ms": -53,
+   "label": "\"chains\""
+  },
+  {
+   "frame": 230,
+   "t": 9.2,
+   "bar": 3,
+   "beat": 3.89,
+   "nearest_beat": 9.255,
+   "offset_ms": -55,
+   "label": "\"Accepted\""
+  },
+  {
+   "frame": 293,
+   "t": 11.72,
+   "bar": 5,
+   "beat": 1.12,
+   "nearest_beat": 11.663,
+   "offset_ms": 57,
+   "label": "cut: phone edge-on/3 phones X"
+  },
+  {
+   "frame": 333,
+   "t": 13.32,
+   "bar": 5,
+   "beat": 4.44,
+   "nearest_beat": 13.108,
+   "offset_ms": 212,
+   "label": "bg white->grey begins"
+  },
+  {
+   "frame": 363,
+   "t": 14.52,
+   "bar": 6,
+   "beat": 2.93,
+   "nearest_beat": 14.552,
+   "offset_ms": -32,
+   "label": "flash: white+line"
+  },
+  {
+   "frame": 366,
+   "t": 14.64,
+   "bar": 6,
+   "beat": 3.18,
+   "nearest_beat": 14.552,
+   "offset_ms": 88,
+   "label": "flash: black"
+  },
+  {
+   "frame": 369,
+   "t": 14.76,
+   "bar": 6,
+   "beat": 3.43,
+   "nearest_beat": 14.552,
+   "offset_ms": 208,
+   "label": "flash: white"
+  },
+  {
+   "frame": 375,
+   "t": 15.0,
+   "bar": 6,
+   "beat": 3.93,
+   "nearest_beat": 15.034,
+   "offset_ms": -34,
+   "label": "flash: black"
+  },
+  {
+   "frame": 382,
+   "t": 15.28,
+   "bar": 6,
+   "beat": 4.51,
+   "nearest_beat": 15.516,
+   "offset_ms": -236,
+   "label": "flash: orange"
+  },
+  {
+   "frame": 383,
+   "t": 15.32,
+   "bar": 6,
+   "beat": 4.59,
+   "nearest_beat": 15.516,
+   "offset_ms": -196,
+   "label": "white"
+  },
+  {
+   "frame": 385,
+   "t": 15.4,
+   "bar": 6,
+   "beat": 4.76,
+   "nearest_beat": 15.516,
+   "offset_ms": -116,
+   "label": "\"All\""
+  },
+  {
+   "frame": 393,
+   "t": 15.72,
+   "bar": 7,
+   "beat": 1.42,
+   "nearest_beat": 15.516,
+   "offset_ms": 204,
+   "label": "\"new\""
+  },
+  {
+   "frame": 400,
+   "t": 16.0,
+   "bar": 7,
+   "beat": 2.01,
+   "nearest_beat": 15.997,
+   "offset_ms": 3,
+   "label": "\"checkout\""
+  },
+  {
+   "frame": 408,
+   "t": 16.32,
+   "bar": 7,
+   "beat": 2.67,
+   "nearest_beat": 16.479,
+   "offset_ms": -159,
+   "label": "\"design\""
+  },
+  {
+   "frame": 418,
+   "t": 16.72,
+   "bar": 7,
+   "beat": 3.5,
+   "nearest_beat": 16.96,
+   "offset_ms": -240,
+   "label": "\"Tender\" small"
+  },
+  {
+   "frame": 424,
+   "t": 16.96,
+   "bar": 7,
+   "beat": 4.0,
+   "nearest_beat": 16.96,
+   "offset_ms": 0,
+   "label": "Tender lockup on gold blur"
+  },
+  {
+   "frame": 437,
+   "t": 17.48,
+   "bar": 8,
+   "beat": 1.08,
+   "nearest_beat": 17.442,
+   "offset_ms": 38,
+   "label": "white + phone fan"
+  },
+  {
+   "frame": 484,
+   "t": 19.36,
+   "bar": 8,
+   "beat": 4.98,
+   "nearest_beat": 19.368,
+   "offset_ms": -8,
+   "label": "cut: black \"One QR, every chain.\""
+  },
+  {
+   "frame": 515,
+   "t": 20.6,
+   "bar": 9,
+   "beat": 3.56,
+   "nearest_beat": 20.813,
+   "offset_ms": -213,
+   "label": "QR shatter begins"
+  },
+  {
+   "frame": 532,
+   "t": 21.28,
+   "bar": 9,
+   "beat": 4.97,
+   "nearest_beat": 21.295,
+   "offset_ms": -15,
+   "label": "cut: camera UI"
+  },
+  {
+   "frame": 557,
+   "t": 22.28,
+   "bar": 10,
+   "beat": 3.05,
+   "nearest_beat": 22.258,
+   "offset_ms": 22,
+   "label": "QR detected pill \"tenderr.xyz\""
+  },
+  {
+   "frame": 579,
+   "t": 23.16,
+   "bar": 10,
+   "beat": 4.87,
+   "nearest_beat": 23.221,
+   "offset_ms": -61,
+   "label": "transition to payments list"
+  },
+  {
+   "frame": 592,
+   "t": 23.68,
+   "bar": 11,
+   "beat": 1.95,
+   "nearest_beat": 23.703,
+   "offset_ms": -23,
+   "label": "chain checklist"
+  },
+  {
+   "frame": 607,
+   "t": 24.28,
+   "bar": 11,
+   "beat": 3.2,
+   "nearest_beat": 24.185,
+   "offset_ms": 95,
+   "label": "notification on lock screen"
+  },
+  {
+   "frame": 613,
+   "t": 24.52,
+   "bar": 11,
+   "beat": 3.7,
+   "nearest_beat": 24.666,
+   "offset_ms": -146,
+   "label": "home screen (Settings icon)"
+  },
+  {
+   "frame": 623,
+   "t": 24.92,
+   "bar": 11,
+   "beat": 4.53,
+   "nearest_beat": 25.148,
+   "offset_ms": -228,
+   "label": "app open zoom"
+  },
+  {
+   "frame": 627,
+   "t": 25.08,
+   "bar": 11,
+   "beat": 4.86,
+   "nearest_beat": 25.148,
+   "offset_ms": -68,
+   "label": "assistant typing starts"
+  },
+  {
+   "frame": 662,
+   "t": 26.48,
+   "bar": 12,
+   "beat": 3.77,
+   "nearest_beat": 26.593,
+   "offset_ms": -113,
+   "label": "message sent (bubble)"
+  },
+  {
+   "frame": 667,
+   "t": 26.68,
+   "bar": 12,
+   "beat": 4.18,
+   "nearest_beat": 26.593,
+   "offset_ms": 87,
+   "label": "answer card"
+  },
+  {
+   "frame": 675,
+   "t": 27.0,
+   "bar": 12,
+   "beat": 4.85,
+   "nearest_beat": 27.074,
+   "offset_ms": -74,
+   "label": "cut: white \"Scan.\""
+  },
+  {
+   "frame": 689,
+   "t": 27.56,
+   "bar": 13,
+   "beat": 2.01,
+   "nearest_beat": 27.556,
+   "offset_ms": 4,
+   "label": "\"Send.\""
+  },
+  {
+   "frame": 701,
+   "t": 28.04,
+   "bar": 13,
+   "beat": 3.01,
+   "nearest_beat": 28.037,
+   "offset_ms": 3,
+   "label": "\"SETTLED\" scramble"
+  },
+  {
+   "frame": 724,
+   "t": 28.96,
+   "bar": 13,
+   "beat": 4.92,
+   "nearest_beat": 29.001,
+   "offset_ms": -41,
+   "label": "white"
+  },
+  {
+   "frame": 725,
+   "t": 29.0,
+   "bar": 13,
+   "beat": 5.0,
+   "nearest_beat": 29.001,
+   "offset_ms": -1,
+   "label": "\"That's\""
+  },
+  {
+   "frame": 737,
+   "t": 29.48,
+   "bar": 14,
+   "beat": 2.0,
+   "nearest_beat": 29.482,
+   "offset_ms": -2,
+   "label": "\"Tender.\" (orange)"
+  },
+  {
+   "frame": 748,
+   "t": 29.92,
+   "bar": 14,
+   "beat": 2.91,
+   "nearest_beat": 29.964,
+   "offset_ms": -44,
+   "label": "logo mark"
+  },
+  {
+   "frame": 751,
+   "t": 30.04,
+   "bar": 14,
+   "beat": 3.16,
+   "nearest_beat": 29.964,
+   "offset_ms": 76,
+   "label": "inverse flash (black logo)"
+  },
+  {
+   "frame": 754,
+   "t": 30.16,
+   "bar": 14,
+   "beat": 3.41,
+   "nearest_beat": 29.964,
+   "offset_ms": 196,
+   "label": "\"LIVE ON MONAD - 30 CHAINS\""
+  },
+  {
+   "frame": 760,
+   "t": 30.4,
+   "bar": 14,
+   "beat": 3.91,
+   "nearest_beat": 30.445,
+   "offset_ms": -45,
+   "label": "\"ANY COIN IN. ONE ASSET OUT.\""
+  },
+  {
+   "frame": 766,
+   "t": 30.64,
+   "bar": 14,
+   "beat": 4.4,
+   "nearest_beat": 30.445,
+   "offset_ms": 195,
+   "label": "\"TENDERR.XYZ\""
+  }
+ ],
+ "palette": {
+  "paper": "#FFFFFF",
+  "ink": "#111111",
+  "inverse_bg": "#101010",
+  "ui_black": "#0D0D0D",
+  "gold_gradient": [
+   "#9C6A2C",
+   "#C88B45"
+  ],
+  "gold_type_avg": "#BB823A",
+  "gold_flash_frame": "#C68535",
+  "gold_phone": "#C2996B",
+  "btc_orange_ui": "#E7962D",
+  "peach_assistant": [
+   "#E8B16B",
+   "#DFA156"
+  ],
+  "lockup_gradient": [
+   "#DA9B51",
+   "#E9C18B"
+  ],
+  "card_rim": "#8A5A28",
+  "studio_grey": "#989792",
+  "macro_cream": "#FBF7EB",
+  "macro_dark": "#2D2C2A",
+  "sky": {
+   "day": "#DBDCDC",
+   "sunset_band": "#D2AF8D",
+   "night": "#1D253C"
+  },
+  "ios_qr_yellow": "#F3DC2C"
+ },
+ "type_metrics_720p": {
+  "hero_serif": "cap height 42 px (5.8% of H) -> ~62 px font at 720p (~93 px at 1080p); centred at (50%, 50%)",
+  "logo_mark": "54x58 px (4.2% W, 8.1% H), centred",
+  "word_widths_pct_W": {
+   "Introducing": 23.7,
+   "Tender": 14.2,
+   "Any coin": 17.5,
+   "in.": 4.5,
+   "One asset out.": 27.3,
+   "That's Tender.": 20.6
+  },
+  "stack_Scan_Send_Settled": "left-aligned column at x = 36.3% W, block 14.5% W x 25.4% H, vertically centred",
+  "one_qr_line": "left-aligned at 5.9% W, two lines, vertically centred, white on black",
+  "end_tags_mono": "caps 20 px (2.8% H) ~ one third of the hero size, wide tracking, centred",
+  "all_new_checkout_design_final": "spans 73% W x 29% H, staggered baselines"
+ },
+ "motion": {
+  "grammar": "each bar: land on the downbeat moving fast and decelerating (expo-out), drift slowly while content plays, accelerate (expo-in) into the next downbeat",
+  "one_asset_out_dive": "static 12 frames, then per-frame zoom +1% -> +37%, total x8.4, roll +62 deg, ending on the bar-3 downbeat",
+  "lens_pullback_after_drop": "per-frame zoom -40.7, -24.8, -13.2, -13.4, -13.0, -5.2 ... -1.1% (expo-out)",
+  "three_phones": "+13% easing to +1.2%/frame, ~15-frame hold, then +1.4 -> +66% into the macro",
+  "phone_fan": "+16% easing to ~1.9%/frame, hold, then +3.6 -> +17.6% into a whip (total x6.9)",
+  "qr_swaps": "every 5-6 frames (8th notes) with a glitch frame",
+  "camera_ui_zoom_out": "static ~1.4 s, then +0.4 -> +13.9%/frame into the pill"
+ }
+}
