@@ -9,6 +9,8 @@ digital-skills training business, in Excel 2013's own style.
   score is =ROUND(interest/MAX(interest)*5,0); the weighted score is SUMPRODUCT of the weights
   and scores (out of 5), ranked with RANK; INDEX/MATCH names the most attractive segment. The
   reasons for each score are listed under the table, and a bar chart shows the weighted scores.
+- Research: desk research that backs up the Google Trends findings, with the segment each
+  finding supports, its source and a link.
 
 Office 2013 theme, Calibri 11, dark-blue header rows, and charts in grey with the leading bar in
 dark blue. Only functions that exist in Excel 2013 are used.
@@ -31,7 +33,7 @@ from openpyxl.utils.indexed_list import IndexedList
 from openpyxl.worksheet.page import PageMargins
 
 from office2013 import THEME_XML
-from segment_data import BASIS, BUSINESS, FACTORS, SCORES, SEGMENTS, SOURCE
+from segment_data import BASIS, BUSINESS, FACTORS, RESEARCH, SCORES, SEGMENTS, SOURCE
 
 NAVY = Color(theme=4, tint=-0.499984740745262)      # "Blue, Accent 1, Darker 50%"  1F4E79
 WHITE = Color(theme=0)
@@ -214,6 +216,29 @@ bars(ws, f"A{r + 3 + N}", "Weighted Attractiveness Score by Segment (out of 5)",
      Reference(ws, min_col=7, min_row=FIRST, max_row=LAST), Reference(ws, min_col=1, min_row=FIRST, max_row=LAST),
      "0.00", 5, totals.index(max(totals)))
 ws.freeze_panes = "B5"
+
+# ================================================================ 3. Research
+ws = wb.create_sheet("Research")
+page(ws, {"A": 6, "B": 62, "C": 20, "D": 34, "E": 24})
+titles(ws, "E", "DESK RESEARCH",
+       "Other research that backs up the Google Trends findings and the scores.",
+       f"Trends data: {SOURCE}. Web sources found on 8 October 2026; figures as the sources report them. "
+       "Click a link to open the source.")
+for col, text in zip("ABCDE", ("No.", "Finding", "Segment it supports", "Source", "Link")):
+    head(ws, f"{col}5", text)
+ws.row_dimensions[5].height = 22
+for i, (finding, segment, source, link) in enumerate(RESEARCH):
+    r = 6 + i
+    put(ws, f"A{r}", i + 1, h="center")
+    put(ws, f"B{r}", finding)
+    put(ws, f"C{r}", segment, f=font(bold=True))
+    put(ws, f"D{r}", source)
+    site = link.split("/")[2].removeprefix("www.")              # the site's name; the cell links to the page
+    c = put(ws, f"E{r}", site, f=Font(name="Calibri", size=11, underline="single", color=Color(theme=10),
+                                      family=2, scheme="minor"))
+    c.hyperlink = link
+    ws.row_dimensions[r].height = 48
+ws.freeze_panes = "A6"
 
 wb.save(sys.argv[1])
 print(f"wrote {sys.argv[1]}")

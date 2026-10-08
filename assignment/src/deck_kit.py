@@ -17,6 +17,7 @@ deck's theme carries the style's colours and fonts, so PowerPoint's colour palet
 Font Color) offers them.
 """
 import io
+import json
 import re
 import zipfile
 from datetime import datetime, timezone
@@ -147,6 +148,28 @@ class Deck:
         self.layout = {layout.name: layout for layout in self.prs.slide_layouts}
         self.W, self.H = self.prs.slide_width, self.prs.slide_height
         self.wood_path = wood_path
+        self.plan = []                                   # (slide, shape, step, effect)
+        self.chrome = ()                                 # the last slide's title, line and subtitle
+
+    # -------------------------------------------------------------- animations
+    def anim(self, slide, shapes, step, effect="fade"):
+        """Entrance animations for finish_deck.py: step 1 starts after the slide transition, and
+        each later step after the one before (Start: After Previous); shapes in one step appear
+        together. effect is fade, wipe-left, wipe-up or wipe-down."""
+        for shape in shapes if isinstance(shapes, (list, tuple)) else [shapes]:
+            self.plan.append((slide, shape, step, effect))
+
+    def anim_chrome(self, slide, title_card=False):
+        """The title and its line first, then the subtitle (title cards: title, line, subtitle)."""
+        head, line, sub = self.chrome
+        if title_card:
+            self.anim(slide, head, 1)
+            self.anim(slide, line, 2, "wipe-left")
+            self.anim(slide, sub, 3)
+        else:
+            self.anim(slide, head, 1)
+            self.anim(slide, line, 1, "wipe-left")
+            self.anim(slide, sub, 2)
 
     # -------------------------------------------------------------- text and shapes
     def write(self, frame, paragraphs, *, size, colour, font=None, bold=False, align=None, shadow=False, after=None):
@@ -244,7 +267,7 @@ class Deck:
             place(head, Inches(2.25), Inches(2.5), W - Inches(4.5), Inches(1.1))
             self.write(head.text_frame, [self.caps(title)], size=size, colour=S["title"], font=S["head_font"],
                        bold=True, align=PP_ALIGN.CENTER, shadow=S["card_shadow"])
-            self.rule(slide, Inches(3.2), W - Inches(3.2), Inches(3.75), S["rule"])
+            line = self.rule(slide, Inches(3.2), W - Inches(3.2), Inches(3.75), S["rule"])
             place(sub, Inches(2.3), Inches(3.9), W - Inches(4.6), Inches(1.55))
             self.write(sub.text_frame, lines, size=24, colour=S["text"], align=PP_ALIGN.CENTER, after=6)
             sub.text_frame.paragraphs[-1].runs[0].font.size = Pt(16)      # the small source line
@@ -253,12 +276,13 @@ class Deck:
             place(head, Inches(0.8), Inches(2.15), W - Inches(1.6), Inches(1.1))
             self.write(head.text_frame, [self.caps(title)], size=size, colour=S["title"], font=S["head_font"],
                        bold=True, align=PP_ALIGN.CENTER)
-            self.rule(slide, Inches(2.5), W - Inches(2.5), Inches(3.45), S["rule"])
+            line = self.rule(slide, Inches(2.5), W - Inches(2.5), Inches(3.45), S["rule"])
             place(sub, Inches(0.8), Inches(3.65), W - Inches(1.6), Inches(2.4))
             self.write(sub.text_frame, lines, size=28, colour=S["text"], align=PP_ALIGN.CENTER, after=14)
             sub.text_frame.paragraphs[-1].runs[0].font.size = Pt(16)
         head.text_frame.vertical_anchor = MSO_ANCHOR.BOTTOM     # the title sits just above the line
         sub.text_frame.vertical_anchor = MSO_ANCHOR.TOP
+        self.chrome = (head, line, sub)
 
     def content(self, slide, title, subtitle):
         """A content slide's frame, title, line and subtitle; returns the top of the free space."""
@@ -278,9 +302,10 @@ class Deck:
         self.write(head.text_frame, [title], size=S["title_size"], colour=S["title"], font=S["head_font"], bold=True,
                    align=PP_ALIGN.CENTER)
         head.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
-        self.rule(slide, Inches(1.0), W - Inches(1.0), Inches(1.42), S["rule"])
-        self.textbox(slide, Inches(0.8), Inches(1.5), W - Inches(1.6), Inches(0.45), [subtitle], size=18,
-                     colour=S["muted"], align=PP_ALIGN.CENTER)
+        line = self.rule(slide, Inches(1.0), W - Inches(1.0), Inches(1.42), S["rule"])
+        sub = self.textbox(slide, Inches(0.8), Inches(1.5), W - Inches(1.6), Inches(0.45), [subtitle], size=18,
+                           colour=S["muted"], align=PP_ALIGN.CENTER)
+        self.chrome = (head, line, sub)
         return Inches(2.1)
 
     # -------------------------------------------------------------- tables and charts
@@ -398,4 +423,12 @@ class Deck:
                     blob = re.sub(rb"<Slides>\d+</Slides>", f"<Slides>{n}</Slides>".encode(), blob)
                     blob = re.sub(rb"<Notes>\d+</Notes>", f"<Notes>{n}</Notes>".encode(), blob)
                 zout.writestr(info, blob)
+        if self.plan:                                    # the animations, for finish_deck.py
+            slides = list(prs.slides)
+            plan = {}
+            for slide, shape, step, effect in self.plan:
+                plan.setdefault(str(slides.index(slide) + 1), []).append(
+                    {"name": shape.name, "step": step, "effect": effect})
+            with open(re.sub(r"\.pptx$", ".anim.json", out_path), "w") as fh:
+                json.dump(plan, fh, indent=2)
         print(f"wrote {out_path} ({self.style_name}, {len(prs.slides)} slides)")

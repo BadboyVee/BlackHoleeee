@@ -27,11 +27,14 @@ SAL_USE_VCLPLUGIN=svp soffice "-env:UserInstallation=file://$TMP/lo_profile" --h
 python3 "$SHARED/add_cached_values.py" "$TMP/raw.xlsx" "$TMP/recalc/raw.xlsx" "$OUT/Segmentation_Matrix.xlsx"
 
 # 2. The decks, in three palettes, with every figure read from the finished workbook; each chart
-#    checked against the strict chart schema; then a transition on every slide.
+#    checked against the strict chart schema; then a transition, the animations (the plan
+#    build_deck.py saves) and a timing on every slide.
 python3 "$HERE/export_deck_data.py" "$OUT/Segmentation_Matrix.xlsx" "$TMP/deck_data.json"
 python3 "$KIT/make_wood.py" "$TMP/wood.jpg"
 python3 "$PZ/office2013.py" "$TMP/template.pptx"
-echo '{}' > "$TMP/no_animations.json"
+# Slide timings (Transitions > Advance Slide > After), in seconds, for the nine slides: each
+# slide moves on by itself, or sooner on a click.
+ADVANCE=10,25,35,35,35,35,25,35,10
 DECKS=()
 for style in marketing pz mixed; do
   case "$style" in
@@ -44,8 +47,8 @@ for style in marketing pz mixed; do
     "$TMP/$style.pptx"
   python3 "$SHARED/sanitize_charts.py" "$TMP/$style.pptx" "$TMP/${style}_clean.pptx" \
     ${SCHEMA_DIR:+--xsd "$SCHEMA_DIR/dml-chart.xsd"}
-  python3 "$SHARED/finish_deck.py" "$TMP/${style}_clean.pptx" "$TMP/no_animations.json" "$deck" \
-    --transition fade,push,wipe,split,cover
+  python3 "$SHARED/finish_deck.py" "$TMP/${style}_clean.pptx" "$TMP/$style.anim.json" "$deck" \
+    --transition fade,push,wipe,split,cover --advance "$ADVANCE"
   DECKS+=("$deck")
 done
 # Every text box must fit its text, measured with fonts as wide as Office's Calibri and Cambria.

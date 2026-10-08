@@ -3,7 +3,7 @@
 
 Writes deck_data.json for build_deck.py: each segment's profile, Google Trends interest and rank,
 factor scores, weighted score and rank, as Excel worked them out, so the slides match the
-workbook.
+workbook; and the desk research.
 
 Usage: python export_deck_data.py Segmentation_Matrix.xlsx deck_data.json
 """
@@ -12,7 +12,7 @@ import sys
 
 from openpyxl import load_workbook
 
-from segment_data import BASIS, BUSINESS, FACTORS, SEGMENTS, SOURCE
+from segment_data import BASIS, BUSINESS, FACTORS, RESEARCH, SEGMENTS, SOURCE
 
 workbook, out = sys.argv[1:3]
 wb = load_workbook(workbook, data_only=True)
@@ -29,5 +29,6 @@ for i, (name, *_rest) in enumerate(SEGMENTS):
                  "scores": a[1:6], "total": a[6], "rank": a[7], "basis": BASIS[i]})
 with open(out, "w") as fh:
     json.dump({"business": BUSINESS, "source": SOURCE, "factors": [f for f, _ in FACTORS],
-               "weights": [w for _, w in FACTORS], "segments": rows}, fh, indent=2)
+               "weights": [w for _, w in FACTORS], "segments": rows,
+               "research": RESEARCH}, fh, indent=2)
 print(f"wrote {out}")

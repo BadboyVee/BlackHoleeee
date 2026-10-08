@@ -76,3 +76,31 @@ BASIS = [
      "Did not lead in any state",
      "Young learners pay less; many bootcamps and free tutorials compete"),
 ]
+
+# Desk research that backs up the Google Trends findings: (finding, segment it supports, source,
+# link). Found by web search on 8 October 2026; the figures are as the sources report them.
+RESEARCH = [
+    ("The CAC confirmed a cyber breach of its systems in April 2026, and the data protection "
+     "commission (NDPC) opened an investigation.",
+     "Cybersecurity",
+     "AllAfrica, 16 April 2026",
+     "https://allafrica.com/stories/202604160559.html"),
+    ("Nigeria had only about 8,352 cybersecurity professionals in 2023, against 57,269 in South Africa.",
+     "Cybersecurity",
+     "ISC2 figures, reported by CompTIA",
+     "https://www.comptia.org/en/blog/nigeria-and-kenya-cybersecurity-skills-gaps-and-the-workforce-opportunity/"),
+    ("Nigerian organisations faced about 4,388 cyber attacks a week in early 2025, 47% more than a year "
+     "before.",
+     "Cybersecurity",
+     "Check Point, reported by BusinessDay",
+     "https://businessday.ng/technology/article/nigerian-organisations-recorded-4388-attacks-per-week-in-q1-check-point/"),
+    ("About 14 million Nigerian small businesses used Facebook, Instagram and WhatsApp in 2025.",
+     "Digital marketing",
+     "Public First report for Meta, reported by IT Edge News",
+     "https://www.itedgenews.africa/meta-platforms-deliver-820m-annual-economic-value-to-nigeria-ai-could-add-22bn-to-gdp-by-2035-report/"),
+    ("The government's 3MTT programme aims to train three million tech talents by 2027, so demand for "
+     "tech skills is growing, but free training also competes.",
+     "All five",
+     "Federal Ministry of Communications, Innovation and Digital Economy",
+     "https://3mtt.nitda.gov.ng"),
+]
