@@ -30,9 +30,9 @@ A procedural BMW M5 CS model rendered in a studio lighting setup.
 
 ### 🃏 [Holo Card](holo-card/)
 
-Clawd, Claude Code's little orange mascot, as a holographic trading card. Foil, glare, sparkle and
-parallax all respond to your pointer or to the tilt of your phone, and tapping the card makes
-Clawd hop.
+Clawd, Claude Code's little orange mascot, rendered in real-time 3D as a holographic trading card.
+Soft shadows, glossy reflections and a mirrored floor sit under foil, glare and sparkle that respond
+to your pointer or to the tilt of your phone. Tap the card and Clawd hops.
 
 **▶ [Open it](https://badboyvee.github.io/BlackHoleeee/holo-card/)** · [source](holo-card/)
 

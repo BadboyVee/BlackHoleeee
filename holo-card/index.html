@@ -141,6 +141,17 @@
     transform: translate3d(calc(var(--px, 0) * .9cqw), calc(var(--py, 0) * .9cqw), 0);
   }
 
+  /* real-time 3D Clawd, drawn by the shader in clawd3d */
+  .gl {
+    display: none;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+  .card.is-3d .gl { display: block; }
+
+  /* flat fallback, only used when WebGL is unavailable */
   .grid {
     position: absolute;
     inset: 0;
@@ -158,6 +169,10 @@
     background: radial-gradient(40% 30% at var(--gx, 50%) var(--gy, 40%), rgba(255, 170, 120, .35), transparent 70%);
     mix-blend-mode: screen;
   }
+
+  .card.is-3d .grid,
+  .card.is-3d .glow,
+  .card.is-3d .clawd-wrap { display: none; }
 
   .clawd-wrap {
     position: relative;
@@ -266,7 +281,7 @@
     background-size: 260% 260%;
     background-position: var(--bx, 50%) var(--by, 50%);
     mix-blend-mode: color-dodge;
-    opacity: var(--foil, .45);
+    opacity: var(--foil, .3);
     filter: hue-rotate(calc(var(--hue, 0) * 1deg));
     -webkit-mask-image: radial-gradient(75% 60% at var(--gx, 50%) var(--gy, 40%), #000 0%, rgba(0, 0, 0, .55) 55%, rgba(0, 0, 0, .25) 100%);
     mask-image: radial-gradient(75% 60% at var(--gx, 50%) var(--gy, 40%), #000 0%, rgba(0, 0, 0, .55) 55%, rgba(0, 0, 0, .25) 100%);
@@ -290,8 +305,8 @@
 
   .glare {
     background: radial-gradient(circle at var(--gx, 50%) var(--gy, 40%),
-      rgba(255, 255, 255, .7) 0%,
-      rgba(255, 255, 255, .14) 16%,
+      rgba(255, 255, 255, .42) 0%,
+      rgba(255, 255, 255, .08) 16%,
       transparent 40%);
     mix-blend-mode: overlay;
     opacity: var(--glare, .9);
@@ -378,6 +393,7 @@
         </header>
 
         <div class="art">
+          <canvas id="clawd3d" class="gl" aria-hidden="true"></canvas>
           <div class="grid"></div>
           <div class="glow"></div>
           <div class="clawd-wrap">
@@ -442,6 +458,7 @@
 
   const scene = document.getElementById('scene');
   const card = document.getElementById('card');
+  const art = card.querySelector('.art');
   const shadow = scene.querySelector('.shadow');
   const clawd = document.getElementById('clawd');
   const motionBtn = document.getElementById('motion');
@@ -452,8 +469,368 @@
   const cur = { x: 0.5, y: 0.5, lift: 0, press: 0, glare: 0.45 };
   let motionOn = false;
   let raf = 0;
+  let hopStart = -1;
+  let visible = true;
 
   const restMode = () => (motionOn ? 'motion' : 'idle');
+
+  // ---------- 3D Clawd: a raymarched scene in one fragment shader ----------
+
+  const VERT = `
+attribute vec2 aPos;
+void main() {
+  gl_Position = vec4(aPos, 0.0, 1.0);
+}`;
+
+  const FRAG = `
+#ifdef GL_FRAGMENT_PRECISION_HIGH
+precision highp float;
+#else
+precision mediump float;
+#endif
+
+uniform vec2 uRes;
+uniform float uTime;
+uniform float uYaw;
+uniform float uPitch;
+uniform float uBlink;
+uniform float uLift;
+uniform float uDist;
+
+// studio lights, world space, normalised
+const vec3 L1 = vec3(-0.4847, 0.6609, 0.5728);  // key: upper left, in front
+const vec3 L2 = vec3( 0.8554, 0.2516, 0.4529);  // fill: right
+const vec3 L3 = vec3( 0.1466, 0.5374, -0.8305); // rim: behind, above
+
+float sdRoundBox(vec3 p, vec3 b, float r) {
+  vec3 q = abs(p) - b + r;
+  return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0) - r;
+}
+
+float smin(float a, float b, float k) {
+  float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+  return mix(b, a, h) - k * h * (1.0 - h);
+}
+
+float smax(float a, float b, float k) {
+  return -smin(-a, -b, k);
+}
+
+float legSDF(vec3 q, float x) {
+  return sdRoundBox(q - vec3(x, -2.5, 0.0), vec3(0.5, 0.5, 1.0), 0.25);
+}
+
+// Clawd, in units of one pixel of the 11x6 sprite. The pivot sits at
+// y = 3: feet at -3, arms at 0, eyes at 1, top of head at 3.
+float map(vec3 p, out float mat) {
+  vec3 q = p - vec3(0.0, 3.0 + uLift, 0.0);
+  q.xz = mat2(cos(uYaw), -sin(uYaw), sin(uYaw), cos(uYaw)) * q.xz;
+  q.yz = mat2(cos(uPitch), -sin(uPitch), sin(uPitch), cos(uPitch)) * q.yz;
+
+  float body = sdRoundBox(q - vec3(0.0, 0.5, 0.0), vec3(3.5, 2.5, 2.0), 0.45);
+  float arms = min(sdRoundBox(q - vec3(-4.5, 0.0, 0.0), vec3(1.0), 0.4),
+                   sdRoundBox(q - vec3( 4.5, 0.0, 0.0), vec3(1.0), 0.4));
+  float d = smin(body, arms, 0.3);
+  float legs = min(min(legSDF(q, -3.0), legSDF(q, -1.0)), min(legSDF(q, 1.0), legSDF(q, 3.0)));
+  d = smin(d, legs, 0.14);
+
+  // eyes are recessed into the front face and blink by squashing
+  float ey = mix(1.0, 0.12, uBlink);
+  float eyes = min(sdRoundBox(q - vec3(-2.0, 1.0, 2.2), vec3(0.5, ey, 0.7), 0.28),
+                   sdRoundBox(q - vec3( 2.0, 1.0, 2.2), vec3(0.5, ey, 0.7), 0.28));
+  d = smax(d, -eyes, 0.06);
+  mat = eyes < 0.04 ? 1.0 : 0.0;
+  return d;
+}
+
+vec3 calcNormal(vec3 p) {
+  const float e = 0.0007;
+  float m;
+  vec3 n = vec3(0.0);
+  n += vec3( 1.0, -1.0, -1.0) * map(p + vec3( e, -e, -e), m);
+  n += vec3(-1.0, -1.0,  1.0) * map(p + vec3(-e, -e,  e), m);
+  n += vec3(-1.0,  1.0, -1.0) * map(p + vec3(-e,  e, -e), m);
+  n += vec3( 1.0,  1.0,  1.0) * map(p + vec3( e,  e,  e), m);
+  return normalize(n);
+}
+
+float calcAO(vec3 p, vec3 n) {
+  float occ = 0.0;
+  float sca = 1.0;
+  for (int i = 0; i < 5; i++) {
+    float h = 0.02 + 0.12 * float(i);
+    float m;
+    float d = map(p + n * h, m);
+    occ += (h - d) * sca;
+    sca *= 0.85;
+  }
+  return clamp(1.0 - 2.0 * occ, 0.0, 1.0);
+}
+
+float softShadow(vec3 ro, vec3 rd, float k) {
+  float res = 1.0;
+  float t = 0.03;
+  for (int i = 0; i < 40; i++) {
+    float m;
+    float h = map(ro + rd * t, m);
+    res = min(res, k * h / t);
+    t += clamp(h, 0.03, 0.5);
+    if (res < 0.001 || t > 14.0) break;
+  }
+  return clamp(res, 0.0, 1.0);
+}
+
+// march the figure, bounded by a sphere so empty pixels stay cheap
+bool hitFig(vec3 ro, vec3 rd, out float tHit, out float mat) {
+  vec3 oc = ro - vec3(0.0, 3.0 + uLift, 0.0);
+  float b = dot(oc, rd);
+  float h = b * b - (dot(oc, oc) - 49.0);
+  tHit = 1e5;
+  mat = 0.0;
+  if (h < 0.0) return false;
+  h = sqrt(h);
+  float t = max(-b - h, 0.0);
+  float tEnd = -b + h;
+  for (int i = 0; i < 72; i++) {
+    float m;
+    float d = map(ro + rd * t, m);
+    if (d < 0.0008 * t) {
+      tHit = t;
+      mat = m;
+      return true;
+    }
+    t += d;
+    if (t > tEnd) break;
+  }
+  return false;
+}
+
+// a soft studio: a dark room with three softboxes, seen in the glossy surfaces
+vec3 studio(vec3 r) {
+  vec3 c = mix(vec3(0.010, 0.008, 0.010), vec3(0.045, 0.040, 0.045), smoothstep(-0.2, 0.7, r.y));
+  c += vec3(1.0, 0.96, 0.90) * 5.0 * smoothstep(0.84, 0.95, dot(r, L1));
+  c += vec3(0.75, 0.82, 1.00) * 1.4 * smoothstep(0.90, 0.98, dot(r, L2));
+  c += vec3(1.00, 0.60, 0.35) * 1.8 * smoothstep(0.88, 0.97, dot(r, L3));
+  return c;
+}
+
+vec3 shadeFig(vec3 p, vec3 n, vec3 rd, float mat, float ao) {
+  vec3 v = -rd;
+  float nv = clamp(dot(n, v), 0.0, 1.0);
+  float sh = softShadow(p + n * 0.02, L1, 9.0);
+
+  vec3 alb = mat > 0.5 ? vec3(0.010, 0.007, 0.008) : vec3(0.694, 0.184, 0.096);
+  float wrap = 0.45;
+  float kd = clamp((dot(n, L1) + wrap) / (1.0 + wrap), 0.0, 1.0) * sh;
+  float kf = clamp((dot(n, L2) + wrap) / (1.0 + wrap), 0.0, 1.0);
+  float kr = clamp(dot(n, L3), 0.0, 1.0);
+  float edge = pow(1.0 - abs(dot(n, L1)), 3.0);
+  vec3 amb = mix(vec3(0.010, 0.009, 0.011), vec3(0.040, 0.037, 0.040), 0.5 + 0.5 * n.y);
+
+  vec3 diff = alb * (vec3(1.0, 0.93, 0.85) * 0.82 * kd
+                   + vec3(0.55, 0.65, 0.90) * 0.2 * kf
+                   + vec3(1.0, 0.55, 0.30) * 0.6 * kr
+                   + amb);
+  // light bleeds under the skin where it wraps round the clay
+  diff += alb * vec3(1.0, 0.38, 0.20) * edge * 0.3 * sh;
+  diff *= ao;
+
+  vec3 r = reflect(rd, n);
+  float fres = 0.04 + 0.96 * pow(1.0 - nv, 5.0);
+  vec3 spec = fres * studio(r) * (mat > 0.5 ? 1.6 : 0.9);
+  // thin-film sheen that shifts with the viewing angle: the holo
+  vec3 film = 0.5 + 0.5 * cos(6.2832 * (vec3(0.00, 0.33, 0.67) + nv * 1.1 + 0.08 * uTime));
+  spec += film * pow(1.0 - nv, 2.5) * 0.25 * (mat > 0.5 ? 0.0 : 1.0);
+  vec3 h = normalize(L1 + v);
+  float nh = max(dot(n, h), 0.0);
+  spec += vec3(1.0, 0.96, 0.9) * (mat > 0.5 ? 2.5 : 0.8) * pow(nh, mat > 0.5 ? 140.0 : 40.0) * sh;
+  return diff + spec * ao;
+}
+
+// fine value noise, for the orange-peel texture on the vinyl
+float hash3(vec3 p) {
+  p = fract(p * 0.3183099 + 0.1);
+  p *= 17.0;
+  return fract(p.x * p.y * p.z * (p.x + p.y + p.z));
+}
+
+float vnoise(vec3 x) {
+  vec3 i = floor(x);
+  vec3 f = fract(x);
+  f = f * f * (3.0 - 2.0 * f);
+  return mix(mix(mix(hash3(i), hash3(i + vec3(1.0, 0.0, 0.0)), f.x),
+                 mix(hash3(i + vec3(0.0, 1.0, 0.0)), hash3(i + vec3(1.0, 1.0, 0.0)), f.x), f.y),
+             mix(mix(hash3(i + vec3(0.0, 0.0, 1.0)), hash3(i + vec3(1.0, 0.0, 1.0)), f.x),
+                 mix(hash3(i + vec3(0.0, 1.0, 1.0)), hash3(i + vec3(1.0, 1.0, 1.0)), f.x), f.y), f.z);
+}
+
+vec3 orangePeel(vec3 p, vec3 n) {
+  const float e = 0.05;
+  float b = vnoise(p * 14.0);
+  vec3 g = vec3(vnoise(p * 14.0 + vec3(e, 0.0, 0.0)) - b,
+                vnoise(p * 14.0 + vec3(0.0, e, 0.0)) - b,
+                vnoise(p * 14.0 + vec3(0.0, 0.0, e)) - b) / e;
+  return normalize(n - 0.008 * (g - n * dot(g, n)));
+}
+
+vec3 shadeHit(vec3 p, vec3 rd, float mat) {
+  vec3 n = calcNormal(p);
+  if (mat < 0.5) n = orangePeel(p, n);
+  return shadeFig(p, n, rd, mat, calcAO(p, n));
+}
+
+vec3 shadeFloor(vec3 p) {
+  float ao = calcAO(p, vec3(0.0, 1.0, 0.0));
+  float sh = softShadow(p + vec3(0.0, 0.01, 0.0), L1, 7.0);
+  vec3 lit = vec3(1.0, 0.93, 0.85) * 2.4 * max(L1.y, 0.0) * sh + vec3(0.012, 0.011, 0.013);
+  float glow = exp(-length(p.xz) * 0.5);
+  return (vec3(0.060, 0.042, 0.046) * lit + vec3(0.30, 0.10, 0.05) * 0.04 * glow) * ao;
+}
+
+vec3 backdrop(vec2 uv) {
+  vec2 d = (uv - vec2(0.5, 0.46)) * vec2(1.0, 1.25);
+  float glow = exp(-dot(d, d) * 5.0);
+  return mix(vec3(0.008, 0.006, 0.008), vec3(0.16, 0.055, 0.035), glow);
+}
+
+void main() {
+  vec2 uv = gl_FragCoord.xy / uRes;
+  vec2 p = (2.0 * gl_FragCoord.xy - uRes) / uRes.y;
+
+  vec3 ro = vec3(0.0, 3.3, uDist);
+  vec3 ww = normalize(vec3(0.0, 2.7, 0.0) - ro);
+  vec3 uu = normalize(cross(ww, vec3(0.0, 1.0, 0.0)));
+  vec3 vv = cross(uu, ww);
+  vec3 rd = normalize(p.x * uu + p.y * vv + 2.4 * ww);
+
+  float tf = 1e5;
+  float mf = 0.0;
+  bool figHit = hitFig(ro, rd, tf, mf);
+  float tFloor = rd.y < -0.0001 ? -ro.y / rd.y : 1e5;
+
+  vec3 col;
+  if (figHit && tf < tFloor) {
+    col = shadeHit(ro + rd * tf, rd, mf);
+  } else if (tFloor < 1e4) {
+    vec3 pp = ro + rd * tFloor;
+    col = shadeFloor(pp);
+    // the glossy studio floor mirrors Clawd
+    vec3 up = vec3(0.0, 1.0, 0.0);
+    float fres = 0.04 + 0.96 * pow(1.0 - clamp(dot(-rd, up), 0.0, 1.0), 5.0);
+    vec3 rr = reflect(rd, up);
+    float tr = 1e5;
+    float mr = 0.0;
+    if (hitFig(pp + up * 0.002, rr, tr, mr)) {
+      col += shadeHit(pp + rr * tr, rr, mr) * fres * 0.7;
+    }
+    col = mix(col, backdrop(uv), smoothstep(10.0, 34.0, tFloor));
+  } else {
+    col = backdrop(uv);
+  }
+
+  // lens vignette, then a filmic tone curve applied to luminance so hue survives, then display gamma
+  vec2 q = uv - 0.5;
+  col *= 1.0 - 0.7 * dot(q, q);
+  float lum = max(dot(col, vec3(0.2126, 0.7152, 0.0722)), 1e-4);
+  float lt = (lum * (2.51 * lum + 0.03)) / (lum * (2.43 * lum + 0.59) + 0.14);
+  col *= lt / lum;
+  gl_FragColor = vec4(pow(clamp(col, 0.0, 1.0), vec3(1.0 / 2.2)), 1.0);
+}`;
+
+  function makeClawdGL(canvas) {
+    try {
+      const gl = canvas.getContext('webgl', { antialias: false, alpha: false });
+      if (!gl) return null;
+
+      const build = (type, src) => {
+        const sh = gl.createShader(type);
+        gl.shaderSource(sh, src);
+        gl.compileShader(sh);
+        if (!gl.getShaderParameter(sh, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(sh));
+        return sh;
+      };
+
+      const prog = gl.createProgram();
+      gl.attachShader(prog, build(gl.VERTEX_SHADER, VERT));
+      gl.attachShader(prog, build(gl.FRAGMENT_SHADER, FRAG));
+      gl.linkProgram(prog);
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(prog));
+      gl.useProgram(prog);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, gl.createBuffer());
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]), gl.STATIC_DRAW);
+      const aPos = gl.getAttribLocation(prog, 'aPos');
+      gl.enableVertexAttribArray(aPos);
+      gl.vertexAttribPointer(aPos, 2, gl.FLOAT, false, 0, 0);
+
+      const U = {};
+      ['uRes', 'uTime', 'uYaw', 'uPitch', 'uBlink', 'uLift', 'uDist'].forEach((n) => {
+        U[n] = gl.getUniformLocation(prog, n);
+      });
+
+      return {
+        resize(w, h, dist) {
+          canvas.width = w;
+          canvas.height = h;
+          gl.viewport(0, 0, w, h);
+          gl.uniform2f(U.uRes, w, h);
+          gl.uniform1f(U.uDist, dist);
+        },
+        draw(s) {
+          gl.uniform1f(U.uTime, s.time);
+          gl.uniform1f(U.uYaw, s.yaw);
+          gl.uniform1f(U.uPitch, s.pitch);
+          gl.uniform1f(U.uBlink, s.blink);
+          gl.uniform1f(U.uLift, s.lift);
+          gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+        },
+      };
+    } catch (err) {
+      console.warn('Clawd: WebGL unavailable, showing the flat version.', err);
+      return null;
+    }
+  }
+
+  const gl3d = makeClawdGL(document.getElementById('clawd3d'));
+  if (gl3d) card.classList.add('is-3d');
+
+  function fitCanvas() {
+    if (!gl3d) return;
+    const dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    const w = Math.max(2, Math.round(art.clientWidth * dpr));
+    const h = Math.max(2, Math.round(art.clientHeight * dpr));
+    // distance that keeps Clawd about 14 units wide at any window shape
+    gl3d.resize(w, h, clamp((6.8 * 2.4) / (w / h), 12, 40));
+  }
+  new ResizeObserver(fitCanvas).observe(art);
+  new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; }).observe(card);
+
+  function drawScene(t) {
+    if (!gl3d || !visible) return;
+    let lift = 0;
+    let spin = 0;
+    if (!reduce) lift = 0.25 * (0.5 - 0.5 * Math.cos((2 * Math.PI * t) / 1800)); // idle bob
+    if (hopStart >= 0) {
+      const u = (performance.now() - hopStart) / 750;
+      if (u < 1) {
+        lift += 1.6 * 4 * u * (1 - u);
+        spin = 2 * Math.PI * u * u * (3 - 2 * u);
+      } else {
+        hopStart = -1;
+      }
+    }
+    const ph = (t / 1000) % 4.6;
+    const blink = !reduce && ph > 4.3 ? Math.sin(((ph - 4.3) / 0.3) * Math.PI) : 0;
+    gl3d.draw({
+      time: t / 1000,
+      yaw: (cur.x - 0.5) * 1.0 + spin,
+      pitch: (cur.y - 0.5) * -0.35,
+      blink,
+      lift,
+    });
+  }
+
+  // ---------- card motion ----------
 
   function paint() {
     const { x, y } = cur;
@@ -472,7 +849,7 @@
     s.setProperty('--bx', `${(x * 100).toFixed(2)}%`);
     s.setProperty('--by', `${(y * 100).toFixed(2)}%`);
     s.setProperty('--hue', ((x - 0.5) * 150).toFixed(2));
-    s.setProperty('--foil', (0.3 + off * 0.2).toFixed(3));
+    s.setProperty('--foil', (0.2 + off * 0.14).toFixed(3));
     s.setProperty('--glare', cur.glare.toFixed(3));
     shadow.style.setProperty('--sx', `${(-ry * 1.3).toFixed(2)}px`);
     shadow.style.setProperty('--sy', `${(rx * 1.3).toFixed(2)}px`);
@@ -501,6 +878,7 @@
     cur.glare += dg * 0.1;
 
     paint();
+    drawScene(t);
     return Math.abs(dx) + Math.abs(dy) > 0.0005
       || Math.abs(dl) > 0.01
       || Math.abs(dp) > 0.001
@@ -571,9 +949,11 @@
 
   // Tap the card and Clawd hops.
   card.addEventListener('click', () => {
+    hopStart = performance.now();
     clawd.classList.remove('hop');
-    clawd.getBoundingClientRect(); // restart the animation if it is already playing
+    clawd.getBoundingClientRect(); // restart the flat fallback's animation if it is already playing
     clawd.classList.add('hop');
+    kick();
   });
   clawd.addEventListener('animationend', (e) => {
     if (e.animationName === 'hop') clawd.classList.remove('hop');
