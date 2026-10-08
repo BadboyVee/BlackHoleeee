@@ -28,6 +28,14 @@ A procedural BMW M5 CS model rendered in a studio lighting setup.
 
 **▶ [View it](https://badboyvee.github.io/BlackHoleeee/bmw-m5-cs/)** · [source](bmw-m5-cs/)
 
+### 🃏 [Holo Card](holo-card/)
+
+Clawd, Claude Code's little orange mascot, as a holographic trading card. Foil, glare, sparkle and
+parallax all respond to your pointer or to the tilt of your phone, and tapping the card makes
+Clawd hop.
+
+**▶ [Open it](https://badboyvee.github.io/BlackHoleeee/holo-card/)** · [source](holo-card/)
+
 ## Hosting
 
 `netlify.toml` publishes `bmw-m5-cs/` as the Netlify site root. GitHub Pages serves the whole
