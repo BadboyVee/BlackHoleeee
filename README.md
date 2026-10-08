@@ -14,6 +14,16 @@ sound.
 
 **▶ [Open it](https://badboyvee.github.io/BlackHoleeee/ocean/)** · [source](ocean/) · [prompt](ocean/PROMPT.md)
 
+### 🎬 [Opus 5.5 — Launch Film](opus-launch/)
+
+A real-time Three.js remake of the Opus 5.5 launch film. It has all 38 shots of the original:
+procedural macro "horizons" (amber, lace, agate, fur, plant cells…) rendered on one
+shader-driven sphere, a hand-coloured horse galloping on a phenakistiscope disc, and
+"There’s more to discover" set along the horizon at the original's size. There's an optional
+synthesized soundtrack, and you can record the loop to a .webm file.
+
+**▶ [Watch it](https://badboyvee.github.io/BlackHoleeee/opus-launch/)** · [source](opus-launch/)
+
 ### 🚋 [Skyline Tram](skyline-tram/)
 
 Drive a retro aerial tram along a rail loop between two islands floating above a sea of clouds.
@@ -27,6 +37,11 @@ station stops with boarding passengers, and a workshop where you bolt new parts 
 A procedural BMW M5 CS model rendered in a studio lighting setup.
 
 **▶ [View it](https://badboyvee.github.io/BlackHoleeee/bmw-m5-cs/)** · [source](bmw-m5-cs/)
+
+## Notes
+
+[`video-craft/`](video-craft/) holds how the films here are made: a [playbook](video-craft/PLAYBOOK.md),
+frame-by-frame studies of reference films, and the [tools](video-craft/tools/) that measure them.
 
 ## Hosting
 
