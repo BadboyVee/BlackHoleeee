@@ -22,6 +22,14 @@ station stops with boarding passengers, and a workshop where you bolt new parts 
 
 **▶ [Play it](https://badboyvee.github.io/BlackHoleeee/skyline-tram/)** · [source & prompt](skyline-tram/)
 
+### 🎞️ [Dario Amodei: Career Timeline](amodei-timeline/)
+
+An 18-second monochrome motion-graphics timeline of Dario Amodei's public career, drawn on a
+canvas with no libraries. `window.renderAt(t)` draws any frame deterministically, and a
+Playwright script captures all 540 frames for ffmpeg.
+
+**▶ [Watch it](https://badboyvee.github.io/BlackHoleeee/amodei-timeline/)** · [source](amodei-timeline/)
+
 ### 🚗 [BMW M5 CS](bmw-m5-cs/)
 
 A procedural BMW M5 CS model rendered in a studio lighting setup.

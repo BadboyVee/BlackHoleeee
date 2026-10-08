@@ -1,0 +1,12 @@
+{
+  "name": "amodei-timeline",
+  "private": true,
+  "description": "18-second monochrome career timeline, rendered frame by frame with Playwright",
+  "scripts": {
+    "capture": "node capture.js",
+    "video": "ffmpeg -framerate 30 -i frames/frame_%04d.png -i track.mp3 -c:v libx264 -pix_fmt yuv420p -shortest out.mp4"
+  },
+  "devDependencies": {
+    "playwright": "^1.56.1"
+  }
+}
