@@ -6,9 +6,7 @@ Google Trends research, and present the report as bar charts in PowerPoint 2013.
 
 | File | What it is |
 |---|---|
-| [Market_Segmentation_Marketing.pptx](Market_Segmentation_Marketing.pptx) | The 9-slide report in the Marketing Budget deck's colours, with animations and slide timings. Opens in PowerPoint 2013 and later. |
-| [Market_Segmentation_PZ.pptx](Market_Segmentation_PZ.pptx) | The same report in the PZ Nigeria deck's wood design. |
-| [Market_Segmentation_Mixed.pptx](Market_Segmentation_Mixed.pptx) | The same report with both palettes mixed. |
+| [Market_Segmentation.pptx](Market_Segmentation.pptx) | The 9-slide report in a clean, minimal design, with animations and slide timings. Opens in PowerPoint 2013 and later. |
 | [Segmentation_Matrix.xlsx](Segmentation_Matrix.xlsx) | The segmentation matrix, the scores, both bar charts (live formulas) and the desk research with links. Opens in Excel 2013 and later. |
 | [src/](src/) | The scripts that build all four files. |
 
@@ -77,7 +75,7 @@ table.
 
 ## The presentations
 
-The nine slides are the same in all three palettes. Each runs by itself for the time shown
+Each of the nine slides runs by itself for the time shown
 (Transitions > Advance Slide > After), about 4 minutes in all; a click moves on sooner.
 
 | Slide | Time |
@@ -92,10 +90,15 @@ The nine slides are the same in all three palettes. Each runs by itself for the 
 | 8. Why cybersecurity learners | 35 s |
 | 9. Thank you | 10 s |
 
-The bar charts are real PowerPoint charts with their data in an embedded workbook. The leading
-bar stands out in each palette's accent colour. Text is in Calibri, with titles in Calibri Bold
-(Marketing) or Cambria Bold (PZ and Mixed). Every slide has speaker notes and a transition
-(Fade, Push, Wipe, Split and Cover, in turn).
+The design is minimal: plain white slides with one teal accent colour. The title and closing
+slides have a teal strip down the left edge; the content slides have a left-aligned title in
+Calibri Light under a short teal line, a grey subtitle, and a small footer with the slide
+number. Text sits on soft grey cards with a teal edge; the tables are open, with teal headings
+and thin grey lines; and the bar charts are light grey, with the leading bar in teal. Body text
+is in Calibri.
+
+The bar charts are real PowerPoint charts with their data in an embedded workbook. Every slide
+has speaker notes and a transition: Fade on the title and closing slides, Push in between.
 
 Every slide is animated, with no clicks needed (Animations > Start: After Previous, 0.5 s each):
 the title fades in as its line wipes in from the left, then the subtitle fades in, then the main
@@ -108,7 +111,8 @@ timing in PowerPoint, use the Animation Pane (Animations tab) and Advance Slide 
 Run `src/build.sh`. It needs Python with openpyxl, python-pptx, XlsxWriter, lxml, numpy and
 Pillow, and LibreOffice. The slide figures are read from the finished workbook, so the two
 always agree. It reuses the Office 2013 template (`../pz-analysis/src/office2013.py`), the slide
-styles, wood picture and text-fit check (`../assignment/src/deck_kit.py`, `make_wood.py`,
-`check_fit.py`), and the chart clean-up, transition and validation scripts in
-`../marketing-budget/src`. Set `SCHEMA_DIR` to the ISO/IEC 29500 transitional schemas to check
-every part of the four files against them.
+styles and text-fit check (`../assignment/src/deck_kit.py`, `check_fit.py`), and the chart
+clean-up, transition and validation scripts in `../marketing-budget/src`. Set `SCHEMA_DIR` to the
+ISO/IEC 29500 transitional schemas to check every part of both files against them. The deck can
+also be built in the earlier Marketing, PZ (wood) and Mixed designs: add `marketing`, `pz` or
+`mixed` to `STYLES` in `build.sh`.

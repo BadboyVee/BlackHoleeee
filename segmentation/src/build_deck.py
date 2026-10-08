@@ -3,8 +3,9 @@
 the way it would be in PowerPoint 2013.
 
 Usage: python build_deck.py deck_data.json template.pptx wood.jpg STYLE out.pptx
-  STYLE is marketing, pz or mixed: the palettes in ../../assignment/src/deck_kit.py (the
-  Marketing Budget deck's, the PZ Nigeria deck's wood design, and both mixed).
+  STYLE is minimal, marketing, pz or mixed: the designs in ../../assignment/src/deck_kit.py (a
+  clean white design with a teal accent; the Marketing Budget deck's; the PZ Nigeria deck's
+  wood design; and those two mixed). build.sh builds the minimal one.
 
 Slides: 1. title, 2. the new business, 3. the segmentation matrix, 4. the Google Trends research
 (bar chart), 5. other research, 6. the attractiveness scores, 7. the most attractive segment (bar
@@ -20,10 +21,12 @@ the animations and the slide timings.
 import json
 import sys
 
+from lxml import etree
 from pptx.enum.text import MSO_ANCHOR, PP_ALIGN
+from pptx.oxml.ns import qn
 from pptx.util import Emu, Inches, Pt
 
-from deck_kit import Deck, place, placeholder, rgb
+from deck_kit import A_NS, Deck, place, placeholder, rgb
 
 data_path, template_path, wood_path, style_name, out_path = sys.argv[1:6]
 deck = Deck(style_name, template_path, wood_path)
@@ -34,33 +37,60 @@ BEST = min(SEG, key=lambda s: s["rank"])
 SECOND = next(s for s in SEG if s["rank"] == 2)
 TOP = SEG.index(BEST)
 BUSINESS = data["business"]
+MINIMAL = bool(S.get("minimal"))
+deck.footer = f"{BUSINESS}  ·  Market Segmentation"
+LEFT = Inches(0.8) if MINIMAL else Inches(1.0)          # the left edge of the text cards
+
+
+def card(slide, x, y, w, h):
+    """A tinted box; in the minimal style, a soft grey card with a teal edge."""
+    shapes = [deck.rect(slide, x, y, w, h, fill=S["box"])]
+    if MINIMAL:
+        shapes.append(deck.rect(slide, x, y, Inches(0.07), h, fill=S["rule"]))
+    return shapes
+
+
+def bullet_colour(frame, colour):
+    """Format > Bullets > Color, for every paragraph."""
+    for para in frame.paragraphs:
+        p_pr = para._p.get_or_add_pPr()
+        spacing = [p_pr.find(qn(t)) for t in ("a:lnSpc", "a:spcBef", "a:spcAft")]
+        spacing = [el for el in spacing if el is not None]
+        bu = etree.fromstring(f'<a:buClr xmlns:a="{A_NS}"><a:srgbClr val="{colour}"/></a:buClr>')
+        if spacing:
+            spacing[-1].addnext(bu)
+        else:
+            p_pr.insert(0, bu)
 
 
 def boxed_text(slide, top, paragraphs, size, height=Inches(4.45)):
     """The content placeholder's text in a tinted box; programme names in bold, in the style's
     colour."""
-    box = deck.rect(slide, Inches(1.0), top + Inches(0.05), W - Inches(2.0), height, fill=S["box"])
+    shapes = card(slide, LEFT, top + Inches(0.05), W - 2 * LEFT, height)
     body = placeholder(slide, 1)
-    place(body, Inches(1.35), top + Inches(0.25), W - Inches(2.7), height - Inches(0.4))
-    box._element.getparent().remove(box._element)
-    body._element.addprevious(box._element)              # the box behind the text
+    place(body, LEFT + Inches(0.35), top + Inches(0.25), W - 2 * LEFT - Inches(0.7), height - Inches(0.4))
+    for shape in shapes:                                 # the card behind the text
+        shape._element.getparent().remove(shape._element)
+        body._element.addprevious(shape._element)
     deck.write(body.text_frame, paragraphs, size=size, colour=S["text"], after=10)
     body.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
     for para in body.text_frame.paragraphs:
         for run in para.runs:
             if run.font.bold:
                 run.font.color.rgb = rgb(S["names"])
-    return box, body
+    if MINIMAL:
+        bullet_colour(body.text_frame, S["rule"])
+    return (*shapes, body)
 
 
 def side_note(slide, top, paragraphs, size=17):
     """A tinted box beside a chart, holding a few short points."""
     x, w, h = Inches(8.55), W - Inches(8.55) - Inches(0.85), Inches(4.4)
-    box = deck.rect(slide, x, top + Inches(0.05), w, h, fill=S["box"])
+    shapes = card(slide, x, top + Inches(0.05), w, h)
     note = deck.textbox(slide, x + Inches(0.25), top + Inches(0.25), w - Inches(0.5), h - Inches(0.4), paragraphs,
                         size=size, colour=S["text"], after=12)
     note.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
-    return box, note
+    return (*shapes, note)
 
 
 def chart_area(top):
@@ -68,6 +98,8 @@ def chart_area(top):
 
 
 def footnote(slide, y, text, height=Inches(0.4)):
+    if MINIMAL:                                          # under the table, lined up with the title
+        return deck.textbox(slide, Inches(0.7), y, W - Inches(1.4), height, [text], size=14, colour=S["muted"])
     return deck.textbox(slide, Inches(0.8), y, W - Inches(1.6), height, [text], size=14, colour=S["muted"],
                         align=PP_ALIGN.CENTER)
 
@@ -76,7 +108,7 @@ def footnote(slide, y, text, height=Inches(0.4)):
 s = prs.slides.add_slide(LAYOUT["Title Slide"])
 deck.title_card(s, "Market Segmentation", [f"{BUSINESS}: a new digital-skills training business",
                                            "Market Research Lab  ·  Google Trends, Nigeria, past 12 months"],
-                size=44)
+                size=54 if MINIMAL else 44)
 deck.anim_chrome(s, title_card=True)
 s.notes_slide.notes_text_frame.text = (
     f"My assignment is a market segmentation for a new business, {BUSINESS}, a digital-skills training "
@@ -189,16 +221,16 @@ totals = [x["total"] for x in SEG]
 frame, _ = deck.bar_chart(s, placeholder(s, 1), *chart_area(top), [x["name"] for x in SEG], totals,
                           number_format="0.00", maximum=5, top=[TOP])
 deck.anim(s, frame, 3, "wipe-left")
-box, note = side_note(s, top, [
+*shapes, note = side_note(s, top, [
     [(f"{BEST['total']:.2f}", True)],
     [("out of 5", False)],
     [(BEST["name"], True)],
     [("are the most attractive segment, ahead of ", False), (SECOND["name"].lower(), True),
      (f" ({SECOND['total']:.2f}).", False)],
 ])
-deck.anim(s, [box, note], 4)
+deck.anim(s, [*shapes, note], 4)
 big = note.text_frame.paragraphs[0].runs[0]
-big.font.size, big.font.color.rgb = Pt(54), rgb(S["title"])          # the score, large
+big.font.size, big.font.color.rgb = Pt(54), rgb(S["bar_top"])        # the score, large, in the leading bar's colour
 for para in note.text_frame.paragraphs[:3]:
     para.alignment = PP_ALIGN.CENTER
 note.text_frame.paragraphs[1].space_after = Pt(0)

@@ -11,8 +11,14 @@ Three colour palettes (STYLES):
   mixed      both together: the wood title and closing slides, and white content slides with
              dark-blue titles, orange lines, peach and light-blue boxes, and navy, orange and grey
              charts.
+  minimal    a clean, modern design: plain white slides with one teal (0F766E) accent, a teal
+             strip down the edge of the title and closing slides, left-aligned Calibri Light
+             titles under a short teal line, soft grey cards with a teal edge, open tables with
+             teal headings and thin grey lines, light-grey bars with the leading bar in teal, and
+             a small footer and slide number.
 
-Text is in Office's own fonts: Calibri, with Cambria titles in the pz and mixed styles. Each
+Text is in Office's own fonts: Calibri, with Cambria titles in the pz and mixed styles and
+Calibri Light titles in the minimal style. Each
 deck's theme carries the style's colours and fonts, so PowerPoint's colour palette (Shape Fill,
 Font Color) offers them.
 """
@@ -75,6 +81,19 @@ STYLES = {
         "pie": ["1F3864", "F4B183", "C55A11", "9DC3E6", "7F7F7F"], "key_line": "7F7F7F",
         "bar": "1F3864", "bar_top": "C55A11",
     },
+    "minimal": {
+        "palette": ("Minimal Teal", {"dk2": "1F2933", "lt2": "F2F5F5", "accent1": "0F766E", "accent2": "5EAAA8",
+                                     "accent3": "9AA5B1", "accent4": "1F2933", "accent5": "C5CCD3",
+                                     "accent6": "52606D", "hlink": "0F766E", "folHlink": "52606D"}),
+        "head_font": "Calibri Light", "body_font": "Calibri",
+        "title_size": 34, "card_caps": False, "card_shadow": False,
+        "title": "1F2933", "text": "1F2933", "muted": "616E7C", "names": "0F766E",
+        "rule": "0F766E", "frame": None, "wood": (), "cards": False,
+        "head_fill": None, "band": None, "grid": "D9DEE3", "box": "F2F5F5",
+        "pie": ["0F766E", "9AA5B1", "5EAAA8", "C5CCD3", "1F2933"], "key_line": "7B8794",
+        "bar": "C5CCD3", "bar_top": "0F766E",
+        "minimal": True,
+    },
 }
 
 TEXT_SHADOW = (f'<a:effectLst xmlns:a="{A_NS}"><a:outerShdw blurRad="38100" dist="38100" dir="2700000" algn="tl" '
@@ -127,6 +146,25 @@ def cell_border(cell, colour):
             f'<a:headEnd type="none" w="med" len="med"/><a:tailEnd type="none" w="med" len="med"/></a:{side}>'))
 
 
+def cell_lines(cell, **sides):
+    """Set a table cell's borders one side at a time (left, right, top, bottom): (colour, width in
+    points), or None for no line."""
+    tc_pr = cell._tc.get_or_add_tcPr()
+    for tag in ("a:lnL", "a:lnR", "a:lnT", "a:lnB"):
+        for old in tc_pr.findall(qn(tag)):
+            tc_pr.remove(old)
+    for side, tag in reversed((("left", "lnL"), ("right", "lnR"), ("top", "lnT"), ("bottom", "lnB"))):
+        line = sides.get(side)
+        if line is None:
+            xml = f'<a:{tag} xmlns:a="{A_NS}" w="12700" cmpd="sng"><a:noFill/></a:{tag}>'
+        else:
+            colour, width = line
+            xml = (f'<a:{tag} xmlns:a="{A_NS}" w="{int(width * 12700)}" cap="flat" cmpd="sng" algn="ctr">'
+                   f'<a:solidFill><a:srgbClr val="{colour}"/></a:solidFill><a:prstDash val="solid"/><a:round/>'
+                   f'<a:headEnd type="none" w="med" len="med"/><a:tailEnd type="none" w="med" len="med"/></a:{tag}>')
+        tc_pr.insert(0, etree.fromstring(xml))
+
+
 def plot_layout(chart, x, y, w, h):
     """Place a chart's plot area by hand (Format Plot Area), as fractions of the chart."""
     plot_area = chart._chartSpace.chart.plotArea
@@ -150,6 +188,7 @@ class Deck:
         self.wood_path = wood_path
         self.plan = []                                   # (slide, shape, step, effect)
         self.chrome = ()                                 # the last slide's title, line and subtitle
+        self.footer = ""                                 # minimal style: the footer on content slides
 
     # -------------------------------------------------------------- animations
     def anim(self, slide, shapes, step, effect="fade"):
@@ -254,7 +293,16 @@ class Deck:
         in the PZ deck. Marketing style: a centred title over a line, in the thin frame."""
         S, W, H = self.S, self.W, self.H
         head, sub = placeholder(slide, 0), placeholder(slide, 1)
-        if "title" in S["wood"]:
+        if S.get("minimal"):
+            self.rect(slide, 0, 0, Inches(0.28), H, fill=S["rule"])         # the teal strip down the edge
+            place(head, Inches(1.1), Inches(2.25), W - Inches(2.2), Inches(1.5))
+            self.write(head.text_frame, [title], size=size, colour=S["title"], font=S["head_font"],
+                       align=PP_ALIGN.LEFT)
+            line = self.rule(slide, Inches(1.2), Inches(2.7), Inches(3.97), S["rule"], width=3)
+            place(sub, Inches(1.1), Inches(4.2), W - Inches(2.2), Inches(2.0))
+            self.write(sub.text_frame, lines, size=24, colour=S["muted"], align=PP_ALIGN.LEFT, after=8)
+            sub.text_frame.paragraphs[-1].runs[0].font.size = Pt(16)
+        elif "title" in S["wood"]:
             self.wood_background(slide)
             card_x, card_y, card_w, card_h = Inches(2.0), Inches(1.7), W - Inches(4.0), Inches(4.0)
             card = self.rect(slide, card_x, card_y, card_w, card_h, fill="FFFFFF", shadow=True)
@@ -288,6 +336,21 @@ class Deck:
         """A content slide's frame, title, line and subtitle; returns the top of the free space."""
         S, W, H = self.S, self.W, self.H
         head = slide.shapes.title
+        if S.get("minimal"):
+            line = self.rule(slide, Inches(0.8), Inches(1.5), Inches(0.62), S["rule"], width=3)
+            place(head, Inches(0.7), Inches(0.68), W - Inches(1.4), Inches(0.72))
+            self.write(head.text_frame, [title], size=S["title_size"], colour=S["title"], font=S["head_font"],
+                       align=PP_ALIGN.LEFT)
+            head.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
+            sub = self.textbox(slide, Inches(0.7), Inches(1.4), W - Inches(1.4), Inches(0.42), [subtitle], size=16,
+                               colour=S["muted"], align=PP_ALIGN.LEFT)
+            if self.footer:                              # footer text and the slide number
+                self.textbox(slide, Inches(0.7), H - Inches(0.5), Inches(8.0), Inches(0.3), [self.footer], size=10,
+                             colour=S["muted"])
+                self.textbox(slide, W - Inches(1.7), H - Inches(0.5), Inches(1.0), Inches(0.3),
+                             [str(len(self.prs.slides))], size=10, colour=S["muted"], align=PP_ALIGN.RIGHT)
+            self.chrome = (head, line, sub)
+            return Inches(2.1)
         if "content" in S["wood"]:
             self.wood_background(slide)
             card = self.rect(slide, Inches(0.45), Inches(0.35), W - Inches(0.9), H - Inches(0.7), fill="FFFFFF",
@@ -314,6 +377,7 @@ class Deck:
         rows, thin lines. Columns from centre_from on are centred; row_h is a height or a list."""
         heights = row_h if isinstance(row_h, list) else [row_h] * len(rows)
         S = self.S
+        minimal = S.get("minimal")                       # open table: teal headings, thin grey lines
         frame = slide.shapes.add_table(len(rows), len(widths), x, y, sum(widths, Emu(0)), sum(heights, Emu(0)))
         table = frame.table
         frame._element.graphic.graphicData.tbl.tblPr.find(qn("a:tableStyleId")).text = TABLE_GRID
@@ -332,9 +396,14 @@ class Deck:
                     cell.fill.fore_color.rgb = rgb(fill)
                 else:
                     cell.fill.background()
-                cell_border(cell, S["grid"])
+                if minimal:
+                    under = lambda row: (S["rule"], 1.5) if row == 0 else (S["grid"], 0.75)
+                    cell_lines(cell, top=under(r - 1) if r else None, bottom=under(r))
+                else:
+                    cell_border(cell, S["grid"])
+                head_colour = S["rule"] if minimal else "FFFFFF"
                 self.write(cell.text_frame, value if isinstance(value, list) else [value], size=size,
-                           colour="FFFFFF" if r == 0 else S["text"], bold=r == 0 or r in bold_rows,
+                           colour=head_colour if r == 0 else S["text"], bold=r == 0 or r in bold_rows,
                            align=PP_ALIGN.LEFT if c < centre_from else PP_ALIGN.CENTER)
         return into_placeholder(ph, frame), table
 
