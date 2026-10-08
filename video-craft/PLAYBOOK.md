@@ -9,13 +9,16 @@ behind each rule.
 
 ## 0. Who it's for
 
+- **Their rule: COPY ALL.** When they give a reference, reproduce all of it: every timing, size,
+  colour, typeface role, transition, frame rate and loudness. Don't "improve" or leave anything out.
 - **The bar the user sets:** "Make it beautiful, GO ALL OUT", "No mistakes", "as good as the video I sent".
   They notice low quality (they rejected a 30 fps, grainy, low-bitrate cut) and they notice music
   that doesn't flow.
 - **They want it fast.** They'll ask "why the delay". Send a status line while working, and deliver
   as soon as the checks pass.
 - **They watch on a phone,** with files passed through WhatsApp. Deliver an **MP4 via SendUserFile
-  (limit 30 MiB)**, 1080p **60 fps**, H.264, AAC 48 kHz.
+  (limit 30 MiB)**, 1080p, H.264, AAC 48 kHz, at **the reference's frame rate** (Tender: 25 fps with
+  real motion blur; their AI-edit clip: 60 fps).
 - **Signature:** their AI edit closed on **"made by veee"** (Instrument Serif italic, typed on the last hit). Offer it as the sign-off on their videos.
 - **Recurring subjects:** AI model launches (Claude, Gemini, GPT, Grok and their leaders), punchy
   statement lines ("A world without stress.", "AI takes over."). Spell names exactly as they're
@@ -39,8 +42,9 @@ behind each rule.
 5. **Joins:** align the incoming hit by cross-correlation (±20 ms), equal-power crossfade 12 ms
    (40 ms into a restart). Verify each join by its onset pattern against the source's own
    downbeat, with no sample-step spike (no click).
-6. **Master:** −12 to −14 LUFS for social, **true peak ≤ −1 dBTP** (the Tender reference clips at +0.3).
-   Keep the source's loudness if you're editing its song.
+6. **Master:** copy the reference's level exactly. Tender: **−11.4 LUFS** integrated, **2.3 LU** range,
+   limited right up to full scale (it reads +0.3 dBTP after AAC). When editing the user's own clip,
+   keep that song's level.
 
 ## 2. Beat sheet template (16 bars)
 
@@ -63,7 +67,7 @@ Times at 124.6 BPM; for any other tempo use `t = d0 + (bar − 1) · 240/BPM`.
 
 ## 3. Timing rules
 
-- **Cut on downbeats, 0–1 frame early** (−8 to −43 ms measured for hard cuts). At 60 fps, cut 1–2 frames early. Multi-frame transitions start early enough to *resolve* on the beat.
+- **Cut on downbeats, 0–1 frame early** (−8 to −43 ms measured for hard cuts): ~40 ms, which is 1 frame at 25 fps or 2 at 60 fps. Multi-frame transitions start early enough to *resolve* on the beat.
 - **Words land on beats or on the stab's "and",** never at random times. Closing words should be
   frame-tight.
 - **The flash/strobe is the sound made visible:** one solid frame per stutter hit; put the accent
@@ -96,7 +100,7 @@ function barMove(u, impact = .3, throwAt = .75) {
   - a native-looking sans for UI (Inter / Geist).
 - **Sizes at 1080p:**
   - hero serif cap height ≈ **63 px (5.8% of H)**, about a 93 px font;
-  - end tags ≥ **38 px caps (3.5% of H)**. The reference's 2.8% is too small on phones.
+  - end tags **30 px caps (2.8% of H)**, exactly the reference's size, ~6 frames each.
 - **Placement:** single statements dead centre; stacks in a left column positioned so the block sits
   optically centred (~36% of W); text beside a device at a 6% margin; text attached to 3D planes when
   it belongs to the object.
@@ -157,7 +161,7 @@ function barMove(u, impact = .3, throwAt = .75) {
 - [ ] **Sync:** assert every source-footage piece plays its own audio (drift < 1 ms); cuts on downbeats.
 - [ ] **Music joins:** onset pattern after each join matches a real downbeat, no click, the chord move
       is natural.
-- [ ] **Quality:** SSIM of the encode vs the rendered frames ≥ 0.998; 60 fps; size under the limit.
+- [ ] **Quality:** SSIM of the encode vs the rendered frames ≥ 0.998; the reference's frame rate; size under the limit.
 - [ ] **Spelling** of every name and product.
 - [ ] Contact sheets of the whole cut and a frame-by-frame look at every transition.
 
@@ -165,7 +169,7 @@ function barMove(u, impact = .3, throwAt = .75) {
 
 | Mistake | Fix |
 |---|---|
-| 30 fps + heavy grain + 4 Mbps looked "low quality" | 60 fps, clean graphics, two-pass, check SSIM |
+| 30 fps + heavy grain + 4 Mbps looked "low quality" next to a 60 fps source | match the reference's frame rate and look exactly, clean graphics, two-pass, check SSIM |
 | Cinematic grade that didn't match the source clip | match the source's own brand style first, then elevate |
 | Per-letter type-in using prefix widths broke kerning | `w(prefix through i) − w(i)` |
 | Fade-out ignored because the helper overwrote alpha | multiply alpha |

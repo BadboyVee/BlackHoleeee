@@ -19,8 +19,10 @@ the QA checklist and the mistakes already made.
 
 ## The essentials
 
+- **COPY ALL:** when they give a reference, reproduce all of it: every timing, size, colour, frame rate
+  and loudness. No "improvements".
 - They want it **beautiful, no mistakes, fast**. Send short progress lines; deliver MP4 via SendUserFile
-  (≤ 30 MiB), 1080p **60 fps**. Offer **"made by veee"** as the closing signature (their AI edit used it).
+  (≤ 30 MiB), 1080p at the reference's frame rate. Offer **"made by veee"** as the closing signature (their AI edit used it).
 - Lock everything to the music: one idea per bar, cuts on downbeats 0–1 frame early, words on beats.
 - Each shot: decelerate after the cut → drift → accelerate into the next cut.
 - Extend music only by whole loop phrases joined on downbeats; check the chord flow and listen for clicks.

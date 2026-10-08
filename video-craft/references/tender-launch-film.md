@@ -81,7 +81,7 @@ the whole way, which makes it endlessly loopable and easy to cut anywhere.
 - **Bars 9–15:** groove.
 - **Bar 16:** brighter again (closing riser), **final hits at 29.96 and 30.06 s**, and the music stops around 30.56 s, just before where bar 17 would land.
 
-**Mix:** −11.4 LUFS integrated (loud, made for social feeds), only 2.3 LU of loudness range, true peak +0.3 dBFS. That peak means it clips slightly; **don't copy it, keep ≤ −1 dBTP**.
+**Mix:** −11.4 LUFS integrated (loud, made for social feeds), only 2.3 LU of loudness range, true peak +0.3 dBFS: limited right up to full scale. **Copy it exactly.**
 
 **Sound design:** music-led, no voice-over. Added effects are sparse and sit on picture events
 (found where the audio departs from the loop; the labels are inferred):
@@ -351,9 +351,15 @@ The palette is white + near-black + **one** gold hue family (#9C6A2C, #BB823A, #
 - **Tempo inside tempo:** bars carry sections, beats carry words, 8ths/16ths carry UI micro-changes.
 - **Contrast keeps attention:** white↔black fields, still↔rushing, tiny type↔huge macro, serif↔mono.
 
-## 10. What not to copy
+## 10. Copy all of it: the exact targets
 
-- **True peak +0.3 dBFS:** it clips. Master to −1 dBTP, around −12 to −14 LUFS for social.
-- **25 fps:** fine on the web, but 60 fps is smoother for fast 3D moves (our earlier edit's feedback was "quality so low" at 30 fps).
-- **Small text:** the end tags are 2.8% of the frame height, hard to read on a phone. Go ≥ 3.5% for anything that must be read.
-- Some UI states flash by in 2–3 frames (e.g. "Paying…"). They're legible only on a pause; fine as texture, not for key information.
+The user's rule is **COPY ALL**. Reproduce every measurement in this study, including:
+- **Frame rate:** 25 fps, with real motion blur on whips and fast moves and stepped echo trails on flying parts.
+- **Loudness:** −11.4 LUFS integrated, 2.3 LU range, limited right up to full scale (+0.3 dBTP after AAC).
+- **End tags:** mono caps at 2.8% of the frame height (30 px at 1080p), wide tracking, ~6 frames each.
+- **UI pace:** payment states change every 2–3 frames; the eye reads the arc, not each state.
+- **Everything else:** the 16-bar structure, every cut and word on its beat, the palette hexes, the type
+  sizes and positions, and the transition list.
+
+Copy the film itself, not WhatsApp's compression of it: the 720p file is a phone copy, so render
+at 1080p to get the original's sharpness.
