@@ -5,6 +5,15 @@ any of them — every project is an `index.html` you can open directly.
 
 ## Projects
 
+### 🌊 [Saltwind Cove](ocean/)
+
+A WebGPU ocean you can walk, swim, sail and dive in. It has FFT waves, breakers that curl and
+plunge on a sandbar, a boat with a real Kelvin wake, a fishing village, a reef and a humpback
+whale, all built with three.js TSL, plus volumetric clouds, a physical sky and real recorded
+sound.
+
+**▶ [Open it](https://badboyvee.github.io/BlackHoleeee/ocean/)** · [source](ocean/) · [prompt](ocean/PROMPT.md)
+
 ### 🎬 [Opus 5.5 — Launch Film](opus-launch/)
 
 A real-time Three.js remake of the Opus 5.5 launch film. It has all 38 shots of the original:
