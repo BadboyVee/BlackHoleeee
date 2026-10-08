@@ -90,12 +90,12 @@ Each of the nine slides runs by itself for the time shown
 | 8. Why cybersecurity learners | 35 s |
 | 9. Thank you | 10 s |
 
-The design is minimal: plain white slides with one teal accent colour. The title and closing
-slides have a teal strip down the left edge; the content slides have a left-aligned title in
-Calibri Light under a short teal line, a grey subtitle, and a small footer with the slide
-number. Text sits on soft grey cards with a teal edge; the tables are open, with teal headings
-and thin grey lines; and the bar charts are light grey, with the leading bar in teal. Body text
-is in Calibri.
+The design is minimal, with one teal accent colour. The title and closing slides have a solid
+teal background with two soft circles, white text and a light line. The content slides have a
+soft teal-grey background, a left-aligned title in Calibri Light under a short teal line, a
+grey subtitle, and a small footer with the slide number. Text sits on white cards with a teal
+edge; the tables are white, with teal headings and thin grey lines; and the bar charts are grey,
+with the leading bar in teal. Body text is in Calibri.
 
 The bar charts are real PowerPoint charts with their data in an embedded workbook. Every slide
 has speaker notes and a transition: Fade on the title and closing slides, Push in between.

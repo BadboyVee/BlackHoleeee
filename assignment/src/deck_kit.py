@@ -11,11 +11,12 @@ Three colour palettes (STYLES):
   mixed      both together: the wood title and closing slides, and white content slides with
              dark-blue titles, orange lines, peach and light-blue boxes, and navy, orange and grey
              charts.
-  minimal    a clean, modern design: plain white slides with one teal (0F766E) accent, a teal
-             strip down the edge of the title and closing slides, left-aligned Calibri Light
-             titles under a short teal line, soft grey cards with a teal edge, open tables with
-             teal headings and thin grey lines, light-grey bars with the leading bar in teal, and
-             a small footer and slide number.
+  minimal    a clean, modern design with one teal (0F766E) accent: title and closing slides on
+             a solid teal background with two soft circles, white text and a light line; content
+             slides on a soft teal-grey background (E4EFEC) with left-aligned Calibri Light
+             titles under a short teal line, white cards with a teal edge, white tables with teal
+             headings and thin grey lines, grey bars with the leading bar in teal, and a small
+             footer and slide number.
 
 Text is in Office's own fonts: Calibri, with Cambria titles in the pz and mixed styles and
 Calibri Light titles in the minimal style. Each
@@ -87,12 +88,15 @@ STYLES = {
                                      "accent6": "52606D", "hlink": "0F766E", "folHlink": "52606D"}),
         "head_font": "Calibri Light", "body_font": "Calibri",
         "title_size": 34, "card_caps": False, "card_shadow": False,
-        "title": "1F2933", "text": "1F2933", "muted": "616E7C", "names": "0F766E",
+        "title": "1F2933", "text": "1F2933", "muted": "55606E", "names": "0F766E",
         "rule": "0F766E", "frame": None, "wood": (), "cards": False,
-        "head_fill": None, "band": None, "grid": "D9DEE3", "box": "F2F5F5",
+        "head_fill": None, "band": None, "grid": "D9DEE3", "box": "FFFFFF", "table_fill": "FFFFFF",
         "pie": ["0F766E", "9AA5B1", "5EAAA8", "C5CCD3", "1F2933"], "key_line": "7B8794",
-        "bar": "C5CCD3", "bar_top": "0F766E",
+        "bar": "B7C1CA", "bar_top": "0F766E",
         "minimal": True,
+        "background": "E4EFEC",                          # content slides: Format Background > Solid fill
+        "cover": "0F766E", "cover_circle": "13827A",     # title and closing slides
+        "cover_text": "FFFFFF", "cover_muted": "D3EBE7", "cover_rule": "8ED1C7",
     },
 }
 
@@ -277,6 +281,16 @@ class Deck:
             f'<a:blip r:embed="{r_id}"/><a:srcRect/><a:stretch><a:fillRect/></a:stretch></a:blipFill>'
             '<a:effectLst/></p:bgPr></p:bg>'))
 
+    @staticmethod
+    def solid_background(slide, colour):
+        """Format Background > Solid fill."""
+        c_sld = slide._element.find(qn("p:cSld"))
+        for old in c_sld.findall(qn("p:bg")):
+            c_sld.remove(old)
+        c_sld.insert(0, etree.fromstring(
+            f'<p:bg xmlns:p="{P_NS}" xmlns:a="{A_NS}"><p:bgPr><a:solidFill><a:srgbClr val="{colour}"/></a:solidFill>'
+            '<a:effectLst/></p:bgPr></p:bg>'))
+
     # -------------------------------------------------------------- slide frames
     def caps(self, text):
         """The first and last slides' titles: capitals on the wood cards, as in the PZ deck."""
@@ -294,13 +308,24 @@ class Deck:
         S, W, H = self.S, self.W, self.H
         head, sub = placeholder(slide, 0), placeholder(slide, 1)
         if S.get("minimal"):
-            self.rect(slide, 0, 0, Inches(0.28), H, fill=S["rule"])         # the teal strip down the edge
+            self.solid_background(slide, S["cover"])
+            # Two soft circles, a shade lighter than the background, off the right-hand edge.
+            big = slide.shapes.add_shape(MSO_SHAPE.OVAL, W - Inches(4.6), Inches(-1.8), Inches(7.2), Inches(7.2))
+            ring = slide.shapes.add_shape(MSO_SHAPE.OVAL, W - Inches(3.0), Inches(4.2), Inches(4.5), Inches(4.5))
+            big.fill.solid()
+            big.fill.fore_color.rgb = rgb(S["cover_circle"])
+            big.line.fill.background()
+            ring.fill.background()
+            ring.line.color.rgb = rgb(S["cover_rule"])
+            ring.line.width = Pt(1.25)
+            for shape in (ring, big):
+                to_back(shape)
             place(head, Inches(1.1), Inches(2.25), W - Inches(2.2), Inches(1.5))
-            self.write(head.text_frame, [title], size=size, colour=S["title"], font=S["head_font"],
+            self.write(head.text_frame, [title], size=size, colour=S["cover_text"], font=S["head_font"],
                        align=PP_ALIGN.LEFT)
-            line = self.rule(slide, Inches(1.2), Inches(2.7), Inches(3.97), S["rule"], width=3)
+            line = self.rule(slide, Inches(1.2), Inches(2.7), Inches(3.97), S["cover_rule"], width=3)
             place(sub, Inches(1.1), Inches(4.2), W - Inches(2.2), Inches(2.0))
-            self.write(sub.text_frame, lines, size=24, colour=S["muted"], align=PP_ALIGN.LEFT, after=8)
+            self.write(sub.text_frame, lines, size=24, colour=S["cover_muted"], align=PP_ALIGN.LEFT, after=8)
             sub.text_frame.paragraphs[-1].runs[0].font.size = Pt(16)
         elif "title" in S["wood"]:
             self.wood_background(slide)
@@ -337,6 +362,7 @@ class Deck:
         S, W, H = self.S, self.W, self.H
         head = slide.shapes.title
         if S.get("minimal"):
+            self.solid_background(slide, S["background"])
             line = self.rule(slide, Inches(0.8), Inches(1.5), Inches(0.62), S["rule"], width=3)
             place(head, Inches(0.7), Inches(0.68), W - Inches(1.4), Inches(0.72))
             self.write(head.text_frame, [title], size=S["title_size"], colour=S["title"], font=S["head_font"],
@@ -390,7 +416,7 @@ class Deck:
             for c, value in enumerate(values):
                 cell = table.cell(r, c)
                 cell.vertical_anchor = MSO_ANCHOR.MIDDLE
-                fill = S["head_fill"] if r == 0 else (S["band"] if r % 2 == 0 else None)
+                fill = S.get("table_fill") or (S["head_fill"] if r == 0 else (S["band"] if r % 2 == 0 else None))
                 if fill:
                     cell.fill.solid()
                     cell.fill.fore_color.rgb = rgb(fill)
@@ -452,6 +478,10 @@ class Deck:
         val.major_tick_mark = XL_TICK_MARK.NONE
         val.tick_label_position = XL_TICK_LABEL_POSITION.NONE
         val.format.line.fill.background()
+        if S.get("background"):                          # Format Chart Area > No fill, on a coloured slide
+            space = chart._chartSpace
+            space.find(qn("c:chart")).addnext(etree.fromstring(
+                f'<c:spPr xmlns:c="{C_NS}" xmlns:a="{A_NS}"><a:noFill/><a:ln><a:noFill/></a:ln></c:spPr>'))
         return into_placeholder(ph, frame), chart
 
     # -------------------------------------------------------------- the theme, properties, save
