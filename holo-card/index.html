@@ -1,0 +1,1879 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Clawd Holo Card</title>
+<meta name="description" content="A holographic 3D trading card of Clawd, the Claude Code mascot: diffraction-grating foil, a deep window behind the glass, and a Clawd that hops out of the card. Made with Opus 5.5.">
+<meta name="theme-color" content="#e7e8ec">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="BlackHoleeee">
+<meta property="og:title" content="Clawd Holo Card">
+<meta property="og:description" content="A holographic 3D trading card of Clawd with real diffraction foil and a window with depth behind the glass. Made with Opus 5.5.">
+<meta property="og:url" content="https://badboyvee.github.io/BlackHoleeee/holo-card/">
+<meta property="og:image" content="https://badboyvee.github.io/BlackHoleeee/holo-card/card.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="A black holographic trading card with Clawd, the orange Claude Code mascot, standing inside it">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Clawd Holo Card">
+<meta name="twitter:description" content="A holographic 3D trading card of Clawd with real diffraction foil and a window with depth behind the glass. Made with Opus 5.5.">
+<meta name="twitter:image" content="https://badboyvee.github.io/BlackHoleeee/holo-card/card.jpg">
+<meta name="twitter:image:alt" content="A black holographic trading card with Clawd, the orange Claude Code mascot, standing inside it">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 -4 18 18'%3E%3Cg fill='%23d77757'%3E%3Crect x='3' width='12' height='8'/%3E%3Crect x='1' y='4' width='16' height='2'/%3E%3Crect x='4' y='8' width='1' height='2'/%3E%3Crect x='6' y='8' width='1' height='2'/%3E%3Crect x='11' y='8' width='1' height='2'/%3E%3Crect x='13' y='8' width='1' height='2'/%3E%3C/g%3E%3Cg fill='%23161210'%3E%3Crect x='5' y='2' width='1' height='2'/%3E%3Crect x='12' y='2' width='1' height='2'/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Instrument+Sans:wght@400..600&family=JetBrains+Mono:wght@400..700&display=swap">
+<style>
+  /* Layout: a full-bleed WebGL stage. Credit sits top-left, the control dock bottom-centre. */
+  :root {
+    --bg: #e6e7eb;
+    --bg-hi: #f8f8fa;
+    --fg: #17181d;
+    --fg-dim: #6c6e79;
+    --panel: rgba(255, 255, 255, 0.74);
+    --panel-line: rgba(23, 24, 29, 0.09);
+    --hover: rgba(23, 24, 29, 0.06);
+    --drop: rgba(18, 20, 30, 0.10);
+    --accent: #b9583a;
+    --shadow-alpha: 0.24;
+    --font-display: "Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif;
+    --font-body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+    --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0b0c10;
+      --bg-hi: #1b1c24;
+      --fg: #ecedf2;
+      --fg-dim: #8d8f9b;
+      --panel: rgba(30, 31, 39, 0.72);
+      --panel-line: rgba(255, 255, 255, 0.09);
+      --hover: rgba(255, 255, 255, 0.07);
+      --drop: rgba(0, 0, 0, 0.35);
+      --accent: #e8906e;
+      --shadow-alpha: 0.6;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0b0c10;
+    --bg-hi: #1b1c24;
+    --fg: #ecedf2;
+    --fg-dim: #8d8f9b;
+    --panel: rgba(30, 31, 39, 0.72);
+    --panel-line: rgba(255, 255, 255, 0.09);
+    --hover: rgba(255, 255, 255, 0.07);
+    --drop: rgba(0, 0, 0, 0.35);
+    --accent: #e8906e;
+    --shadow-alpha: 0.6;
+    color-scheme: dark;
+  }
+
+  [hidden] { display: none !important; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background-color: var(--bg);
+    background-image: radial-gradient(120% 85% at 50% 40%, var(--bg-hi) 0%, var(--bg) 64%);
+    color: var(--fg);
+    font-family: var(--font-body);
+    overflow: hidden;
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  #stage {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    touch-action: none;
+    cursor: grab;
+    outline: none;
+  }
+  #stage.dragging { cursor: grabbing; }
+
+  .credit {
+    position: fixed;
+    top: calc(16px + env(safe-area-inset-top, 0px));
+    left: calc(16px + env(safe-area-inset-left, 0px));
+    display: grid;
+    gap: 3px;
+    pointer-events: none;
+  }
+  .credit p { margin: 0; }
+  .eyebrow {
+    font: 500 10.5px/1.4 var(--font-mono);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--fg-dim);
+  }
+  .credit h1 {
+    margin: 0;
+    font: 700 18px/1.15 var(--font-display);
+    letter-spacing: -0.01em;
+  }
+  .made {
+    font: 600 11.5px/1.4 var(--font-mono);
+    letter-spacing: 0.02em;
+    color: var(--accent);
+  }
+
+  .hint {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: calc(88px + env(safe-area-inset-bottom, 0px));
+    margin: 0;
+    padding-inline: 16px;
+    text-align: center;
+    font: 500 11px/1.4 var(--font-mono);
+    letter-spacing: 0.05em;
+    color: var(--fg-dim);
+    pointer-events: none;
+    transition: opacity 0.8s ease;
+  }
+  .hint.gone { opacity: 0; }
+
+  .dock {
+    position: fixed;
+    left: 50%;
+    bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 5px;
+    border-radius: 16px;
+    background: var(--panel);
+    border: 1px solid var(--panel-line);
+    box-shadow: 0 10px 30px var(--drop);
+    -webkit-backdrop-filter: blur(14px) saturate(1.4);
+    backdrop-filter: blur(14px) saturate(1.4);
+  }
+  .variants { display: flex; gap: 2px; }
+  .dock button {
+    position: relative;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: 11px;
+    background: transparent;
+    color: var(--fg);
+    cursor: pointer;
+    transition: background-color 0.15s;
+  }
+  .dock button:hover { background: var(--hover); }
+  .dock button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+  .thumb { width: 42px; height: 54px; padding: 0; }
+  .thumb canvas {
+    width: 26px;
+    height: 36px;
+    display: block;
+    border-radius: 4px;
+    box-shadow: 0 2px 6px var(--drop);
+    transition: transform 0.2s ease;
+  }
+  .thumb:hover canvas { transform: translateY(-2px); }
+  .thumb[aria-pressed="true"]::after {
+    content: "";
+    position: absolute;
+    bottom: 3px;
+    width: 12px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--fg);
+  }
+  .sep { width: 1px; height: 26px; margin-inline: 4px; background: var(--panel-line); }
+  .icon { width: 40px; height: 40px; }
+  .icon svg { width: 18px; height: 18px; }
+  .icon .play { display: none; }
+  .icon[aria-pressed="true"] .play { display: block; }
+  .icon[aria-pressed="true"] .pause { display: none; }
+
+  .status {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding-inline: 16px;
+    text-align: center;
+    font: 500 12px/1.5 var(--font-mono);
+    letter-spacing: 0.06em;
+    color: var(--fg-dim);
+    pointer-events: none;
+    transition: opacity 0.6s ease;
+  }
+  .status.done { opacity: 0; }
+
+  @media (max-width: 420px) {
+    .credit h1 { font-size: 16px; }
+    .hint { font-size: 10.5px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hint, .status, .thumb canvas { transition: none; }
+  }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<canvas id="stage" tabindex="0" role="img" aria-label="A 3D holographic trading card of Clawd. Drag to turn it, tap it to make Clawd hop."></canvas>
+
+<header class="credit">
+  <p class="eyebrow">Holo Friends · Series 01</p>
+  <h1>Clawd Holo Card</h1>
+  <p class="made">Made with Opus 5.5</p>
+</header>
+
+<p class="hint" id="hint">Drag to turn the card · tap it and Clawd hops</p>
+
+<nav class="dock" aria-label="Card controls">
+  <div class="variants" role="group" aria-label="Foil">
+    <button class="thumb" type="button" data-variant="0" aria-pressed="true" aria-label="Prism holo foil" title="Prism holo"><canvas width="52" height="72"></canvas></button>
+    <button class="thumb" type="button" data-variant="1" aria-pressed="false" aria-label="Gold foil" title="Gold foil"><canvas width="52" height="72"></canvas></button>
+    <button class="thumb" type="button" data-variant="2" aria-pressed="false" aria-label="Cosmos holo foil" title="Cosmos holo"><canvas width="52" height="72"></canvas></button>
+  </div>
+  <span class="sep" aria-hidden="true"></span>
+  <button class="icon" id="flip" type="button" aria-label="Flip the card" title="Flip (F)">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 0 1 15.5-6.2L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15.5 6.2L3 16"/><path d="M3 21v-5h5"/></svg>
+  </button>
+  <button class="icon" id="pause" type="button" aria-pressed="false" aria-label="Pause the motion" title="Pause (P)">
+    <svg class="pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg>
+    <svg class="play" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M8 5.5v13a1 1 0 0 0 1.5.86l10.5-6.5a1 1 0 0 0 0-1.72L9.5 4.64A1 1 0 0 0 8 5.5z"/></svg>
+  </button>
+</nav>
+
+<div class="status" id="status">Pressing the foil…</div>
+<script>
+  // If the module never runs (blocked CDN, very old browser), say so.
+  setTimeout(function () {
+    var el = document.getElementById('status');
+    if (!window.clawdCard && el.textContent === 'Pressing the foil…') el.textContent = 'The 3D engine did not load. Check your connection and reload the page.';
+  }, 12000);
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+
+const statusEl = document.getElementById('status');
+const canvas = document.getElementById('stage');
+
+let renderer;
+try {
+  renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, stencil: true, powerPreference: 'high-performance' });
+} catch (err) {
+  statusEl.textContent = 'This card needs WebGL 2. Open it in a recent Chrome, Safari or Firefox.';
+  throw err;
+}
+
+// ---------------------------------------------------------------------------
+// Card geometry, in world units. A real card is 63 × 88 mm; this one is a
+// thick slab of the same proportions.
+// ---------------------------------------------------------------------------
+
+const CW = 2.5, CH = 3.5, CR = 0.15;         // width, height, corner radius
+const CORE = 0.046, BEV = 0.012;              // slab thickness and edge roundover
+const FACE_Z = CORE / 2 + BEV;                // the front glass, in card space
+const FLOOR_Y = -0.45;                        // floor of the world behind the glass
+const CLAWD_Z = -0.8;                         // how far behind the glass Clawd stands
+const UNIT = 0.215;                           // one Clawd "pixel" in world units
+const HOP_H = 0.6, HOP_Z = 1.7;               // hop height, and how far it leaps toward you
+
+const VARIANTS = [
+  {
+    key: 'prism', name: 'Prism Holo', no: '001', pattern: 0,
+    tint: 0xffffff, metal: 0xdde2ec, lam: 0.12, glitter: 0.5, iridescence: 0.35,
+    top: 0x1d1238, bottom: 0x050409, nebA: 0xff4a9e, nebB: 0x2fd2ff, halo: 0xff9466, halo2: 0xffd2b8, rainbow: 0.75,
+    rim: 0xa07bff, rim2: 0x34d6ff, sky: 0x8f7dff, floor: 0x0d0b14, grid: 0x8c70ff, fog: 0x0b0716,
+    thumb: ['#ff5aa8', '#ffd25a', '#3fe0ff', '#9a7bff'],
+  },
+  {
+    key: 'gold', name: 'Gold Foil', no: '002', pattern: 1,
+    tint: 0xffc56a, metal: 0xf0c060, lam: 0.08, glitter: 0.65, iridescence: 0.08,
+    top: 0x2b1a07, bottom: 0x070503, nebA: 0xffad3d, nebB: 0xff5f2e, halo: 0xffc061, halo2: 0xfff0c8, rainbow: 0.0,
+    rim: 0xffb04a, rim2: 0xff7440, sky: 0xffc27a, floor: 0x100b06, grid: 0xffae45, fog: 0x130c05,
+    thumb: ['#fff1b8', '#e8a93c', '#b8741e', '#ffd36e'],
+  },
+  {
+    key: 'cosmos', name: 'Cosmos Holo', no: '003', pattern: 2,
+    tint: 0xffffff, metal: 0xd4dbf2, lam: 0.1, glitter: 1.0, iridescence: 0.5,
+    top: 0x08223c, bottom: 0x02040a, nebA: 0x14f0c6, nebB: 0x8e58ff, halo: 0x8a7bff, halo2: 0xc8fff2, rainbow: 0.45,
+    rim: 0x18f0c8, rim2: 0xff5acb, sky: 0x58c8ff, floor: 0x060a12, grid: 0x2be6cf, fog: 0x040a15,
+    thumb: ['#1ef0c8', '#8e58ff', '#ff6fd0', '#5ac8ff'],
+  },
+];
+
+const FONT_DISPLAY = '"Bricolage Grotesque", "Avenir Next", "Segoe UI", system-ui, sans-serif';
+const FONT_BODY = '"Instrument Sans", "Segoe UI", system-ui, sans-serif';
+const FONT_MONO = '"JetBrains Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace';
+
+// Clawd as drawn in the Claude Code terminal, in units of a half-width cell
+// column (x) and a cell half-row (y). 9 × 5 units, y pointing down.
+const CLAWD_PIXELS = {
+  skin: [[1.5, 0, 6, 4], [0.5, 2, 1, 1], [7.5, 2, 1, 1], [2, 4, 0.5, 1], [3, 4, 0.5, 1], [5.5, 4, 0.5, 1], [6.5, 4, 0.5, 1]],
+  eyes: [[2.5, 1, 0.5, 1], [6, 1, 0.5, 1]],
+};
+const CLAWD_ORANGE = '#d77757';
+
+// ---------------------------------------------------------------------------
+// Renderer, scenes, camera
+// ---------------------------------------------------------------------------
+
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.NeutralToneMapping;
+renderer.toneMappingExposure = 1.0;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.VSMShadowMap;
+renderer.shadowMap.autoUpdate = false;
+renderer.localClippingEnabled = true;
+renderer.autoClear = false;
+renderer.setClearColor(0x000000, 0);
+
+const camera = new THREE.PerspectiveCamera(26, 1, 0.1, 60);
+camera.position.set(0, 0, 10);
+let camDist = 10;
+
+// Two scenes share one camera. The inner scene is the world behind the glass:
+// it only draws where the front face has written 1 into the stencil buffer.
+// The outer scene is the physical card and the wall it casts a shadow on.
+const outerScene = new THREE.Scene();
+const innerScene = new THREE.Scene();
+const POP_LAYER = 1;                           // Clawd and the inner lights, redrawn when it leaps out
+
+const rig = new THREE.Group();                 // the card: float and tilt live here
+outerScene.add(rig);
+const innerRoot = new THREE.Group();           // follows the card through a copied matrix
+innerRoot.matrixAutoUpdate = false;
+innerScene.add(innerRoot);
+
+const pmrem = new THREE.PMREMGenerator(renderer);
+
+// Builds an environment map from a few emissive panels around a room, so the
+// reflections are softboxes of known brightness.
+function panelEnvironment(roomColor, floorColor, panels) {
+  const s = new THREE.Scene();
+  const room = new THREE.Mesh(new THREE.SphereGeometry(10, 32, 16), new THREE.MeshBasicMaterial({ color: roomColor, side: THREE.BackSide }));
+  const ground = new THREE.Mesh(new THREE.CircleGeometry(9.5, 32), new THREE.MeshBasicMaterial({ color: floorColor }));
+  ground.rotation.x = -Math.PI / 2;
+  ground.position.y = -4;
+  s.add(room, ground);
+  for (const [color, power, x, y, z, w, h] of panels) {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ color: new THREE.Color(color).multiplyScalar(power), side: THREE.DoubleSide }));
+    m.position.set(x, y, z);
+    m.lookAt(0, 0, 0);
+    s.add(m);
+  }
+  const target = pmrem.fromScene(s, 0.02);
+  s.traverse((o) => { if (o.isMesh) { o.geometry.dispose(); o.material.dispose(); } });
+  return target;
+}
+
+// The studio around the card: a grey room, a big key softbox up left,
+// a strip light on the right and a soft top light.
+outerScene.environment = panelEnvironment(0x3c3e45, 0x24252a, [
+  [0xfff6ee, 5, -5, 5, 6, 6, 4],
+  [0xeef3ff, 3, 7, 1.5, 3, 1.4, 8],
+  [0xffffff, 1.6, 0, 9, 0, 9, 9],
+  [0xffffff, 1.4, 0, 2, -8, 9, 3],
+]).texture;
+
+function stencilInside(m) {
+  m.stencilWrite = true;
+  m.stencilRef = 1;
+  m.stencilFunc = THREE.EqualStencilFunc;
+  m.stencilFail = m.stencilZFail = m.stencilZPass = THREE.KeepStencilOp;
+  return m;
+}
+function stencilOutside(m) {
+  stencilInside(m);
+  m.stencilFunc = THREE.NotEqualStencilFunc;
+  return m;
+}
+
+// ---------------------------------------------------------------------------
+// Print layers. Each face is painted into three canvases: ink (what is
+// printed), foil (where the holographic foil is stamped) and a height map
+// that becomes a normal map, so the stamped foil is embossed.
+// ---------------------------------------------------------------------------
+
+const PW = Math.max(innerWidth, innerHeight) * Math.min(window.devicePixelRatio || 1, 2) > 2000 ? 1400 : 1100;
+const PH = Math.round(PW * CH / CW);
+const PS = PW / 1000;                          // layouts are written for a 1000 px wide card
+
+function makeCanvas(w = PW, h = PH) {
+  const c = document.createElement('canvas');
+  c.width = w;
+  c.height = h;
+  return c;
+}
+function canvasTexture(c, srgb) {
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = srgb ? THREE.SRGBColorSpace : THREE.NoColorSpace;
+  t.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  return t;
+}
+function makePrintSet() {
+  const set = { ink: makeCanvas(), foil: makeCanvas(), normal: makeCanvas() };
+  set.tex = { ink: canvasTexture(set.ink, true), foil: canvasTexture(set.foil, false), normal: canvasTexture(set.normal, false) };
+  return set;
+}
+const frontPrint = makePrintSet();
+const backPrint = makePrintSet();
+const heightRaw = makeCanvas();
+const heightBlur = makeCanvas();
+
+function ctxOf(c) {
+  const ctx = c.getContext('2d', { willReadFrequently: c === heightBlur });
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.clearRect(0, 0, c.width, c.height);
+  ctx.setTransform(PS, 0, 0, PS, 0, 0);
+  ctx.textBaseline = 'alphabetic';
+  return ctx;
+}
+
+// Draws text with tracking; canvas letterSpacing is not everywhere yet.
+function spaced(ctx, text, x, y, sp, align = 'left') {
+  const chars = [...text];
+  const widths = chars.map((ch) => ctx.measureText(ch).width);
+  const total = widths.reduce((a, b) => a + b, 0) + sp * (chars.length - 1);
+  let cx = align === 'right' ? x - total : align === 'center' ? x - total / 2 : x;
+  ctx.textAlign = 'left';
+  chars.forEach((ch, i) => { ctx.fillText(ch, cx, y); cx += widths[i] + sp; });
+}
+
+function roundRectPath(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+function sparkle(ctx, x, y, r) {
+  ctx.beginPath();
+  for (let i = 0; i < 8; i++) {
+    const a = i * Math.PI / 4 - Math.PI / 2;
+    const rr = i % 2 ? r * 0.26 : r;
+    ctx.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr);
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+
+function pixelClawd(ctx, cx, cy, u, skin, eyes) {
+  const ox = cx - 4.5 * u, oy = cy - 2.5 * u, e = 0.6 / PS;
+  ctx.fillStyle = skin;
+  for (const [x, y, w, h] of CLAWD_PIXELS.skin) ctx.fillRect(ox + x * u - e, oy + y * u - e, w * u + 2 * e, h * u + 2 * e);
+  if (!eyes) return;
+  ctx.fillStyle = eyes;
+  for (const [x, y, w, h] of CLAWD_PIXELS.eyes) ctx.fillRect(ox + x * u, oy + y * u, w * u, h * u);
+}
+
+// Runs fn once per target with that target's fill and stroke style.
+function on(targets, fn) {
+  for (const [ctx, style] of targets) {
+    ctx.save();
+    ctx.fillStyle = ctx.strokeStyle = style;
+    fn(ctx);
+    ctx.restore();
+  }
+}
+
+function frame(ctx) {
+  ctx.lineWidth = 3.5;
+  roundRectPath(ctx, 22, 22, 956, 1356, 44);
+  ctx.stroke();
+}
+
+function drawFront(v) {
+  const ink = ctxOf(frontPrint.ink), foil = ctxOf(frontPrint.foil), hgt = ctxOf(heightRaw);
+  const FOIL = [[foil, '#fff'], [hgt, '#fff']];
+
+  // Dark plates keep the type readable over the world behind the glass.
+  let g = ink.createLinearGradient(0, 0, 0, 380);
+  g.addColorStop(0, 'rgba(3,3,7,0.7)');
+  g.addColorStop(1, 'rgba(3,3,7,0)');
+  ink.fillStyle = g;
+  ink.fillRect(0, 0, 1000, 380);
+  g = ink.createLinearGradient(0, 900, 0, 1060);
+  g.addColorStop(0, 'rgba(3,3,7,0)');
+  g.addColorStop(1, 'rgba(3,3,7,0.32)');
+  ink.fillStyle = g;
+  ink.fillRect(0, 900, 1000, 500);
+
+  on(FOIL, frame);
+  ink.lineWidth = 1.2;
+  ink.strokeStyle = 'rgba(255,255,255,0.16)';
+  roundRectPath(ink, 33, 33, 934, 1334, 35);
+  ink.stroke();
+
+  // Header
+  ink.fillStyle = 'rgba(250,248,245,0.95)';
+  ink.font = `700 33px ${FONT_MONO}`;
+  spaced(ink, 'HOLO', 66, 112, 5);
+  spaced(ink, 'FRIENDS', 66, 150, 5);
+  ink.fillStyle = 'rgba(250,248,245,0.62)';
+  ink.font = `500 23px ${FONT_BODY}`;
+  ink.fillText('Claude Code', 66, 194);
+  ink.fillText('collection', 66, 223);
+
+  on(FOIL, (c) => sparkle(c, 914, 100, 24));
+  ink.textAlign = 'right';
+  ink.fillStyle = 'rgba(250,248,245,0.74)';
+  ink.font = `500 20px ${FONT_MONO}`;
+  ink.fillText(`No. ${v.no}`, 934, 154);
+  ink.fillStyle = 'rgba(250,248,245,0.5)';
+  ink.font = `500 15px ${FONT_MONO}`;
+  spaced(ink, v.name.toUpperCase(), 934, 181, 2.5, 'right');
+
+  // Name, foil stamped
+  on(FOIL, (c) => {
+    c.font = `800 178px ${FONT_DISPLAY}`;
+    c.textAlign = 'left';
+    c.fillText('clawd', 56, 1104);
+    roundRectPath(c, 66, 1134, 58, 10, 5);
+    c.fill();
+  });
+
+  ink.fillStyle = 'rgba(244,241,236,0.78)';
+  ink.font = `500 27px ${FONT_BODY}`;
+  ink.textAlign = 'left';
+  ink.fillText('A pocket-size terminal buddy.', 66, 1196);
+  ink.fillText('Reads the whole repo, then ships', 66, 1232);
+  ink.fillText('before your coffee cools.', 66, 1268);
+
+  // Footer
+  on(FOIL, (c) => {
+    c.fillRect(66, 1300, 868, 2);
+    sparkle(c, 76, 1338, 11);
+  });
+  ink.fillStyle = 'rgba(250,248,245,0.94)';
+  ink.font = `700 20px ${FONT_MONO}`;
+  spaced(ink, 'MADE WITH OPUS 5.5', 96, 1345, 3);
+  ink.fillStyle = 'rgba(250,248,245,0.5)';
+  ink.font = `500 16px ${FONT_MONO}`;
+  spaced(ink, `SERIES 01 · ${v.no}/150`, 934, 1344, 2, 'right');
+
+  finishHeight(frontPrint);
+}
+
+function guilloche(ctx, cx, cy) {
+  ctx.lineWidth = 1.15;
+  for (let k = 0; k < 30; k++) {
+    const ph = (k / 30) * Math.PI * 2;
+    ctx.beginPath();
+    for (let i = 0; i <= 900; i++) {
+      const t = (i / 900) * Math.PI * 2;
+      const r = 252 + 44 * Math.sin(7 * t + ph) + 20 * Math.sin(19 * t - 2 * ph);
+      const x = cx + Math.cos(t) * r, y = cy + Math.sin(t) * r * 1.1;
+      if (i) ctx.lineTo(x, y); else ctx.moveTo(x, y);
+    }
+    ctx.closePath();
+    ctx.stroke();
+  }
+}
+
+function drawBack() {
+  const ink = ctxOf(backPrint.ink), foil = ctxOf(backPrint.foil), hgt = ctxOf(heightRaw);
+  const FOIL = [[foil, '#fff'], [hgt, '#fff']];
+
+  const g = ink.createRadialGradient(500, 620, 40, 500, 700, 900);
+  g.addColorStop(0, '#17141f');
+  g.addColorStop(1, '#07070a');
+  ink.fillStyle = g;
+  ink.fillRect(0, 0, 1000, 1400);
+
+  on(FOIL, frame);
+  on([[foil, '#b4b4b4'], [hgt, '#fff']], (c) => guilloche(c, 500, 600));
+
+  // The pixel Clawd, printed in ink and embossed.
+  pixelClawd(ink, 500, 600, 30, CLAWD_ORANGE, '#141012');
+  pixelClawd(hgt, 500, 600, 30, '#fff', null);
+
+  on(FOIL, (c) => {
+    c.font = `800 132px ${FONT_DISPLAY}`;
+    c.textAlign = 'center';
+    c.fillText('clawd', 500, 1086);
+    c.fillRect(380, 1268, 240, 2);
+    sparkle(c, 500, 1218, 16);
+  });
+  ink.fillStyle = 'rgba(250,248,245,0.94)';
+  ink.font = `700 20px ${FONT_MONO}`;
+  spaced(ink, 'MADE WITH OPUS 5.5', 500, 1322, 3, 'center');
+  ink.fillStyle = 'rgba(250,248,245,0.55)';
+  ink.font = `500 18px ${FONT_MONO}`;
+  spaced(ink, 'HOLO FRIENDS · SERIES 01', 500, 1140, 4, 'center');
+
+  finishHeight(backPrint);
+}
+
+// Blurs the height map and turns it into a tangent-space normal map.
+function finishHeight(set) {
+  const blur = heightBlur.getContext('2d', { willReadFrequently: true });
+  blur.setTransform(1, 0, 0, 1, 0, 0);
+  blur.clearRect(0, 0, PW, PH);
+  blur.fillStyle = '#000';
+  blur.fillRect(0, 0, PW, PH);
+  blur.filter = `blur(${(1.6 * PS).toFixed(2)}px)`;
+  blur.drawImage(heightRaw, 0, 0);
+  blur.filter = 'none';
+
+  const src = blur.getImageData(0, 0, PW, PH).data;
+  const nctx = set.normal.getContext('2d');
+  const out = nctx.createImageData(PW, PH);
+  const d = out.data;
+  const k = 2.6 / 255;
+  for (let y = 0; y < PH; y++) {
+    const yu = (y > 0 ? y - 1 : 0) * PW, yd = (y < PH - 1 ? y + 1 : y) * PW, row = y * PW;
+    for (let x = 0; x < PW; x++) {
+      const xl = x > 0 ? x - 1 : 0, xr = x < PW - 1 ? x + 1 : x;
+      const nx = (src[(row + xl) * 4] - src[(row + xr) * 4]) * k;
+      const ny = (src[(yd + x) * 4] - src[(yu + x) * 4]) * k;
+      const inv = 1 / Math.sqrt(nx * nx + ny * ny + 1);
+      const i = (row + x) * 4;
+      d[i] = (nx * inv * 0.5 + 0.5) * 255;
+      d[i + 1] = (ny * inv * 0.5 + 0.5) * 255;
+      d[i + 2] = (inv * 0.5 + 0.5) * 255;
+      d[i + 3] = 255;
+    }
+  }
+  nctx.putImageData(out, 0, 0);
+  set.tex.ink.needsUpdate = true;
+  set.tex.foil.needsUpdate = true;
+  set.tex.normal.needsUpdate = true;
+}
+
+// ---------------------------------------------------------------------------
+// Holographic foil. Real holo foil is a diffraction grating: the colour you
+// see at each point is the wavelength the grating sends toward your eye,
+// λ = d · |(L + V) · T| / m. The grating direction T and spacing d vary across
+// the card, which is what draws the pattern. Glitter flakes are tiny mirrors
+// with random tilts that flash when they line up with a light.
+// ---------------------------------------------------------------------------
+
+const HOLO_VERT = /* glsl */ `
+varying vec2 vUv;
+varying vec3 vWPos;
+varying vec3 vN;
+varying vec3 vT;
+varying vec3 vB;
+void main() {
+  vUv = uv;
+  vec4 wp = modelMatrix * vec4(position, 1.0);
+  vWPos = wp.xyz;
+  mat3 m = mat3(modelMatrix);
+  vN = normalize(m * vec3(0.0, 0.0, 1.0));
+  vT = normalize(m * vec3(1.0, 0.0, 0.0));
+  vB = normalize(m * vec3(0.0, 1.0, 0.0));
+  gl_Position = projectionMatrix * viewMatrix * wp;
+}`;
+
+const HOLO_FRAG = /* glsl */ `
+uniform sampler2D uInk;
+uniform sampler2D uFoil;
+uniform sampler2D uNormal;
+uniform float uPattern;
+uniform float uLam;
+uniform float uGlitter;
+uniform float uFoilGain;
+uniform float uOpaque;
+uniform vec3 uTint;
+uniform vec3 uBase;
+uniform vec2 uCenter;
+uniform vec3 uL1;
+uniform vec3 uL2;
+varying vec2 vUv;
+varying vec3 vWPos;
+varying vec3 vN;
+varying vec3 vT;
+varying vec3 vB;
+
+vec3 hash32(vec2 p) {
+  vec3 p3 = fract(vec3(p.xyx) * vec3(0.1031, 0.1030, 0.0973));
+  p3 += dot(p3, p3.yxz + 33.33);
+  return fract((p3.xxy + p3.yzz) * p3.zyx);
+}
+
+// Zucconi's six-lobe fit of the visible spectrum, wavelength in nm.
+vec3 bump3y(vec3 x, vec3 yoffset) {
+  vec3 y = 1.0 - x * x;
+  return clamp(y - yoffset, 0.0, 1.0);
+}
+vec3 spectral(float w) {
+  float x = clamp((w - 400.0) / 300.0, 0.0, 1.0);
+  const vec3 c1 = vec3(3.54585104, 2.93225262, 2.41593945);
+  const vec3 x1 = vec3(0.69549072, 0.49228336, 0.27699880);
+  const vec3 y1 = vec3(0.02312639, 0.15225084, 0.52607955);
+  const vec3 c2 = vec3(3.90307140, 3.21182957, 3.96587128);
+  const vec3 x2 = vec3(0.11748627, 0.86755042, 0.66077860);
+  const vec3 y2 = vec3(0.84897130, 0.88445281, 0.73949448);
+  float win = smoothstep(390.0, 420.0, w) * smoothstep(710.0, 680.0, w);
+  return (bump3y(c1 * (x - x1), y1) + bump3y(c2 * (x - x2), y2)) * win;
+}
+
+vec3 grating(vec3 L, vec3 V, vec3 T, float d) {
+  float u = abs(dot(L + V, T));
+  vec3 c = vec3(0.0);
+  for (int m = 1; m <= 3; m++) c += spectral(u * d / float(m)) / float(m);
+  return c;
+}
+
+vec2 cellOf(vec2 g) {
+  vec2 i = floor(g), f = fract(g);
+  float best = 8.0;
+  vec2 id = i;
+  for (int y = -1; y <= 1; y++) {
+    for (int x = -1; x <= 1; x++) {
+      vec2 o = vec2(float(x), float(y));
+      vec2 r = o + hash32(i + o).xy - f;
+      float dd = dot(r, r);
+      if (dd < best) { best = dd; id = i + o; }
+    }
+  }
+  return id;
+}
+
+void main() {
+  vec4 ink = texture2D(uInk, vUv);
+  float foil = texture2D(uFoil, vUv).r;
+  vec3 nm = texture2D(uNormal, vUv).xyz * 2.0 - 1.0;
+  vec3 N = normalize(vT * nm.x + vB * nm.y + vN * max(nm.z, 0.25));
+  vec3 V = normalize(cameraPosition - vWPos);
+
+  // Grating layout for each foil style.
+  float ang, d;
+  vec2 p = (vUv - uCenter) * vec2(1.0, 1.4);
+  if (uPattern < 0.5) {              // prism: a sunburst around Clawd
+    float a = atan(p.y, p.x);
+    ang = a + 1.5708;
+    d = 1250.0 + 380.0 * sin(a * 18.0);
+  } else if (uPattern < 1.5) {       // gold: brushed, nearly parallel lines
+    ang = 0.5 + 0.06 * sin(vUv.y * 24.0);
+    d = 1650.0 + 260.0 * sin(dot(vUv, vec2(19.0, 47.0)));
+  } else {                           // cosmos: a mosaic of tiles
+    vec3 h = hash32(cellOf(vUv * vec2(16.0, 22.4)));
+    ang = h.x * 6.2831853;
+    d = 950.0 + 1100.0 * h.y;
+  }
+  vec3 Tg = normalize(vT * cos(ang) + vB * sin(ang));
+  vec3 Bg = normalize(cross(N, Tg));
+  // Light only leaves the grating close to the plane across its lines: a
+  // broad lobe for the stamped foil, a narrow one for the clear laminate,
+  // so the laminate shows travelling bands instead of a wash.
+  vec3 g1 = grating(uL1, V, Tg, d), g2 = grating(uL2, V, Tg, d);
+  float o1 = dot(uL1 + V, Bg), o2 = dot(uL2 + V, Bg);
+  o1 *= o1;
+  o2 *= o2;
+  vec3 holo = g1 * exp(-o1 * 2.4) + 0.6 * g2 * exp(-o2 * 2.4);
+  vec3 holoLam = g1 * exp(-o1 * 16.0) + 0.6 * g2 * exp(-o2 * 16.0);
+
+  // Glitter flakes.
+  vec2 gg = vUv * vec2(170.0, 238.0);
+  vec2 gf = fract(gg) - 0.5;
+  vec3 gr = hash32(floor(gg) + 17.0);
+  vec2 jit = gr.xy - 0.5;
+  vec3 Nf = normalize(N + (vT * jit.x + vB * jit.y) * 1.1);
+  float sp = pow(max(dot(Nf, normalize(uL1 + V)), 0.0), 420.0)
+           + 0.6 * pow(max(dot(Nf, normalize(uL2 + V)), 0.0), 420.0);
+  float flake = step(0.84, gr.z) * smoothstep(0.45, 0.1, length(gf - jit * 0.25));
+  float aa = clamp(1.8 - length(fwidth(gg)), 0.0, 1.0);
+  vec3 glitter = sp * flake * aa * (0.5 + spectral(410.0 + 280.0 * fract(gr.z * 7.13))) * 6.0;
+
+  float fres = pow(1.0 - clamp(dot(N, V), 0.0, 1.0), 3.0);
+  // Reverse holo: the laminate shimmers around the edges and clears over Clawd.
+  float lamMask = smoothstep(0.2, 0.62, length((vUv - uCenter) * vec2(1.0, 1.25)));
+
+  vec3 foilCol = uTint * (0.025 + holo * uFoilGain + glitter * 0.6);
+  lamMask = mix(lamMask, 1.0, uOpaque);
+  vec3 lam = uTint * (holoLam * uLam * (0.4 + 1.4 * fres) * lamMask + glitter * uGlitter * 0.25 * mix(0.2, 1.0, lamMask));
+
+  // Premultiplied: ink lays over the window, foil is nearly opaque, the
+  // laminate shimmer is purely additive.
+  vec3 rgb = ink.rgb * ink.a;
+  float a = ink.a;
+  rgb = mix(rgb, foilCol, foil);
+  a = mix(a, 0.96, foil);
+  rgb += lam * (1.0 - foil);
+  if (uOpaque > 0.5) { rgb += uBase * (1.0 - a); a = 1.0; }
+  gl_FragColor = vec4(rgb, a);
+  #include <tonemapping_fragment>
+  #include <colorspace_fragment>
+}`;
+
+const L1 = new THREE.Vector3(-0.45, 0.62, 0.65).normalize();
+const L2 = new THREE.Vector3(0.72, 0.22, 0.66).normalize();
+
+function holoMaterial(print, opaque) {
+  return new THREE.ShaderMaterial({
+    uniforms: {
+      uInk: { value: print.tex.ink },
+      uFoil: { value: print.tex.foil },
+      uNormal: { value: print.tex.normal },
+      uPattern: { value: 0 },
+      uLam: { value: 0.2 },
+      uGlitter: { value: 0.5 },
+      uFoilGain: { value: 1.45 },
+      uOpaque: { value: opaque ? 1 : 0 },
+      uTint: { value: new THREE.Color(1, 1, 1) },
+      uBase: { value: new THREE.Color(0x09090c) },
+      uCenter: { value: new THREE.Vector2(0.5, 0.53) },
+      uL1: { value: L1 },
+      uL2: { value: L2 },
+    },
+    vertexShader: HOLO_VERT,
+    fragmentShader: HOLO_FRAG,
+    transparent: !opaque,
+    depthWrite: opaque,
+    blending: opaque ? THREE.NormalBlending : THREE.CustomBlending,
+    blendSrc: THREE.OneFactor,
+    blendDst: THREE.OneMinusSrcAlphaFactor,
+    blendSrcAlpha: THREE.OneFactor,
+    blendDstAlpha: THREE.OneMinusSrcAlphaFactor,
+  });
+}
+
+// Stamped foil reflects the studio like brushed metal; the laminate over the
+// whole face reflects it like glass. Both are additive over the print.
+function metalMaterial(print) {
+  return new THREE.MeshPhysicalMaterial({
+    color: 0xdde2ec, metalness: 1, roughness: 0.3,
+    alphaMap: print.tex.foil, normalMap: print.tex.normal, normalScale: new THREE.Vector2(0.9, 0.9),
+    transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, envMapIntensity: 0.8,
+  });
+}
+function glassMaterial(print) {
+  return new THREE.MeshPhysicalMaterial({
+    color: 0x000000, metalness: 0, roughness: 0.12, ior: 1.5, specularIntensity: 1,
+    normalMap: print.tex.normal, normalScale: new THREE.Vector2(0.35, 0.35),
+    transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, fog: false, envMapIntensity: 1,
+  });
+}
+
+// ---------------------------------------------------------------------------
+// The card: a rounded slab whose front face is a window.
+// ---------------------------------------------------------------------------
+
+function roundedRectShape(w, h, r) {
+  const s = new THREE.Shape();
+  const x = -w / 2, y = -h / 2;
+  s.moveTo(x + r, y);
+  s.lineTo(x + w - r, y);
+  s.absarc(x + w - r, y + r, r, -Math.PI / 2, 0, false);
+  s.lineTo(x + w, y + h - r);
+  s.absarc(x + w - r, y + h - r, r, 0, Math.PI / 2, false);
+  s.lineTo(x + r, y + h);
+  s.absarc(x + r, y + h - r, r, Math.PI / 2, Math.PI, false);
+  s.lineTo(x, y + r);
+  s.absarc(x + r, y + r, r, Math.PI, Math.PI * 1.5, false);
+  return s;
+}
+
+const cardShape = roundedRectShape(CW, CH, CR);
+const faceGeo = new THREE.ShapeGeometry(cardShape, 20);
+{
+  const pos = faceGeo.attributes.position, uv = faceGeo.attributes.uv;
+  for (let i = 0; i < pos.count; i++) uv.setXY(i, pos.getX(i) / CW + 0.5, pos.getY(i) / CH + 0.5);
+}
+const edgeGeo = new THREE.ExtrudeGeometry(cardShape, {
+  depth: CORE, bevelEnabled: true, bevelThickness: BEV, bevelSize: BEV, bevelSegments: 5, curveSegments: 20,
+});
+edgeGeo.translate(0, 0, -CORE / 2);
+
+const edgeMat = stencilOutside(new THREE.MeshPhysicalMaterial({
+  color: 0x0c0c0f, metalness: 0.55, roughness: 0.26,
+  iridescence: 1, iridescenceIOR: 1.8, iridescenceThicknessRange: [180, 520],
+  clearcoat: 0.6, clearcoatRoughness: 0.14, fog: false,
+}));
+const edge = new THREE.Mesh(edgeGeo, [new THREE.MeshBasicMaterial({ visible: false }), edgeMat]);
+edge.castShadow = true;
+rig.add(edge);
+
+const frontHolo = holoMaterial(frontPrint, false);
+const backHolo = holoMaterial(backPrint, true);
+backHolo.shadowSide = THREE.DoubleSide;
+const frontMetal = metalMaterial(frontPrint), backMetal = metalMaterial(backPrint);
+const frontGlass = glassMaterial(frontPrint), backGlass = glassMaterial(backPrint);
+
+function faceStack(holo, metal, glass, z, flip) {
+  const g = new THREE.Group();
+  g.position.z = z;
+  if (flip) g.rotation.y = Math.PI;
+  [holo, metal, glass].forEach((m, i) => {
+    const mesh = new THREE.Mesh(faceGeo, m);
+    mesh.renderOrder = 10 + i;
+    g.add(mesh);
+  });
+  rig.add(g);
+  return g;
+}
+faceStack(frontHolo, frontMetal, frontGlass, FACE_Z, false);
+const backFace = faceStack(backHolo, backMetal, backGlass, -FACE_Z, true);
+backFace.children[0].castShadow = true;
+
+// The front face again, in the inner scene, writing the stencil window.
+const mask = new THREE.Mesh(faceGeo, new THREE.MeshBasicMaterial({
+  colorWrite: false, depthWrite: false,
+  stencilWrite: true, stencilRef: 1, stencilFunc: THREE.AlwaysStencilFunc, stencilZPass: THREE.ReplaceStencilOp,
+}));
+mask.position.z = FACE_Z;
+mask.renderOrder = -10;
+innerRoot.add(mask);
+
+// The wall behind the card only shows its shadow.
+const wallMat = stencilOutside(new THREE.ShadowMaterial({ opacity: 0.24, fog: false }));
+const wall = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), wallMat);
+wall.position.z = -2.6;
+wall.receiveShadow = true;
+outerScene.add(wall);
+
+// The studio environment lights the card; a point light would put a
+// hard hotspot on the glass. This light only casts the shadow on the wall.
+const keyOut = new THREE.DirectionalLight(0xffffff, 0);
+keyOut.position.set(-2.6, 2.6, 8);
+keyOut.castShadow = true;
+keyOut.shadow.mapSize.set(512, 512);
+Object.assign(keyOut.shadow.camera, { left: -4, right: 4, top: 4, bottom: -4, near: 1, far: 25 });
+keyOut.shadow.radius = 18;
+keyOut.shadow.blurSamples = 20;
+keyOut.shadow.bias = -0.0005;
+outerScene.add(keyOut);
+
+// ---------------------------------------------------------------------------
+// The world behind the glass
+// ---------------------------------------------------------------------------
+
+const NOISE_GLSL = /* glsl */ `
+float hash13(vec3 p3) {
+  p3 = fract(p3 * 0.1031);
+  p3 += dot(p3, p3.zyx + 31.32);
+  return fract((p3.x + p3.y) * p3.z);
+}
+float vnoise(vec3 p) {
+  vec3 i = floor(p), f = fract(p);
+  f = f * f * (3.0 - 2.0 * f);
+  return mix(
+    mix(mix(hash13(i), hash13(i + vec3(1, 0, 0)), f.x), mix(hash13(i + vec3(0, 1, 0)), hash13(i + vec3(1, 1, 0)), f.x), f.y),
+    mix(mix(hash13(i + vec3(0, 0, 1)), hash13(i + vec3(1, 0, 1)), f.x), mix(hash13(i + vec3(0, 1, 1)), hash13(i + vec3(1, 1, 1)), f.x), f.y),
+    f.z);
+}
+float fbm(vec3 p) {
+  float s = 0.0, a = 0.5;
+  for (int i = 0; i < 5; i++) { s += a * vnoise(p); p = p * 2.03 + 11.7; a *= 0.5; }
+  return s;
+}`;
+
+const domeMat = stencilInside(new THREE.ShaderMaterial({
+  uniforms: {
+    uTime: { value: 0 },
+    uTop: { value: new THREE.Color() }, uBottom: { value: new THREE.Color() },
+    uNebA: { value: new THREE.Color() }, uNebB: { value: new THREE.Color() }, uHalo: { value: new THREE.Color() },
+  },
+  vertexShader: /* glsl */ `
+    varying vec3 vDir;
+    void main() {
+      vDir = position;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }`,
+  fragmentShader: /* glsl */ `
+    uniform float uTime;
+    uniform vec3 uTop, uBottom, uNebA, uNebB, uHalo;
+    varying vec3 vDir;
+    ${NOISE_GLSL}
+    void main() {
+      vec3 d = normalize(vDir);
+      vec3 col = mix(uBottom, uTop, smoothstep(-0.35, 0.75, d.y));
+      float n1 = fbm(d * 2.2 + vec3(0.0, 0.0, uTime * 0.012));
+      float n2 = fbm(d * 4.1 + vec3(7.3, 1.9, -uTime * 0.017));
+      float wisps = smoothstep(0.42, 0.85, n1);
+      col += uNebA * wisps * wisps * 0.38;
+      col += uNebB * smoothstep(0.5, 0.9, n2) * 0.26 * (0.4 + 0.6 * wisps);
+      float hz = max(dot(d, normalize(vec3(0.0, 0.1, -1.0))), 0.0);
+      col += uHalo * (pow(hz, 24.0) * 0.32 + pow(hz, 5.0) * 0.04);
+      vec3 sp = d * 160.0;
+      float r = hash13(floor(sp));
+      float star = step(0.975, r) * smoothstep(0.32, 0.0, length(fract(sp) - 0.5));
+      col += vec3(1.0, 0.96, 0.92) * star * (0.55 + 0.45 * sin(uTime * (1.0 + r * 3.0) + r * 60.0)) * (1.0 + 2.0 * fract(r * 13.1));
+      gl_FragColor = vec4(col, 1.0);
+      #include <tonemapping_fragment>
+      #include <colorspace_fragment>
+    }`,
+  side: THREE.BackSide,
+  depthWrite: false,
+}));
+const dome = new THREE.Mesh(new THREE.SphereGeometry(7, 48, 32), domeMat);
+dome.position.set(0, 0.6, -0.8);
+dome.renderOrder = -1;
+innerRoot.add(dome);
+
+// A faint grid on a glossy floor, fading into fog.
+function gridTexture() {
+  const c = makeCanvas(256, 256), ctx = c.getContext('2d');
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, 256, 256);
+  ctx.fillStyle = '#fff';
+  ctx.fillRect(0, 0, 256, 3);
+  ctx.fillRect(0, 0, 3, 256);
+  ctx.globalAlpha = 0.35;
+  ctx.fillRect(0, 127, 256, 2);
+  ctx.fillRect(127, 0, 2, 256);
+  const t = canvasTexture(c, true);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.repeat.set(16 / 0.5, 8 / 0.5);
+  return t;
+}
+const floorMat = stencilInside(new THREE.MeshPhysicalMaterial({
+  color: 0x0d0b14, roughness: 0.3, metalness: 0, clearcoat: 1, clearcoatRoughness: 0.1,
+  emissive: 0x8c70ff, emissiveMap: gridTexture(), emissiveIntensity: 0.22,
+}));
+const floor = new THREE.Mesh(new THREE.PlaneGeometry(16, 8), floorMat);
+floor.rotation.x = -Math.PI / 2;
+floor.position.set(0, FLOOR_Y, -4);
+floor.receiveShadow = true;
+innerRoot.add(floor);
+
+// The floor's front face sits just behind the glass, under the type.
+const plinthMat = stencilInside(new THREE.MeshStandardMaterial({ color: 0x0c0b11, roughness: 0.82 }));
+const plinth = new THREE.Mesh(new THREE.PlaneGeometry(16, 6), plinthMat);
+plinth.position.set(0, FLOOR_Y - 3, 0);
+innerRoot.add(plinth);
+
+// Soft contact shadow under Clawd's feet.
+function blobTexture() {
+  const c = makeCanvas(128, 128), ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+  g.addColorStop(0, 'rgba(0,0,0,0.85)');
+  g.addColorStop(0.5, 'rgba(0,0,0,0.35)');
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, 128, 128);
+  return canvasTexture(c, true);
+}
+const blobMat = stencilInside(new THREE.MeshBasicMaterial({ map: blobTexture(), transparent: true, depthWrite: false, opacity: 0.7 }));
+const blob = new THREE.Mesh(new THREE.PlaneGeometry(2.1, 1.1), blobMat);
+blob.rotation.x = -Math.PI / 2;
+blob.position.set(0, FLOOR_Y + 0.004, CLAWD_Z);
+innerRoot.add(blob);
+
+// The aura behind Clawd.
+const haloMat = stencilInside(new THREE.ShaderMaterial({
+  uniforms: {
+    uTime: { value: 0 }, uBoost: { value: 1 }, uRainbow: { value: 0.7 },
+    uA: { value: new THREE.Color() }, uB: { value: new THREE.Color() },
+  },
+  vertexShader: /* glsl */ `
+    varying vec2 vUv;
+    void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+  fragmentShader: /* glsl */ `
+    uniform float uTime, uBoost, uRainbow;
+    uniform vec3 uA, uB;
+    varying vec2 vUv;
+    vec3 hue(float h) { return clamp(abs(fract(h + vec3(0.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0) - 1.0, 0.0, 1.0); }
+    void main() {
+      vec2 p = vUv - 0.5;
+      float r = length(p), a = atan(p.y, p.x);
+      float rays = pow(0.5 + 0.5 * sin(a * 12.0 + uTime * 0.25), 5.0) * 0.6
+                 + pow(0.5 + 0.5 * sin(a * 7.0 - uTime * 0.18 + 1.7), 9.0) * 0.5;
+      float fall = smoothstep(0.5, 0.0, r);
+      vec3 tint = mix(uA, hue(a / 6.2831853 + uTime * 0.02) * 1.2, uRainbow);
+      vec3 c = tint * rays * fall * fall * 0.32 + uB * exp(-r * 9.0) * 0.3 + uA * exp(-r * 4.0) * 0.1;
+      c *= smoothstep(0.5, 0.32, r) * smoothstep(0.33, 0.42, vUv.y);   // gone by the floor
+      gl_FragColor = vec4(c * uBoost, 1.0);
+      #include <colorspace_fragment>
+    }`,
+  transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
+}));
+const halo = new THREE.Mesh(new THREE.PlaneGeometry(4.4, 4.4), haloMat);
+halo.position.set(0, 0.15, -2.3);
+innerRoot.add(halo);
+
+// Dust and sparkles drifting at different depths.
+const DUST = 240;
+const dustGeo = new THREE.BufferGeometry();
+{
+  const pos = new Float32Array(DUST * 3), seed = new Float32Array(DUST * 4);
+  for (let i = 0; i < DUST; i++) {
+    // Most of the dust floats behind Clawd; a little drifts between it and the glass.
+    const front = Math.random() < 0.22;
+    const z = front ? -0.12 - Math.random() * 0.45 : -1.0 - Math.random() * 1.4;
+    pos.set([(Math.random() - 0.5) * 3.6, -0.5 + Math.random() * 2.6, z], i * 3);
+    seed.set([0.4 + Math.random() * 0.8, Math.random(), (front ? 0.008 : 0.012) + Math.pow(Math.random(), 3) * 0.05, Math.random()], i * 4);
+  }
+  dustGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  dustGeo.setAttribute('aSeed', new THREE.BufferAttribute(seed, 4));
+}
+const SPRITE_FRAG = /* glsl */ `
+  varying float vAlpha;
+  varying vec3 vColor;
+  varying float vStar;
+  void main() {
+    vec2 c = gl_PointCoord - 0.5;
+    float disc = smoothstep(0.5, 0.0, length(c));
+    disc *= disc;
+    float star = 0.0;
+    if (vStar > 0.5) {
+      vec2 q = abs(c);
+      star = max(smoothstep(0.07, 0.0, q.x) * smoothstep(0.5, 0.0, q.y), smoothstep(0.07, 0.0, q.y) * smoothstep(0.5, 0.0, q.x));
+      disc *= 0.7;
+    }
+    gl_FragColor = vec4(vColor, (disc + star) * vAlpha);
+    #include <colorspace_fragment>
+  }`;
+const HUE_GLSL = 'vec3 hue(float h) { return clamp(abs(fract(h + vec3(0.0, 2.0 / 3.0, 1.0 / 3.0)) * 6.0 - 3.0) - 1.0, 0.0, 1.0); }';
+const dustMat = stencilInside(new THREE.ShaderMaterial({
+  uniforms: { uTime: { value: 0 }, uScale: { value: 400 }, uTint: { value: new THREE.Color() }, uRainbow: { value: 0.7 } },
+  vertexShader: /* glsl */ `
+    attribute vec4 aSeed;
+    uniform float uTime, uScale, uRainbow;
+    uniform vec3 uTint;
+    varying float vAlpha;
+    varying vec3 vColor;
+    varying float vStar;
+    ${HUE_GLSL}
+    void main() {
+      vec3 p = position;
+      float t = uTime * aSeed.x;
+      p.y = mod(p.y + t * 0.1 + 0.6, 2.7) - 0.6;
+      p.x += sin(t * 0.9 + aSeed.y * 6.2831) * 0.07;
+      vec4 mv = modelViewMatrix * vec4(p, 1.0);
+      gl_Position = projectionMatrix * mv;
+      float tw = 0.5 + 0.5 * sin(uTime * (1.4 + aSeed.x * 2.2) + aSeed.y * 40.0);
+      gl_PointSize = aSeed.z * uScale / -mv.z * (0.7 + 0.3 * tw);
+      vAlpha = (0.25 + 0.75 * tw) * smoothstep(-0.48, -0.25, p.y) * smoothstep(2.1, 1.5, p.y);
+      vColor = mix(uTint, hue(aSeed.w + uTime * 0.03), uRainbow);
+      vStar = step(0.9, fract(aSeed.w * 7.31));
+    }`,
+  fragmentShader: SPRITE_FRAG,
+  transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
+}));
+const dust = new THREE.Points(dustGeo, dustMat);
+dust.frustumCulled = false;
+innerRoot.add(dust);
+
+// A ring of sparks when Clawd lands.
+const BURST = 46;
+const burstGeo = new THREE.BufferGeometry();
+{
+  const pos = new Float32Array(BURST * 3), seed = new Float32Array(BURST * 4);
+  for (let i = 0; i < BURST; i++) seed.set([(i / BURST) * Math.PI * 2 + Math.random() * 0.2, 0.5 + Math.random() * 0.9, 0.025 + Math.random() * 0.035, Math.random()], i * 4);
+  burstGeo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  burstGeo.setAttribute('aSeed', new THREE.BufferAttribute(seed, 4));
+}
+const burstMat = stencilInside(new THREE.ShaderMaterial({
+  uniforms: { uAge: { value: 9 }, uOrigin: { value: new THREE.Vector3() }, uScale: { value: 400 } },
+  vertexShader: /* glsl */ `
+    attribute vec4 aSeed;
+    uniform float uAge, uScale;
+    uniform vec3 uOrigin;
+    varying float vAlpha;
+    varying vec3 vColor;
+    varying float vStar;
+    ${HUE_GLSL}
+    void main() {
+      float t = uAge;
+      vec3 dir = vec3(cos(aSeed.x), 0.0, sin(aSeed.x) * 0.6);
+      vec3 p = uOrigin + dir * aSeed.y * t * (1.0 - 0.4 * t) + vec3(0.0, (0.8 + aSeed.y * 0.5) * t - 1.3 * t * t, 0.0);
+      p.y = max(p.y, uOrigin.y + 0.01);
+      vec4 mv = modelViewMatrix * vec4(p, 1.0);
+      gl_Position = projectionMatrix * mv;
+      float life = clamp(1.0 - t / 0.9, 0.0, 1.0);
+      gl_PointSize = aSeed.z * uScale / -mv.z * (0.4 + life);
+      vAlpha = life * life * 1.4;
+      vColor = mix(vec3(1.0), hue(aSeed.w), 0.6);
+      vStar = step(0.5, aSeed.w);
+    }`,
+  fragmentShader: SPRITE_FRAG,
+  transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false,
+}));
+const burst = new THREE.Points(burstGeo, burstMat);
+burst.frustumCulled = false;
+innerRoot.add(burst);
+
+// Lights inside the card move with the card.
+const hemi = new THREE.HemisphereLight(0x8f7dff, 0x0a0a10, 0.6);
+const keyIn = new THREE.DirectionalLight(0xfff1e6, 2.9);
+keyIn.position.set(-1.6, 2.5, 2.3);
+keyIn.target.position.set(0, FLOOR_Y + 0.4, CLAWD_Z);
+keyIn.castShadow = true;
+keyIn.shadow.mapSize.set(1024, 1024);
+Object.assign(keyIn.shadow.camera, { left: -1.8, right: 1.8, top: 1.8, bottom: -1.8, near: 0.5, far: 9 });
+keyIn.shadow.radius = 5;
+keyIn.shadow.blurSamples = 10;
+keyIn.shadow.bias = -0.0008;
+const rimA = new THREE.DirectionalLight(0xa07bff, 1.8);
+rimA.position.set(1.9, 1.4, -2.6);
+const rimB = new THREE.DirectionalLight(0x34d6ff, 1.3);
+rimB.position.set(-2.1, 0.6, -2.2);
+for (const l of [hemi, keyIn, rimA, rimB]) {
+  l.layers.enable(POP_LAYER);
+  innerRoot.add(l);
+}
+rimA.target = rimB.target = keyIn.target;
+innerRoot.add(keyIn.target);
+
+innerScene.fog = new THREE.Fog(0x0b0716, 10, 15);
+
+// The inner reflections: a dark room with a softbox and two coloured strips,
+// so Clawd's clearcoat picks up the card's colours.
+let innerEnvTarget = null;
+function buildInnerEnv(v) {
+  if (innerEnvTarget) innerEnvTarget.dispose();
+  innerEnvTarget = panelEnvironment(0x050508, 0x0a0a0e, [
+    [0xfff4ea, 7, -4, 5, 5, 5, 3],
+    [v.rim, 5, 6, 1, -3, 1.4, 7],
+    [v.rim2, 4, -6, 0, -2, 1.4, 7],
+    [0xffffff, 1.1, 0, -3.5, 2, 8, 3],
+  ]);
+  innerScene.environment = innerEnvTarget.texture;
+}
+
+// ---------------------------------------------------------------------------
+// Clawd, built from the terminal pixel art in rounded voxels.
+// ---------------------------------------------------------------------------
+
+const clipPlane = new THREE.Plane();
+const skinMat = stencilInside(new THREE.MeshPhysicalMaterial({
+  color: CLAWD_ORANGE, roughness: 0.42, metalness: 0,
+  clearcoat: 0.55, clearcoatRoughness: 0.28,
+  sheen: 0.35, sheenRoughness: 0.6, sheenColor: new THREE.Color(0xffc2a6),
+  iridescence: 0.35, iridescenceIOR: 1.35, iridescenceThicknessRange: [120, 420],
+}));
+const eyeMat = stencilInside(new THREE.MeshPhysicalMaterial({ color: 0x17110f, roughness: 0.12, clearcoat: 1, clearcoatRoughness: 0.04 }));
+const clawdMats = [skinMat, eyeMat];
+for (const m of clawdMats) m.clippingPlanes = [clipPlane];
+
+function part(geo, mat) {
+  const m = new THREE.Mesh(geo, mat);
+  m.castShadow = m.receiveShadow = true;
+  m.layers.enable(POP_LAYER);
+  return m;
+}
+
+const clawd = new THREE.Group();               // stands on the floor; scaled to world
+clawd.position.set(0, FLOOR_Y, CLAWD_Z);
+clawd.scale.setScalar(UNIT);
+innerRoot.add(clawd);
+const body = new THREE.Group();                // squash and stretch from the feet
+clawd.add(body);
+
+const torso = part(new RoundedBoxGeometry(6, 4, 3.4, 6, 0.5), skinMat);
+torso.position.y = 3;
+body.add(torso);
+
+const legGeo = new RoundedBoxGeometry(0.62, 1.5, 1.0, 4, 0.2);
+const legs = [-2.25, -1.25, 1.25, 2.25].map((x) => {
+  const leg = part(legGeo, skinMat);
+  leg.position.set(x, 0.75, 0);
+  body.add(leg);
+  return leg;
+});
+
+const armGeo = new RoundedBoxGeometry(1.5, 1.0, 1.6, 4, 0.3);
+const arms = [-1, 1].map((side) => {
+  const pivot = new THREE.Group();
+  pivot.position.set(side * 2.7, 2.5, 0);
+  const arm = part(armGeo, skinMat);
+  arm.position.x = side * 0.85;
+  pivot.add(arm);
+  body.add(pivot);
+  return pivot;
+});
+
+const eyeGroup = new THREE.Group();
+eyeGroup.position.set(0, 3.5, 1.7);
+body.add(eyeGroup);
+const eyeGeo = new RoundedBoxGeometry(0.56, 1.08, 0.36, 4, 0.14);
+const eyes = [-1.75, 1.75].map((x) => {
+  const eye = part(eyeGeo, eyeMat);
+  eye.position.x = x;
+  eyeGroup.add(eye);
+  return eye;
+});
+
+// Animation state. Times are in seconds of "card time", which stops when paused.
+const anim = {
+  blink: -1, nextBlink: 1.6,
+  wave: -1, nextWave: 3.2,
+  shuffle: -1, nextShuffle: 7.5,
+  hop: -1, landed: false,
+  look: new THREE.Vector2(), lookGoal: new THREE.Vector2(), nextSaccade: 0.8,
+  yaw: 0,
+};
+const HOP_TIME = 1.15;
+
+function hop() {
+  if (anim.hop >= 0) return;
+  anim.hop = 0;
+  anim.landed = false;
+}
+
+const easeInOut = (x) => x * x * (3 - 2 * x);
+function envelope(t, len, fade) {
+  return Math.min(1, t / fade, (len - t) / fade);
+}
+
+function updateClawd(dt, t, lookTarget) {
+  // Blinks, sometimes doubled.
+  anim.nextBlink -= dt;
+  if (anim.nextBlink <= 0) {
+    anim.blink = 0;
+    anim.nextBlink = Math.random() < 0.2 ? 0.3 : 2.2 + Math.random() * 3.4;
+  }
+  let lid = 1;
+  if (anim.blink >= 0) {
+    anim.blink += dt;
+    const k = anim.blink / 0.16;
+    if (k >= 1) anim.blink = -1;
+    else lid = 1 - 0.9 * Math.sin(k * Math.PI);
+  }
+
+  // Gaze: follow the pointer, otherwise glance around.
+  if (lookTarget) anim.lookGoal.copy(lookTarget);
+  else {
+    anim.nextSaccade -= dt;
+    if (anim.nextSaccade <= 0) {
+      anim.nextSaccade = 0.9 + Math.random() * 2.2;
+      anim.lookGoal.set((Math.random() - 0.5) * 1.6, (Math.random() - 0.5) * 0.9);
+      if (Math.random() < 0.35) anim.lookGoal.set(0, 0);
+    }
+  }
+  anim.look.lerp(anim.lookGoal, 1 - Math.exp(-dt * 14));
+  eyeGroup.position.x = THREE.MathUtils.clamp(anim.look.x, -1, 1) * 0.42;
+  eyeGroup.position.y = 3.5 + THREE.MathUtils.clamp(anim.look.y, -1, 1) * 0.3;
+  for (const eye of eyes) eye.scale.y = lid;
+  anim.yaw += (THREE.MathUtils.clamp(anim.look.x, -1, 1) * 0.4 - anim.yaw) * (1 - Math.exp(-dt * 4));
+
+  // Idle: breathing and a slight arm sway.
+  let sy = 1 + 0.014 * Math.sin(t * 2.3), sx = 1 - 0.006 * Math.sin(t * 2.3);
+  let y = 0, z = 0, spin = 0, armLift = 0, bob = 0;
+  arms[0].rotation.z = -0.06 * Math.sin(t * 2.1 + 1);
+  arms[1].rotation.z = 0.06 * Math.sin(t * 2.1);
+  for (const leg of legs) leg.position.y = 0.75;
+
+  // Wave with the right arm.
+  if (anim.hop < 0) anim.nextWave -= dt;
+  if (anim.nextWave <= 0 && anim.wave < 0) { anim.wave = 0; anim.nextWave = 7 + Math.random() * 6; }
+  if (anim.wave >= 0) {
+    anim.wave += dt;
+    const len = 1.7;
+    if (anim.wave > len) anim.wave = -1;
+    else arms[1].rotation.z = envelope(anim.wave, len, 0.3) * (1.85 + 0.35 * Math.sin(anim.wave * 15));
+  }
+
+  // Happy feet.
+  if (anim.hop < 0 && anim.wave < 0) anim.nextShuffle -= dt;
+  if (anim.nextShuffle <= 0 && anim.shuffle < 0) { anim.shuffle = 0; anim.nextShuffle = 9 + Math.random() * 7; }
+  if (anim.shuffle >= 0) {
+    anim.shuffle += dt;
+    const len = 1.3;
+    if (anim.shuffle > len) anim.shuffle = -1;
+    else {
+      const e = envelope(anim.shuffle, len, 0.2);
+      legs.forEach((leg, i) => { leg.position.y = 0.75 + Math.max(0, Math.sin(anim.shuffle * 16 - i * 1.6)) * 0.4 * e; });
+      bob = Math.abs(Math.sin(anim.shuffle * 16)) * 0.12 * e;
+    }
+  }
+
+  // Hop: crouch, leap toward the glass with a twirl, land and squash.
+  if (anim.hop >= 0) {
+    anim.hop += dt;
+    const p = anim.hop / HOP_TIME;
+    const A0 = 0.16, A1 = 0.78;
+    if (p < A0) {
+      const k = Math.sin((p / A0) * Math.PI / 2);
+      sy = 1 - 0.2 * k; sx = 1 + 0.12 * k; armLift = -0.35 * k;
+    } else if (p < A1) {
+      const u = (p - A0) / (A1 - A0);
+      y = 4 * u * (1 - u) * HOP_H;
+      z = Math.sin(u * Math.PI) * HOP_Z;
+      const stretch = 0.16 * (1 - 2 * u);
+      sy = 1 + stretch; sx = 1 - stretch * 0.5;
+      spin = easeInOut(u) * Math.PI * 2;
+      armLift = 1.25 * Math.sin(u * Math.PI);
+    } else if (p < 1) {
+      const v = (p - A1) / (1 - A1);
+      if (!anim.landed) {
+        anim.landed = true;
+        burstMat.uniforms.uAge.value = 0;
+        burstMat.uniforms.uOrigin.value.set(clawd.position.x, FLOOR_Y + 0.02, CLAWD_Z);
+      }
+      const k = Math.sin(v * Math.PI) * (1 - 0.4 * v);
+      sy = 1 - 0.22 * k; sx = 1 + 0.12 * k;
+    } else {
+      anim.hop = -1;
+    }
+  }
+
+  arms[0].rotation.z -= armLift;
+  arms[1].rotation.z += armLift;
+  body.scale.set(sx, sy, sx);
+  clawd.position.y = FLOOR_Y + y + bob * UNIT;
+  clawd.position.z = CLAWD_Z + z;
+  clawd.rotation.y = anim.yaw + spin;
+  body.rotation.x = -THREE.MathUtils.clamp(anim.look.y, -1, 1) * 0.08;
+
+  const air = y / HOP_H;
+  blob.position.z = CLAWD_Z + z;
+  blob.scale.setScalar(1 - air * 0.35);
+  blobMat.opacity = 0.7 * (1 - air * 0.6) * THREE.MathUtils.smoothstep(-(CLAWD_Z + z), 0.15, 0.5);
+}
+
+// While it hops, part of Clawd (an arm mid-twirl, or all of it) can be in
+// front of the glass.
+function clawdPops() {
+  return anim.hop >= 0;
+}
+
+// ---------------------------------------------------------------------------
+// Variants
+// ---------------------------------------------------------------------------
+
+let current = 0;
+function applyVariant(i, spin) {
+  const v = VARIANTS[i];
+  current = i;
+  drawFront(v);
+  for (const m of [frontHolo, backHolo]) {
+    m.uniforms.uPattern.value = v.pattern;
+    m.uniforms.uLam.value = v.lam;
+    m.uniforms.uGlitter.value = v.glitter;
+    m.uniforms.uTint.value.set(v.tint);
+  }
+  frontMetal.color.set(v.metal);
+  backMetal.color.set(v.metal);
+  const du = domeMat.uniforms;
+  du.uTop.value.set(v.top); du.uBottom.value.set(v.bottom);
+  du.uNebA.value.set(v.nebA); du.uNebB.value.set(v.nebB); du.uHalo.value.set(v.halo);
+  haloMat.uniforms.uA.value.set(v.halo);
+  haloMat.uniforms.uB.value.set(v.halo2);
+  haloMat.uniforms.uRainbow.value = v.rainbow;
+  dustMat.uniforms.uTint.value.set(v.halo2);
+  dustMat.uniforms.uRainbow.value = Math.max(v.rainbow, 0.15);
+  floorMat.color.set(v.floor);
+  floorMat.emissive.set(v.grid);
+  innerScene.fog.color.set(v.fog);
+  hemi.color.set(v.sky);
+  rimA.color.set(v.rim);
+  rimB.color.set(v.rim2);
+  skinMat.iridescence = v.iridescence;
+  buildInnerEnv(v);
+  document.querySelectorAll('.thumb').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.variant) === i)));
+  if (spin) {
+    ctl.mode = 'free';
+    ctl.base += Math.PI * 2;
+  }
+}
+
+function drawThumb(c, v) {
+  const ctx = c.getContext('2d'), w = c.width, h = c.height;
+  ctx.clearRect(0, 0, w, h);
+  ctx.save();
+  roundRectPath(ctx, 0, 0, w, h, 6);
+  ctx.clip();
+  const bg = ctx.createLinearGradient(0, 0, 0, h);
+  bg.addColorStop(0, '#' + new THREE.Color(v.top).getHexString());
+  bg.addColorStop(1, '#' + new THREE.Color(v.bottom).getHexString());
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, w, h);
+  const glow = ctx.createRadialGradient(w / 2, h * 0.42, 0, w / 2, h * 0.42, w * 0.6);
+  glow.addColorStop(0, '#' + new THREE.Color(v.halo).getHexString());
+  glow.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.globalAlpha = 0.55;
+  ctx.fillStyle = glow;
+  ctx.fillRect(0, 0, w, h);
+  ctx.globalAlpha = 1;
+  ctx.fillStyle = 'rgba(8,8,12,0.9)';
+  ctx.fillRect(0, h * 0.6, w, h);
+  pixelClawdThumb(ctx, w / 2, h * 0.5, w / 11.5);
+  const foil = ctx.createLinearGradient(0, 0, w, h);
+  v.thumb.forEach((col, k) => foil.addColorStop(k / (v.thumb.length - 1), col));
+  ctx.strokeStyle = foil;
+  ctx.lineWidth = 2.4;
+  roundRectPath(ctx, 2.5, 2.5, w - 5, h - 5, 4);
+  ctx.stroke();
+  ctx.fillStyle = foil;
+  ctx.fillRect(w * 0.18, h * 0.74, w * 0.5, 4);
+  ctx.restore();
+}
+function pixelClawdThumb(ctx, cx, cy, u) {
+  const ox = cx - 4.5 * u, oy = cy - 2.5 * u;
+  ctx.fillStyle = CLAWD_ORANGE;
+  for (const [x, y, w, h] of CLAWD_PIXELS.skin) ctx.fillRect(ox + x * u, oy + y * u, w * u + 0.3, h * u + 0.3);
+  ctx.fillStyle = '#141012';
+  for (const [x, y, w, h] of CLAWD_PIXELS.eyes) ctx.fillRect(ox + x * u, oy + y * u, w * u, h * u);
+}
+document.querySelectorAll('.thumb').forEach((b) => {
+  drawThumb(b.querySelector('canvas'), VARIANTS[Number(b.dataset.variant)]);
+  b.addEventListener('click', () => {
+    const i = Number(b.dataset.variant);
+    if (i !== current) applyVariant(i, true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Input: hover tilt, drag with inertia, tap to hop, device tilt on phones.
+// ---------------------------------------------------------------------------
+
+const ctl = {
+  rx: 0.05, ry: 0, vx: 0, vy: 0, base: 0, mode: 'free',
+  dragId: null, sx: 0, sy: 0, srx: 0, sry: 0, lastX: 0, lastT: 0, wvy: 0, downT: 0, moved: 0,
+};
+const pointer = { x: 0, y: 0, active: false, last: -1e9 };
+const gyro = { requested: false, active: false, b0: null, g0: null, x: 0, y: 0, last: -1e9 };
+const view = { w: 1, h: 1, cx: 0, cy: 0, halfW: 1, halfH: 1 };
+let paused = false;
+
+const clamp = THREE.MathUtils.clamp;
+
+function updatePointer(e) {
+  if (e.pointerType === 'touch') return;
+  pointer.x = clamp((e.clientX - view.cx) / (view.halfW * 1.7), -1, 1);
+  pointer.y = clamp(-(e.clientY - view.cy) / (view.halfH * 1.5), -1, 1);
+  pointer.active = true;
+  pointer.last = performance.now();
+}
+
+const raycaster = new THREE.Raycaster();
+const _ndc = new THREE.Vector2();
+const _inv = new THREE.Matrix4();
+const _plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+const _hit = new THREE.Vector3();
+function hitsCard(e) {
+  _ndc.set((e.clientX / view.w) * 2 - 1, -(e.clientY / view.h) * 2 + 1);
+  raycaster.setFromCamera(_ndc, camera);
+  _inv.copy(rig.matrixWorld).invert();
+  raycaster.ray.applyMatrix4(_inv);
+  if (!raycaster.ray.intersectPlane(_plane, _hit)) return false;
+  return Math.abs(_hit.x) < CW / 2 + 0.05 && Math.abs(_hit.y) < CH / 2 + 0.05;
+}
+
+const hintEl = document.getElementById('hint');
+let hintTimer = setTimeout(dismissHint, 9000);
+function dismissHint() {
+  clearTimeout(hintTimer);
+  hintEl.classList.add('gone');
+}
+if (matchMedia('(pointer: coarse)').matches) hintEl.textContent = 'Drag or tilt your phone · tap the card and Clawd hops';
+
+canvas.addEventListener('pointerdown', (e) => {
+  if (ctl.dragId !== null) return;
+  canvas.setPointerCapture(e.pointerId);
+  canvas.classList.add('dragging');
+  Object.assign(ctl, {
+    mode: 'drag', dragId: e.pointerId, sx: e.clientX, sy: e.clientY, srx: ctl.rx, sry: ctl.ry,
+    lastX: e.clientX, lastT: performance.now(), wvy: 0, downT: performance.now(), moved: 0, vx: 0, vy: 0,
+  });
+  updatePointer(e);
+});
+canvas.addEventListener('pointermove', (e) => {
+  updatePointer(e);
+  if (ctl.mode !== 'drag' || e.pointerId !== ctl.dragId) return;
+  const dx = e.clientX - ctl.sx, dy = e.clientY - ctl.sy;
+  ctl.moved = Math.max(ctl.moved, Math.hypot(dx, dy));
+  if (ctl.moved > 6) dismissHint();
+  ctl.ry = ctl.sry + dx * 0.011;
+  ctl.rx = clamp(ctl.srx + dy * 0.006, -0.75, 0.75);
+  const now = performance.now();
+  const inst = ((e.clientX - ctl.lastX) * 0.011) / (Math.max(1, now - ctl.lastT) / 1000);
+  ctl.wvy = ctl.wvy * 0.6 + inst * 0.4;
+  ctl.lastX = e.clientX;
+  ctl.lastT = now;
+});
+function endDrag(e) {
+  if (e.pointerId !== ctl.dragId) return;
+  canvas.classList.remove('dragging');
+  ctl.dragId = null;
+  const now = performance.now();
+  const tap = ctl.moved < 7 && now - ctl.downT < 400;
+  if (now - ctl.lastT > 90) ctl.wvy = 0;
+  ctl.vy = clamp(ctl.wvy, -32, 32);
+  ctl.vx = 0;
+  if (Math.abs(ctl.vy) > 2.2) ctl.mode = 'coast';
+  else {
+    ctl.mode = 'free';
+    ctl.base = Math.round(ctl.ry / Math.PI) * Math.PI;
+  }
+  // iOS only asks for motion access from the end of a tap.
+  if (e.type === 'pointerup') requestGyro();
+  if (tap && e.type === 'pointerup' && hitsCard(e)) {
+    // A tap on the back turns the card around; on the front, Clawd hops.
+    if (Math.cos(ctl.ry) < 0) flip();
+    else hop();
+    dismissHint();
+  }
+}
+canvas.addEventListener('pointerup', endDrag);
+canvas.addEventListener('pointercancel', endDrag);
+canvas.addEventListener('pointerleave', (e) => { if (e.pointerType !== 'touch') pointer.active = false; });
+
+function flip() {
+  ctl.mode = 'free';
+  ctl.base = Math.round(ctl.ry / Math.PI) * Math.PI + Math.PI;
+}
+document.getElementById('flip').addEventListener('click', flip);
+
+const pauseBtn = document.getElementById('pause');
+function setPaused(p) {
+  paused = p;
+  pauseBtn.setAttribute('aria-pressed', String(p));
+  pauseBtn.setAttribute('aria-label', p ? 'Play the motion' : 'Pause the motion');
+  pauseBtn.title = p ? 'Play (P)' : 'Pause (P)';
+}
+pauseBtn.addEventListener('click', () => setPaused(!paused));
+// The card arrives back first and turns to face you, unless motion is reduced.
+if (matchMedia('(prefers-reduced-motion: reduce)').matches) {
+  setPaused(true);
+  ctl.ry = 0;
+} else {
+  ctl.ry = -Math.PI * 0.92;
+}
+
+addEventListener('keydown', (e) => {
+  if (e.metaKey || e.ctrlKey || e.altKey) return;
+  const onButton = e.target instanceof HTMLButtonElement;
+  if (e.key === 'ArrowLeft') ctl.vy -= 5;
+  else if (e.key === 'ArrowRight') ctl.vy += 5;
+  else if (e.key === 'ArrowUp') ctl.vx -= 3;
+  else if (e.key === 'ArrowDown') ctl.vx += 3;
+  else if (e.key === 'f' || e.key === 'F') flip();
+  else if (e.key === 'p' || e.key === 'P') setPaused(!paused);
+  else if ((e.key === ' ' || e.key === 'Enter') && !onButton) hop();
+  else return;
+  if (e.key.startsWith('Arrow') && ctl.mode === 'coast') ctl.mode = 'free';
+  e.preventDefault();
+  dismissHint();
+});
+
+// Device tilt, relative to how the phone was held when it started.
+function onOrient(e) {
+  if (e.beta == null || e.gamma == null) return;
+  let b = e.beta, g = e.gamma;
+  const angle = (screen.orientation && screen.orientation.angle) || window.orientation || 0;
+  if (angle === 90) [b, g] = [-g, b];
+  else if (angle === -90 || angle === 270) [b, g] = [g, -b];
+  else if (angle === 180) [b, g] = [-b, -g];
+  if (gyro.b0 === null) { gyro.b0 = b; gyro.g0 = g; }
+  gyro.b0 += (b - gyro.b0) * 0.004;
+  gyro.g0 += (g - gyro.g0) * 0.004;
+  gyro.x = clamp(-(b - gyro.b0) / 28, -1, 1) * 0.42;
+  gyro.y = clamp(-(g - gyro.g0) / 28, -1, 1) * 0.55;
+  gyro.active = true;
+  gyro.last = performance.now();
+}
+function requestGyro() {
+  if (gyro.requested || !matchMedia('(pointer: coarse)').matches) return;
+  const D = window.DeviceOrientationEvent;
+  if (!D) return;
+  gyro.requested = true;
+  if (typeof D.requestPermission === 'function') {
+    D.requestPermission().then((s) => { if (s === 'granted') addEventListener('deviceorientation', onOrient); }).catch(() => {});
+  } else {
+    addEventListener('deviceorientation', onOrient);
+  }
+}
+if (window.DeviceOrientationEvent && typeof DeviceOrientationEvent.requestPermission !== 'function') requestGyro();
+
+function spring(key, vkey, target, dt) {
+  const k = 42, c = 10.5, steps = 2, h = dt / steps;
+  for (let i = 0; i < steps; i++) {
+    ctl[vkey] += ((target - ctl[key]) * k - ctl[vkey] * c) * h;
+    ctl[key] += ctl[vkey] * h;
+  }
+}
+
+function updateControls(dt, now, t) {
+  if (ctl.mode === 'drag') return;
+  if (ctl.mode === 'coast') {
+    ctl.ry += ctl.vy * dt;
+    ctl.vy *= Math.exp(-2.4 * dt);
+    spring('rx', 'vx', 0, dt);
+    if (Math.abs(ctl.vy) < 2.2) {
+      ctl.mode = 'free';
+      ctl.base = Math.round(ctl.ry / Math.PI) * Math.PI;
+    }
+    return;
+  }
+  let tx = 0, ty = 0;
+  if (pointer.active && now - pointer.last < 3000) {
+    tx = pointer.y * 0.32;
+    ty = -pointer.x * 0.45;
+  } else if (gyro.active && now - gyro.last < 1500) {
+    tx = gyro.x;
+    ty = gyro.y;
+  } else if (!paused) {
+    tx = 0.04 + Math.sin(t * 0.53) * 0.1;
+    ty = Math.sin(t * 0.41) * 0.36;
+  }
+  spring('rx', 'vx', tx, dt);
+  spring('ry', 'vy', ctl.base + ty, dt);
+}
+
+// ---------------------------------------------------------------------------
+// Layout
+// ---------------------------------------------------------------------------
+
+function resize() {
+  const w = innerWidth, h = innerHeight;
+  renderer.setPixelRatio(perf.dpr);
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  // Keep the card clear of the credit (on narrow screens) and the dock.
+  const narrow = w < 640;
+  const dock = document.querySelector('.dock'), credit = document.querySelector('.credit');
+  const top = narrow ? credit.getBoundingClientRect().bottom + 14 : 30;
+  const bottom = dock.hidden ? 30 : h - dock.getBoundingClientRect().top + 36;
+  const avail = Math.max(120, h - top - bottom);
+  const tan = Math.tan(THREE.MathUtils.degToRad(camera.fov / 2));
+  const dH = (CH * 1.1 * (h / avail)) / (2 * tan);
+  const dW = (CW * (narrow ? 1.16 : 1.32) * (w / Math.max(100, w - 32))) / (2 * tan * camera.aspect);
+  camDist = Math.max(dH, dW, 7.5);
+  camera.position.set(0, 0, camDist);
+  const shift = (top - bottom) / 2;
+  camera.setViewOffset(w, h, 0, -shift, w, h);
+  camera.updateProjectionMatrix();
+
+  const pxPerUnit = h / (2 * camDist * tan);
+  Object.assign(view, { w, h, cx: w / 2, cy: h / 2 + shift, halfW: (CW / 2) * pxPerUnit, halfH: (CH / 2) * pxPerUnit });
+  const scale = renderer.getDrawingBufferSize(new THREE.Vector2()).y / (2 * tan);
+  dustMat.uniforms.uScale.value = scale;
+  burstMat.uniforms.uScale.value = scale;
+}
+addEventListener('resize', resize);
+
+function readShadowAlpha() {
+  const a = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--shadow-alpha'));
+  wallMat.opacity = Number.isFinite(a) ? a : 0.24;
+}
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change', readShadowAlpha);
+new MutationObserver(readShadowAlpha).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+// ---------------------------------------------------------------------------
+// Frame
+// ---------------------------------------------------------------------------
+
+const timer = new THREE.Timer();
+let cardTime = 0;
+
+// Drops the render resolution a step at a time if frames run long.
+const MAX_DPR = Math.min(window.devicePixelRatio || 1, 2);
+const perf = { dpr: MAX_DPR, frames: 0, slow: 0 };
+function adaptResolution(dt) {
+  if (perf.dpr <= 1 || document.hidden) return;
+  perf.frames++;
+  if (dt > 1 / 45) perf.slow++;
+  if (perf.frames < 90) return;
+  if (perf.slow > 45) {
+    perf.dpr = Math.max(1, perf.dpr - 0.25);
+    renderer.setPixelRatio(perf.dpr);
+    resize();
+  }
+  perf.frames = perf.slow = 0;
+}
+const _n = new THREE.Vector3(), _p = new THREE.Vector3();
+const innerClip = new THREE.Plane(), popClip = new THREE.Plane();
+const _look = new THREE.Vector2();
+
+function render() {
+  timer.update();
+  const rawDt = timer.getDelta();
+  const dt = Math.min(rawDt, 1 / 20);
+  const now = performance.now();
+  adaptResolution(rawDt);
+  if (!paused) cardTime += dt;
+
+  updateControls(dt, now, cardTime);
+  rig.rotation.set(ctl.rx, ctl.ry, 0);
+  if (!paused) rig.position.y = Math.sin(cardTime * 1.1) * 0.035;
+  rig.updateMatrixWorld(true);
+  innerRoot.matrix.copy(rig.matrixWorld);
+  innerRoot.matrixWorldNeedsUpdate = true;
+  innerScene.environmentRotation.copy(rig.rotation);
+
+  const following = pointer.active && now - pointer.last < 3000;
+  const clawdDt = paused && anim.hop < 0 ? 0 : dt;
+  updateClawd(clawdDt, cardTime, following ? _look.set(pointer.x * 1.1, pointer.y * 0.9) : null);
+
+  const u = burstMat.uniforms.uAge;
+  if (u.value < 2) u.value += dt;
+  haloMat.uniforms.uBoost.value = 1 + 0.9 * Math.max(0, 1 - u.value / 0.6);
+  domeMat.uniforms.uTime.value = cardTime;
+  haloMat.uniforms.uTime.value = cardTime;
+  dustMat.uniforms.uTime.value = cardTime;
+
+  // The glass plane splits Clawd: behind it draws through the window,
+  // in front of it draws over everything.
+  _n.set(0, 0, 1).transformDirection(rig.matrixWorld);
+  _p.set(0, 0, FACE_Z).applyMatrix4(rig.matrixWorld);
+  popClip.setFromNormalAndCoplanarPoint(_n, _p);
+  innerClip.copy(popClip).negate();
+  clipPlane.copy(innerClip);
+
+  innerScene.fog.near = camDist + 0.6;
+  innerScene.fog.far = camDist + 6;
+
+  renderer.clear(true, true, true);
+  renderer.shadowMap.needsUpdate = true;
+  renderer.render(innerScene, camera);
+  renderer.clearDepth();
+  renderer.shadowMap.needsUpdate = true;
+  renderer.render(outerScene, camera);
+
+  if (clawdPops()) {
+    clipPlane.copy(popClip);
+    for (const m of clawdMats) m.stencilWrite = false;
+    camera.layers.set(POP_LAYER);
+    renderer.render(innerScene, camera);
+    camera.layers.set(0);
+    for (const m of clawdMats) m.stencilWrite = true;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Start
+// ---------------------------------------------------------------------------
+
+// Resolves true once the card's faces are loaded, or false after 2.5 s.
+async function fontsReady() {
+  if (!document.fonts) return true;
+  const faces = [
+    `800 178px "Bricolage Grotesque"`, `500 27px "Instrument Sans"`,
+    `700 33px "JetBrains Mono"`, `500 20px "JetBrains Mono"`,
+  ];
+  const loads = Promise.all(faces.map((f) => document.fonts.load(f).catch(() => null))).then(() => true);
+  return Promise.race([loads, new Promise((r) => setTimeout(() => r(false), 2500))]);
+}
+
+async function start() {
+  resize();
+  readShadowAlpha();
+  const inTime = await fontsReady();
+  drawBack();
+  applyVariant(0, false);
+  renderer.setAnimationLoop(render);
+  statusEl.classList.add('done');
+  // Fonts that arrive late: repaint the print once they do.
+  if (!inTime) document.fonts.ready.then(() => { drawBack(); drawFront(VARIANTS[current]); });
+}
+// Handy from the console: clawdCard.hop(), clawdCard.flip(), clawdCard.applyVariant(2, true)
+window.clawdCard = { ctl, anim, hop, flip, setPaused, applyVariant };
+
+start().catch((err) => {
+  console.error(err);
+  statusEl.textContent = 'The card could not be printed. Reload the page to try again.';
+});
+</script>
+</body>
+</html>

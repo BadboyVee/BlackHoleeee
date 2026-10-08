@@ -5,6 +5,14 @@ any of them — every project is an `index.html` you can open directly.
 
 ## Projects
 
+### 🃏 [Clawd Holo Card](holo-card/)
+
+A holographic trading card of Clawd, the Claude Code mascot. The front is a window into a
+world behind the glass, and tilting the card shows real depth. The foil is a diffraction-grating
+shader, and Clawd hops out through the glass when you tap it. Made with Opus 5.5.
+
+**▶ [Open it](https://badboyvee.github.io/BlackHoleeee/holo-card/)** · [source & prompt](holo-card/)
+
 ### 🌊 [Saltwind Cove](ocean/)
 
 A WebGPU ocean you can walk, swim, sail and dive in. It has FFT waves, breakers that curl and
