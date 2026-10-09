@@ -47,6 +47,9 @@ R_ID = "{http://schemas.openxmlformats.org/officeDocument/2006/relationships}id"
 def strip_compat(root):
     """Remove Office extensions the base schema doesn't describe (Markup Compatibility)."""
     for alt in root.xpath("//mc:AlternateContent", namespaces={"mc": MC}):
+        # Keep what an application without the extension reads: the mc:Fallback content.
+        for child in alt.xpath("mc:Fallback/*", namespaces={"mc": MC}):
+            alt.addprevious(child)
         alt.getparent().remove(alt)
     ignorable = set()
     for el in root.iter():

@@ -12,8 +12,12 @@
 
 - With --advance, moves to the next slide by itself after the given seconds (one for every
   slide, or a comma-separated list used slide by slide); a click still moves on sooner.
+- With --duration, sets how long each transition takes, in seconds (Transitions > Duration).
+  PowerPoint 2010 and later read it from p14:dur, written as PowerPoint writes it: inside
+  mc:AlternateContent, with a plain transition as the fallback for older readers.
 
 Usage: python finish_deck.py deck.pptx plan.json out.pptx [--transition fade,push,...] [--advance 20,30,...]
+                             [--duration 1.5]
 """
 import argparse
 import json
@@ -33,6 +37,8 @@ EFFECTS = {
     "wipe-down": (22, 1, "wipe(down)"),    # Wipe, From Top
 }
 CHART_URI = "http://schemas.openxmlformats.org/drawingml/2006/chart"
+MC = "http://schemas.openxmlformats.org/markup-compatibility/2006"
+P14 = "http://schemas.microsoft.com/office/powerpoint/2010/main"
 # transition -> its PowerPoint XML (Transitions tab, with the effect option noted)
 TRANSITIONS = {
     "fade": "<p:fade/>",                               # Fade, Smoothly
@@ -132,12 +138,28 @@ def timing(slide, plan):
     return etree.fromstring(xml), len(steps), len(plan)
 
 
-def set_transition_and_timing(sld, timing_el, transition, advance=0):
+def transition_xml(transition, advance=0, duration=0):
+    """The slide's transition: Advance Slide On Mouse Click (the default) and, with advance, After
+    that many seconds; with duration, the transition's Duration in seconds."""
+    after = f' advTm="{int(advance * 1000)}"' if advance else ""      # Advance Slide: After
+    effect = TRANSITIONS[transition]
+    if not duration:
+        return f'<p:transition {nsdecls("p")} spd="med"{after}>{effect}</p:transition>'
+    spd = "fast" if duration <= 0.5 else "med" if duration <= 0.75 else "slow"
+    return (f'<mc:AlternateContent xmlns:mc="{MC}" {nsdecls("p")}><mc:Choice xmlns:p14="{P14}" Requires="p14">'
+            f'<p:transition spd="{spd}" p14:dur="{int(duration * 1000)}"{after}>{effect}</p:transition></mc:Choice>'
+            f'<mc:Fallback><p:transition spd="{spd}"{after}>{effect}</p:transition></mc:Fallback>'
+            f'</mc:AlternateContent>')
+
+
+def set_transition_and_timing(sld, timing_el, transition, advance=0, duration=0):
     for tag in ("p:transition", "p:timing"):
         for old in sld.findall(qn(tag)):
             sld.remove(old)
-    after = f' advTm="{int(advance * 1000)}"' if advance else ""      # Advance Slide: After
-    trans = etree.fromstring(f'<p:transition {nsdecls("p")} spd="med"{after}>{TRANSITIONS[transition]}</p:transition>')
+    for old in sld.findall(f"{{{MC}}}AlternateContent"):
+        if old.find(f".//{qn('p:transition')}") is not None:
+            sld.remove(old)
+    trans = etree.fromstring(transition_xml(transition, advance, duration))
     # CT_Slide order: cSld, clrMapOvr, transition, timing, extLst
     anchor = sld.find(qn("p:clrMapOvr"))
     if anchor is None:
@@ -147,7 +169,7 @@ def set_transition_and_timing(sld, timing_el, transition, advance=0):
         trans.addnext(timing_el)
 
 
-def main(deck, plan_path, out, transition="push", advance=""):
+def main(deck, plan_path, out, transition="push", advance="", duration=0.0):
     advances = [float(a) for a in advance.split(",")] if advance else [0]
     transitions = transition.split(",")
     unknown = [t for t in transitions if t not in TRANSITIONS]
@@ -167,7 +189,7 @@ def main(deck, plan_path, out, transition="push", advance=""):
             timing_el, steps, shapes = timing(slide, entries)
             animated += shapes
         set_transition_and_timing(slide._element, timing_el, transitions[(number - 1) % len(transitions)],
-                                  advances[(number - 1) % len(advances)])
+                                  advances[(number - 1) % len(advances)], duration)
     prs.save(out)
     print(f"{transition} transitions on {len(prs.slides)} slides, {animated} shapes animated, "
           f"{dropped} duplicate paragraph blocks removed -> {out}")
@@ -184,5 +206,7 @@ if __name__ == "__main__":
     ap.add_argument("--advance", default="",
                     help="seconds before each slide moves on by itself, one value or a comma-separated list "
                          "used slide by slide (0: on click only)")
+    ap.add_argument("--duration", type=float, default=0.0,
+                    help="seconds each transition takes (Transitions > Duration); 0: PowerPoint's default")
     args = ap.parse_args()
-    main(args.deck, args.plan, args.out, args.transition, args.advance)
+    main(args.deck, args.plan, args.out, args.transition, args.advance, args.duration)

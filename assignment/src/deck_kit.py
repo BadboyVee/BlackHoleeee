@@ -17,11 +17,11 @@ Three colour palettes (STYLES):
              titles under a short teal line, white cards with a teal edge, white tables with teal
              headings and thin grey lines, grey bars with the leading bar in teal, and a small
              footer and slide number.
-  indigo     the minimal layout in deep indigo (312E81) with a coral (E8604C) accent: title and
-             closing slides on indigo with a lighter panel down the right edge, edged in coral;
-             content slides on a pale lavender background under a solid indigo header band with
-             the title in white and a coral line beneath; white cards with a coral edge; tables
-             with indigo headings; lavender-grey bars with the leading bar in coral.
+  charcoal   the minimal layout in charcoal black (202124) with a gold (F2A900) accent: title
+             and closing slides on charcoal with a lighter panel down the right edge, edged in
+             gold; content slides on a pale warm-grey background under a solid charcoal header
+             band with the title in white and a gold line beneath; white cards with a gold edge;
+             tables with charcoal headings; grey bars with the leading bar in gold.
 
 Text is in Office's own fonts: Calibri, with Cambria titles in the pz and mixed styles and
 Calibri Light titles in the minimal style. Each
@@ -103,21 +103,21 @@ STYLES = {
         "cover": "0F766E", "cover_circle": "13827A",     # title and closing slides
         "cover_text": "FFFFFF", "cover_muted": "D3EBE7", "cover_rule": "8ED1C7",
     },
-    "indigo": {
-        "palette": ("Indigo and Coral", {"dk2": "312E81", "lt2": "F4F4FA", "accent1": "312E81", "accent2": "E8604C",
-                                         "accent3": "8B87C9", "accent4": "C3C2DE", "accent5": "1E1B3A",
-                                         "accent6": "5B5B73", "hlink": "312E81", "folHlink": "5B5B73"}),
+    "charcoal": {
+        "palette": ("Charcoal and Gold", {"dk2": "202124", "lt2": "F5F5F3", "accent1": "202124", "accent2": "F2A900",
+                                          "accent3": "8A6100", "accent4": "C8C8C4", "accent5": "5A5A5A",
+                                          "accent6": "3A3A3D", "hlink": "8A6100", "folHlink": "5A5A5A"}),
         "head_font": "Calibri Light", "body_font": "Calibri",
         "title_size": 32, "card_caps": False, "card_shadow": False,
-        "title": "1E1B3A", "text": "1E1B3A", "muted": "56566E", "names": "312E81",
-        "rule": "E8604C", "frame": None, "wood": (), "cards": False,
-        "head_fill": "312E81", "band": "ECECF7", "grid": "D5D5E5", "box": "FFFFFF", "table": "filled",
-        "pie": ["312E81", "E8604C", "8B87C9", "C3C2DE", "1E1B3A"], "key_line": "7B7B93",
-        "bar": "C3C2DE", "bar_top": "E8604C",
+        "title": "202124", "text": "202124", "muted": "57575A", "names": "8A6100",
+        "rule": "F2A900", "frame": None, "wood": (), "cards": False,
+        "head_fill": "202124", "band": "F2F2EF", "grid": "D9D9D5", "box": "FFFFFF", "table": "filled",
+        "pie": ["202124", "F2A900", "8A6100", "C8C8C4", "5A5A5A"], "key_line": "7F7F7F",
+        "bar": "C8C8C4", "bar_top": "F2A900",
         "minimal": True, "header_band": True,
-        "background": "F4F4FA",
-        "cover": "312E81", "cover_panel": "3D3A96",
-        "cover_text": "FFFFFF", "cover_muted": "D9D8F2", "cover_rule": "E8604C",
+        "background": "F5F5F3",
+        "cover": "202124", "cover_panel": "303134",
+        "cover_text": "FFFFFF", "cover_muted": "D6D6D6", "cover_rule": "F2A900",
     },
 }
 
