@@ -397,6 +397,75 @@ class Deck:
         self.chrome = (head, line, sub)
         return Inches(2.1)
 
+    # -------------------------------------------------------------- cards and notes
+    @property
+    def left(self):
+        """The left edge of full-width cards: in line with the title in the minimal style."""
+        return Inches(0.8) if self.S.get("minimal") else Inches(1.0)
+
+    def card(self, slide, x, y, w, h):
+        """A tinted box; in the minimal style, a card with a teal edge. Returns its shapes."""
+        shapes = [self.rect(slide, x, y, w, h, fill=self.S["box"])]
+        if self.S.get("minimal"):
+            shapes.append(self.rect(slide, x, y, Inches(0.07), h, fill=self.S["rule"]))
+        return shapes
+
+    @staticmethod
+    def bullet_colour(frame, colour):
+        """Format > Bullets > Color, for every paragraph."""
+        for para in frame.paragraphs:
+            p_pr = para._p.get_or_add_pPr()
+            spacing = [p_pr.find(qn(t)) for t in ("a:lnSpc", "a:spcBef", "a:spcAft")]
+            spacing = [el for el in spacing if el is not None]
+            bu = etree.fromstring(f'<a:buClr xmlns:a="{A_NS}"><a:srgbClr val="{colour}"/></a:buClr>')
+            if spacing:
+                spacing[-1].addnext(bu)
+            else:
+                p_pr.insert(0, bu)
+
+    def boxed_text(self, slide, top, paragraphs, size, height=Inches(4.45)):
+        """The content placeholder's bulleted text on a full-width card; bold words in the style's
+        colour. Returns the card's shapes and the text."""
+        S, W, left = self.S, self.W, self.left
+        shapes = self.card(slide, left, top + Inches(0.05), W - 2 * left, height)
+        body = placeholder(slide, 1)
+        place(body, left + Inches(0.35), top + Inches(0.25), W - 2 * left - Inches(0.7), height - Inches(0.4))
+        for shape in shapes:                             # the card behind the text
+            shape._element.getparent().remove(shape._element)
+            body._element.addprevious(shape._element)
+        self.write(body.text_frame, paragraphs, size=size, colour=S["text"], after=10)
+        body.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
+        for para in body.text_frame.paragraphs:
+            for run in para.runs:
+                if run.font.bold:
+                    run.font.color.rgb = rgb(S["names"])
+        if S.get("minimal"):
+            self.bullet_colour(body.text_frame, S["rule"])
+        return (*shapes, body)
+
+    def side_note(self, slide, top, paragraphs, size=17):
+        """A card beside a chart, holding a few short points. Returns its shapes and the text."""
+        x = Inches(8.55)
+        w, h = self.W - x - Inches(0.85), Inches(4.4)
+        shapes = self.card(slide, x, top + Inches(0.05), w, h)
+        note = self.textbox(slide, x + Inches(0.25), top + Inches(0.25), w - Inches(0.5), h - Inches(0.4), paragraphs,
+                            size=size, colour=self.S["text"], after=12)
+        note.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
+        return (*shapes, note)
+
+    @staticmethod
+    def chart_area(top):
+        """Where a chart goes when a side note sits beside it: x, y, width, height."""
+        return Inches(0.9), top - Inches(0.05), Inches(7.45), Inches(4.55)
+
+    def footnote(self, slide, y, text, height=Inches(0.4)):
+        """A small grey note under a table or chart."""
+        S, W = self.S, self.W
+        if S.get("minimal"):                             # lined up with the title
+            return self.textbox(slide, Inches(0.7), y, W - Inches(1.4), height, [text], size=14, colour=S["muted"])
+        return self.textbox(slide, Inches(0.8), y, W - Inches(1.6), height, [text], size=14, colour=S["muted"],
+                            align=PP_ALIGN.CENTER)
+
     # -------------------------------------------------------------- tables and charts
     def table(self, slide, ph, x, y, rows, widths, row_h, size, *, centre_from=1, bold_rows=()):
         """A Table Grid table in the content placeholder's slot: the style's header row, banded
