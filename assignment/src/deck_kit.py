@@ -17,6 +17,11 @@ Three colour palettes (STYLES):
              titles under a short teal line, white cards with a teal edge, white tables with teal
              headings and thin grey lines, grey bars with the leading bar in teal, and a small
              footer and slide number.
+  indigo     the minimal layout in deep indigo (312E81) with a coral (E8604C) accent: title and
+             closing slides on indigo with a lighter panel down the right edge, edged in coral;
+             content slides on a pale lavender background under a solid indigo header band with
+             the title in white and a coral line beneath; white cards with a coral edge; tables
+             with indigo headings; lavender-grey bars with the leading bar in coral.
 
 Text is in Office's own fonts: Calibri, with Cambria titles in the pz and mixed styles and
 Calibri Light titles in the minimal style. Each
@@ -97,6 +102,22 @@ STYLES = {
         "background": "E4EFEC",                          # content slides: Format Background > Solid fill
         "cover": "0F766E", "cover_circle": "13827A",     # title and closing slides
         "cover_text": "FFFFFF", "cover_muted": "D3EBE7", "cover_rule": "8ED1C7",
+    },
+    "indigo": {
+        "palette": ("Indigo and Coral", {"dk2": "312E81", "lt2": "F4F4FA", "accent1": "312E81", "accent2": "E8604C",
+                                         "accent3": "8B87C9", "accent4": "C3C2DE", "accent5": "1E1B3A",
+                                         "accent6": "5B5B73", "hlink": "312E81", "folHlink": "5B5B73"}),
+        "head_font": "Calibri Light", "body_font": "Calibri",
+        "title_size": 32, "card_caps": False, "card_shadow": False,
+        "title": "1E1B3A", "text": "1E1B3A", "muted": "56566E", "names": "312E81",
+        "rule": "E8604C", "frame": None, "wood": (), "cards": False,
+        "head_fill": "312E81", "band": "ECECF7", "grid": "D5D5E5", "box": "FFFFFF", "table": "filled",
+        "pie": ["312E81", "E8604C", "8B87C9", "C3C2DE", "1E1B3A"], "key_line": "7B7B93",
+        "bar": "C3C2DE", "bar_top": "E8604C",
+        "minimal": True, "header_band": True,
+        "background": "F4F4FA",
+        "cover": "312E81", "cover_panel": "3D3A96",
+        "cover_text": "FFFFFF", "cover_muted": "D9D8F2", "cover_rule": "E8604C",
     },
 }
 
@@ -307,7 +328,21 @@ class Deck:
         in the PZ deck. Marketing style: a centred title over a line, in the thin frame."""
         S, W, H = self.S, self.W, self.H
         head, sub = placeholder(slide, 0), placeholder(slide, 1)
-        if S.get("minimal"):
+        if S.get("header_band"):
+            self.solid_background(slide, S["cover"])
+            # A lighter panel down the right-hand side, edged with a coral strip.
+            panel = self.rect(slide, W - Inches(3.6), 0, Inches(3.6), H, fill=S["cover_panel"])
+            edge = self.rect(slide, W - Inches(3.6), 0, Inches(0.12), H, fill=S["cover_rule"])
+            for shape in (edge, panel):
+                to_back(shape)
+            place(head, Inches(1.0), Inches(2.25), W - Inches(5.2), Inches(1.5))
+            self.write(head.text_frame, [title], size=size, colour=S["cover_text"], font=S["head_font"],
+                       align=PP_ALIGN.LEFT)
+            line = self.rule(slide, Inches(1.1), Inches(2.6), Inches(3.97), S["cover_rule"], width=4)
+            place(sub, Inches(1.0), Inches(4.2), W - Inches(5.2), Inches(2.0))
+            self.write(sub.text_frame, lines, size=22, colour=S["cover_muted"], align=PP_ALIGN.LEFT, after=8)
+            sub.text_frame.paragraphs[-1].runs[0].font.size = Pt(16)
+        elif S.get("minimal"):
             self.solid_background(slide, S["cover"])
             # Two soft circles, a shade lighter than the background, off the right-hand edge.
             big = slide.shapes.add_shape(MSO_SHAPE.OVAL, W - Inches(4.6), Inches(-1.8), Inches(7.2), Inches(7.2))
@@ -361,6 +396,23 @@ class Deck:
         """A content slide's frame, title, line and subtitle; returns the top of the free space."""
         S, W, H = self.S, self.W, self.H
         head = slide.shapes.title
+        if S.get("header_band"):
+            self.solid_background(slide, S["background"])
+            to_back(self.rect(slide, 0, 0, W, Inches(1.3), fill=S["head_fill"]))     # the header band
+            line = self.rule(slide, 0, W, Inches(1.32), S["rule"], width=4)
+            place(head, Inches(0.7), Inches(0.28), W - Inches(1.4), Inches(0.8))
+            self.write(head.text_frame, [title], size=S["title_size"], colour=S["cover_text"], font=S["head_font"],
+                       align=PP_ALIGN.LEFT)
+            head.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
+            sub = self.textbox(slide, Inches(0.7), Inches(1.45), W - Inches(1.4), Inches(0.42), [subtitle], size=16,
+                               colour=S["muted"], align=PP_ALIGN.LEFT)
+            if self.footer:
+                self.textbox(slide, Inches(0.7), H - Inches(0.5), Inches(8.0), Inches(0.3), [self.footer], size=10,
+                             colour=S["muted"])
+                self.textbox(slide, W - Inches(1.7), H - Inches(0.5), Inches(1.0), Inches(0.3),
+                             [str(len(self.prs.slides))], size=10, colour=S["muted"], align=PP_ALIGN.RIGHT)
+            self.chrome = (head, line, sub)
+            return Inches(2.1)
         if S.get("minimal"):
             self.solid_background(slide, S["background"])
             line = self.rule(slide, Inches(0.8), Inches(1.5), Inches(0.62), S["rule"], width=3)
@@ -472,7 +524,7 @@ class Deck:
         rows, thin lines. Columns from centre_from on are centred; row_h is a height or a list."""
         heights = row_h if isinstance(row_h, list) else [row_h] * len(rows)
         S = self.S
-        minimal = S.get("minimal")                       # open table: teal headings, thin grey lines
+        minimal = S.get("minimal") and S.get("table") != "filled"   # open table: headings in colour, thin lines
         frame = slide.shapes.add_table(len(rows), len(widths), x, y, sum(widths, Emu(0)), sum(heights, Emu(0)))
         table = frame.table
         frame._element.graphic.graphicData.tbl.tblPr.find(qn("a:tableStyleId")).text = TABLE_GRID

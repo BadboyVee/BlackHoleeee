@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Rebuild the capstone project for CyberStart by SkillUp Academy:
 #   Capstone_Market_Research.xlsx   the customer research, market gaps and opportunities
-#   Capstone_Market_Research.pptx   the report as a PowerPoint 2013 deck, in the minimal teal design
+#   Capstone_Market_Research.pptx   the report as a PowerPoint 2013 deck, in the indigo and coral design
 #
 # Needs python3 with openpyxl, python-pptx, lxml, numpy and Pillow, and LibreOffice (soffice). It
 # reuses ../../pz-analysis/src/office2013.py (the Office 2013 theme and template),
@@ -35,7 +35,7 @@ python3 "$HERE/export_deck_data.py" "$OUT/Capstone_Market_Research.xlsx" "$TMP/d
 python3 "$KIT/make_wood.py" "$TMP/wood.jpg"
 python3 "$PZ/office2013.py" "$TMP/template.pptx"
 deck="$OUT/Capstone_Market_Research.pptx"
-python3 "$HERE/build_deck.py" "$TMP/deck_data.json" "$TMP/template.pptx" "$TMP/wood.jpg" minimal "$TMP/deck.pptx"
+python3 "$HERE/build_deck.py" "$TMP/deck_data.json" "$TMP/template.pptx" "$TMP/wood.jpg" indigo "$TMP/deck.pptx"
 python3 "$SHARED/sanitize_charts.py" "$TMP/deck.pptx" "$TMP/deck_clean.pptx" \
   ${SCHEMA_DIR:+--xsd "$SCHEMA_DIR/dml-chart.xsd"}
 python3 "$SHARED/finish_deck.py" "$TMP/deck_clean.pptx" "$TMP/deck.anim.json" "$deck" \

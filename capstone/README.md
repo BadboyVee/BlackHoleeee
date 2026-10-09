@@ -10,7 +10,7 @@ assignment found most attractive.
 
 | File | What it is |
 |---|---|
-| [Capstone_Market_Research.pptx](Capstone_Market_Research.pptx) | The 16-slide report in the minimal teal design, with animations and slide timings (about 7 minutes). Opens in PowerPoint 2013 and later. |
+| [Capstone_Market_Research.pptx](Capstone_Market_Research.pptx) | The 16-slide report in an indigo and coral design (indigo header bands, coral accents), with animations and slide timings (about 7 minutes). Opens in PowerPoint 2013 and later. |
 | [Capstone_Market_Research.xlsx](Capstone_Market_Research.xlsx) | The research in seven sheets: Market, Google Search, Google Trends, Social Media, Reviews, Gaps & Opportunities, Sources. Live formulas; assumptions in yellow cells. Opens in Excel 2013 and later. |
 | [src/](src/) | The scripts that build both files; all the research is in `src/capstone_data.py`. |
 
