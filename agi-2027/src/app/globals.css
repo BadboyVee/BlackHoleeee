@@ -1,0 +1,378 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/*
+ * AGI 2027 design tokens.
+ *
+ * Dark is the default: tokens on :root are the dark theme, and
+ * [data-theme="light"] overrides them. The inline script in the root layout
+ * sets data-theme before first paint from the visitor's saved choice.
+ * Text colors are checked for WCAG AA contrast against every surface.
+ */
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
+
+:root,
+[data-theme="dark"] {
+  --radius: 0.875rem;
+
+  --background: #08090b;
+  --surface: #0e1013;
+  --surface-2: #15181c;
+  --surface-3: #1c2025;
+  --popover: #111317;
+  --overlay: rgb(3 4 5 / 0.72);
+
+  --foreground: #f2f4f5;
+  --muted-foreground: #a3a8b0;
+  --subtle-foreground: #868b94;
+
+  --border: rgb(255 255 255 / 0.08);
+  --border-strong: rgb(255 255 255 / 0.14);
+  --input: rgb(255 255 255 / 0.1);
+  --ring: #c6ff3a;
+
+  /* Signature accent: acid lime. Use with restraint. */
+  --brand: #c6ff3a;
+  --brand-foreground: #0b0d05;
+  --brand-text: #c6ff3a;
+  --brand-edge: rgb(198 255 58 / 0.5);
+  --brand-glow: rgb(198 255 58 / 0.35);
+  --glow: rgb(198 255 58 / 0.14);
+  --glow-cool: rgb(120 170 255 / 0.07);
+
+  --destructive: #d42c35;
+  --destructive-text: #ff7272;
+
+  --grid-line: rgb(255 255 255 / 0.045);
+  --shadow-color: 0 0% 0%;
+  --card-highlight: rgb(255 255 255 / 0.035);
+
+  /* Status tones: text color and soft background. */
+  --tone-gray: #a3a8b0;
+  --tone-gray-bg: rgb(163 168 176 / 0.12);
+  --tone-blue: #7ab8ff;
+  --tone-blue-bg: rgb(122 184 255 / 0.12);
+  --tone-violet: #b79cff;
+  --tone-violet-bg: rgb(183 156 255 / 0.13);
+  --tone-amber: #ffc857;
+  --tone-amber-bg: rgb(255 200 87 / 0.12);
+  --tone-orange: #ff9f5a;
+  --tone-orange-bg: rgb(255 159 90 / 0.12);
+  --tone-teal: #4fd8c4;
+  --tone-teal-bg: rgb(79 216 196 / 0.12);
+  --tone-green: #5be38f;
+  --tone-green-bg: rgb(91 227 143 / 0.12);
+  --tone-red: #ff7272;
+  --tone-red-bg: rgb(255 114 114 / 0.12);
+  --tone-brand: #c6ff3a;
+  --tone-brand-bg: rgb(198 255 58 / 0.12);
+
+  color-scheme: dark;
+}
+
+[data-theme="light"] {
+  --background: #f5f6f7;
+  --surface: #ffffff;
+  --surface-2: #eef0f2;
+  --surface-3: #e5e8eb;
+  --popover: #ffffff;
+  --overlay: rgb(14 16 18 / 0.4);
+
+  --foreground: #0e1012;
+  --muted-foreground: #565c66;
+  --subtle-foreground: #636973;
+
+  --border: rgb(14 16 18 / 0.1);
+  --border-strong: rgb(14 16 18 / 0.17);
+  --input: rgb(14 16 18 / 0.14);
+  --ring: #3f6600;
+
+  --brand: #c6ff3a;
+  --brand-foreground: #0b0d05;
+  --brand-text: #3f6600;
+  --brand-edge: rgb(98 140 0 / 0.55);
+  --brand-glow: rgb(140 200 0 / 0.35);
+  --glow: rgb(150 210 0 / 0.16);
+  --glow-cool: rgb(80 130 255 / 0.06);
+
+  --destructive: #d42c35;
+  --destructive-text: #c2282a;
+
+  --grid-line: rgb(14 16 18 / 0.06);
+  --shadow-color: 220 15% 20%;
+  --card-highlight: rgb(255 255 255 / 0.6);
+
+  --tone-gray: #555b64;
+  --tone-gray-bg: rgb(85 91 100 / 0.1);
+  --tone-blue: #1d5fc2;
+  --tone-blue-bg: rgb(29 95 194 / 0.1);
+  --tone-violet: #6a3fd1;
+  --tone-violet-bg: rgb(106 63 209 / 0.1);
+  --tone-amber: #8a5a00;
+  --tone-amber-bg: rgb(176 120 0 / 0.14);
+  --tone-orange: #a84b0c;
+  --tone-orange-bg: rgb(200 90 20 / 0.11);
+  --tone-teal: #0b7a6c;
+  --tone-teal-bg: rgb(11 122 108 / 0.1);
+  --tone-green: #177a3e;
+  --tone-green-bg: rgb(23 122 62 / 0.1);
+  --tone-red: #c2282a;
+  --tone-red-bg: rgb(194 40 42 / 0.1);
+  --tone-brand: #3f6600;
+  --tone-brand-bg: rgb(140 200 0 / 0.16);
+
+  color-scheme: light;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--foreground);
+  --color-overlay: var(--overlay);
+
+  --color-primary: var(--foreground);
+  --color-primary-foreground: var(--background);
+  --color-secondary: var(--surface-2);
+  --color-secondary-foreground: var(--foreground);
+  --color-muted: var(--surface-2);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-subtle-foreground: var(--subtle-foreground);
+  --color-accent: var(--surface-3);
+  --color-accent-foreground: var(--foreground);
+
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-text: var(--brand-text);
+  --color-destructive: var(--destructive);
+  --color-destructive-text: var(--destructive-text);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
+
+  --radius-sm: calc(var(--radius) - 6px);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-lg: calc(var(--radius) - 2px);
+  --radius-xl: var(--radius);
+  --radius-2xl: calc(var(--radius) + 4px);
+  --radius-3xl: calc(var(--radius) + 12px);
+
+  --animate-shimmer: shimmer 1.8s ease-in-out infinite;
+  --animate-pulse-ring: pulse-ring 2s cubic-bezier(0.2, 0.6, 0.35, 1) infinite;
+  --animate-fade-up: fade-up 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  @keyframes pulse-ring {
+    0% {
+      transform: scale(1);
+      opacity: 0.6;
+    }
+    80%,
+    100% {
+      transform: scale(2.6);
+      opacity: 0;
+    }
+  }
+
+  @keyframes fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    background-color: var(--background);
+    -webkit-tap-highlight-color: transparent;
+    text-size-adjust: 100%;
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+    font-feature-settings: "ss01";
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--brand) 40%, transparent);
+    color: var(--foreground);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  /* Numbers line up in tables, stats and countdowns. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Type scale. Fluid sizes so phones and desktops both read well. */
+@utility text-display {
+  font-size: clamp(2.75rem, 1.4rem + 6.4vw, 6.25rem);
+  line-height: 0.94;
+  letter-spacing: -0.048em;
+  font-weight: 600;
+}
+
+@utility text-h1 {
+  font-size: clamp(2.125rem, 1.5rem + 3vw, 3.5rem);
+  line-height: 1.02;
+  letter-spacing: -0.038em;
+  font-weight: 600;
+}
+
+@utility text-h2 {
+  font-size: clamp(1.625rem, 1.25rem + 1.8vw, 2.5rem);
+  line-height: 1.08;
+  letter-spacing: -0.032em;
+  font-weight: 600;
+}
+
+@utility text-h3 {
+  font-size: 1.25rem;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+
+@utility text-label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Soft light from the top edge: a lime core with a cool fringe, so the dark
+   never turns muddy. The 3D hero in Milestone 2 sits on top of this. */
+@utility bg-hero-glow {
+  background:
+    radial-gradient(48rem 26rem at 50% -6rem, var(--glow), transparent 70%),
+    radial-gradient(30rem 22rem at 92% 12%, var(--glow-cool), transparent 70%);
+}
+
+/* Hairline grid texture. Pair with a mask utility so it fades out. */
+@utility bg-grid {
+  background-image:
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+
+@utility mask-fade-radial {
+  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 30%, transparent 80%);
+}
+
+@utility mask-fade-bottom {
+  mask-image: linear-gradient(to bottom, #000 55%, transparent);
+}
+
+/* Film grain, scoped to a section so it never costs anything on scroll. */
+@utility texture-noise {
+  position: relative;
+  isolation: isolate;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+}
+
+/* Status tone, set with data-tone on badges, dots and pills. */
+@utility tone {
+  color: var(--tone-fg);
+  background-color: var(--tone-bg);
+}
+
+[data-tone="gray"] {
+  --tone-fg: var(--tone-gray);
+  --tone-bg: var(--tone-gray-bg);
+}
+[data-tone="blue"] {
+  --tone-fg: var(--tone-blue);
+  --tone-bg: var(--tone-blue-bg);
+}
+[data-tone="violet"] {
+  --tone-fg: var(--tone-violet);
+  --tone-bg: var(--tone-violet-bg);
+}
+[data-tone="amber"] {
+  --tone-fg: var(--tone-amber);
+  --tone-bg: var(--tone-amber-bg);
+}
+[data-tone="orange"] {
+  --tone-fg: var(--tone-orange);
+  --tone-bg: var(--tone-orange-bg);
+}
+[data-tone="teal"] {
+  --tone-fg: var(--tone-teal);
+  --tone-bg: var(--tone-teal-bg);
+}
+[data-tone="green"] {
+  --tone-fg: var(--tone-green);
+  --tone-bg: var(--tone-green-bg);
+}
+[data-tone="red"] {
+  --tone-fg: var(--tone-red);
+  --tone-bg: var(--tone-red-bg);
+}
+[data-tone="brand"] {
+  --tone-fg: var(--tone-brand);
+  --tone-bg: var(--tone-brand-bg);
+}
+
+/* Bottom tab bar and sheets respect the iPhone home indicator. */
+@utility pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
+}

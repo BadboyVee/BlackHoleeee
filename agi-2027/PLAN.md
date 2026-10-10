@@ -1,32 +1,50 @@
 # AGI 2027 build plan
 
-**Status:** proposed, waiting for OK · 10 Oct 2026
+**Status:** Milestone 1 built, waiting for your review · plan approved 10 Oct 2026
 
 What we're building is in [SPEC.md](SPEC.md). This file covers how it gets built, and it's
 updated at the end of every milestone.
 
 ## Working setup
 
-- **Code:** this folder, `agi-2027/` (see [open question 1](#open-questions) about a private
-  repo).
+- **Code:** this folder, `agi-2027/`, in the BlackHoleeee repo (decided 10 Oct 2026). Vercel
+  builds from this folder.
 - **Testing on your phone:** Vercel builds a preview link for every push. Each milestone ends with
   a link and a short list of things to test. That's why Vercel gets connected in Milestone 1
   instead of at launch.
-- **Two Supabase projects:** *dev* now (demo data; this build environment can reach it) and
-  *production* at launch (only Vercel holds its keys, so real creator data never sits in a dev
-  environment).
+- **Two Supabase projects:** *dev* now (demo data) and *production* at launch (only Vercel and
+  GitHub hold its keys, so real creator data never sits in a dev environment).
 - **Database changes are code:** SQL migrations in `supabase/migrations/`, never clicks in the
-  dashboard. I apply them to dev; at launch a GitHub Action applies them to production.
-- **This build environment** currently can't reach Supabase, Resend, Telegram or X. Everything
-  that doesn't need them gets built and tested here (database logic runs against a local
-  Postgres). Opening just the hosts we need is part of the walkthrough for each milestone.
+  dashboard. GitHub Actions applies them to dev on every branch push (repository secret
+  `DEV_DATABASE_URL`); at launch a second job applies them to production from `main`.
+- **Checks on every push:** GitHub Actions runs lint, typecheck, unit tests, database tests
+  against a real Postgres, and a production build (`.github/workflows/agi-2027.yml`).
+- **This build environment** can't reach Supabase, Resend, Telegram or X, and doesn't need to:
+  database logic is tested here against a local Postgres, and the hosted services are checked
+  on the Vercel preview. If end-to-end tests against the dev project become worth it (around
+  Milestone 6), opening those hosts is a two-minute settings change.
 
 ## Stack
 
-As specified, no changes proposed: Next.js 16 (App Router, TypeScript, React 19), Supabase
-(`@supabase/ssr`), Tailwind CSS 4, shadcn/ui, Motion (Framer Motion's new name), Lucide, React
-Three Fiber, React Hook Form and Zod, Resend with React Email, react-tweet, next-themes, Vitest,
-and Playwright.
+As specified: Next.js 16.4 (App Router, TypeScript, React 19), Supabase (`@supabase/ssr`),
+Tailwind CSS 4, shadcn/ui-style components on Radix, Motion (Framer Motion's new name), Lucide,
+React Three Fiber, React Hook Form and Zod, Resend with React Email, react-tweet, Vitest, and
+Playwright.
+
+Settled while building Milestone 1:
+
+- **Cache Components and Partial Prefetching are on** (the Next.js 16.4 default). Pages ship a
+  static shell instantly and stream personal data in, which makes navigation feel instant.
+  The rule that comes with it: anything that reads cookies, the session or the clock sits
+  inside a `<Suspense>` boundary.
+- **shadcn/ui components are written into the repo by hand.** That's how shadcn works anyway
+  (you own the source); the CLI just can't reach its registry from this build environment. Same
+  Radix primitives and the same component API.
+- **No next-themes.** The theme follows the pattern from the Next.js 16.4 docs: a tiny inline
+  script applies the saved choice before first paint, so there's never a flash of the wrong
+  theme. Dark is the default and each visitor's choice is remembered on their device.
+- **Dates are formatted from parts, never Intl's own pattern.** The server and browsers
+  punctuate dates differently ("Tue 12 Jan" vs "Tue, 12 Jan"), which breaks hydration.
 
 ## Key decisions
 
@@ -210,7 +228,7 @@ How I read the rules:
 
 | #  | Milestone          | What you'll be able to test                                                                                                                      | Accounts we set up                                              | Status      |
 | -- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- | ----------- |
-| 1  | Setup              | Preview link on your phone: light/dark toggle, the design system page (colors, type, buttons, badges, cards, forms, skeletons), empty public, portal and admin layouts | Supabase (dev), Vercel, build environment access                | Not started |
+| 1  | Setup              | Preview link on your phone: light/dark toggle, the design system page (colors, type, buttons, badges, cards, forms, skeletons), empty public, portal and admin layouts | Supabase (dev), Vercel, one GitHub secret                       | Built, in review |
 | 2  | Public website     | Full home page with the 3D hero, the open campaigns board from demo data, Book a campaign saving to the database and emailing you                 | Resend (its test sender works until your domain is verified)   | Not started |
 | 3  | Accounts           | Google and email sign up, email verification, password reset, log out, routing by role, private pages sending you to login and back, your admin account | Google Cloud OAuth                                              | Not started |
 | 4  | Creator onboarding | Apply and watch the status screen; approve or reject; invite links that skip the queue; referral links; profile and payout details with the confirmation email | —                                                               | Not started |
@@ -227,9 +245,8 @@ and claims in every status.
 
 ## Small calls I made (tell me to change any)
 
-- **Accent: acid lime** on near-black. Violet is what most AI brands already use; lime is more
-  memorable and keeps very strong contrast on dark. Light mode uses a deeper lime for text.
-  Switching to violet means changing one token.
+- **Accent: acid lime** (`#C6FF3A`) on near-black, confirmed 10 Oct 2026. Light mode uses a
+  deeper lime (`#3F6600`) for text so it stays readable.
 - **Fonts:** Geist Sans for headings and body, Geist Mono for labels, numbers and the wordmark.
   One free family that loads with no layout shift.
 - **Currencies to start:** USD, USDC, USDT and NGN, editable in Settings.
@@ -242,11 +259,7 @@ and claims in every status.
 
 ## Open questions
 
-1. **Where should the code live?** This repo (BlackHoleeee) is public, and GitHub Pages publishes
-   it, so anyone can read the platform's code and this plan. No secrets ever go in the code, so
-   it's safe either way. Still, I'd recommend a private repo for the agency. If you agree, create
-   an empty private repo (for example `agi-2027`) and I'll move everything there. Otherwise I'll
-   keep building in `agi-2027/` here.
+None right now. Decided on 10 Oct 2026: the code stays in this repo, and the accent is acid lime.
 
 ## Running costs (at launch, not now)
 
@@ -258,3 +271,31 @@ Development fits the free plans. Launch needs three upgrades:
   would go over that.
 
 Each upgrade costs roughly $20–25 a month. Check current pricing when we get there.
+
+## Milestone 1 · Setup (built 10 Oct 2026)
+
+What's in it:
+
+- **Project:** Next.js 16.4 app in `agi-2027/` with TypeScript, Tailwind CSS 4, ESLint, Vitest,
+  security headers, and a README.
+- **Design system:** color tokens for dark and light (every text color checked for WCAG AA
+  contrast), Geist Sans and Geist Mono, a fluid type scale, grid and grain textures, and soft
+  glows. Components: button, badge, status badge, card, input, textarea, field, select,
+  checkbox, switch, avatar, dropdown menu, dialog (a bottom sheet on phones), sheet, tabs,
+  tooltip, skeleton, toast, empty state, count-up number, live countdown, local time plus UTC,
+  and a first campaign card. All of it is on show at `/styleguide`.
+- **Light and dark:** dark by default, toggle on every page, remembered per device, no flash.
+- **Layouts:** public site (header, mobile menu, footer), creator portal and agency admin (bottom
+  tab bar on phones, sidebar on desktop, a "More" sheet for every admin section), sign-in
+  pages, and a 404. Every route in the plan exists, and the ones later milestones build say
+  which milestone fills them in.
+- **Supabase:** browser, server, anonymous and admin clients; the first migration (roles,
+  profiles, row level security, column-level grants so nobody can promote themselves, role
+  helpers, and a `health()` check); a live connection check on `/styleguide`.
+- **Tests:** 19 unit tests (money, time, statuses) and 15 database tests that run every
+  migration on a real Postgres and act as real signed-in and signed-out users.
+- **CI:** GitHub Actions runs every check on each push and applies migrations to the dev
+  project once its secret is set.
+
+Not in it yet, by design: sign in (M3), real data in the portal (M4 onward), and the 3D hero
+(M2).
