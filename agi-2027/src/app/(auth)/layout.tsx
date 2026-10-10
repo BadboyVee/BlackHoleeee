@@ -6,18 +6,19 @@ import { ThemeToggle } from "@/components/theme/theme-toggle";
 
 export default function AuthLayout({ children }: LayoutProps<"/">) {
   return (
-    <div className="relative isolate flex min-h-dvh flex-col overflow-hidden texture-noise">
+    <div className="relative isolate flex min-h-dvh flex-col overflow-hidden bg-wall">
       <SkipLink />
-      <div aria-hidden className="absolute inset-0 -z-10 bg-grid mask-fade-radial" />
-      <div
-        aria-hidden
-        className="absolute -top-48 left-1/2 -z-10 h-[30rem] w-[44rem] -translate-x-1/2 rounded-full bg-(--glow) blur-[110px]"
-      />
-      <header className="flex h-16 items-center justify-between px-4 sm:px-6">
-        <Link href="/" aria-label="AGI 2027 home">
+      <header className="flex h-16 items-center justify-between px-4 pt-3 sm:px-6">
+        <Link
+          href="/"
+          aria-label="AGI 2027 home"
+          className="flex h-11 items-center rounded-[14px] border bg-surface/80 px-3.5 shadow-soft backdrop-blur-xl"
+        >
           <Logo />
         </Link>
-        <ThemeToggle />
+        <div className="flex h-11 items-center rounded-full border bg-surface/80 p-1 shadow-soft backdrop-blur-xl">
+          <ThemeToggle className="size-9" />
+        </div>
       </header>
       <main
         id="main"

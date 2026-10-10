@@ -4,126 +4,112 @@
 /*
  * AGI 2027 design tokens.
  *
- * Dark is the default: tokens on :root are the dark theme, and
- * [data-theme="light"] overrides them. The inline script in the root layout
- * sets data-theme before first paint from the visitor's saved choice.
- * Text colors are checked for WCAG AA contrast against every surface.
+ * The look: warm, tactile and editorial. Light is the default, a sunlit
+ * plaster tone with white paper cards and soft natural shadows; dark is a warm
+ * charcoal version of the same. Type does the work: a clean sans with an
+ * italic serif accent. Acid lime appears only as a tiny signal (a live dot, a
+ * new drop). Every text color is checked for WCAG AA contrast on the surfaces
+ * it's used on. The inline script in the root layout sets data-theme before
+ * first paint.
  */
 
 @custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
 @custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
 
 :root,
-[data-theme="dark"] {
+[data-theme="light"] {
   --radius: 0.875rem;
 
-  --background: #08090b;
-  --surface: #0e1013;
-  --surface-2: #15181c;
-  --surface-3: #1c2025;
-  --popover: #111317;
-  --overlay: rgb(3 4 5 / 0.72);
+  --background: #eeece8;
+  --surface: #fdfcfa;
+  --surface-2: #f6f4f0;
+  --surface-3: #ece9e4;
+  --popover: #fdfcfa;
+  --overlay: rgb(20 19 17 / 0.32);
 
-  --foreground: #f2f4f5;
-  --muted-foreground: #a3a8b0;
-  --subtle-foreground: #868b94;
+  --foreground: #141311;
+  --muted-foreground: #5e5a54;
+  --subtle-foreground: #6a665f;
 
-  --border: rgb(255 255 255 / 0.08);
-  --border-strong: rgb(255 255 255 / 0.14);
-  --input: rgb(255 255 255 / 0.1);
-  --ring: #c6ff3a;
+  --border: rgb(20 19 17 / 0.09);
+  --border-strong: rgb(20 19 17 / 0.15);
+  --input: rgb(20 19 17 / 0.14);
+  --ring: #141311;
 
-  /* Signature accent: acid lime. Use with restraint. */
+  /* Signature accent: acid lime, as a signal only. */
   --brand: #c6ff3a;
-  --brand-foreground: #0b0d05;
-  --brand-text: #c6ff3a;
-  --brand-edge: rgb(198 255 58 / 0.5);
-  --brand-glow: rgb(198 255 58 / 0.35);
-  --glow: rgb(198 255 58 / 0.14);
-  --glow-cool: rgb(120 170 255 / 0.07);
-
-  --destructive: #d42c35;
-  --destructive-text: #ff7272;
-
-  --grid-line: rgb(255 255 255 / 0.045);
-  --shadow-color: 0 0% 0%;
-  --card-highlight: rgb(255 255 255 / 0.035);
-
-  /* Status tones: text color and soft background. */
-  --tone-gray: #a3a8b0;
-  --tone-gray-bg: rgb(163 168 176 / 0.12);
-  --tone-blue: #7ab8ff;
-  --tone-blue-bg: rgb(122 184 255 / 0.12);
-  --tone-violet: #b79cff;
-  --tone-violet-bg: rgb(183 156 255 / 0.13);
-  --tone-amber: #ffc857;
-  --tone-amber-bg: rgb(255 200 87 / 0.12);
-  --tone-orange: #ff9f5a;
-  --tone-orange-bg: rgb(255 159 90 / 0.12);
-  --tone-teal: #4fd8c4;
-  --tone-teal-bg: rgb(79 216 196 / 0.12);
-  --tone-green: #5be38f;
-  --tone-green-bg: rgb(91 227 143 / 0.12);
-  --tone-red: #ff7272;
-  --tone-red-bg: rgb(255 114 114 / 0.12);
-  --tone-brand: #c6ff3a;
-  --tone-brand-bg: rgb(198 255 58 / 0.12);
-
-  color-scheme: dark;
-}
-
-[data-theme="light"] {
-  --background: #f5f6f7;
-  --surface: #ffffff;
-  --surface-2: #eef0f2;
-  --surface-3: #e5e8eb;
-  --popover: #ffffff;
-  --overlay: rgb(14 16 18 / 0.4);
-
-  --foreground: #0e1012;
-  --muted-foreground: #565c66;
-  --subtle-foreground: #636973;
-
-  --border: rgb(14 16 18 / 0.1);
-  --border-strong: rgb(14 16 18 / 0.17);
-  --input: rgb(14 16 18 / 0.14);
-  --ring: #3f6600;
-
-  --brand: #c6ff3a;
-  --brand-foreground: #0b0d05;
+  --brand-foreground: #0a0d02;
   --brand-text: #3f6600;
-  --brand-edge: rgb(98 140 0 / 0.55);
-  --brand-glow: rgb(140 200 0 / 0.35);
-  --glow: rgb(150 210 0 / 0.16);
-  --glow-cool: rgb(80 130 255 / 0.06);
+  --glow: rgb(150 210 0 / 0.14);
 
   --destructive: #d42c35;
   --destructive-text: #c2282a;
 
-  --grid-line: rgb(14 16 18 / 0.06);
-  --shadow-color: 220 15% 20%;
-  --card-highlight: rgb(255 255 255 / 0.6);
+  --grid-line: rgb(20 19 17 / 0.05);
+  --spotlight: rgb(255 253 248 / 0.75);
+  --highlight: rgb(255 255 255 / 0.9);
+  --shadow: 30 20% 20%;
+  --shadow-rgb: 46 36 24;
+  --wall: url("/textures/plaster-light.webp");
+  --wall-portrait: url("/textures/plaster-light-portrait.webp");
 
-  --tone-gray: #555b64;
-  --tone-gray-bg: rgb(85 91 100 / 0.1);
+  --tone-gray: #6a665f;
   --tone-blue: #1d5fc2;
-  --tone-blue-bg: rgb(29 95 194 / 0.1);
   --tone-violet: #6a3fd1;
-  --tone-violet-bg: rgb(106 63 209 / 0.1);
-  --tone-amber: #8a5a00;
-  --tone-amber-bg: rgb(176 120 0 / 0.14);
-  --tone-orange: #a84b0c;
-  --tone-orange-bg: rgb(200 90 20 / 0.11);
+  --tone-amber: #a86e00;
+  --tone-orange: #c2570f;
   --tone-teal: #0b7a6c;
-  --tone-teal-bg: rgb(11 122 108 / 0.1);
   --tone-green: #177a3e;
-  --tone-green-bg: rgb(23 122 62 / 0.1);
   --tone-red: #c2282a;
-  --tone-red-bg: rgb(194 40 42 / 0.1);
-  --tone-brand: #3f6600;
-  --tone-brand-bg: rgb(140 200 0 / 0.16);
+  --tone-brand: #5c8f00;
 
   color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --background: #121110;
+  --surface: #1a1917;
+  --surface-2: #211f1d;
+  --surface-3: #2a2825;
+  --popover: #1d1c1a;
+  --overlay: rgb(0 0 0 / 0.6);
+
+  --foreground: #eeece8;
+  --muted-foreground: #a8a39c;
+  --subtle-foreground: #94908a;
+
+  --border: rgb(255 250 240 / 0.08);
+  --border-strong: rgb(255 250 240 / 0.14);
+  --input: rgb(255 250 240 / 0.11);
+  --ring: #eeece8;
+
+  --brand: #c6ff3a;
+  --brand-foreground: #0a0d02;
+  --brand-text: #c6ff3a;
+  --glow: rgb(198 255 58 / 0.1);
+
+  --destructive: #d42c35;
+  --destructive-text: #ff7272;
+
+  --grid-line: rgb(255 250 240 / 0.04);
+  --spotlight: rgb(255 240 210 / 0.06);
+  --highlight: rgb(255 250 240 / 0.08);
+  --shadow: 0 0% 0%;
+  --shadow-rgb: 0 0 0;
+  --wall: url("/textures/plaster-dark.webp");
+  --wall-portrait: url("/textures/plaster-dark-portrait.webp");
+
+  --tone-gray: #94908a;
+  --tone-blue: #7ab8ff;
+  --tone-violet: #b79cff;
+  --tone-amber: #ffc857;
+  --tone-orange: #ff9f5a;
+  --tone-teal: #4fd8c4;
+  --tone-green: #5be38f;
+  --tone-red: #ff7272;
+  --tone-brand: #c6ff3a;
+
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -161,6 +147,15 @@
 
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
+  --font-serif: var(--font-instrument-serif), ui-serif, Georgia, serif;
+
+  /* Soft, layered shadows that read like natural light. */
+  --shadow-soft:
+    0 1px 1px rgb(var(--shadow-rgb) / 0.04), 0 2px 4px rgb(var(--shadow-rgb) / 0.04),
+    0 8px 16px rgb(var(--shadow-rgb) / 0.05), 0 18px 36px rgb(var(--shadow-rgb) / 0.06);
+  --shadow-float:
+    0 2px 3px rgb(var(--shadow-rgb) / 0.06), 0 10px 16px rgb(var(--shadow-rgb) / 0.08),
+    16px 28px 44px rgb(var(--shadow-rgb) / 0.14), 30px 54px 80px rgb(var(--shadow-rgb) / 0.12);
 
   --radius-sm: calc(var(--radius) - 6px);
   --radius-md: calc(var(--radius) - 4px);
@@ -169,9 +164,14 @@
   --radius-2xl: calc(var(--radius) + 4px);
   --radius-3xl: calc(var(--radius) + 12px);
 
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
   --animate-shimmer: shimmer 1.8s ease-in-out infinite;
-  --animate-pulse-ring: pulse-ring 2s cubic-bezier(0.2, 0.6, 0.35, 1) infinite;
-  --animate-fade-up: fade-up 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  --animate-pulse-ring: pulse-ring 2.4s cubic-bezier(0.2, 0.6, 0.35, 1) infinite;
+  --animate-fade-up: fade-up 0.9s var(--ease-out-expo) both;
+  --animate-fade-in: fade-in 1.2s ease-out both;
+  --animate-marquee: marquee 40s linear infinite;
+  --animate-float: float 9s ease-in-out infinite;
 
   @keyframes shimmer {
     0% {
@@ -185,11 +185,11 @@
   @keyframes pulse-ring {
     0% {
       transform: scale(1);
-      opacity: 0.6;
+      opacity: 0.7;
     }
     80%,
     100% {
-      transform: scale(2.6);
+      transform: scale(2.8);
       opacity: 0;
     }
   }
@@ -197,11 +197,41 @@
   @keyframes fade-up {
     from {
       opacity: 0;
-      transform: translateY(10px);
+      transform: translateY(14px);
+      filter: blur(6px);
     }
     to {
       opacity: 1;
       transform: none;
+      filter: none;
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      translate: 0 0;
+    }
+    50% {
+      translate: 0 -9px;
+    }
+  }
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
     }
   }
 }
@@ -215,17 +245,16 @@
     background-color: var(--background);
     -webkit-tap-highlight-color: transparent;
     text-size-adjust: 100%;
-    scrollbar-gutter: stable;
   }
 
   body {
     @apply bg-background font-sans text-foreground antialiased;
-    font-feature-settings: "ss01";
+    letter-spacing: -0.011em;
     text-rendering: optimizeLegibility;
   }
 
   ::selection {
-    background: color-mix(in oklab, var(--brand) 40%, transparent);
+    background: color-mix(in oklab, var(--brand) 35%, transparent);
     color: var(--foreground);
   }
 
@@ -251,50 +280,82 @@
   }
 }
 
-/* Type scale. Fluid sizes so phones and desktops both read well. */
+/* Type scale. Medium weight and tight tracking at large sizes; fluid so phones
+   and desktops both read well. Headlines often pair a white line with a muted
+   one (wrap the second part in text-muted-foreground). */
 @utility text-display {
-  font-size: clamp(2.75rem, 1.4rem + 6.4vw, 6.25rem);
-  line-height: 0.94;
-  letter-spacing: -0.048em;
-  font-weight: 600;
+  font-size: clamp(2.875rem, 1.5rem + 5.2vw, 5.75rem);
+  line-height: 0.98;
+  letter-spacing: -0.05em;
+  font-weight: 500;
+}
+
+/* The italic serif accent inside a sans headline: "on every timeline." */
+@utility accent-serif {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.08em;
+  letter-spacing: -0.02em;
+  line-height: 0;
+}
+
+/* The sunlit plaster wall behind the hero and the final call to action. */
+@utility bg-wall {
+  background-color: var(--background);
+  background-image: var(--wall);
+  background-size: cover;
+  background-position: center;
+
+  @media (max-aspect-ratio: 4/5) {
+    background-image: var(--wall-portrait);
+  }
 }
 
 @utility text-h1 {
-  font-size: clamp(2.125rem, 1.5rem + 3vw, 3.5rem);
+  font-size: clamp(2.25rem, 1.45rem + 3.4vw, 4rem);
   line-height: 1.02;
-  letter-spacing: -0.038em;
-  font-weight: 600;
+  letter-spacing: -0.045em;
+  font-weight: 500;
 }
 
 @utility text-h2 {
-  font-size: clamp(1.625rem, 1.25rem + 1.8vw, 2.5rem);
-  line-height: 1.08;
-  letter-spacing: -0.032em;
-  font-weight: 600;
+  font-size: clamp(1.875rem, 1.35rem + 2.2vw, 3rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+  font-weight: 500;
 }
 
 @utility text-h3 {
-  font-size: 1.25rem;
-  line-height: 1.3;
-  letter-spacing: -0.02em;
+  font-size: 1.125rem;
+  line-height: 1.35;
+  letter-spacing: -0.018em;
   font-weight: 600;
 }
 
+@utility text-lead {
+  font-size: clamp(1.0625rem, 0.98rem + 0.4vw, 1.25rem);
+  line-height: 1.55;
+  letter-spacing: -0.015em;
+}
+
+/* Big figures (money, stats): the sans with tabular digits. Mono stays for
+   small technical values like references and countdowns. */
+@utility text-figure {
+  font-family: var(--font-sans);
+  font-weight: 500;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Small mono kicker, used sparingly: section numbers, field labels, meta. */
 @utility text-label {
   font-family: var(--font-mono);
   font-size: 0.6875rem;
   line-height: 1rem;
-  letter-spacing: 0.14em;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   font-weight: 500;
-}
-
-/* Soft light from the top edge: a lime core with a cool fringe, so the dark
-   never turns muddy. The 3D hero in Milestone 2 sits on top of this. */
-@utility bg-hero-glow {
-  background:
-    radial-gradient(48rem 26rem at 50% -6rem, var(--glow), transparent 70%),
-    radial-gradient(30rem 22rem at 92% 12%, var(--glow-cool), transparent 70%);
 }
 
 /* Hairline grid texture. Pair with a mask utility so it fades out. */
@@ -302,15 +363,24 @@
   background-image:
     linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
     linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
-  background-size: 56px 56px;
+  background-size: 64px 64px;
 }
 
 @utility mask-fade-radial {
-  mask-image: radial-gradient(ellipse 70% 60% at 50% 40%, #000 30%, transparent 80%);
+  mask-image: radial-gradient(ellipse 65% 55% at 50% 35%, #000 25%, transparent 80%);
 }
 
 @utility mask-fade-bottom {
-  mask-image: linear-gradient(to bottom, #000 55%, transparent);
+  mask-image: linear-gradient(to bottom, #000 60%, transparent);
+}
+
+@utility mask-fade-x {
+  mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+}
+
+/* Soft neutral light from the top edge of a section. */
+@utility bg-spotlight {
+  background: radial-gradient(60rem 28rem at 50% -8rem, var(--spotlight), transparent 70%);
 }
 
 /* Film grain, scoped to a section so it never costs anything on scroll. */
@@ -324,52 +394,51 @@
     inset: 0;
     z-index: -1;
     pointer-events: none;
-    opacity: 0.05;
+    opacity: 0.035;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 }
 
-/* Status tone, set with data-tone on badges, dots and pills. */
-@utility tone {
-  color: var(--tone-fg);
-  background-color: var(--tone-bg);
+/* A 1px highlight along the top edge of a card. */
+@utility edge-highlight {
+  &::before {
+    content: "";
+    position: absolute;
+    inset-inline: 1.25rem;
+    top: -1px;
+    height: 1px;
+    pointer-events: none;
+    background: linear-gradient(to right, transparent, var(--highlight), transparent);
+  }
 }
 
+/* Status tone, set with data-tone on dots and status text. */
 [data-tone="gray"] {
   --tone-fg: var(--tone-gray);
-  --tone-bg: var(--tone-gray-bg);
 }
 [data-tone="blue"] {
   --tone-fg: var(--tone-blue);
-  --tone-bg: var(--tone-blue-bg);
 }
 [data-tone="violet"] {
   --tone-fg: var(--tone-violet);
-  --tone-bg: var(--tone-violet-bg);
 }
 [data-tone="amber"] {
   --tone-fg: var(--tone-amber);
-  --tone-bg: var(--tone-amber-bg);
 }
 [data-tone="orange"] {
   --tone-fg: var(--tone-orange);
-  --tone-bg: var(--tone-orange-bg);
 }
 [data-tone="teal"] {
   --tone-fg: var(--tone-teal);
-  --tone-bg: var(--tone-teal-bg);
 }
 [data-tone="green"] {
   --tone-fg: var(--tone-green);
-  --tone-bg: var(--tone-green-bg);
 }
 [data-tone="red"] {
   --tone-fg: var(--tone-red);
-  --tone-bg: var(--tone-red-bg);
 }
 [data-tone="brand"] {
   --tone-fg: var(--tone-brand);
-  --tone-bg: var(--tone-brand-bg);
 }
 
 /* Bottom tab bar and sheets respect the iPhone home indicator. */

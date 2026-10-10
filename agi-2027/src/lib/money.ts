@@ -29,6 +29,19 @@ export function formatMoney(amount: number | string, currency: string): string {
 }
 
 /**
+ * Splits a formatted amount into the number and a trailing unit, so cards can
+ * set "250" large and "USDC" small. Fiat keeps its symbol in the number.
+ */
+export function splitMoney(amount: number | string, currency: string): { value: string; unit?: string } {
+  const formatted = formatMoney(amount, currency);
+  if (ISO_CURRENCIES.has(currency)) return { value: formatted };
+  const suffix = ` ${currency}`;
+  return formatted.endsWith(suffix)
+    ? { value: formatted.slice(0, -suffix.length), unit: currency }
+    : { value: formatted };
+}
+
+/**
  * Sums amounts per currency using integer minor units, so 0.1 + 0.2 is
  * exactly 0.3. Returns one total per currency, in first-seen order.
  */

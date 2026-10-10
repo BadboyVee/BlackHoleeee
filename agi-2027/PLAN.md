@@ -1,6 +1,6 @@
 # AGI 2027 build plan
 
-**Status:** Milestone 1 built, waiting for your review · plan approved 10 Oct 2026
+**Status:** Milestone 1 redesigned after your review, waiting for your OK · plan approved 10 Oct 2026
 
 What we're building is in [SPEC.md](SPEC.md). This file covers how it gets built, and it's
 updated at the end of every milestone.
@@ -31,8 +31,9 @@ updated at the end of every milestone.
 
 As specified: Next.js 16.4 (App Router, TypeScript, React 19), Supabase (`@supabase/ssr`),
 Tailwind CSS 4, shadcn/ui-style components on Radix, Motion (Framer Motion's new name), Lucide,
-React Three Fiber, React Hook Form and Zod, Resend with React Email, react-tweet, Vitest, and
-Playwright.
+React Hook Form and Zod, Resend with React Email, react-tweet, Vitest, and Playwright. React Three
+Fiber was dropped with the redesign: the hero's 3D objects are CSS 3D transforms, which keep text
+crisp and need no WebGL.
 
 Settled while building Milestone 1:
 
@@ -248,10 +249,12 @@ and claims in every status.
 
 ## Small calls I made (tell me to change any)
 
-- **Accent: acid lime** (`#C6FF3A`) on near-black, confirmed 10 Oct 2026. Light mode uses a
-  deeper lime (`#3F6600`) for text so it stays readable.
-- **Fonts:** Geist Sans for headings and body, Geist Mono for labels, numbers and the wordmark.
-  One free family that loads with no layout shift.
+- **Look: light, warm and tactile** (your reference, 10 Oct 2026). Light is the default and
+  dark is a warm charcoal version. Acid lime (`#C6FF3A`) stays as a small signal; a deeper lime
+  (`#3F6600`) is used where it has to be readable on light backgrounds.
+- **Fonts:** Geist Sans for headings and body, Instrument Serif italic for accent words in
+  headlines, Geist Mono for labels, small technical figures and the wordmark. Large figures use
+  Geist Sans with tabular digits.
 - **Currencies to start:** USD, USDC, USDT and NGN, editable in Settings.
 - **Services:** the three from the spec, as placeholders until you confirm the list.
 - **Homepage content** (stats, logos, featured posts, FAQ) is seeded with placeholders in M2. The
@@ -302,3 +305,20 @@ What's in it:
 
 Not in it yet, by design: sign in (M3), real data in the portal (M4 onward), and the 3D hero
 (M2).
+
+### Redesign after review (10 Oct 2026)
+
+You found the first pass ugly and shared tasteskill.dev as the look you want. What changed:
+
+- **Theme:** light by default, warm stone and paper-white, soft natural shadows; dark mode is a
+  warm charcoal version of the same.
+- **Hero:** a generated, sunlit plaster wall with floating product objects (a Telegram drop
+  alert, a creator's post, a campaign report, a payout slip, the logo pressed into stone),
+  drifting gently and following the pointer. No WebGL needed.
+- **Type:** headlines pair Geist with an Instrument Serif italic accent ("on every *timeline*").
+- **Home page:** the full design is in now, with placeholder content: hero, numbers, brand
+  tiles, featured posts, services, how it works, for creators (with a phone showing the real
+  campaign card), FAQ and the closing call to action. Milestone 2 connects it to editable
+  content and builds the open campaigns board and the Book a campaign form.
+- **Portal and admin:** the creator home, campaign board and admin overview show clearly
+  labelled sample data, so the product can be judged before real data exists.

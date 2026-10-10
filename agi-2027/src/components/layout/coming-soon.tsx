@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/empty-state";
 
 type ComingSoonProps = {
@@ -17,12 +16,8 @@ function ComingSoon({ icon, title, description, milestone, action }: ComingSoonP
       title={title}
       description={
         <>
-          {description}
-          <span className="mt-4 flex justify-center">
-            <Badge variant="outline" className="font-mono text-[11px] tracking-wide">
-              Arrives in Milestone {milestone}
-            </Badge>
-          </span>
+          <p>{description}</p>
+          <p className="mt-3 text-xs text-subtle-foreground">Built in Milestone {milestone}</p>
         </>
       }
       action={action}

@@ -24,6 +24,8 @@ export type StatusMeta = {
   description: string;
   /** Shows a pulsing dot (used for Live). */
   pulse?: boolean;
+  /** Someone needs to act: the label takes the tone color, not just the dot. */
+  attention?: boolean;
 };
 
 export const CLAIM_STATUSES = [
@@ -61,6 +63,7 @@ export const claimStatusMeta: Record<ClaimStatus, StatusMeta> = {
     label: "Changes requested",
     tone: "amber",
     description: "Edit your draft using the agency's notes, then resubmit.",
+    attention: true,
   },
   draft_approved: {
     label: "Draft approved",
@@ -81,6 +84,7 @@ export const claimStatusMeta: Record<ClaimStatus, StatusMeta> = {
     label: "Rejected",
     tone: "red",
     description: "Fix the post using the agency's note and resubmit before the deadline.",
+    attention: true,
   },
   paid: {
     label: "Paid",

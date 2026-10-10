@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatCountdown, formatDateTime, formatUtcTime } from "@/lib/time";
+import { formatCountdown, formatDateTime, formatRange, formatTime, formatUtcTime } from "@/lib/time";
 
 describe("formatCountdown", () => {
   it("shows days and hours when more than a day is left", () => {
@@ -43,5 +43,31 @@ describe("formatDateTime", () => {
 describe("formatUtcTime", () => {
   it("returns the UTC clock time", () => {
     expect(formatUtcTime("2027-01-12T17:05:00+01:00")).toBe("16:05 UTC");
+  });
+});
+
+describe("formatTime", () => {
+  it("returns the clock time in the given zone", () => {
+    expect(formatTime("2026-11-03T16:00:00Z", "Africa/Lagos")).toBe("17:00");
+  });
+});
+
+describe("formatRange", () => {
+  it("shows the end time only when the range stays on one day", () => {
+    expect(formatRange("2026-11-03T16:00:00Z", "2026-11-03T20:00:00Z", "UTC")).toBe(
+      "Tue 3 Nov, 16:00 – 20:00",
+    );
+  });
+
+  it("shows both dates when the range crosses midnight", () => {
+    expect(formatRange("2026-11-07T14:00:00Z", "2026-11-08T14:00:00Z", "UTC")).toBe(
+      "Sat 7 Nov, 14:00 – Sun 8 Nov, 14:00",
+    );
+  });
+
+  it("uses the viewer's zone, which can move the range across days", () => {
+    expect(formatRange("2026-11-03T22:00:00Z", "2026-11-03T23:30:00Z", "Asia/Tokyo")).toBe(
+      "Wed 4 Nov, 07:00 – 08:30",
+    );
   });
 });

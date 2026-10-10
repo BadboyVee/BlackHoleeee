@@ -58,22 +58,16 @@ function SideNavList({
                 onClick={onNavigate}
                 aria-current={active ? "page" : undefined}
                 className={cn(
-                  "group relative flex min-h-11 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors lg:min-h-9",
+                  "group relative flex min-h-11 items-center gap-3 rounded-xl border px-3 text-sm font-medium transition-[color,background-color,box-shadow] lg:min-h-9",
                   active
-                    ? "bg-surface-2 text-foreground"
-                    : "text-muted-foreground hover:bg-surface-2/60 hover:text-foreground",
+                    ? "border-border bg-surface text-foreground shadow-soft"
+                    : "border-transparent text-muted-foreground hover:bg-surface/60 hover:text-foreground",
                 )}
               >
-                {active ? (
-                  <span
-                    aria-hidden
-                    className="absolute top-1/2 -left-3 h-5 w-1 -translate-y-1/2 rounded-r-full bg-brand"
-                  />
-                ) : null}
                 <item.icon
                   className={cn(
-                    "size-[18px] shrink-0 transition-colors",
-                    active ? "text-brand-text" : "text-subtle-foreground group-hover:text-foreground",
+                    "size-[17px] shrink-0 transition-colors",
+                    active ? "text-foreground" : "text-subtle-foreground group-hover:text-foreground",
                   )}
                 />
                 <span className="truncate">{item.label}</span>
@@ -128,11 +122,9 @@ function TabBarList({
             aria-current={active ? "page" : undefined}
             className={cn(tabClass, active ? "text-foreground" : "text-subtle-foreground hover:text-foreground")}
           >
-            {active ? (
-              <span aria-hidden className="absolute top-0 h-0.5 w-8 rounded-full bg-brand" />
-            ) : null}
-            <item.icon className={cn("size-[22px]", active && "text-brand-text")} strokeWidth={active ? 2.2 : 1.8} />
+            <item.icon className="size-[22px]" strokeWidth={active ? 2.1 : 1.7} />
             <span className="max-w-full truncate">{item.label.replace("My campaigns", "Mine")}</span>
+            {active ? <span aria-hidden className="absolute bottom-1 size-1 rounded-full bg-(--tone-brand)" /> : null}
           </Link>
         );
       })}

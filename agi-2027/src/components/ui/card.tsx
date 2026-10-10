@@ -12,9 +12,9 @@ function Card({ className, interactive = false, ...props }: CardProps) {
     <div
       data-slot="card"
       className={cn(
-        "relative flex flex-col rounded-2xl border bg-card text-card-foreground shadow-[inset_0_1px_0_0_var(--card-highlight)]",
+        "relative flex flex-col rounded-2xl border bg-card text-card-foreground shadow-soft",
         interactive &&
-          "transition-[transform,border-color,box-shadow] duration-300 ease-out hover:-translate-y-0.5 hover:border-border-strong hover:shadow-[inset_0_1px_0_0_var(--card-highlight),0_24px_48px_-24px_hsl(var(--shadow-color)/0.55)]",
+          "transition-[transform,border-color,box-shadow] duration-300 ease-out hover:border-border-strong hover:shadow-float md:hover:-translate-y-0.5",
         className,
       )}
       {...props}
@@ -36,7 +36,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<"h3">) {
   return (
     <h3
       data-slot="card-title"
-      className={cn("text-base leading-snug font-semibold tracking-tight", className)}
+      className={cn("text-[15px] leading-snug font-semibold tracking-[-0.015em]", className)}
       {...props}
     />
   );

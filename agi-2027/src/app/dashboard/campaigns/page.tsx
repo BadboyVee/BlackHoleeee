@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
-import { Megaphone } from "lucide-react";
 
-import { ComingSoon } from "@/components/layout/coming-soon";
+import { CampaignCard } from "@/components/campaign/campaign-card";
 import { PageHeader } from "@/components/layout/page-header";
+import { SampleBadge } from "@/components/sample-badge";
+import { sampleCampaigns } from "@/lib/sample-data";
 
 export const metadata: Metadata = { title: "Campaigns" };
 
@@ -10,16 +11,15 @@ export default function CreatorCampaignsPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Open now"
+        eyebrow={<SampleBadge milestone={5} />}
         title="Campaigns"
         description="Every campaign open to you, with payout, slots left, post window and a countdown."
       />
-      <ComingSoon
-        icon={Megaphone}
-        title="No open campaigns yet"
-        description="New drops land here the moment they go live. You'll also get an email and a Telegram alert."
-        milestone={5}
-      />
+      <div className="grid gap-4 md:grid-cols-2">
+        {sampleCampaigns.map((campaign) => (
+          <CampaignCard key={campaign.title} campaign={campaign} />
+        ))}
+      </div>
     </>
   );
 }

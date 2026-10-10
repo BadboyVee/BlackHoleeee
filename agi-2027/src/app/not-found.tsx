@@ -9,17 +9,14 @@ export const metadata: Metadata = { title: "Page not found" };
 
 export default function NotFound() {
   return (
-    <main className="relative isolate flex min-h-dvh flex-col items-center justify-center overflow-hidden px-4 text-center texture-noise">
-      <div aria-hidden className="absolute inset-0 -z-10 bg-grid mask-fade-radial" />
-      <div
-        aria-hidden
-        className="absolute top-1/2 left-1/2 -z-10 h-96 w-[40rem] -translate-1/2 rounded-full bg-(--glow) blur-[120px]"
-      />
+    <main className="relative isolate flex min-h-dvh flex-col items-center justify-center overflow-hidden bg-wall px-4 text-center">
       <Link href="/" aria-label="AGI 2027 home" className="mb-12">
         <Logo />
       </Link>
-      <p className="font-mono text-sm tracking-[0.3em] text-brand-text">404</p>
-      <h1 className="mt-4 text-h1 text-balance">This page doesn&apos;t exist.</h1>
+      <p className="font-mono text-sm tracking-[0.3em] text-subtle-foreground">404</p>
+      <h1 className="mt-4 text-h1 text-balance">
+        This page <em className="accent-serif">doesn&apos;t</em> exist.
+      </h1>
       <p className="mt-4 max-w-md text-pretty text-muted-foreground">
         The link may be old or mistyped. Head back home, or browse the campaigns that are open
         right now.

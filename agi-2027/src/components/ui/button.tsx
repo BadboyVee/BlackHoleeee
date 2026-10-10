@@ -7,32 +7,30 @@ import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
   [
-    "relative inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-full font-medium whitespace-nowrap select-none",
+    "relative inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-full font-medium tracking-[-0.01em] whitespace-nowrap select-none",
     "transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-200 ease-out",
-    "active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50 aria-disabled:pointer-events-none aria-disabled:opacity-50",
+    "active:scale-[0.98] disabled:pointer-events-none disabled:opacity-45 aria-disabled:pointer-events-none aria-disabled:opacity-45",
     "[&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
   ],
   {
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-sm hover:bg-primary/88",
-        brand:
-          "bg-brand text-brand-foreground shadow-[0_0_0_1px_var(--brand-edge),0_10px_30px_-10px_var(--brand-glow)] hover:shadow-[0_0_0_1px_var(--brand-edge),0_14px_40px_-8px_var(--brand-glow)] hover:brightness-105",
+          "bg-primary text-primary-foreground shadow-[inset_0_1px_0_rgb(255_255_255/0.14),0_1px_2px_rgb(var(--shadow-rgb)/0.25),0_4px_10px_rgb(var(--shadow-rgb)/0.12)] hover:bg-primary/85",
+        brand: "bg-brand text-brand-foreground hover:bg-brand/90",
         secondary:
-          "border border-border bg-surface-2 text-foreground hover:border-border-strong hover:bg-surface-3",
-        outline:
-          "border border-border-strong bg-transparent text-foreground hover:bg-surface-2",
-        ghost: "text-foreground hover:bg-surface-2",
-        destructive: "bg-destructive text-white shadow-sm hover:bg-destructive/90",
-        link: "h-auto rounded-sm px-0 text-brand-text underline-offset-4 hover:underline active:scale-100",
+          "border border-border-strong bg-surface text-foreground shadow-[0_1px_2px_rgb(var(--shadow-rgb)/0.06)] hover:bg-surface-2",
+        outline: "border border-border-strong text-foreground hover:bg-surface-2",
+        ghost: "text-muted-foreground hover:bg-surface-2 hover:text-foreground",
+        destructive: "bg-destructive text-white hover:bg-destructive/90",
+        link: "h-auto rounded-sm px-0 text-foreground underline decoration-border-strong underline-offset-4 hover:decoration-foreground active:scale-100",
       },
       size: {
-        sm: "h-9 px-3.5 text-[13px]",
-        default: "h-11 px-5 text-sm",
-        lg: "h-12 px-6 text-[15px]",
-        xl: "h-14 px-7 text-base",
-        icon: "size-11",
+        sm: "h-8 px-3 text-[13px]",
+        default: "h-10 px-4 text-sm",
+        lg: "h-11 px-5 text-[15px]",
+        xl: "h-12 px-6 text-[15px]",
+        icon: "size-10",
         "icon-sm": "size-9",
       },
     },

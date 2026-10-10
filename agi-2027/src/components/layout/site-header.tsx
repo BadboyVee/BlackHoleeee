@@ -7,14 +7,27 @@ import { ArrowRight, Menu } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetClose, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetClose,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import { marketingNav } from "@/lib/nav";
+import { cn } from "@/lib/utils";
 
 function subscribeToScroll(onChange: () => void) {
   window.addEventListener("scroll", onChange, { passive: true });
   return () => window.removeEventListener("scroll", onChange);
 }
 
+const pill =
+  "border border-border bg-surface/80 shadow-soft backdrop-blur-xl supports-[backdrop-filter]:bg-surface/65";
+
+/** Floating header: the logo in a chip on the left, navigation in a pill on the right. */
 function SiteHeader() {
   const scrolled = useSyncExternalStore(
     subscribeToScroll,
@@ -23,35 +36,43 @@ function SiteHeader() {
   );
 
   return (
-    <header
-      data-scrolled={scrolled}
-      className="sticky top-0 z-40 border-b border-transparent transition-[background-color,border-color] duration-300 data-[scrolled=true]:border-border data-[scrolled=true]:bg-background/75 data-[scrolled=true]:backdrop-blur-xl"
-    >
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4 sm:px-6 lg:px-8">
-        <Link href="/" aria-label="AGI 2027 home" className="shrink-0">
+    <header data-scrolled={scrolled} className="sticky top-0 z-40 px-3 pt-3 sm:px-5 sm:pt-4">
+      <div className="mx-auto flex h-12 max-w-6xl items-center justify-between gap-3">
+        <Link
+          href="/"
+          aria-label="AGI 2027 home"
+          className={cn("flex h-11 items-center rounded-[14px] px-3.5 transition-shadow", pill)}
+        >
           <Logo />
         </Link>
 
-        <nav aria-label="Main" className="mx-auto hidden items-center gap-0.5 md:flex">
+        <nav aria-label="Main" className={cn("hidden h-11 items-center gap-0.5 rounded-full p-1 md:flex", pill)}>
           {marketingNav.map((link) => (
             <Link
               key={link.href}
               href={link.href}
-              className="rounded-full px-3.5 py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+              className="rounded-full px-3.5 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-surface-3/70 hover:text-foreground"
             >
               {link.label}
             </Link>
           ))}
+          <Link
+            href="/login"
+            className="rounded-full px-3.5 py-2 text-[13px] font-medium text-muted-foreground transition-colors hover:bg-surface-3/70 hover:text-foreground"
+          >
+            Sign in
+          </Link>
+          <ThemeToggle className="size-9" />
+          <Button asChild size="sm" className="h-9 px-4">
+            <Link href="/book">
+              Book a campaign
+              <ArrowRight className="size-3.5" />
+            </Link>
+          </Button>
         </nav>
 
-        <div className="ml-auto flex items-center gap-1.5 md:ml-0">
-          <ThemeToggle />
-          <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-            <Link href="/login">Sign in</Link>
-          </Button>
-          <Button asChild variant="brand" size="sm" className="hidden sm:inline-flex">
-            <Link href="/book">Book a campaign</Link>
-          </Button>
+        <div className={cn("flex h-11 items-center gap-0.5 rounded-full p-1 md:hidden", pill)}>
+          <ThemeToggle className="size-9" />
           <MobileMenu />
         </div>
       </div>
@@ -64,8 +85,8 @@ function MobileMenu() {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger asChild>
-        <Button variant="ghost" size="icon-sm" className="md:hidden" aria-label="Open menu">
-          <Menu className="size-5" />
+        <Button variant="ghost" size="icon-sm" className="text-foreground" aria-label="Open menu">
+          <Menu className="size-[18px]" />
         </Button>
       </SheetTrigger>
       <SheetContent side="right" className="gap-0 p-0">
@@ -76,7 +97,7 @@ function MobileMenu() {
           <SheetDescription className="sr-only">Site navigation</SheetDescription>
         </SheetHeader>
         <nav aria-label="Mobile" className="flex flex-col p-3">
-          {marketingNav.map((link) => (
+          {[...marketingNav, { href: "/login", label: "Sign in" }].map((link) => (
             <SheetClose asChild key={link.href}>
               <Link
                 href={link.href}
@@ -90,18 +111,13 @@ function MobileMenu() {
         </nav>
         <div className="mt-auto flex flex-col gap-2.5 border-t p-5">
           <SheetClose asChild>
-            <Button asChild variant="brand" size="lg">
+            <Button asChild size="lg">
               <Link href="/book">Book a campaign</Link>
             </Button>
           </SheetClose>
           <SheetClose asChild>
             <Button asChild variant="secondary" size="lg">
               <Link href="/apply">Apply as a creator</Link>
-            </Button>
-          </SheetClose>
-          <SheetClose asChild>
-            <Button asChild variant="ghost" size="lg">
-              <Link href="/login">Sign in</Link>
             </Button>
           </SheetClose>
         </div>

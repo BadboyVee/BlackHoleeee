@@ -41,10 +41,12 @@ async function CopyrightYear() {
 function SiteFooter() {
   return (
     <footer className="border-t">
-      <div className="mx-auto grid max-w-7xl gap-12 px-4 py-14 sm:px-6 md:grid-cols-[1.4fr_repeat(3,1fr)] lg:px-8">
+      <div className="mx-auto grid max-w-6xl gap-12 px-5 py-16 sm:px-8 md:grid-cols-[1.6fr_repeat(3,1fr)]">
         <div className="max-w-xs">
           <Logo />
-          <p className="mt-4 text-sm text-pretty text-muted-foreground">{siteConfig.description}</p>
+          <p className="mt-4 text-sm leading-relaxed text-pretty text-muted-foreground">
+            {siteConfig.description}
+          </p>
           <div className="mt-5 flex gap-2">
             {siteConfig.xUrl ? (
               <a
@@ -70,8 +72,8 @@ function SiteFooter() {
         </div>
         {columns.map((column) => (
           <div key={column.title}>
-            <p className="text-label text-subtle-foreground">{column.title}</p>
-            <ul className="mt-4 flex flex-col gap-1">
+            <p className="text-sm font-medium">{column.title}</p>
+            <ul className="mt-3 flex flex-col">
               {column.links.map((link) => (
                 <li key={link.href}>
                   <Link
@@ -87,11 +89,11 @@ function SiteFooter() {
         ))}
       </div>
       <div className="border-t">
-        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-6 text-xs text-subtle-foreground sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-5 py-6 text-xs text-subtle-foreground sm:flex-row sm:items-center sm:justify-between sm:px-8">
           <p>
             © <CopyrightYear /> AGI 2027. All rights reserved.
           </p>
-          <p className="font-mono tracking-wide">Built for the AI era.</p>
+          <p>Creator marketing for AI launches.</p>
         </div>
       </div>
     </footer>

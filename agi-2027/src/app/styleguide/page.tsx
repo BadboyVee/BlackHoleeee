@@ -6,7 +6,7 @@ import { ArrowRight, Megaphone, Plus, Sparkles, Wallet } from "lucide-react";
 import { Logo, LogoMark } from "@/components/brand/logo";
 import { CampaignCard, type CampaignCardData } from "@/components/campaign/campaign-card";
 import { SkipLink } from "@/components/layout/skip-link";
-import { StatusBadge } from "@/components/status-badge";
+import { StatusBadge, StatusDot } from "@/components/status-badge";
 import { SupabaseStatus } from "@/components/system/supabase-status";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Badge } from "@/components/ui/badge";
@@ -119,13 +119,9 @@ export default function StyleguidePage() {
 
       <main id="main" tabIndex={-1} className="mx-auto max-w-6xl px-4 pb-24 outline-none sm:px-6">
         <section className="relative isolate overflow-hidden py-14 sm:py-20">
-          <div
-            aria-hidden
-            className="absolute -top-32 left-0 -z-10 h-72 w-[36rem] rounded-full bg-(--glow) blur-[100px]"
-          />
-          <p className="text-label text-brand-text">Milestone 1</p>
+          <p className="text-label text-subtle-foreground">Milestone 1</p>
           <h1 className="mt-4 max-w-3xl text-h1 text-balance">
-            The building blocks of AGI 2027.
+            The building <em className="accent-serif">blocks</em> of AGI 2027.
           </h1>
           <p className="mt-4 max-w-2xl text-lg text-pretty text-muted-foreground">
             Every screen is built from these tokens and components, so the public site, the creator
@@ -154,7 +150,7 @@ export default function StyleguidePage() {
           </Card>
         </Section>
 
-        <Section id="color" title="Color" description="A near-black night palette with one signature accent, used sparingly. Light mode mirrors every token.">
+        <Section id="color" title="Color" description="A warm, sunlit stone palette with paper-white cards. Acid lime is a signal only. Dark mode is a warm charcoal version of every token.">
           <div className="grid gap-8">
             <SwatchRow title="Surfaces" tokens={surfaceTokens} />
             <SwatchRow title="Text and accent" tokens={textTokens} />
@@ -164,6 +160,7 @@ export default function StyleguidePage() {
                 {(["gray", "blue", "violet", "amber", "orange", "teal", "green", "red", "brand"] as const).map(
                   (tone) => (
                     <Badge key={tone} tone={tone} className="capitalize">
+                      <StatusDot tone={tone} />
                       {tone}
                     </Badge>
                   ),
@@ -173,10 +170,12 @@ export default function StyleguidePage() {
           </div>
         </Section>
 
-        <Section id="type" title="Type" description="Geist for headings and body, Geist Mono for labels, numbers and the wordmark.">
+        <Section id="type" title="Type" description="Geist for headings and body, an Instrument Serif italic for accents, Geist Mono for labels, small figures and the wordmark.">
           <div className="grid gap-8">
             <TypeSample label="Display · hero headlines">
-              <p className="text-display">Launch loud.</p>
+              <p className="text-display">
+                Launch <em className="accent-serif">loud</em>.
+              </p>
             </TypeSample>
             <TypeSample label="H1 · page titles">
               <p className="text-h1">Creators people already follow.</p>
@@ -197,7 +196,7 @@ export default function StyleguidePage() {
               <p className="text-label text-muted-foreground">Post window · Proof due</p>
             </TypeSample>
             <TypeSample label="Numbers · mono, tabular">
-              <p className="font-mono text-3xl font-semibold tracking-tight tabular">$12,480.50</p>
+              <p className="text-figure text-4xl">$12,480.50</p>
             </TypeSample>
             <TypeSample label="Wordmark">
               <div className="flex items-center gap-6">
@@ -208,7 +207,7 @@ export default function StyleguidePage() {
           </div>
         </Section>
 
-        <Section id="buttons" title="Buttons" description="Pill shaped with 44px tap targets by default. Lime is saved for the one main action on a screen.">
+        <Section id="buttons" title="Buttons" description="Compact pills: black for the main action, white for the alternative.">
           <div className="grid gap-6">
             <div className="flex flex-wrap items-center gap-3">
               <Button variant="brand">
@@ -422,7 +421,7 @@ function StatCard({
   return (
     <Card className="p-5">
       <p className="text-label text-subtle-foreground">{label}</p>
-      <p className="mt-3 font-mono text-3xl font-semibold tracking-tight">
+      <p className="mt-3 text-figure text-4xl">
         <CountUp value={value} format={format} />
       </p>
     </Card>

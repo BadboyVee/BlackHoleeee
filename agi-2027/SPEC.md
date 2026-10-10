@@ -51,7 +51,8 @@ Use this stack. If you have a strong reason to change any part, tell me first.
 - Database, sign in, files, live updates: Supabase (Postgres, Auth with Google and email, Storage,
   Realtime)
 - Styling and UI: Tailwind CSS, shadcn/ui, Framer Motion, Lucide icons
-- 3D hero: React Three Fiber (Three.js)
+- Hero: floating 3D objects built with CSS 3D transforms on a generated plaster texture
+  (changed 10 Oct 2026; replaces the React Three Fiber particle field)
 - Forms and validation: React Hook Form and Zod
 - Email: Resend with React Email templates
 - Telegram: Telegram Bot API for campaign drop alerts
@@ -348,15 +349,20 @@ Every campaign gets a private report link I can send to the startup, with no log
 It should feel like a top AI lab built a creator agency: premium, futuristic, and fast. It must
 look clearly better than doomers.ai and unfair.so.
 
-- **Dark first:** a deep night look by default, with a polished light mode. Remember each person's
-  choice.
-- **Color:** near black background, one bold signature accent (electric violet or acid lime), soft
-  glows behind key areas, and a subtle grid or noise texture. Use the accent with restraint.
-- **Type:** a sharp modern sans for headings (Geist or Satoshi), a clean sans for body text, and a
-  mono font for labels, numbers, and the AGI 2027 wordmark.
-- **Hero:** an animated background that feels alive, such as a slow particle field or neural
-  network in React Three Fiber. It must stay smooth on mid range phones. Fall back to a static
-  gradient on slow devices or when reduced motion is on.
+- **Light first** (changed 10 Oct 2026): a warm, sunlit, tactile look by default, in the spirit of
+  tasteskill.dev (reference for feel only), with a warm charcoal dark mode. Remember each
+  person's choice.
+- **Color:** warm stone background, paper-white cards and soft natural shadows. Acid lime is a
+  small signal only (a live dot, a new drop). A generated, sunlit plaster texture sits behind the
+  hero and the final call to action.
+- **Type:** a sharp modern sans for headings (Geist), an italic serif (Instrument Serif) for
+  accent words in headlines, a clean sans for body text, and a mono font for labels, small
+  technical figures, and the AGI 2027 wordmark. Large figures (money, stats) use the sans with
+  tabular digits.
+- **Hero:** a still life of real product objects (a drop alert, a creator's post, a campaign
+  report, a payout slip, and the logo pressed into stone) floating off a sunlit wall, drifting
+  gently and following the pointer. It must stay smooth on mid range phones and stays still when
+  reduced motion is on.
 - **Motion:** smooth page transitions, stats that count up, cards that lift on hover, and skeleton
   loaders instead of blank pages.
 - **Portal:** a clean dashboard layout, clear colored status badges, big tap targets, and empty
@@ -462,3 +468,4 @@ Leave these out of the first build, but design the database so they can be added
 | 10 Oct 2026 | Spec saved as received. The campaign loop section reads as if it had a diagram; if so, it did not come through in the paste. The claim and campaign status flows are written out from the text in [PLAN.md](PLAN.md#status-flows). |
 | 10 Oct 2026 | Plan approved. The code lives in `agi-2027/` in the BlackHoleeee repo. The signature accent is acid lime (`#C6FF3A`); light mode uses `#3F6600` for lime text. Fonts are Geist Sans and Geist Mono. |
 | 10 Oct 2026 | Milestone 1 built. shadcn/ui components are written into the repo by hand on Radix (same components, same API). The theme uses an inline script instead of next-themes. Database migrations reach Supabase through GitHub Actions. Details in PLAN.md. |
+| 10 Oct 2026 | Design direction changed after review of Milestone 1: light, warm and tactile instead of dark and neon (reference: tasteskill.dev, for feel only). Light is the default theme, dark is a warm charcoal alternative, headlines get an italic serif accent, the hero is floating product objects on a generated plaster wall instead of a WebGL particle field, and acid lime is a small signal only. The full home page design moved forward from Milestone 2 with placeholder content. |

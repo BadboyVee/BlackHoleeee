@@ -32,7 +32,7 @@ function AppShell({ area, children }: { area: Area; children: React.ReactNode })
     <div className="relative min-h-dvh lg:grid lg:grid-cols-[17rem_minmax(0,1fr)]">
       <SkipLink />
 
-      <aside className="sticky top-0 hidden h-dvh flex-col border-r bg-surface/40 lg:flex">
+      <aside className="sticky top-0 hidden h-dvh flex-col border-r bg-surface-2/60 lg:flex">
         <div className="flex h-16 shrink-0 items-center gap-2 px-5">
           <Link href={config.home} aria-label={`${config.label} home`}>
             <Logo />
@@ -42,7 +42,7 @@ function AppShell({ area, children }: { area: Area; children: React.ReactNode })
         <nav aria-label={config.label} className="flex-1 overflow-y-auto px-3 py-3">
           <SideNav area={area} />
         </nav>
-        <div className="m-3 flex items-center gap-2.5 rounded-xl border bg-surface px-3 py-2.5">
+        <div className="m-3 flex items-center gap-2.5 rounded-xl border bg-surface px-3 py-2.5 shadow-soft">
           <span aria-hidden className="size-1.5 shrink-0 rounded-full bg-(--tone-amber)" />
           <p className="text-xs leading-snug text-muted-foreground">
             Preview mode. Sign in arrives in Milestone 3.
@@ -51,7 +51,7 @@ function AppShell({ area, children }: { area: Area; children: React.ReactNode })
       </aside>
 
       <div className="flex min-w-0 flex-col">
-        <header className="sticky top-0 z-30 border-b bg-background/80 backdrop-blur-xl">
+        <header className="sticky top-0 z-30 border-b bg-background/75 backdrop-blur-xl">
           <div className="flex h-14 items-center gap-2 px-4 sm:px-6 lg:h-16 lg:px-10">
             <Link href={config.home} className="lg:hidden" aria-label={`${config.label} home`}>
               <Logo />

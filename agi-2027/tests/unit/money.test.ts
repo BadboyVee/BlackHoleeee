@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatMoney, totalsByCurrency } from "@/lib/money";
+import { formatMoney, splitMoney, totalsByCurrency } from "@/lib/money";
 
 describe("formatMoney", () => {
   it("uses the currency symbol for fiat currencies", () => {
@@ -56,5 +56,17 @@ describe("totalsByCurrency", () => {
   it("rejects amounts that aren't plain decimals", () => {
     expect(() => totalsByCurrency([{ amount: "1e3", currency: "USD" }])).toThrow();
     expect(() => totalsByCurrency([{ amount: "12.345", currency: "USD" }])).toThrow();
+  });
+});
+
+describe("splitMoney", () => {
+  it("keeps the symbol in the number for fiat", () => {
+    expect(splitMoney("400", "USD")).toEqual({ value: "$400" });
+    expect(splitMoney("180000", "NGN")).toEqual({ value: "₦180,000" });
+  });
+
+  it("splits stablecoins into the number and a unit", () => {
+    expect(splitMoney("250", "USDC")).toEqual({ value: "250", unit: "USDC" });
+    expect(splitMoney("1250.5", "USDT")).toEqual({ value: "1,250.50", unit: "USDT" });
   });
 });

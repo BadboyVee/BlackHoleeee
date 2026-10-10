@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { siteConfig } from "@/lib/site";
 import { THEME_COLOR, themeScript } from "@/lib/theme";
@@ -13,6 +13,14 @@ const geistSans = Geist({
 const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
+});
+
+// Italic accents inside headlines only.
+const instrumentSerif = Instrument_Serif({
+  variable: "--font-instrument-serif",
+  subsets: ["latin"],
+  weight: "400",
+  style: "italic",
 });
 
 export const metadata: Metadata = {
@@ -35,8 +43,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: THEME_COLOR.dark,
-  colorScheme: "dark light",
+  themeColor: THEME_COLOR.light,
+  colorScheme: "light dark",
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
@@ -46,9 +54,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      data-theme="dark"
+      data-theme="light"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable}`}
+      className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable}`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
