@@ -103,7 +103,7 @@ function CampaignCard({ campaign, className }: { campaign: CampaignCardData; cla
           href={campaign.href}
           className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-primary text-sm font-medium text-primary-foreground transition-colors group-hover:bg-brand group-hover:text-brand-foreground"
         >
-          View and claim
+          {slotsLeft > 0 ? "View and claim" : "View campaign"}
           <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
         </Link>
       </div>
