@@ -12,6 +12,9 @@ updated at the end of every milestone.
 - **Testing on your phone:** Vercel builds a preview link for every push. Each milestone ends with
   a link and a short list of things to test. That's why Vercel gets connected in Milestone 1
   instead of at launch.
+- **One pull request per milestone** (agreed 10 Oct 2026). Each milestone arrives as a pull
+  request into `main` with its preview link. You test it and merge it; merging updates the main
+  Vercel deployment.
 - **Two Supabase projects:** *dev* now (demo data) and *production* at launch (only Vercel and
   GitHub hold its keys, so real creator data never sits in a dev environment).
 - **Database changes are code:** SQL migrations in `supabase/migrations/`, never clicks in the
