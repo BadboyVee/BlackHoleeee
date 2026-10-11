@@ -2,15 +2,14 @@ import type { Metadata } from "next";
 import { Settings } from "lucide-react";
 
 import { ComingSoon } from "@/components/layout/coming-soon";
-import { PageHeader } from "@/components/layout/page-header";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 
 export const metadata: Metadata = { title: "Settings" };
 
 export default function SettingsPage() {
   return (
     <>
-      <PageHeader
-        eyebrow="System"
+      <AdminPageHeader
         title="Settings"
         description="Agency name, Telegram bot, currencies, default campaign rules and email sender."
       />

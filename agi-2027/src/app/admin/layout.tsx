@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 
-import { AppShell } from "@/components/layout/app-shell";
+import { AdminShell } from "@/components/admin/admin-shell";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
 export default function AdminLayout({ children }: LayoutProps<"/admin">) {
-  return <AppShell area="admin">{children}</AppShell>;
+  return <AdminShell>{children}</AdminShell>;
 }

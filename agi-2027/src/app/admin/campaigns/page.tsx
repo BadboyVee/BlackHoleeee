@@ -1,25 +1,43 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
-import { Megaphone } from "lucide-react";
+import Link from "next/link";
+import { BookOpen, Plus } from "lucide-react";
 
-import { ComingSoon } from "@/components/layout/coming-soon";
-import { PageHeader } from "@/components/layout/page-header";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
+import { CampaignList, CampaignListFromUrl } from "@/components/admin/campaigns/campaign-list";
+import { campaignsByStatus, reviewCount } from "@/components/admin/demo-insights";
+import { Button } from "@/components/ui/button";
+import { demoCampaigns } from "@/lib/campaigns/demo";
 
 export const metadata: Metadata = { title: "Campaigns" };
 
 export default function AdminCampaignsPage() {
+  const live = campaignsByStatus("live").length;
   return (
     <>
-      <PageHeader
-        eyebrow="Run"
+      <AdminPageHeader
         title="Campaigns"
-        description="Create, schedule, drop and track every campaign and every creator on it."
+        description={`${demoCampaigns.length} campaigns, ${live} live right now, ${reviewCount()} items waiting for review.`}
+        actions={
+          <>
+            <Button asChild variant="ghost" className="text-muted-foreground">
+              <Link href="/admin/campaigns/new?guide=1">
+                <BookOpen aria-hidden />
+                How listing works
+              </Link>
+            </Button>
+            <Button asChild className="hidden md:inline-flex">
+              <Link href="/admin/campaigns/new">
+                <Plus aria-hidden />
+                New campaign
+              </Link>
+            </Button>
+          </>
+        }
       />
-      <ComingSoon
-        icon={Megaphone}
-        title="No campaigns yet"
-        description="Create a campaign, publish it now or schedule the drop, and watch every claim move in real time."
-        milestone={5}
-      />
+      <Suspense fallback={<CampaignList />}>
+        <CampaignListFromUrl />
+      </Suspense>
     </>
   );
 }

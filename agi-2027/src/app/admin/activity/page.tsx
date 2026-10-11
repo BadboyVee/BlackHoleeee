@@ -2,15 +2,14 @@ import type { Metadata } from "next";
 import { History } from "lucide-react";
 
 import { ComingSoon } from "@/components/layout/coming-soon";
-import { PageHeader } from "@/components/layout/page-header";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 
 export const metadata: Metadata = { title: "Activity log" };
 
 export default function ActivityLogPage() {
   return (
     <>
-      <PageHeader
-        eyebrow="System"
+      <AdminPageHeader
         title="Activity log"
         description="Who did what and when, for claims, approvals, payouts and settings."
       />

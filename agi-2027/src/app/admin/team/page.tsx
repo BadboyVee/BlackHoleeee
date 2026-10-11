@@ -2,15 +2,14 @@ import type { Metadata } from "next";
 import { ShieldCheck } from "lucide-react";
 
 import { ComingSoon } from "@/components/layout/coming-soon";
-import { PageHeader } from "@/components/layout/page-header";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 
 export const metadata: Metadata = { title: "Team" };
 
 export default function TeamPage() {
   return (
     <>
-      <PageHeader
-        eyebrow="People"
+      <AdminPageHeader
         title="Team"
         description="Invite agency staff and set their role."
       />

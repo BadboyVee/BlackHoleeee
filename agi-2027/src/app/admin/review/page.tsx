@@ -2,15 +2,14 @@ import type { Metadata } from "next";
 import { ClipboardCheck } from "lucide-react";
 
 import { ComingSoon } from "@/components/layout/coming-soon";
-import { PageHeader } from "@/components/layout/page-header";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 
 export const metadata: Metadata = { title: "Review queue" };
 
 export default function ReviewQueuePage() {
   return (
     <>
-      <PageHeader
-        eyebrow="Run"
+      <AdminPageHeader
         title="Review queue"
         description="Claim requests, drafts and proof links waiting on you, oldest first."
       />

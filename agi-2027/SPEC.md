@@ -51,8 +51,8 @@ Use this stack. If you have a strong reason to change any part, tell me first.
 - Database, sign in, files, live updates: Supabase (Postgres, Auth with Google and email, Storage,
   Realtime)
 - Styling and UI: Tailwind CSS, shadcn/ui, Framer Motion, Lucide icons
-- Hero: floating 3D objects built with CSS 3D transforms on a generated plaster texture
-  (changed 10 Oct 2026; replaces the React Three Fiber particle field)
+- Hero: three switchable looks (changed 11 Oct 2026). React Three Fiber draws the living
+  painting and the felt 3D host; the Drop look uses pre-rendered 3D icons and plain DOM motion
 - Forms and validation: React Hook Form and Zod
 - Email: Resend with React Email templates
 - Telegram: Telegram Bot API for campaign drop alerts
@@ -349,24 +349,30 @@ Every campaign gets a private report link I can send to the startup, with no log
 It should feel like a top AI lab built a creator agency: premium, futuristic, and fast. It must
 look clearly better than doomers.ai and unfair.so.
 
-- **Light first** (changed 10 Oct 2026): a warm, sunlit, tactile look by default, in the spirit of
-  tasteskill.dev (reference for feel only), with a warm charcoal dark mode. Remember each
-  person's choice.
-- **Color:** warm stone background, paper-white cards and soft natural shadows. Acid lime is a
-  small signal only (a live dot, a new drop). A generated, sunlit plaster texture sits behind the
-  hero and the final call to action.
-- **Type:** a sharp modern sans for headings (Geist), an italic serif (Instrument Serif) for
-  accent words in headlines, a clean sans for body text, and a mono font for labels, small
-  technical figures, and the AGI 2027 wordmark. Large figures (money, stats) use the sans with
-  tabular digits.
-- **Hero:** a still life of real product objects (a drop alert, a creator's post, a campaign
-  report, a payout slip, and the logo pressed into stone) floating off a sunlit wall, drifting
-  gently and following the pointer. It must stay smooth on mid range phones and stays still when
-  reduced motion is on.
-- **Motion:** smooth page transitions, stats that count up, cards that lift on hover, and skeleton
-  loaders instead of blank pages.
-- **Portal:** a clean dashboard layout, clear colored status badges, big tap targets, and empty
-  states that tell people what to do next.
+- **Three looks, switchable** (changed 11 Oct 2026): the owner asked for each of three reference
+  sites, copied closely, as options. A **Look** picker in the header switches the whole site, the
+  choice is remembered per device, and `?look=agent` in a link opens a specific look. Layout,
+  color, type and motion follow the references; the art, words and logos are AGI 2027's own
+  (copying the references' artwork, text or branding would be using other companies' property).
+  - **Renaissance** (after Shopify Editions): a full-bleed old-master painting that moves (Poussin's
+    Blind Orion, 1658, The Met, public domain) with a spark of light ahead of Orion's reaching hand,
+    small bold white type, an index of the page down the left edge, a hot pink signal. Sections use
+    painting details and an editorial vellum and forest-green palette.
+  - **Agent** (after Mainframe): a warm red field, Echo (a felt 3D host who watches the pointer,
+    blinks, talks while the greeting streams in), a chatty greeting with white pill answers, a
+    comma-separated nav. Sections are introduced by Echo in speech bubbles; the FAQ is a chat.
+  - **Drop** (after the classic juice-bottle product hero): one giant condensed word behind the
+    product (a phone showing a creator's post), glossy 3D icons floating around it, a juicy color
+    per slide, dots and a counter. Sections are color blocks with giant condensed headings.
+- **Light and dark** still work inside every look and are remembered per device.
+- **Type:** Geist for body text and UI everywhere, Geist Mono for small labels. The display face
+  follows the look: bold Geist (Renaissance), soft Geist (Agent), Anton capitals (Drop).
+- **Motion:** one personality across the site: springs for things that arrive, a smoother spring
+  for moving between states, a fast snap for hover and press. Headings rise word by word, cards
+  and lists arrive in sequence, numbers count up, the creator phone demonstrates a claim, dividers
+  draw themselves. Reduced motion turns all of it into simple fades.
+- **Portal:** the owner's admin is a dense, calm "control room"; the creator portal is a playful,
+  mobile-first app. Both use the active look's colors and type.
 - **Installable:** the portal installs on phones like an app (PWA with an icon and splash screen).
 - **Accessible:** strong contrast, keyboard navigation, and visible focus states.
 
@@ -469,3 +475,4 @@ Leave these out of the first build, but design the database so they can be added
 | 10 Oct 2026 | Plan approved. The code lives in `agi-2027/` in the BlackHoleeee repo. The signature accent is acid lime (`#C6FF3A`); light mode uses `#3F6600` for lime text. Fonts are Geist Sans and Geist Mono. |
 | 10 Oct 2026 | Milestone 1 built. shadcn/ui components are written into the repo by hand on Radix (same components, same API). The theme uses an inline script instead of next-themes. Database migrations reach Supabase through GitHub Actions. Details in PLAN.md. |
 | 10 Oct 2026 | Design direction changed after review of Milestone 1: light, warm and tactile instead of dark and neon (reference: tasteskill.dev, for feel only). Light is the default theme, dark is a warm charcoal alternative, headlines get an italic serif accent, the hero is floating product objects on a generated plaster wall instead of a WebGL particle field, and acid lime is a small signal only. The full home page design moved forward from Milestone 2 with placeholder content. |
+| 11 Oct 2026 | Design direction replaced at the owner's request: three switchable looks copied closely from three references (Shopify Editions, Mainframe, a juice-bottle product hero), with AGI 2027's own art, words and logos. Every section animates. The owner's admin and the creator portal now have clearly different interfaces, and the campaign builder and claim flow are built against demo data ahead of Milestones 5 and 6. The plaster wall, the floating-object hero and the serif accent are gone. |

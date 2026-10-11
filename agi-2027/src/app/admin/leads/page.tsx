@@ -2,15 +2,14 @@ import type { Metadata } from "next";
 import { UserPlus } from "lucide-react";
 
 import { ComingSoon } from "@/components/layout/coming-soon";
-import { PageHeader } from "@/components/layout/page-header";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 
 export const metadata: Metadata = { title: "Leads" };
 
 export default function LeadsPage() {
   return (
     <>
-      <PageHeader
-        eyebrow="Growth"
+      <AdminPageHeader
         title="Leads"
         description="Book a campaign requests, from New to Won."
       />

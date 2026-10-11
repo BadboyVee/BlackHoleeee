@@ -1,8 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { Anton, Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "@/components/ui/sonner";
 import { siteConfig } from "@/lib/site";
-import { THEME_COLOR, themeScript } from "@/lib/theme";
+import { DEFAULT_LOOK, DEFAULT_THEME, THEME_COLOR, themeScript } from "@/lib/theme";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -15,12 +15,11 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-// Italic accents inside headlines only.
-const instrumentSerif = Instrument_Serif({
-  variable: "--font-instrument-serif",
+// The condensed display face of the Drop look.
+const anton = Anton({
+  variable: "--font-anton",
   subsets: ["latin"],
   weight: "400",
-  style: "italic",
 });
 
 export const metadata: Metadata = {
@@ -43,7 +42,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: THEME_COLOR.light,
+  themeColor: THEME_COLOR[DEFAULT_LOOK][DEFAULT_THEME],
   colorScheme: "light dark",
   width: "device-width",
   initialScale: 1,
@@ -54,9 +53,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      data-theme="light"
+      data-theme={DEFAULT_THEME}
+      data-look={DEFAULT_LOOK}
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} ${instrumentSerif.variable}`}
+      className={`${geistSans.variable} ${geistMono.variable} ${anton.variable}`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />

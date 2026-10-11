@@ -2,15 +2,14 @@ import type { Metadata } from "next";
 import { PanelsTopLeft } from "lucide-react";
 
 import { ComingSoon } from "@/components/layout/coming-soon";
-import { PageHeader } from "@/components/layout/page-header";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 
 export const metadata: Metadata = { title: "Site content" };
 
 export default function SiteContentPage() {
   return (
     <>
-      <PageHeader
-        eyebrow="Growth"
+      <AdminPageHeader
         title="Site content"
         description="Edit the homepage stats, brand logos, featured posts and FAQ."
       />

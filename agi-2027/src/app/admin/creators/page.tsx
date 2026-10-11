@@ -2,15 +2,14 @@ import type { Metadata } from "next";
 import { Users } from "lucide-react";
 
 import { ComingSoon } from "@/components/layout/coming-soon";
-import { PageHeader } from "@/components/layout/page-header";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 
 export const metadata: Metadata = { title: "Creators" };
 
 export default function CreatorsDirectoryPage() {
   return (
     <>
-      <PageHeader
-        eyebrow="People"
+      <AdminPageHeader
         title="Creators"
         description="Search and filter every creator by tier, niche and audience."
       />

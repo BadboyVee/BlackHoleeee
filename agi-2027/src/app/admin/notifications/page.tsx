@@ -2,15 +2,14 @@ import type { Metadata } from "next";
 import { Bell } from "lucide-react";
 
 import { ComingSoon } from "@/components/layout/coming-soon";
-import { PageHeader } from "@/components/layout/page-header";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 
 export const metadata: Metadata = { title: "Notifications" };
 
 export default function AdminNotificationsPage() {
   return (
     <>
-      <PageHeader
-        eyebrow="Inbox"
+      <AdminPageHeader
         title="Notifications"
         description="New applications, leads, drafts and proofs waiting on the agency."
       />

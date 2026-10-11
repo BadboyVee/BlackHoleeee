@@ -1,6 +1,8 @@
 # AGI 2027 build plan
 
-**Status:** Milestone 1 redesigned after your review, waiting for your OK · plan approved 10 Oct 2026
+**Status:** Milestone 1 rebuilt as three switchable looks, with the owner's admin and the creator
+portal previewed on demo data, waiting for your OK and your pick of a default look · plan
+approved 10 Oct 2026
 
 What we're building is in [SPEC.md](SPEC.md). This file covers how it gets built, and it's
 updated at the end of every milestone.
@@ -32,8 +34,8 @@ updated at the end of every milestone.
 As specified: Next.js 16.4 (App Router, TypeScript, React 19), Supabase (`@supabase/ssr`),
 Tailwind CSS 4, shadcn/ui-style components on Radix, Motion (Framer Motion's new name), Lucide,
 React Hook Form and Zod, Resend with React Email, react-tweet, Vitest, and Playwright. React Three
-Fiber was dropped with the redesign: the hero's 3D objects are CSS 3D transforms, which keep text
-crisp and need no WebGL.
+Fiber is back for two of the three looks (the living painting and Echo, the felt host). It only
+loads when that look is showing, after the page has painted, and pauses when scrolled away.
 
 Settled while building Milestone 1:
 
@@ -249,12 +251,15 @@ and claims in every status.
 
 ## Small calls I made (tell me to change any)
 
-- **Look: light, warm and tactile** (your reference, 10 Oct 2026). Light is the default and
-  dark is a warm charcoal version. Acid lime (`#C6FF3A`) stays as a small signal; a deeper lime
-  (`#3F6600`) is used where it has to be readable on light backgrounds.
-- **Fonts:** Geist Sans for headings and body, Instrument Serif italic for accent words in
-  headlines, Geist Mono for labels, small technical figures and the wordmark. Large figures use
-  Geist Sans with tabular digits.
+- **Looks** (your references, 11 Oct 2026): Renaissance, Agent and Drop, switchable from the
+  header. Renaissance is the default until you pick one. Each has a light and a dark mode; light
+  is the default. Once you pick a default I can keep the switcher (it's a fun touch for visitors)
+  or remove it.
+- **Fonts:** Geist for body text and UI, Geist Mono for small labels. Headings follow the look:
+  bold Geist (Renaissance), soft Geist (Agent), Anton capitals (Drop).
+- **Art:** the paintings are public-domain works from The Met's open-access collection (Poussin,
+  Claude Lorrain, Thomas Cole), credited on the page. Echo and the glossy 3D icons are rendered
+  from our own code. No artwork, text or logos from the reference sites are used.
 - **Currencies to start:** USD, USDC, USDT and NGN, editable in Settings.
 - **Services:** the three from the spec, as placeholders until you confirm the list.
 - **Homepage content** (stats, logos, featured posts, FAQ) is seeded with placeholders in M2. The

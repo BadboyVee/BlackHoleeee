@@ -2,15 +2,14 @@ import type { Metadata } from "next";
 import { Banknote } from "lucide-react";
 
 import { ComingSoon } from "@/components/layout/coming-soon";
-import { PageHeader } from "@/components/layout/page-header";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 
 export const metadata: Metadata = { title: "Payouts" };
 
 export default function PayoutsPage() {
   return (
     <>
-      <PageHeader
-        eyebrow="Money"
+      <AdminPageHeader
         title="Payouts"
         description="Unpaid totals by creator, with their payout details. Mark payments as paid."
       />

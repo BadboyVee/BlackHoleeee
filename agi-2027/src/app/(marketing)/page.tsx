@@ -1,23 +1,26 @@
-import { FeaturedPosts } from "@/components/marketing/featured-posts";
-import { Faq } from "@/components/marketing/faq";
-import { FinalCta } from "@/components/marketing/final-cta";
-import { ForCreators } from "@/components/marketing/for-creators";
-import { Hero } from "@/components/marketing/hero";
-import { HowItWorks } from "@/components/marketing/how-it-works";
-import { Services } from "@/components/marketing/services";
-import { StatsStrip } from "@/components/marketing/stats-strip";
+import { MarketingMain } from "@/components/layout/marketing-main";
+import { HomeHero } from "@/components/marketing/home-hero";
+import { BrandsMarquee } from "@/components/marketing/sections/brands";
+import { FaqSection } from "@/components/marketing/sections/faq";
+import { FinalCtaSection } from "@/components/marketing/sections/final-cta";
+import { ForCreatorsSection } from "@/components/marketing/sections/for-creators";
+import { HowItWorksSection } from "@/components/marketing/sections/how-it-works";
+import { ProofSection } from "@/components/marketing/sections/proof";
+import { ServicesSection } from "@/components/marketing/sections/services";
+import { StatsSection } from "@/components/marketing/sections/stats";
 
 export default function HomePage() {
   return (
-    <>
-      <Hero />
-      <StatsStrip />
-      <FeaturedPosts />
-      <Services />
-      <HowItWorks />
-      <ForCreators />
-      <Faq />
-      <FinalCta />
-    </>
+    <MarketingMain overlay>
+      <HomeHero />
+      <StatsSection />
+      <BrandsMarquee />
+      <ProofSection />
+      <ServicesSection />
+      <HowItWorksSection />
+      <ForCreatorsSection />
+      <FaqSection />
+      <FinalCtaSection />
+    </MarketingMain>
   );
 }

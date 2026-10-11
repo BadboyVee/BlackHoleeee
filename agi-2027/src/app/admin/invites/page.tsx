@@ -2,15 +2,14 @@ import type { Metadata } from "next";
 import { Ticket } from "lucide-react";
 
 import { ComingSoon } from "@/components/layout/coming-soon";
-import { PageHeader } from "@/components/layout/page-header";
+import { AdminPageHeader } from "@/components/admin/admin-page-header";
 
 export const metadata: Metadata = { title: "Invites" };
 
 export default function InvitesPage() {
   return (
     <>
-      <PageHeader
-        eyebrow="People"
+      <AdminPageHeader
         title="Invites"
         description="Invite links that approve new creators straight away."
       />

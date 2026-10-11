@@ -8,6 +8,7 @@ import { CampaignCard, type CampaignCardData } from "@/components/campaign/campa
 import { SkipLink } from "@/components/layout/skip-link";
 import { StatusBadge, StatusDot } from "@/components/status-badge";
 import { SupabaseStatus } from "@/components/system/supabase-status";
+import { LookPicker } from "@/components/theme/look-picker";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -98,6 +99,7 @@ export default function StyleguidePage() {
             <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
               <Link href="/admin">Admin</Link>
             </Button>
+            <LookPicker />
             <ThemeToggle />
           </div>
         </div>
@@ -121,12 +123,12 @@ export default function StyleguidePage() {
         <section className="relative isolate overflow-hidden py-14 sm:py-20">
           <p className="text-label text-subtle-foreground">Milestone 1</p>
           <h1 className="mt-4 max-w-3xl text-h1 text-balance">
-            The building <em className="accent-serif">blocks</em> of AGI 2027.
+            The building blocks of AGI 2027.
           </h1>
           <p className="mt-4 max-w-2xl text-lg text-pretty text-muted-foreground">
             Every screen is built from these tokens and components, so the public site, the creator
-            portal and the admin feel like one product. Flip the theme in the top right to check
-            both modes.
+            portal and the admin feel like one product. Switch the look and the light or dark mode in
+            the top right to check every combination.
           </p>
         </section>
 
@@ -170,11 +172,11 @@ export default function StyleguidePage() {
           </div>
         </Section>
 
-        <Section id="type" title="Type" description="Geist for headings and body, an Instrument Serif italic for accents, Geist Mono for labels, small figures and the wordmark.">
+        <Section id="type" title="Type" description="The display face follows the look: bold Geist for Renaissance, soft Geist for Agent, condensed Anton capitals for Drop. Geist for body text and Geist Mono for small labels.">
           <div className="grid gap-8">
             <TypeSample label="Display · hero headlines">
               <p className="text-display">
-                Launch <em className="accent-serif">loud</em>.
+                Launch loud.
               </p>
             </TypeSample>
             <TypeSample label="H1 · page titles">
