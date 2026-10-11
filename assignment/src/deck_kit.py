@@ -32,6 +32,8 @@ Three colour palettes (STYLES):
              slides with a small blue section label over a navy title that states the finding, a
              grey subtitle and a hairline beneath; white cards with a thin grey outline; tables
              with navy headings; light grey bars with the leading bar in navy.
+             corporate_picture is the same, with the cover and closing slides on the picture
+             passed as the background picture (the deck's "wood" picture) instead of plain navy.
 
 Text is in Office's own fonts: Calibri, with Cambria titles in the pz and mixed styles and
 Calibri Light titles in the minimal style. Each
@@ -164,6 +166,8 @@ STYLES = {
         "cover_text": "FFFFFF", "cover_muted": "DCE7F5", "cover_rule": "F28C28",
     },
 }
+
+STYLES["corporate_picture"] = {**STYLES["corporate"], "cover_picture": True}   # the cover on a picture
 
 TEXT_SHADOW = (f'<a:effectLst xmlns:a="{A_NS}"><a:outerShdw blurRad="38100" dist="38100" dir="2700000" algn="tl" '
                'rotWithShape="0"><a:srgbClr val="000000"><a:alpha val="40000"/></a:srgbClr></a:outerShdw></a:effectLst>')
@@ -375,7 +379,10 @@ class Deck:
         S, W, H = self.S, self.W, self.H
         head, sub = placeholder(slide, 0), placeholder(slide, 1)
         if S.get("corporate"):
-            self.solid_background(slide, S["cover"])
+            if S.get("cover_picture"):                   # Format Background > Picture fill
+                self.wood_background(slide)
+            else:
+                self.solid_background(slide, S["cover"])
             label = []
             if kicker:
                 label = [self.textbox(slide, Inches(1.0), Inches(1.75), W - Inches(2.0), Inches(0.4), [kicker.upper()],
