@@ -40,8 +40,9 @@ cybersecurity's share of its twelve skills, and two assumptions you can change.
 
 | File | What it is |
 |---|---|
-| [Customer_Analysis.pptx](Customer_Analysis.pptx) | 22 slides in a bright business template theme in blue: white slides, blue gradient blocks, bold Century Gothic titles, outline-ring numbers and circle diagrams; shapes and text only. In the order the tasks are set, each opened by a half-blue divider: contents and key figures; 1 the persona (monogram profile, what Tunde wants, why Tunde buys); 2 the journey map as a timeline with a feeling curve, and pain points turned into opportunities; 3 the needs by type, the top 5 on a half-donut and a bar chart of all twelve; 4 four numbered segment cards; 5 a heat map of the segment scores; 6 the target segment; key findings. Same timings as part 1. |
+| [Customer_Analysis.pptx](Customer_Analysis.pptx) | 18 plain slides in the Marketing Budget deck's style (titles, bullets, tables and three simple bar charts), in the order the tasks are set: contents, key facts; 1 the persona; 2 the journey map, pain points and opportunities, and how the customer feels; 3 the needs and the 5 most important; 4 the four segments; 5 the segment scores; 6 the target segment; conclusion; sources, with a line saying an AI assistant helped with the research and slide design. Same timings as part 1. |
 | [Customer_Analysis.xlsx](Customer_Analysis.xlsx) | Sheets in the same order: 1 Persona, 2 Journey Map, 3 Customer Needs, 4 Segments, 5-6 Segment Scores, World Data, Sources. Scores and weights in yellow cells. |
+| [Presenter_Guide.docx](Presenter_Guide.docx) | A Word guide for presenting part 2: a checklist for making the work your own, what each slide shows and what to say, a likely question and answer for each slide, and a practice quiz. |
 
 - **Needs:** three each of functional, economic, emotional and social, scored on frequency in the
   research × effect on buying (of 25). The top 5, found by formula: hands-on skills (25), an

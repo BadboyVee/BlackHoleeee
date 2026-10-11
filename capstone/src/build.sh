@@ -3,7 +3,8 @@
 #   Capstone_Market_Research.xlsx   part 1: the customer research, market gaps and opportunities
 #   Capstone_Market_Research.pptx   part 1 as a PowerPoint 2013 deck, in the charcoal and gold design
 #   Customer_Analysis.xlsx          part 2: needs, segments, scores, persona and journey map
-#   Customer_Analysis.pptx          part 2 as a PowerPoint 2013 deck, in a bright business theme in blue
+#   Customer_Analysis.pptx          part 2 as a plain PowerPoint 2013 deck (the Marketing Budget deck's style)
+#   Presenter_Guide.docx            a Word guide to presenting part 2, with a practice quiz
 #
 # Needs python3 with openpyxl, python-pptx, lxml, numpy and Pillow, and LibreOffice (soffice). It
 # reuses ../../pz-analysis/src/office2013.py (the Office 2013 theme and template),
@@ -51,12 +52,15 @@ SAL_USE_VCLPLUGIN=svp soffice "-env:UserInstallation=file://$TMP/lo_profile" --h
   --convert-to xlsx --outdir "$TMP/recalc2" "$TMP/raw2.xlsx" >/dev/null 2>&1
 python3 "$SHARED/add_cached_values.py" "$TMP/raw2.xlsx" "$TMP/recalc2/raw2.xlsx" "$OUT/Customer_Analysis.xlsx"
 deck2="$OUT/Customer_Analysis.pptx"
-python3 "$HERE/build_customer_deck.py" "$OUT/Customer_Analysis.xlsx" "$TMP/template.pptx" azure \
+python3 "$HERE/build_customer_deck.py" "$OUT/Customer_Analysis.xlsx" "$TMP/template.pptx" marketing \
   "$TMP/deck2.pptx"
 python3 "$SHARED/sanitize_charts.py" "$TMP/deck2.pptx" "$TMP/deck2_clean.pptx" \
   ${SCHEMA_DIR:+--xsd "$SCHEMA_DIR/dml-chart.xsd"}
 python3 "$SHARED/finish_deck.py" "$TMP/deck2_clean.pptx" "$TMP/deck2.anim.json" "$deck2" \
   --transition "$TRANSITION" --advance "$ADVANCE" --duration "$DURATION"
+
+# The presenter guide (Word): what to say on each slide, likely questions, and a practice quiz.
+python3 "$HERE/build_guide.py" "$OUT/Customer_Analysis.xlsx" "$OUT/Presenter_Guide.docx"
 
 # Every text box must fit its text, measured with fonts as wide as Office's Calibri.
 python3 "$KIT/check_fit.py" "$deck" "$deck2"
