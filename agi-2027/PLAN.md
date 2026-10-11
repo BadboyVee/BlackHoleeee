@@ -1,7 +1,7 @@
 # AGI 2027 build plan
 
-**Status:** Milestone 1 rebuilt as three switchable looks, with the owner's admin and the creator
-portal previewed on demo data, waiting for your OK and your pick of a default look · plan
+**Status:** Milestone 1 merged 11 Oct 2026 (three switchable looks, with Drop as the default,
+and the owner's admin and the creator portal previewed on demo data). Next: Milestone 2 · plan
 approved 10 Oct 2026
 
 What we're building is in [SPEC.md](SPEC.md). This file covers how it gets built, and it's
@@ -234,7 +234,7 @@ How I read the rules:
 
 | #  | Milestone          | What you'll be able to test                                                                                                                      | Accounts we set up                                              | Status      |
 | -- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- | ----------- |
-| 1  | Setup              | Preview link on your phone: light/dark toggle, the design system page (colors, type, buttons, badges, cards, forms, skeletons), empty public, portal and admin layouts | Supabase (dev), Vercel, one GitHub secret                       | Built, in review |
+| 1  | Setup              | Preview link on your phone: light/dark toggle, the design system page (colors, type, buttons, badges, cards, forms, skeletons), empty public, portal and admin layouts | Supabase (dev), Vercel, one GitHub secret                       | Done, merged 11 Oct 2026 |
 | 2  | Public website     | Full home page with the 3D hero, the open campaigns board from demo data, Book a campaign saving to the database and emailing you                 | Resend (its test sender works until your domain is verified)   | Not started |
 | 3  | Accounts           | Google and email sign up, email verification, password reset, log out, routing by role, private pages sending you to login and back, your admin account | Google Cloud OAuth                                              | Not started |
 | 4  | Creator onboarding | Apply and watch the status screen; approve or reject; invite links that skip the queue; referral links; profile and payout details with the confirmation email | —                                                               | Not started |
@@ -252,9 +252,10 @@ and claims in every status.
 ## Small calls I made (tell me to change any)
 
 - **Looks** (your references, 11 Oct 2026): Renaissance, Agent and Drop, switchable from the
-  header. Renaissance is the default until you pick one. Each has a light and a dark mode; light
-  is the default. Once you pick a default I can keep the switcher (it's a fun touch for visitors)
-  or remove it.
+  header. **Drop is the default** (you asked me to pick, 11 Oct 2026): it shows what the agency
+  does at a glance, a creator's launch post on X, and it loads fastest on phones because it needs
+  no 3D. The switcher stays so visitors can find Echo and the painting. Each look has a light and
+  a dark mode; light is the default. Changing the default is one line in `src/lib/theme.ts`.
 - **Fonts:** Geist for body text and UI, Geist Mono for small labels. Headings follow the look:
   bold Geist (Renaissance), soft Geist (Agent), Anton capitals (Drop).
 - **Art:** the paintings are public-domain works from The Met's open-access collection (Poussin,
@@ -270,11 +271,10 @@ and claims in every status.
 
 ## Open questions
 
-- **Which look is the default?** Renaissance, Agent or Drop. Visitors see it first; the
-  switcher can stay or go.
+None right now.
 
-Decided on 10 Oct 2026: the code stays in this repo. The acid lime accent was replaced by the
-three looks on 11 Oct 2026.
+Decided on 10 Oct 2026: the code stays in this repo. On 11 Oct 2026 the acid lime accent was
+replaced by the three looks, with Drop as the default and the switcher kept.
 
 ## Running costs (at launch, not now)
 

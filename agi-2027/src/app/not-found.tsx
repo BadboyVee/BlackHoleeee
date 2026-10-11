@@ -22,7 +22,6 @@ export default function NotFound() {
             src="/art/detail-hand.webp"
             alt="Orion reaching into the distance, a detail from Poussin's painting"
             fill
-            loading="eager"
             sizes="384px"
             className="object-cover"
           />

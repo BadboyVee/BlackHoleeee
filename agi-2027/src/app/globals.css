@@ -587,7 +587,7 @@
 .look-drop {
   display: none;
 }
-:root:not([data-look]) .look-renaissance,
+:root:not([data-look]) .look-drop,
 [data-look="renaissance"] .look-renaissance,
 [data-look="agent"] .look-agent,
 [data-look="drop"] .look-drop {
