@@ -88,6 +88,7 @@ def chart_slide(s, top, labels, values, number_format, maximum, top_bars, points
 s = prs.slides.add_slide(LAYOUT["Title Slide"])
 deck.title_card(s, "Customer Analysis", [f"{C.PRODUCT}: a beginner cybersecurity course by {C.BUSINESS}",
                                          "Capstone Project, Part 2  ·  Market Research Lab"])
+deck.solid_background(s, "E4EEF8")                        # a calm, light blue background on the first slide
 deck.anim_chrome(s, title_card=True)
 s.notes_slide.notes_text_frame.text = (
     f"Part 2 of my capstone is a customer analysis for {C.PRODUCT}: a customer persona, a journey map, the most "
