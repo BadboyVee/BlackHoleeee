@@ -40,8 +40,8 @@ cybersecurity's share of its twelve skills, and two assumptions you can change.
 
 | File | What it is |
 |---|---|
-| [Customer_Analysis.pptx](Customer_Analysis.pptx) | 16 slides in a professional navy report design (section labels, titles that state each finding, navy and steel blue) with the same timings: world data, customer needs, the top 5 needs, four segments, segment scores, the target segment, a persona and a journey map. |
-| [Customer_Analysis.xlsx](Customer_Analysis.xlsx) | Seven sheets: World Data, Customer Needs, Segments, Segment Scores, Persona, Journey Map, Sources. Scores and weights in yellow cells. |
+| [Customer_Analysis.pptx](Customer_Analysis.pptx) | 17 slides in a professional navy report design, in the order the tasks are set: contents, world data, then 1 the persona (and what makes them buy), 2 the journey map (stage arrows, actions, touchpoints, thoughts and a feeling curve; pain points and opportunities), 3 the customer needs and the 5 most important, 4 the four segments, 5 the segment scores, 6 the target segment. Same timings as part 1. |
+| [Customer_Analysis.xlsx](Customer_Analysis.xlsx) | Sheets in the same order: 1 Persona, 2 Journey Map, 3 Customer Needs, 4 Segments, 5-6 Segment Scores, World Data, Sources. Scores and weights in yellow cells. |
 
 - **Needs:** three each of functional, economic, emotional and social, scored on frequency in the
   research × effect on buying (of 25). The top 5, found by formula: hands-on skills (25), an

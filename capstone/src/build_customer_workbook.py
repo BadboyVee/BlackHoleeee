@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 """Build Customer_Analysis.xlsx: capstone part 2, the customer analysis for CyberStart.
 
-Sheets: World Data (world and Nigerian figures, and what the price means against wages),
-Customer Needs (twelve needs scored; the five most important found with formulas), Segments (four
-segments on demographic, geographic, psychographic and behavioural bases), Segment Scores
-(weighted SUMPRODUCT, RANK, the target segment by INDEX/MATCH), Persona, Journey Map (with the
-feeling curve) and Sources. Scores and weights are in yellow input cells. Charcoal headings and
+Sheets, in the order the tasks are set: 1 Persona, 2 Journey Map (with the feeling curve),
+3 Customer Needs (twelve needs scored; the five most important found with formulas), 4 Segments
+(four segments on demographic, geographic, psychographic and behavioural bases), 5-6 Segment
+Scores (weighted SUMPRODUCT, RANK, and the target segment by INDEX/MATCH); then World Data
+(world and Nigerian figures, and what the price means against wages) and Sources. Scores and weights are in yellow input cells. Charcoal headings and
 gold leading bars, to match the deck; only Excel 2013 functions.
 
 Usage: python build_customer_workbook.py out.xlsx
@@ -94,9 +94,9 @@ merged(ws, r, "A", "D", "So the course is out of reach on the minimum wage, but 
 ws.row_dimensions[r].height = 32
 
 # ================================================================ 2. Customer Needs
-ws = wb.create_sheet("Customer Needs")
+ws = wb.create_sheet("3 Customer Needs")
 page(ws, {"A": 12, "B": 34, "C": 30, "D": 56, "E": 12, "F": 12, "G": 13, "H": 9})
-titles(ws, "H", "CUSTOMER NEEDS: FUNCTIONAL, ECONOMIC, EMOTIONAL AND SOCIAL",
+titles(ws, "H", "3. CUSTOMER NEEDS AND THE 5 MOST IMPORTANT",
        "Frequency = how often the need came up in the research; impact = its effect on the decision to buy "
        "(1 to 5). Importance = frequency × impact (of 25).")
 ws.row_dimensions[2].height = 30
@@ -154,9 +154,9 @@ bars(ws, f"A{r + 2}", "Importance of Each Need (of 25)", Reference(ws, min_col=2
 ws.freeze_panes = "A5"
 
 # ================================================================ 3. Segments
-ws = wb.create_sheet("Segments")
+ws = wb.create_sheet("4 Segments")
 page(ws, {"A": 18, "B": 34, "C": 34, "D": 34, "E": 34})
-titles(ws, "E", "FOUR MARKET SEGMENTS",
+titles(ws, "E", "4. FOUR MARKET SEGMENTS",
        "Built on four bases: demographic, geographic, psychographic and behavioural.")
 r = 4
 heads(ws, r, "ABCDE", ["Base"] + [s[0] for s in C.SEGMENTS], 24)
@@ -179,9 +179,9 @@ for base, about in C.BASES:
     merged(ws, r, "B", "E", about)
 
 # ================================================================ 4. Segment Scores
-ws = wb.create_sheet("Segment Scores")
+ws = wb.create_sheet("5-6 Segment Scores")
 page(ws, {"A": 26, "B": 16, "C": 16, "D": 17, "E": 16, "F": 16, "G": 9})
-titles(ws, "G", "SEGMENT SCORES",
+titles(ws, "G", "5. SEGMENT SCORES AND 6. THE TARGET SEGMENT",
        "Each criterion scored 1 (poor) to 5 (best); for competition, 5 means little competition. "
        "Weighted score = SUMPRODUCT of the weights and the scores (of 5).")
 ws.row_dimensions[2].height = 30
@@ -204,7 +204,7 @@ for seg, scores in zip(C.SEGMENTS, C.SCORES):
     put(ws, f"G{r}", f"=RANK(F{r},$F${s_first}:$F${s_last})", h="center")
     ws.row_dimensions[r].height = 22
 r += 2
-put(ws, f"A{r}", "Target segment", f=font(bold=True, color="FFFFFF"), fill=CHARCOAL)
+put(ws, f"A{r}", "6. Target segment", f=font(bold=True, color="FFFFFF"), fill=CHARCOAL)
 merged(ws, r, "B", "G", f'=INDEX(A{s_first}:A{s_last},MATCH(MAX(F{s_first}:F{s_last}),F{s_first}:F{s_last},0))'
        f'&" ("&TEXT(MAX(F{s_first}:F{s_last}),"0.00")&" of 5)"', f=font(12, bold=True))
 ws.row_dimensions[r].height = 22
@@ -224,10 +224,10 @@ bars(ws, f"A{r + 2}", "Weighted Score of Each Segment (of 5)", Reference(ws, min
      Reference(ws, min_col=1, min_row=s_first, max_row=s_last), "0.00", 5, [totals.index(max(totals))], height=6.5)
 
 # ================================================================ 5. Persona
-ws = wb.create_sheet("Persona")
+ws = wb.create_sheet("1 Persona")
 page(ws, {"A": 22, "B": 70}, landscape=False)
 P = C.PERSONA
-titles(ws, "B", f"CUSTOMER PERSONA: {P['name'].upper()}",
+titles(ws, "B", f"1. CUSTOMER PERSONA: {P['name'].upper()}",
        f"A fictional customer from the target segment ({P['segment']}), built from the research.")
 r = 4
 for label, text in P["facts"]:
@@ -237,7 +237,9 @@ for label, text in P["facts"]:
 put(ws, f"A{r}", "In their words", f=font(bold=True))
 put(ws, f"B{r}", P["quote"], f=font(italic=True))
 for title, items in (("Goals", P["goals"]), ("Frustrations", P["frustrations"]), ("Needs", P["needs"]),
-                     ("Where to reach them", P["channels"])):
+                     ("Where to reach them", P["channels"]), ("What makes them buy", P["triggers"]),
+                     ("Objections, and our answer", P["objections"]), ("How they choose", P["criteria"]),
+                     ("How they pay", P["payment"])):
     r += 2
     section(ws, r, title, "B")
     for item in items:
@@ -245,10 +247,10 @@ for title, items in (("Goals", P["goals"]), ("Frustrations", P["frustrations"]),
         merged(ws, r, "A", "B", item)
 
 # ================================================================ 6. Journey Map
-ws = wb.create_sheet("Journey Map")
+ws = wb.create_sheet("2 Journey Map")
 page(ws, {"A": 20, **{get_column_letter(2 + i): 30 for i in range(len(C.STAGES))}})
 last = get_column_letter(1 + len(C.STAGES))
-titles(ws, last, f"CUSTOMER JOURNEY MAP: {P['name'].upper()}",
+titles(ws, last, f"2. CUSTOMER JOURNEY MAP: {P['name'].upper()}",
        "From first hearing about cybersecurity to getting a job. Feeling: 1 (very negative) to 5 (very positive).")
 r = 4
 cols = [get_column_letter(2 + i) for i in range(len(C.STAGES))]
@@ -316,6 +318,12 @@ for i, (who, what, link) in enumerate(C.SOURCES.values(), start=1):
     c = put(ws, f"D{r}", link.split("/")[2].removeprefix("www."), f=font(color=DARK_GOLD, underline="single"))
     c.hyperlink = link
     ws.row_dimensions[r].height = 30
+
+# The sheets in the order the tasks are set: 1 persona, 2 journey map, 3 needs, 4 segments,
+# 5-6 scores and target; then the data and the sources.
+order = ["1 Persona", "2 Journey Map", "3 Customer Needs", "4 Segments", "5-6 Segment Scores", "World Data", "Sources"]
+wb._sheets = [wb[name] for name in order]
+wb.active = 0
 
 wb.save(sys.argv[1])
 print(f"wrote {sys.argv[1]}")

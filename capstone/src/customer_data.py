@@ -12,7 +12,7 @@ was found by web search on 11 October 2026 and is given as the sources report it
 (1 to 5) are my judgements from that evidence; the workbook keeps them in yellow input cells so
 they can be changed. The persona is fictional, built from the research.
 """
-from capstone_data import BUSINESS, PRICE, INSTALMENTS, PRODUCT, SOURCES as PART1_SOURCES
+from capstone_data import BUSINESS, PRICE, INSTALMENTS, PRODUCT, PRODUCT_LINE, SOURCES as PART1_SOURCES
 
 RESEARCH_DATE = "11 October 2026"
 
@@ -174,7 +174,26 @@ PERSONA = {
                      "Works 8 to 5; free programmes are full"],
     "needs": ["Hands-on labs at weekends", "A fair price in 3 parts", "Help when stuck and a route to a job"],
     "channels": ["Google, YouTube and TikTok", "Facebook groups and WhatsApp", "LinkedIn for jobs"],
+    # what makes Tunde buy
+    "triggers": ["News of a big data breach, like the CAC breach", "A friend who moved into a tech job",
+                 "A free first class or a deadline to enrol"],
+    "objections": ["“Is it a scam?”  Real reviews and a free first class", "“Can I fit it round work?”  Evenings, "
+                   "weekends and recordings", "“Will I get a job?”  Exam prep, CV help, employers"],
+    "criteria": ["Hands-on labs and real tools", "The full price and a payment plan", "Reviews from past learners",
+                 "A recognised certificate"],
+    "payment": [f"₦{PRICE:,} in {INSTALMENTS} parts of ₦{PRICE // INSTALMENTS:,}",
+                "Pays from salary, a part each month", "Decides alone; asks friends on WhatsApp first"],
 }
+
+# The tasks, in the order the assignment sets them: (number, task, what it covers)
+TASKS = [
+    ("1", "Customer persona", "Who the typical buyer is, and what makes them buy"),
+    ("2", "Customer journey map", "From first hearing about the course to a new job"),
+    ("3", "The 5 most important needs", "Chosen from 12 functional, economic, emotional and social needs"),
+    ("4", "Four market segments", "Demographic, geographic, psychographic and behavioural"),
+    ("5", "Segment scores", "Market size, accessibility, buying potential and competition"),
+    ("6", "Target segment", "The segment the business should prioritise"),
+]
 
 # ------------------------------------------------------------------ customer journey map
 STAGES = ["Awareness", "Consideration", "Purchase", "Learning", "After the course"]
