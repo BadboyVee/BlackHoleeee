@@ -3,7 +3,7 @@
 #   Capstone_Market_Research.xlsx   part 1: the customer research, market gaps and opportunities
 #   Capstone_Market_Research.pptx   part 1 as a PowerPoint 2013 deck, in the charcoal and gold design
 #   Customer_Analysis.xlsx          part 2: needs, segments, scores, persona and journey map
-#   Customer_Analysis.pptx          part 2 as a PowerPoint 2013 deck, in the navy report design
+#   Customer_Analysis.pptx          part 2 as a PowerPoint 2013 deck: a visual navy report on a network cover picture
 #
 # Needs python3 with openpyxl, python-pptx, lxml, numpy and Pillow, and LibreOffice (soffice). It
 # reuses ../../pz-analysis/src/office2013.py (the Office 2013 theme and template),
@@ -51,7 +51,9 @@ SAL_USE_VCLPLUGIN=svp soffice "-env:UserInstallation=file://$TMP/lo_profile" --h
   --convert-to xlsx --outdir "$TMP/recalc2" "$TMP/raw2.xlsx" >/dev/null 2>&1
 python3 "$SHARED/add_cached_values.py" "$TMP/raw2.xlsx" "$TMP/recalc2/raw2.xlsx" "$OUT/Customer_Analysis.xlsx"
 deck2="$OUT/Customer_Analysis.pptx"
-python3 "$HERE/build_customer_deck.py" "$OUT/Customer_Analysis.xlsx" "$TMP/template.pptx" "$TMP/wood.jpg" corporate \
+python3 "$HERE/make_network.py" "$TMP/network.jpg"
+python3 "$HERE/build_customer_deck.py" "$OUT/Customer_Analysis.xlsx" "$TMP/template.pptx" "$TMP/network.jpg" \
+  corporate_picture \
   "$TMP/deck2.pptx"
 python3 "$SHARED/sanitize_charts.py" "$TMP/deck2.pptx" "$TMP/deck2_clean.pptx" \
   ${SCHEMA_DIR:+--xsd "$SCHEMA_DIR/dml-chart.xsd"}

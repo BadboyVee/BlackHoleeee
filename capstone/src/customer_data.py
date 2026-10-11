@@ -185,6 +185,22 @@ PERSONA = {
                 "Pays from salary, a part each month", "Decides alone; asks friends on WhatsApp first"],
 }
 
+# Persona personality, 1 (low) to 5 (high): judgements that describe the fictional persona
+TRAITS = [("Careful with money", 5), ("Ambitious", 5), ("Confident with tech", 2), ("Free time", 2),
+          ("Trust in online courses", 2)]
+
+# Key figures for the context slide: (big figure, what it means, where, source key)
+KPIS = [
+    ("2nd", "fastest-growing skill in the world: networks and cybersecurity", "World", "wef"),
+    ("95%", "of cybersecurity teams have at least one skills gap", "World", "isc2_2025"),
+    ("AI & cloud", "the cybersecurity skills most in demand", "World", "isc2_2025"),
+    ("22%", "of cyber team members are women (26% under 30)", "World", "isc2_women"),
+    ("19", "years: the median age in Nigeria", "Nigeria", "age"),
+    ("2.1m", "university students in Nigeria", "Nigeria", "nuc"),
+    ("₦70k", "national minimum wage a month", "Nigeria", "wage"),
+    ("₦150k+", "a month for a junior security analyst", "Nigeria", "salary"),
+]
+
 # The tasks, in the order the assignment sets them: (number, task, what it covers)
 TASKS = [
     ("1", "Customer persona", "Who the typical buyer is, and what makes them buy"),
