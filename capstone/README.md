@@ -36,6 +36,30 @@ the end of ISC2's free exam offer in May 2026.
 **Year 1 estimate** (Market sheet): 375 learners and ₦56.25 million, from the 3MTT target,
 cybersecurity's share of its twelve skills, and two assumptions you can change.
 
+## Part 2: customer analysis
+
+| File | What it is |
+|---|---|
+| [Customer_Analysis.pptx](Customer_Analysis.pptx) | 16 slides in the same charcoal and gold design and timings: world data, customer needs, the top 5 needs, four segments, segment scores, the target segment, a persona and a journey map. |
+| [Customer_Analysis.xlsx](Customer_Analysis.xlsx) | Seven sheets: World Data, Customer Needs, Segments, Segment Scores, Persona, Journey Map, Sources. Scores and weights in yellow cells. |
+
+- **Needs:** three each of functional, economic, emotional and social, scored on frequency in the
+  research × effect on buying (of 25). The top 5, found by formula: hands-on skills (25), an
+  affordable price (25), certificate preparation (20), a better-paid job (20), feeling supported
+  (20).
+- **Segments** (demographic, geographic, psychographic and behavioural bases), scored on market
+  size 25%, accessibility 25%, buying potential 30% and competition 20%: Career Switchers 4.00,
+  Campus Starters 3.25, Corporate Upskillers 3.15, Women in Tech Starters 2.95. **Target: Career
+  Switchers**, working adults of 25 to 35 in non-IT jobs.
+- **Persona:** Tunde Bakare, 27, a customer service officer in Lagos (fictional, built from the
+  research).
+- **Journey map:** awareness, consideration, purchase, learning and after the course; the low
+  point is consideration (fear of scams, hidden prices).
+- **World data:** WEF Future of Jobs 2025 (networks and cybersecurity, the 2nd fastest-growing
+  skill), ISC2 2025 (95% of teams have a skills gap; AI and cloud security lead demand), ISC2 on
+  women (22% of teams), NUC (2.1 million students), the ₦70,000 minimum wage, UN and World Bank
+  median age (about 19).
+
 ## Notes on the sources
 
 - Google Trends: the Market Research Lab Task 1 screenshots (28 September 2026; Nigeria, past
