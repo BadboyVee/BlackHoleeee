@@ -168,6 +168,21 @@ STYLES = {
 }
 
 STYLES["corporate_picture"] = {**STYLES["corporate"], "cover_picture": True}   # the cover on a picture
+# azure: white slides with blue gradient blocks, bold Century Gothic titles in charcoal, and
+# circle diagrams; its slides are laid out by the deck script itself, so only the theme, the chart
+# colours and the text colours are set here.
+STYLES["azure"] = {
+    "palette": ("Azure", {"dk2": "28282C", "lt2": "EAF2FB", "accent1": "2F7FCC", "accent2": "174A8B",
+                          "accent3": "8EC5F2", "accent4": "1F6FB8", "accent5": "8A8A8F", "accent6": "28282C",
+                          "hlink": "1F6FB8", "folHlink": "8A8A8F"}),
+    "head_font": "Century Gothic", "body_font": "Calibri",
+    "title_size": 30, "card_caps": False, "card_shadow": False,
+    "title": "28282C", "text": "3A3A3F", "muted": "8A8A8F", "names": "28282C",
+    "rule": "2F7FCC", "frame": None, "wood": (), "cards": False,
+    "head_fill": "28282C", "band": "EAF2FB", "grid": "E6E6E6", "box": "FFFFFF",
+    "pie": ["2F7FCC", "28282C", "8EC5F2", "8A8A8F", "174A8B"], "key_line": "8A8A8F",
+    "bar": "D6DCE4", "bar_top": "2F7FCC", "background": "FFFFFF",
+}
 
 TEXT_SHADOW = (f'<a:effectLst xmlns:a="{A_NS}"><a:outerShdw blurRad="38100" dist="38100" dir="2700000" algn="tl" '
                'rotWithShape="0"><a:srgbClr val="000000"><a:alpha val="40000"/></a:srgbClr></a:outerShdw></a:effectLst>')
