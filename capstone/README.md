@@ -40,7 +40,7 @@ cybersecurity's share of its twelve skills, and two assumptions you can change.
 
 | File | What it is |
 |---|---|
-| [Customer_Analysis.pptx](Customer_Analysis.pptx) | 16 slides in a royal blue and orange design (blue sidebar, orange accents) with the same timings: world data, customer needs, the top 5 needs, four segments, segment scores, the target segment, a persona and a journey map. |
+| [Customer_Analysis.pptx](Customer_Analysis.pptx) | 16 slides in a professional navy report design (section labels, titles that state each finding, navy and steel blue) with the same timings: world data, customer needs, the top 5 needs, four segments, segment scores, the target segment, a persona and a journey map. |
 | [Customer_Analysis.xlsx](Customer_Analysis.xlsx) | Seven sheets: World Data, Customer Needs, Segments, Segment Scores, Persona, Journey Map, Sources. Scores and weights in yellow cells. |
 
 - **Needs:** three each of functional, economic, emotional and social, scored on frequency in the

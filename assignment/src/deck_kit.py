@@ -27,6 +27,11 @@ Three colour palettes (STYLES):
              slides with a blue sidebar down the left edge, blue titles over a short orange line,
              white cards with an orange edge, tables with blue headings, and blue-grey bars with
              the leading bar in orange.
+  corporate  a consulting-report look in deep navy (0B2545) and steel blue (1F6FB2): a navy cover
+             with a small section label, the title, a thin line and a footer line; white content
+             slides with a small blue section label over a navy title that states the finding, a
+             grey subtitle and a hairline beneath; white cards with a thin grey outline; tables
+             with navy headings; light grey bars with the leading bar in navy.
 
 Text is in Office's own fonts: Calibri, with Cambria titles in the pz and mixed styles and
 Calibri Light titles in the minimal style. Each
@@ -123,6 +128,24 @@ STYLES = {
         "background": "F5F5F3",
         "cover": "202124", "cover_panel": "303134",
         "cover_text": "FFFFFF", "cover_muted": "D6D6D6", "cover_rule": "F2A900",
+    },
+    "corporate": {
+        "palette": ("Navy Report", {"dk2": "0B2545", "lt2": "F3F5F8", "accent1": "0B2545", "accent2": "1F6FB2",
+                                    "accent3": "6FA8DC", "accent4": "C5CCD6", "accent5": "5B6675",
+                                    "accent6": "13315C", "hlink": "1F6FB2", "folHlink": "5B6675"}),
+        "head_font": "Calibri Light", "body_font": "Calibri",
+        "title_size": 28, "card_caps": False, "card_shadow": False,
+        "title": "0B2545", "text": "1C2430", "muted": "5B6675", "names": "0B2545",
+        "rule": "1F6FB2", "frame": None, "wood": (), "cards": False,
+        "head_fill": "0B2545", "band": "F3F5F8", "grid": "D5DAE1", "box": "FFFFFF", "table": "filled",
+        "card_line": "D5DAE1",
+        "pie": ["0B2545", "1F6FB2", "6FA8DC", "C5CCD6", "5B6675"], "key_line": "7B8794",
+        "bar": "C5CCD6", "bar_top": "0B2545",
+        "minimal": True, "corporate": True,
+        "background": "FFFFFF",
+        "cover": "0B2545", "cover_line": "2E4A6B",
+        "cover_text": "FFFFFF", "cover_muted": "C9D6E8", "cover_rule": "6FA8DC", "cover_kicker": "8DB8E8",
+        "avatar_text": "FFFFFF",
     },
     "ocean": {
         "palette": ("Ocean and Orange", {"dk2": "1E56A0", "lt2": "F7F9FC", "accent1": "1E56A0", "accent2": "F28C28",
@@ -234,7 +257,7 @@ class Deck:
         self.wood_path = wood_path
         self.plan = []                                   # (slide, shape, step, effect)
         self.chrome = ()                                 # the last slide's title, line and subtitle
-        self.footer = ""                                 # minimal style: the footer on content slides
+        self.footer = ""                                 # minimal styles: the footer on content slides
 
     # -------------------------------------------------------------- animations
     def anim(self, slide, shapes, step, effect="fade"):
@@ -246,7 +269,9 @@ class Deck:
 
     def anim_chrome(self, slide, title_card=False):
         """The title and its line first, then the subtitle (title cards: title, line, subtitle)."""
-        head, line, sub = self.chrome
+        head, line, sub, *label = self.chrome
+        for shape in label:                              # the small section label, with the title
+            self.anim(slide, shape, 1)
         if title_card:
             self.anim(slide, head, 1)
             self.anim(slide, line, 2, "wipe-left")
@@ -344,11 +369,31 @@ class Deck:
             to_back(self.rect(slide, Inches(0.3), Inches(0.3), self.W - Inches(0.6), self.H - Inches(0.6),
                               line=self.S["frame"], width=1))
 
-    def title_card(self, slide, title, lines, size=48):
+    def title_card(self, slide, title, lines, size=48, kicker=None):
         """The first and last slides. Wood style: a white card held by two straps on the wood, as
         in the PZ deck. Marketing style: a centred title over a line, in the thin frame."""
         S, W, H = self.S, self.W, self.H
         head, sub = placeholder(slide, 0), placeholder(slide, 1)
+        if S.get("corporate"):
+            self.solid_background(slide, S["cover"])
+            label = []
+            if kicker:
+                label = [self.textbox(slide, Inches(1.0), Inches(1.75), W - Inches(2.0), Inches(0.4), [kicker.upper()],
+                                      size=14, colour=S["cover_kicker"], bold=True)]
+            place(head, Inches(1.0), Inches(2.15), W - Inches(2.0), Inches(1.5))
+            self.write(head.text_frame, [title], size=size, colour=S["cover_text"], font=S["head_font"],
+                       align=PP_ALIGN.LEFT)
+            line = self.rule(slide, Inches(1.1), Inches(2.6), Inches(3.85), S["cover_rule"], width=2.5)
+            place(sub, Inches(1.0), Inches(4.05), W - Inches(2.0), Inches(1.3))
+            self.write(sub.text_frame, lines[:1], size=22, colour=S["cover_muted"], align=PP_ALIGN.LEFT)
+            # The footer line: a thin rule and the remaining lines, small, along the bottom.
+            self.rule(slide, Inches(1.0), W - Inches(1.0), H - Inches(1.05), S["cover_line"], width=1)
+            self.textbox(slide, Inches(1.0), H - Inches(0.95), W - Inches(2.0), Inches(0.4), lines[1:] or [""],
+                         size=13, colour=S["cover_muted"])
+            head.text_frame.vertical_anchor = MSO_ANCHOR.BOTTOM
+            sub.text_frame.vertical_anchor = MSO_ANCHOR.TOP
+            self.chrome = (head, line, sub, *label)
+            return
         if S.get("sidebar"):
             self.solid_background(slide, "FFFFFF")
             block_w = Inches(7.8)
@@ -429,10 +474,30 @@ class Deck:
         sub.text_frame.vertical_anchor = MSO_ANCHOR.TOP
         self.chrome = (head, line, sub)
 
-    def content(self, slide, title, subtitle):
+    def content(self, slide, title, subtitle, kicker=None):
         """A content slide's frame, title, line and subtitle; returns the top of the free space."""
         S, W, H = self.S, self.W, self.H
         head = slide.shapes.title
+        if S.get("corporate"):
+            self.solid_background(slide, S["background"])
+            label = []
+            if kicker:
+                label = [self.textbox(slide, Inches(0.7), Inches(0.38), W - Inches(1.4), Inches(0.32), [kicker.upper()],
+                                      size=12, colour=S["rule"], bold=True)]
+            place(head, Inches(0.7), Inches(0.68), W - Inches(1.4), Inches(0.68))
+            self.write(head.text_frame, [title], size=S["title_size"], colour=S["title"], font=S["head_font"],
+                       align=PP_ALIGN.LEFT)
+            head.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
+            sub = self.textbox(slide, Inches(0.7), Inches(1.36), W - Inches(1.4), Inches(0.4), [subtitle], size=15,
+                               colour=S["muted"], align=PP_ALIGN.LEFT)
+            line = self.rule(slide, Inches(0.8), W - Inches(0.8), Inches(1.88), S["grid"], width=1)
+            if self.footer:
+                self.textbox(slide, Inches(0.7), H - Inches(0.5), Inches(8.0), Inches(0.3), [self.footer], size=10,
+                             colour=S["muted"])
+                self.textbox(slide, W - Inches(1.7), H - Inches(0.5), Inches(1.0), Inches(0.3),
+                             [str(len(self.prs.slides))], size=10, colour=S["muted"], align=PP_ALIGN.RIGHT)
+            self.chrome = (head, line, sub, *label)
+            return Inches(2.1)
         if S.get("sidebar"):
             self.solid_background(slide, S["background"])
             to_back(self.rect(slide, 0, 0, Inches(0.35), H, fill=S["head_fill"]))     # the sidebar
@@ -511,6 +576,8 @@ class Deck:
 
     def card(self, slide, x, y, w, h):
         """A tinted box; in the minimal style, a card with a teal edge. Returns its shapes."""
+        if self.S.get("card_line"):                      # a white card with a thin outline
+            return [self.rect(slide, x, y, w, h, fill=self.S["box"], line=self.S["card_line"], width=0.75)]
         shapes = [self.rect(slide, x, y, w, h, fill=self.S["box"])]
         if self.S.get("minimal"):
             shapes.append(self.rect(slide, x, y, Inches(0.07), h, fill=self.S["rule"]))

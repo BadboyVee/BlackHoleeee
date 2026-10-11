@@ -58,9 +58,10 @@ SECOND = next(s for s, _t, r in scores if r == 2)
 
 
 # ------------------------------------------------------------------ helpers
-def content_slide(title, subtitle):
+def content_slide(title, subtitle, kicker):
+    """A content slide: a small section label (kicker), a title that states the finding, a subtitle."""
     s = prs.slides.add_slide(LAYOUT["Title and Content"])
-    top = deck.content(s, title, subtitle)
+    top = deck.content(s, title, subtitle, kicker=kicker)
     deck.anim_chrome(s)
     return s, top
 
@@ -101,14 +102,16 @@ def mini_card(s, x, y, w, h, heading, items, size=14):
 # ================================================================== 1. Title
 s = prs.slides.add_slide(LAYOUT["Title Slide"])
 deck.title_card(s, "Customer Analysis", [f"Needs, segments, persona and journey map for {C.PRODUCT}",
-                                         f"{C.BUSINESS}  ·  Capstone Project, Part 2"], size=54)
+                                         f"{C.BUSINESS}   |   Market Research Lab   |   October 2026"], size=54,
+                kicker="Capstone Project  ·  Part 2")
 deck.anim_chrome(s, title_card=True)
 s.notes_slide.notes_text_frame.text = (
     f"Part 2 of my capstone analyses the customers of {C.PRODUCT}: their needs, four market segments, the target "
     "segment, a customer persona and a customer journey map.")
 
 # ================================================================== 2. World and Nigerian data
-s, top = content_slide("World and Nigerian Data", "Real, published figures behind the analysis")
+s, top = content_slide("Cyber skills are in demand worldwide; Nigeria is young",
+                       "World and Nigerian data behind the analysis", "Context")
 rows = [("Fact", "Figure", "Where")] + [([[(fact, True)]], figure, where) for fact, figure, _n, where, _k in C.WORLD]
 table_slide(s, top, rows, [Inches(5.0), Inches(5.0), Inches(1.6)], [Inches(0.42)] + [Inches(0.43)] * len(C.WORLD), 14,
             centre_from=2, note="Sources: World Economic Forum, ISC2, NUC, UN and World Bank data, DataReportal "
@@ -120,7 +123,8 @@ s.notes_slide.notes_text_frame.text = (
     "150,000 to 300,000.")
 
 # ================================================================== 3. Customer needs
-s, top = content_slide("Customer Needs", "Three functional, economic, emotional and social needs")
+s, top = content_slide("Customers have four kinds of needs",
+                       "Three functional, economic, emotional and social needs", "Customer needs")
 by_type = {t: [n for n in C.NEEDS if n[0] == t] for t in C.NEED_TYPES}
 rows = [tuple(C.NEED_TYPES)] + [tuple(by_type[t][i][1] for t in C.NEED_TYPES) for i in range(3)]
 table_slide(s, top, rows, [Inches(2.95)] * 4, [Inches(0.5)] + [Inches(1.1)] * 3, 18, centre_from=0,
@@ -131,8 +135,9 @@ s.notes_slide.notes_text_frame.text = (
     "about community, status and inclusion.")
 
 # ================================================================== 4. The five most important needs
-s, top = content_slide("The 5 Most Important Needs", "Importance = how often it came up × its effect on buying "
-                                                      "(of 25)")
+s, top = content_slide("Skills and money matter most to customers",
+                       "The 5 most important needs: importance = how often it came up × its effect on buying "
+                       "(of 25)", "Customer needs")
 need_row = {n[1]: n for n in C.NEEDS}
 rows = [("Rank", "Need", "Type", "Score", "Evidence")]
 rows += [(str(rank), [[(name, True)]], need_row[name][0], str(importance[name]), need_row[name][4])
@@ -145,7 +150,8 @@ s.notes_slide.notes_text_frame.text = (
     "feeling supported.")
 
 # ================================================================== 5. Need importance chart
-s, top = content_slide("Importance of Each Need", "Score out of 25; the top five highlighted")
+s, top = content_slide("Five needs score 20 or more out of 25",
+                       "Importance of each need, out of 25; the top five highlighted", "Customer needs")
 short = [n[2] for n in C.NEEDS]
 values = [importance[n[1]] for n in C.NEEDS]
 top_idx = [i for i, n in enumerate(C.NEEDS) if rank_of[n[1]] <= 5]
@@ -161,7 +167,7 @@ s.notes_slide.notes_text_frame.text = (
     "brand talks to people.")
 
 # ================================================================== 6. Segmentation bases
-s, top = content_slide("Segmentation Bases", "Four ways to group the customers")
+s, top = content_slide("Four bases describe the customers", "Four ways to group the customers", "Segmentation")
 rows = [("Base", "What it looks at")] + [([[(b, True)]], about) for b, about in C.BASES]
 table_slide(s, top, rows, [Inches(3.2), Inches(8.6)], [Inches(0.55)] + [Inches(0.8)] * 4, 20,
             note=f"Together they give four segments of {C.PRODUCT}'s possible customers.")
@@ -169,7 +175,8 @@ s.notes_slide.notes_text_frame.text = (
     "I used all four bases: demographic, geographic, psychographic and behavioural.")
 
 # ================================================================== 7. The four segments
-s, top = content_slide("Four Market Segments", "Each segment described on the four bases")
+s, top = content_slide("The market splits into four segments", "Each segment described on the four bases",
+                       "Segmentation")
 rows = [("Base",) + tuple(seg[0] for seg in C.SEGMENTS)]
 rows += [([[(b, True)]],) + tuple(seg[1 + i] for seg in C.SEGMENTS) for i, (b, _a) in enumerate(C.BASES)]
 table_slide(s, top, rows, [Inches(1.75)] + [Inches(2.5)] * 4, [Inches(0.45)] + [Inches(1.0)] * 4, 13, centre_from=9)
@@ -177,8 +184,9 @@ s.notes_slide.notes_text_frame.text = (
     "The four segments are Campus Starters, Career Switchers, Corporate Upskillers and Women in Tech Starters.")
 
 # ================================================================== 8. Segment scores
-s, top = content_slide("Segment Scores", "Scored 1 (poor) to 5 (best); weights in brackets; for competition, 5 = "
-                                         "little competition")
+s, top = content_slide(f"{TARGET} have the best overall score",
+                       "Scored 1 (poor) to 5 (best); weights in brackets; for competition, 5 = little competition",
+                       "Segment scoring")
 rows = [("Segment",) + tuple(f"{c} ({int(w * 100)}%)" for c, w in C.CRITERIA) + ("Score (of 5)",)]
 rows += [(seg[0],) + tuple(str(v) for v in sc) + (f"{total_of[seg[0]]:.2f}",) for seg, sc in zip(C.SEGMENTS, C.SCORES)]
 target_row = 1 + [seg[0] for seg in C.SEGMENTS].index(TARGET)
@@ -189,7 +197,8 @@ s.notes_slide.notes_text_frame.text = (
     f"{total_of[TARGET]:.2f}, the highest.")
 
 # ================================================================== 9. Scores chart
-s, top = content_slide("The Segments Compared", "Weighted score of each segment (of 5)")
+s, top = content_slide(f"{TARGET} lead with {total_of[TARGET]:.2f} out of 5",
+                       "Weighted score of each segment (of 5)", "Segment scoring")
 names = [seg[0] for seg in C.SEGMENTS]
 chart_slide(s, top, names, [total_of[n] for n in names], "0.00", 5, [names.index(TARGET)], [
     ("Highest: ", f"{TARGET} ({total_of[TARGET]:.2f})."),
@@ -201,7 +210,8 @@ s.notes_slide.notes_text_frame.text = (
     "but are few and already served.")
 
 # ================================================================== 10. Target segment
-s, top = content_slide(f"Target Segment: {TARGET}", "The segment the business should prioritise, and why")
+s, top = content_slide(f"Prioritise {TARGET}", "The target segment the business should focus on, and why",
+                       "Target segment")
 deck.anim(s, deck.boxed_text(s, top, bold_first([
     ("Who: ", "working adults of 25 to 35 in non-IT jobs, in Lagos, Abuja and Port Harcourt."),
     ("Can pay: ", "steady pay above the ₦70,000 minimum wage; ₦50,000 a month in 3 parts."),
@@ -214,7 +224,8 @@ s.notes_slide.notes_text_frame.text = (
     "reach online, and few rivals offer practical courses that fit around a job.")
 
 # ================================================================== 11. Persona
-s, top = content_slide("Customer Persona", "A fictional customer from the target segment, built from the research")
+s, top = content_slide(f"Meet Tunde, a typical {TARGET[:-1]}",
+                       "A fictional customer from the target segment, built from the research", "Customer persona")
 y0 = top + Inches(0.05)
 left_w, gap = Inches(4.3), Inches(0.25)
 lx = deck.left
@@ -224,7 +235,8 @@ avatar = s.shapes.add_shape(MSO_SHAPE.OVAL, lx + Inches(0.35), y0 + Inches(0.3),
 avatar.fill.solid()
 avatar.fill.fore_color.rgb = rgb(S["head_fill"] or S["rule"])
 avatar.line.fill.background()
-deck.write(avatar.text_frame, [P["initials"]], size=28, colour=S["rule"], bold=True, align=PP_ALIGN.CENTER)
+deck.write(avatar.text_frame, [P["initials"]], size=28, colour=S.get("avatar_text", S["rule"]), bold=True,
+           align=PP_ALIGN.CENTER)
 avatar.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
 who = deck.textbox(s, lx + Inches(1.7), y0 + Inches(0.35), left_w - Inches(1.85), Inches(1.15),
                    [[(P["name"], True)], f"{P['segment']}"], size=22, colour=S["text"], after=2)
@@ -253,11 +265,12 @@ s.notes_slide.notes_text_frame.text = (
 
 # ================================================================== 12-13. Journey map
 journey = dict(C.JOURNEY)
-for title, labels, sub in (("Customer Journey Map", ["Doing", "Touchpoints", "Thinking and feeling"],
-                            f"{P['name']}'s journey: what Tunde does, where, and how it feels"),
-                           ("Journey Map: Pain Points and Opportunities", ["Pain points", "Opportunities"],
+for title, labels, sub in (("From curiosity to a new job: Tunde's journey", ["Doing", "Touchpoints",
+                                                                              "Thinking and feeling"],
+                            f"Customer journey map of {P['name']}: what Tunde does, where, and how it feels"),
+                           ("Every pain point is an opportunity", ["Pain points", "Opportunities"],
                             "What goes wrong at each stage, and what SkillUp Academy can do")):
-    s, top = content_slide(title, sub)
+    s, top = content_slide(title, sub, "Customer journey")
     rows = [("Stage",) + tuple(C.STAGES)] + [([[(label, True)]],) + tuple(journey[label]) for label in labels]
     row_h = Inches(1.35) if len(labels) == 3 else Inches(1.6)
     table_slide(s, top, rows, [Inches(1.7)] + [Inches(2.02)] * 5, [Inches(0.45)] + [row_h] * len(labels), 13,
@@ -270,7 +283,9 @@ for title, labels, sub in (("Customer Journey Map", ["Doing", "Touchpoints", "Th
            "and fast support, and job help."))
 
 # ================================================================== 14. Feeling curve
-s, top = content_slide("How the Customer Feels", "Feeling at each stage: 1 (very negative) to 5 (very positive)")
+s, top = content_slide("Choosing a course is the low point",
+                       "How the customer feels at each stage: 1 (very negative) to 5 (very positive)",
+                       "Customer journey")
 data = CategoryChartData(number_format="0")
 data.categories = C.STAGES
 data.add_series("Feeling", C.FEELING)
@@ -316,7 +331,7 @@ s.notes_slide.notes_text_frame.text = (
     "reviews and a free first class lift that low point.")
 
 # ================================================================== 15. Conclusion
-s, top = content_slide("Conclusion", "What the customer analysis shows")
+s, top = content_slide(f"Target {TARGET} with a practical course", "What the customer analysis shows", "Conclusion")
 deck.anim(s, deck.boxed_text(s, top, bold_first(C.CONCLUSION), size=20), 3)
 s.notes_slide.notes_text_frame.text = (
     f"SkillUp Academy should target {TARGET} with a practical, affordable course paid in parts, and fix the low "
@@ -324,7 +339,8 @@ s.notes_slide.notes_text_frame.text = (
 
 # ================================================================== 16. Thank you
 s = prs.slides.add_slide(LAYOUT["Title Slide"])
-deck.title_card(s, "Thank You", ["Any questions?", f"{C.BUSINESS}  ·  Capstone Project, Part 2"])
+deck.title_card(s, "Thank You", ["Any questions?", f"{C.BUSINESS}   |   Market Research Lab   |   October 2026"],
+                kicker="Capstone Project  ·  Part 2")
 deck.anim_chrome(s, title_card=True)
 s.notes_slide.notes_text_frame.text = "Thank you for listening."
 
