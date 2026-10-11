@@ -157,7 +157,8 @@
   --brand-foreground: #ffffff;
   --brand-text: #c21d14;
   --glow: rgb(227 38 28 / 0.14);
-  --tone-brand: #c21d14;
+  /* Status "brand" tone (Live, Paid) stays fuchsia: the look's red would read as Rejected. */
+  --tone-brand: #b3127a;
 
   --hero-red: #d92e24;
   --hero-red-deep: #b5170f;
@@ -192,7 +193,7 @@
   --brand-foreground: #ffffff;
   --brand-text: #ff7f73;
   --glow: rgb(242 54 43 / 0.16);
-  --tone-brand: #ff7f73;
+  --tone-brand: #ff7ac8;
 
   --block-2: #0d0605;
   --block-3: #3a1f1a;
@@ -231,7 +232,8 @@
   --brand-foreground: #16120f;
   --brand-text: #b83c00;
   --glow: rgb(255 91 20 / 0.16);
-  --tone-brand: #b83c00;
+  /* Status "brand" tone (Live, Paid) stays fuchsia: the look's orange would read as Full. */
+  --tone-brand: #b3127a;
 
   --block-1: #e0252b;
   --block-2: #cf4a00;
@@ -265,7 +267,7 @@
   --brand-foreground: #16120f;
   --brand-text: #ff9563;
   --glow: rgb(255 106 38 / 0.14);
-  --tone-brand: #ff9563;
+  --tone-brand: #ff7ac8;
 
   --grid-line: rgb(251 244 236 / 0.05);
   --spotlight: rgb(255 220 190 / 0.06);

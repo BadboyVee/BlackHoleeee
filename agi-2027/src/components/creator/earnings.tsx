@@ -21,17 +21,33 @@ import { pressed, springArrive, stagger } from "./motion";
 import { LocalWhen } from "./time";
 import { displayType, panel } from "./ui";
 
-function TotalCard({ label, hint, rows, index }: { label: string; hint: string; rows: { currency: string; amount: string }[]; index: number }) {
+function TotalCard({
+  label,
+  hint,
+  rows,
+  index,
+  className,
+}: {
+  label: string;
+  hint: string;
+  rows: { currency: string; amount: string }[];
+  index: number;
+  className?: string;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 14 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ ...springArrive, delay: stagger(index, 0.06) }}
-      className={cn(panel, "flex flex-col gap-2.5 p-4 sm:p-5")}
+      className={cn(panel, "flex flex-col gap-2.5 p-4 sm:p-5", className)}
     >
       <p className="text-xs font-medium text-muted-foreground">{label}</p>
       {rows.length ? (
-        rows.map((row) => <Money key={row.currency} amount={row.amount} currency={row.currency} size="lg" />)
+        <div className={cn("flex flex-col gap-2.5", rows.length > 1 && className && "max-sm:flex-row max-sm:flex-wrap max-sm:gap-x-5")}>
+          {rows.map((row) => (
+            <Money key={row.currency} amount={row.amount} currency={row.currency} size="lg" className="max-sm:[&>span:first-child]:text-[1.5rem]" />
+          ))}
+        </div>
       ) : (
         <p className="text-figure text-[1.875rem] leading-none text-subtle-foreground">0</p>
       )}
@@ -71,10 +87,16 @@ function CreatorEarnings() {
           ))}
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <TotalCard index={0} label="Unpaid" hint="Approved and on the way" rows={summary.unpaid} />
           <TotalCard index={1} label="Paid" hint="Sent, with a reference" rows={summary.paid} />
-          <TotalCard index={2} label="Earned in total" hint="Never added across currencies" rows={summary.total} />
+          <TotalCard
+            index={2}
+            label="Earned in total"
+            hint="Never added across currencies"
+            rows={summary.total}
+            className="col-span-2 sm:col-span-1"
+          />
         </div>
       )}
 
@@ -123,12 +145,12 @@ function CreatorEarnings() {
                       </p>
                     </Link>
                   </motion.div>
-                  <div className="flex shrink-0 items-center gap-2.5">
+                  <div className="flex w-full items-center justify-between gap-2.5 pl-[3.625rem] sm:w-auto sm:shrink-0 sm:pl-0">
                     <Money amount={row.amount} currency={row.currency} size="md" />
                     <StatusBadge kind="earning" status={row.status} />
                   </div>
                   {row.reference ? (
-                    <div className="flex w-full items-center justify-between gap-3 rounded-xl bg-surface-2/60 py-1 pr-1 pl-3 sm:w-auto sm:bg-transparent sm:p-0">
+                    <div className="ml-[3.625rem] flex flex-1 items-center justify-between gap-3 rounded-xl bg-surface-2/60 py-1 pr-1 pl-3 sm:ml-0 sm:flex-none sm:bg-transparent sm:p-0">
                       <span className="font-mono text-xs text-muted-foreground">ref {shortReference(row.reference)}</span>
                       <CopyButton value={row.reference} label="Copy payment reference" iconOnly toastMessage="Reference copied" />
                     </div>

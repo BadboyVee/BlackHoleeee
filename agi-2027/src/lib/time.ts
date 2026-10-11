@@ -62,13 +62,13 @@ export function formatTime(date: Date | string, timeZone?: string): string {
   return `${p.hour}:${p.minute}`;
 }
 
-/** "Tue 12 Jan, 17:00 – 21:00", or both full dates when the range spans days. */
+/** "Tue 12 Jan, 17:00 to 21:00", or both full dates when the range spans days. */
 export function formatRange(start: Date | string, end: Date | string, timeZone?: string): string {
   const a = dateParts(start, timeZone);
   const b = dateParts(end, timeZone);
   const sameDay = a.weekday === b.weekday && a.day === b.day && a.month === b.month;
   const from = `${a.weekday} ${a.day} ${a.month}, ${a.hour}:${a.minute}`;
   return sameDay
-    ? `${from} – ${b.hour}:${b.minute}`
-    : `${from} – ${b.weekday} ${b.day} ${b.month}, ${b.hour}:${b.minute}`;
+    ? `${from} to ${b.hour}:${b.minute}`
+    : `${from} to ${b.weekday} ${b.day} ${b.month}, ${b.hour}:${b.minute}`;
 }

@@ -264,7 +264,7 @@ describe("nextStep", () => {
       for (const draftRequired of [true, false]) {
         const step = nextStep(status, { draftRequired });
         expect(step.title.length).toBeGreaterThan(0);
-        expect(`${step.title} ${step.detail}`).not.toMatch(/[–—]/);
+        expect(`${step.title} ${step.detail}`).not.toMatch(/[\u2013\u2014]/);
       }
     }
   });

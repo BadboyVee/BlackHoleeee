@@ -55,19 +55,19 @@ describe("formatTime", () => {
 describe("formatRange", () => {
   it("shows the end time only when the range stays on one day", () => {
     expect(formatRange("2026-11-03T16:00:00Z", "2026-11-03T20:00:00Z", "UTC")).toBe(
-      "Tue 3 Nov, 16:00 – 20:00",
+      "Tue 3 Nov, 16:00 to 20:00",
     );
   });
 
   it("shows both dates when the range crosses midnight", () => {
     expect(formatRange("2026-11-07T14:00:00Z", "2026-11-08T14:00:00Z", "UTC")).toBe(
-      "Sat 7 Nov, 14:00 – Sun 8 Nov, 14:00",
+      "Sat 7 Nov, 14:00 to Sun 8 Nov, 14:00",
     );
   });
 
   it("uses the viewer's zone, which can move the range across days", () => {
     expect(formatRange("2026-11-03T22:00:00Z", "2026-11-03T23:30:00Z", "Asia/Tokyo")).toBe(
-      "Wed 4 Nov, 07:00 – 08:30",
+      "Wed 4 Nov, 07:00 to 08:30",
     );
   });
 });

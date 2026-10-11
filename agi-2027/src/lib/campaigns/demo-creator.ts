@@ -57,7 +57,6 @@ export type CreatorMe = {
   handle: string;
   initials: string;
   tier: string;
-  unreadNotifications: number;
 };
 
 export type CreatorDemo = {
@@ -468,7 +467,6 @@ export function buildCreatorDemo(creator: DemoCreator = demoMe): CreatorDemo {
       handle: creator.handle,
       initials,
       tier: creator.tier,
-      unreadNotifications: 2,
     },
     campaigns,
     claims: [...current, ...past],

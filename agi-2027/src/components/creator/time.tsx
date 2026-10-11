@@ -107,7 +107,8 @@ export function Ago({ value, className }: { value: string; className?: string })
   if (now === null) return <span className={className}>&nbsp;</span>;
   const diff = now - new Date(value).getTime();
   let text: string;
-  if (diff < 60_000) text = "Just now";
+  if (diff < 0) text = formatDateTime(value);
+  else if (diff < 60_000) text = "Just now";
   else if (diff < HOUR) text = `${Math.floor(diff / 60_000)}m ago`;
   else if (diff < DAY) text = `${Math.floor(diff / HOUR)}h ago`;
   else text = formatDateTime(value);

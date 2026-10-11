@@ -22,6 +22,8 @@ import { cn } from "@/lib/utils";
 import { resetDemoClaims } from "./claim-store";
 import { useCreatorDemo } from "./creator-data";
 import { isCampaignPage } from "./creator-nav";
+import { useHydrated } from "./hooks";
+import { NotificationDot, useNotifications } from "./notifications";
 import { pressed, springArrive } from "./motion";
 
 /** Small, honest note that everything here is sample data. */
@@ -138,22 +140,17 @@ function LeftSide() {
 }
 
 function NotificationsBell() {
-  const { me } = useCreatorDemo();
-  const unread = me.unreadNotifications;
+  const { unread } = useNotifications();
+  const hydrated = useHydrated();
   return (
     <motion.div whileTap={pressed}>
       <Link
         href="/dashboard/notifications"
-        aria-label={unread ? `Notifications, ${unread} new` : "Notifications"}
+        aria-label={hydrated && unread ? `Notifications, ${unread} new` : "Notifications"}
         className="relative inline-flex size-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-surface-2 hover:text-foreground sm:size-10"
       >
         <Bell className="size-[19px]" />
-        {unread ? (
-          <span aria-hidden className="absolute top-2 right-2 flex size-2.5 sm:top-1.5 sm:right-1.5">
-            <span className="absolute inset-0 animate-pulse-ring rounded-full bg-brand" />
-            <span className="relative size-full rounded-full border-2 border-background bg-brand" />
-          </span>
-        ) : null}
+        <NotificationDot className="top-2 right-2 sm:top-1.5 sm:right-1.5" />
       </Link>
     </motion.div>
   );

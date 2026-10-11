@@ -355,7 +355,7 @@ Use **Instant** for big, fast campaigns. Use **Apply** when you want to choose w
 
 When editing a campaign that's already out, this choice disappears. Saving updates it in place.
 
-### The four times
+### The times
 
 | Time | What it means |
 | --- | --- |

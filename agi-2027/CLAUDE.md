@@ -16,6 +16,13 @@
 - Database: migrations only, RLS on every table, explicit grants, SECURITY DEFINER functions
   with `set search_path = ''` for multi-step changes. Add database tests in `tests/db` for every
   policy and function (`npm run test:db`).
-- Styling: tokens in `src/app/globals.css`. Lime (`brand`) is for the single main action or
+- Styling: tokens in `src/app/globals.css`, set per look (`html[data-look]`: renaissance, agent,
+  drop) and per mode (`html[data-theme]`). Never hardcode colors (client brand colors from data
+  are the exception); use the `renaissance:`, `agent:` and `drop:` variants when a look needs
+  different markup or styling. `brand` is the look's accent, for the single main action or
   highlight on a screen. Mobile first; 44px tap targets; inputs at 16px on phones.
+- Copy: short sentences, no em or en dashes (use commas, periods, colons, "to" for ranges).
+- Motion: one physical personality (springs in `motion/react`, the `ease-snap` curve in CSS),
+  reveal once on scroll, and a still fallback for reduced motion. WebGL loads only for the active
+  look, after paint, through `SceneGate`.
 - Before pushing: `npm run lint && npm run typecheck && npm test && npm run test:db && npm run build`.

@@ -20,7 +20,7 @@ function LocalDateTime({ value, className }: { value: string | Date; className?:
   );
 }
 
-/** A start and end in the viewer's time zone: "Tue 12 Jan, 17:00 – 21:00". */
+/** A start and end in the viewer's time zone: "Tue 12 Jan, 17:00 to 21:00". */
 function LocalTimeRange({
   start,
   end,

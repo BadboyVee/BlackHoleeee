@@ -270,7 +270,11 @@ and claims in every status.
 
 ## Open questions
 
-None right now. Decided on 10 Oct 2026: the code stays in this repo, and the accent is acid lime.
+- **Which look is the default?** Renaissance, Agent or Drop. Visitors see it first; the
+  switcher can stay or go.
+
+Decided on 10 Oct 2026: the code stays in this repo. The acid lime accent was replaced by the
+three looks on 11 Oct 2026.
 
 ## Running costs (at launch, not now)
 
@@ -327,3 +331,45 @@ You found the first pass ugly and shared tasteskill.dev as the look you want. Wh
   content and builds the open campaigns board and the Book a campaign form.
 - **Portal and admin:** the creator home, campaign board and admin overview show clearly
   labelled sample data, so the product can be judged before real data exists.
+
+### Three looks, and an owner app and a creator app (11 Oct 2026)
+
+You asked for your three references copied closely, as options, plus different interfaces for
+you and your creators, and a detailed guide to listing a campaign. What changed:
+
+- **Three looks, switchable from the header** (the swatch button, remembered on each device).
+  Add `?look=renaissance`, `?look=agent` or `?look=drop` to any link to open it in that look.
+  - **Renaissance** (after Shopify Editions): a living painting fills the hero. Poussin's
+    *Blind Orion Searching for the Rising Sun* moves in depth with the pointer, with drifting
+    clouds and swaying trees, and other paintings carry the sections.
+  - **Agent** (after Mainframe): Echo, a felt 3D host on a red field, follows your pointer,
+    blinks, talks while the greeting types out and reacts to the buttons. The FAQ is a chat with
+    Echo.
+  - **Drop** (after the juice-bottle hero): a carousel of five color slides. Each has a giant
+    word behind a phone showing a creator's post, with glossy 3D icons floating around it.
+  - Every section has a version per look, with scroll reveals, counting numbers, a claim demo on
+    a phone, and page transitions. Slow phones, saved-data mode and reduced motion get still
+    images instead of 3D, and nothing breaks without WebGL.
+- **Your app, at `/admin`:** a calm control room. A sidebar with New campaign on top, ⌘K or
+  Ctrl K search, the overview, the campaigns list, the six-step campaign builder (new, duplicate
+  and edit) and each campaign's page with its roster. On phones: tabs at the bottom and a round
+  New campaign button.
+- **Your creators' app, at `/dashboard`:** playful and phone-first. Home with what needs them
+  and new drops, the campaign board with filters, the campaign page with the full claim flow
+  (instant and apply), My campaigns, Earnings and Notifications.
+- **[docs/listing-a-campaign.md](docs/listing-a-campaign.md):** how to list a campaign, every
+  field explained, plus what happens after (the drop, claiming, drafts, proof, review, paying,
+  edits). The builder has the same guide built in ("How listing works").
+
+How to test it on the preview link:
+
+1. Open `/` and switch looks from the header. Try it on your phone and a computer, light and dark.
+2. Open `/admin/campaigns/new` and list a campaign. Close the tab halfway; it picks up where you
+   left off. The last step says it's a preview and nothing is saved.
+3. Open `/dashboard/campaigns`, claim a campaign, and click through to Paid with the "Simulate
+   agency review" panel. The avatar menu has "Reset the demo".
+
+What's demo-only today: everything in both apps runs on demo data kept in your browser. Saving
+campaigns arrives in Milestone 5, real claiming in 6, earnings and payouts in 7, notifications in
+8. There's no sign-in yet (Milestone 3), so anyone with the preview link can open `/admin`; it
+only holds demo data.

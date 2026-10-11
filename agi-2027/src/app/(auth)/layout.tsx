@@ -43,7 +43,14 @@ function AuthArt({ className, compact = false }: { className?: string; compact?:
     <div aria-hidden className={className}>
       <div className="look-renaissance">
         <div className="relative size-full overflow-hidden rounded-[var(--radius-xl)]">
-          <Image src="/art/detail-clouds.webp" alt="" fill sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
+          <Image
+            src="/art/detail-clouds.webp"
+            alt=""
+            fill
+            loading="eager"
+            sizes="(min-width: 1024px) 50vw, 100vw"
+            className="object-cover"
+          />
           <div className="absolute inset-0 bg-linear-to-t from-black/50 to-transparent" />
           {compact ? null : (
             <p className="absolute right-6 bottom-6 left-6 text-[clamp(1.75rem,1rem+2vw,3rem)] leading-[0.95] font-bold tracking-[-0.05em] text-white">
