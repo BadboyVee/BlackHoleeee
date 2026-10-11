@@ -145,7 +145,7 @@ s.notes_slide.notes_text_frame.text = (
     "feeling supported.")
 
 # ================================================================== 5. Need importance chart
-s, top = content_slide("Importance of Each Need", "Score out of 25; the top five in gold")
+s, top = content_slide("Importance of Each Need", "Score out of 25; the top five highlighted")
 short = [n[2] for n in C.NEEDS]
 values = [importance[n[1]] for n in C.NEEDS]
 top_idx = [i for i, n in enumerate(C.NEEDS) if rank_of[n[1]] <= 5]

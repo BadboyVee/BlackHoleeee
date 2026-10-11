@@ -22,6 +22,11 @@ Three colour palettes (STYLES):
              gold; content slides on a pale warm-grey background under a solid charcoal header
              band with the title in white and a gold line beneath; white cards with a gold edge;
              tables with charcoal headings; grey bars with the leading bar in gold.
+  ocean      royal blue (1E56A0) with an orange (F28C28) accent: title and closing slides split
+             into a blue block holding the title and a white side with three thin bars; content
+             slides with a blue sidebar down the left edge, blue titles over a short orange line,
+             white cards with an orange edge, tables with blue headings, and blue-grey bars with
+             the leading bar in orange.
 
 Text is in Office's own fonts: Calibri, with Cambria titles in the pz and mixed styles and
 Calibri Light titles in the minimal style. Each
@@ -118,6 +123,22 @@ STYLES = {
         "background": "F5F5F3",
         "cover": "202124", "cover_panel": "303134",
         "cover_text": "FFFFFF", "cover_muted": "D6D6D6", "cover_rule": "F2A900",
+    },
+    "ocean": {
+        "palette": ("Ocean and Orange", {"dk2": "1E56A0", "lt2": "F7F9FC", "accent1": "1E56A0", "accent2": "F28C28",
+                                         "accent3": "8FB3E0", "accent4": "C9D3E0", "accent5": "17324F",
+                                         "accent6": "5A6B80", "hlink": "1E56A0", "folHlink": "5A6B80"}),
+        "head_font": "Calibri Light", "body_font": "Calibri",
+        "title_size": 32, "card_caps": False, "card_shadow": False,
+        "title": "1E56A0", "text": "17243A", "muted": "55657A", "names": "1E56A0",
+        "rule": "F28C28", "frame": None, "wood": (), "cards": False,
+        "head_fill": "1E56A0", "band": "EDF2F9", "grid": "D3DCE8", "box": "FFFFFF", "table": "filled",
+        "pie": ["1E56A0", "F28C28", "8FB3E0", "C9D3E0", "17324F"], "key_line": "7B8794",
+        "bar": "C9D3E0", "bar_top": "F28C28",
+        "minimal": True, "sidebar": True,
+        "background": "F7F9FC",
+        "cover": "1E56A0", "cover_light": "8FB3E0",
+        "cover_text": "FFFFFF", "cover_muted": "DCE7F5", "cover_rule": "F28C28",
     },
 }
 
@@ -328,7 +349,23 @@ class Deck:
         in the PZ deck. Marketing style: a centred title over a line, in the thin frame."""
         S, W, H = self.S, self.W, self.H
         head, sub = placeholder(slide, 0), placeholder(slide, 1)
-        if S.get("header_band"):
+        if S.get("sidebar"):
+            self.solid_background(slide, "FFFFFF")
+            block_w = Inches(7.8)
+            block = self.rect(slide, 0, 0, block_w, H, fill=S["cover"])
+            stripes = [self.rect(slide, W - Inches(4.3), Inches(3.3) + Inches(0.42) * i, Inches(3.2) - Inches(0.6) * i,
+                                 Inches(0.16), fill=colour)
+                       for i, colour in enumerate((S["cover_rule"], S["cover"], S["cover_light"]))]
+            for shape in reversed([block] + stripes):
+                to_back(shape)
+            place(head, Inches(0.9), Inches(2.25), block_w - Inches(1.5), Inches(1.5))
+            self.write(head.text_frame, [title], size=size, colour=S["cover_text"], font=S["head_font"],
+                       align=PP_ALIGN.LEFT)
+            line = self.rule(slide, Inches(1.0), Inches(2.5), Inches(3.97), S["cover_rule"], width=4)
+            place(sub, Inches(0.9), Inches(4.2), block_w - Inches(1.5), Inches(2.0))
+            self.write(sub.text_frame, lines, size=22, colour=S["cover_muted"], align=PP_ALIGN.LEFT, after=8)
+            sub.text_frame.paragraphs[-1].runs[0].font.size = Pt(16)
+        elif S.get("header_band"):
             self.solid_background(slide, S["cover"])
             # A lighter panel down the right-hand side, edged with a coral strip.
             panel = self.rect(slide, W - Inches(3.6), 0, Inches(3.6), H, fill=S["cover_panel"])
@@ -396,6 +433,23 @@ class Deck:
         """A content slide's frame, title, line and subtitle; returns the top of the free space."""
         S, W, H = self.S, self.W, self.H
         head = slide.shapes.title
+        if S.get("sidebar"):
+            self.solid_background(slide, S["background"])
+            to_back(self.rect(slide, 0, 0, Inches(0.35), H, fill=S["head_fill"]))     # the sidebar
+            place(head, Inches(0.7), Inches(0.42), W - Inches(1.4), Inches(0.8))
+            self.write(head.text_frame, [title], size=S["title_size"], colour=S["title"], font=S["head_font"],
+                       align=PP_ALIGN.LEFT)
+            head.text_frame.vertical_anchor = MSO_ANCHOR.MIDDLE
+            line = self.rule(slide, Inches(0.8), Inches(1.9), Inches(1.27), S["rule"], width=4)
+            sub = self.textbox(slide, Inches(0.7), Inches(1.4), W - Inches(1.4), Inches(0.42), [subtitle], size=16,
+                               colour=S["muted"], align=PP_ALIGN.LEFT)
+            if self.footer:
+                self.textbox(slide, Inches(0.7), H - Inches(0.5), Inches(8.0), Inches(0.3), [self.footer], size=10,
+                             colour=S["muted"])
+                self.textbox(slide, W - Inches(1.7), H - Inches(0.5), Inches(1.0), Inches(0.3),
+                             [str(len(self.prs.slides))], size=10, colour=S["muted"], align=PP_ALIGN.RIGHT)
+            self.chrome = (head, line, sub)
+            return Inches(2.1)
         if S.get("header_band"):
             self.solid_background(slide, S["background"])
             to_back(self.rect(slide, 0, 0, W, Inches(1.3), fill=S["head_fill"]))     # the header band
