@@ -1,0 +1,751 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/*
+ * AGI 2027 design tokens.
+ *
+ * Three looks, each with a light and a dark mode. The inline script in the
+ * root layout sets data-look and data-theme on <html> before first paint.
+ *
+ *   renaissance  A living old-master painting, bold white grotesk, hot pink signal.
+ *   agent        Warm red, a felt 3D host, chat-style copy, white pills.
+ *   drop         Giant condensed words behind the product, juicy color blocks.
+ *
+ * Every text color is checked for WCAG AA contrast on the surfaces it sits on.
+ * Motion has one personality across the site ("physical"): springs for things
+ * that arrive, a smooth spring for state changes, a fast snap for hover.
+ */
+
+@custom-variant dark (&:where([data-theme="dark"], [data-theme="dark"] *));
+@custom-variant light (&:where([data-theme="light"], [data-theme="light"] *));
+@custom-variant renaissance (&:where([data-look="renaissance"], [data-look="renaissance"] *));
+@custom-variant agent (&:where([data-look="agent"], [data-look="agent"] *));
+@custom-variant drop (&:where([data-look="drop"], [data-look="drop"] *));
+
+/* ------------------------------------------------------------------ shared */
+:root {
+  --overlay: rgb(16 12 10 / 0.4);
+  --destructive: #d42c35;
+  --destructive-text: #c2282a;
+  --hero-ink: #ffffff;
+
+  --tone-gray: #625d58;
+  --tone-blue: #1d5fc2;
+  --tone-violet: #6a3fd1;
+  --tone-amber: #8f5c00;
+  --tone-orange: #b24d0b;
+  --tone-teal: #0b7a6c;
+  --tone-green: #177a3e;
+  --tone-red: #c2282a;
+
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --overlay: rgb(0 0 0 / 0.62);
+  --destructive-text: #ff7a72;
+
+  --tone-gray: #a39d96;
+  --tone-blue: #7ab8ff;
+  --tone-violet: #b79cff;
+  --tone-amber: #ffc857;
+  --tone-orange: #ff9f5a;
+  --tone-teal: #4fd8c4;
+  --tone-green: #5be38f;
+  --tone-red: #ff7a72;
+
+  color-scheme: dark;
+}
+
+/* ----------------------------------------------------- look: renaissance */
+:root,
+[data-look="renaissance"] {
+  --radius: 0.5rem;
+  --display-font: var(--font-geist-sans);
+  --display-weight: 700;
+  --display-tracking: -0.045em;
+  --display-leading: 0.92;
+  --display-case: none;
+  --display-scale: 1;
+
+  --background: #ece5d5;
+  --surface: #f6f1e6;
+  --surface-2: #e4dcc9;
+  --surface-3: #d9cfb9;
+  --popover: #f8f4ea;
+  --foreground: #1a2116;
+  --muted-foreground: #55594a;
+  --subtle-foreground: #636756;
+  --border: rgb(26 33 22 / 0.12);
+  --border-strong: rgb(26 33 22 / 0.2);
+  --input: rgb(26 33 22 / 0.18);
+  --ring: #1a2116;
+
+  --brand: #ff2e8a;
+  --brand-foreground: #1a0610;
+  --brand-text: #b8125f;
+  --glow: rgb(255 46 138 / 0.16);
+  --tone-brand: #b8125f;
+
+  --block-1: #2b3824;
+  --block-2: #8fa8bd;
+  --block-3: #c4875a;
+  --block-4: #ff2e8a;
+  --block-5: #e8dfc9;
+  --block-ink: #f6f1e6;
+
+  --grid-line: rgb(26 33 22 / 0.06);
+  --spotlight: rgb(255 248 230 / 0.6);
+  --highlight: rgb(255 252 244 / 0.85);
+  --shadow-rgb: 40 34 18;
+}
+
+[data-look="renaissance"][data-theme="dark"] {
+  --background: #10150e;
+  --surface: #171e14;
+  --surface-2: #1f271b;
+  --surface-3: #283223;
+  --popover: #1a2117;
+  --foreground: #efe8d8;
+  --muted-foreground: #abaa95;
+  --subtle-foreground: #9a9986;
+  --border: rgb(239 232 216 / 0.09);
+  --border-strong: rgb(239 232 216 / 0.16);
+  --input: rgb(239 232 216 / 0.13);
+  --ring: #efe8d8;
+
+  --brand: #ff3d93;
+  --brand-foreground: #1a0610;
+  --brand-text: #ff7db6;
+  --glow: rgb(255 61 147 / 0.14);
+  --tone-brand: #ff7db6;
+
+  --block-1: #24301e;
+  --block-5: #2a3324;
+  --block-ink: #efe8d8;
+
+  --grid-line: rgb(239 232 216 / 0.05);
+  --spotlight: rgb(255 236 200 / 0.06);
+  --highlight: rgb(239 232 216 / 0.08);
+  --shadow-rgb: 0 0 0;
+}
+
+/* ----------------------------------------------------------- look: agent */
+[data-look="agent"] {
+  --radius: 1.25rem;
+  --display-font: var(--font-geist-sans);
+  --display-weight: 500;
+  --display-tracking: -0.05em;
+  --display-leading: 0.96;
+  --display-case: none;
+  --display-scale: 1;
+
+  --background: #f4f0ec;
+  --surface: #fcfaf8;
+  --surface-2: #ebe5df;
+  --surface-3: #e1d9d1;
+  --popover: #fdfbf9;
+  --foreground: #171312;
+  --muted-foreground: #5e5652;
+  --subtle-foreground: #6b635f;
+  --border: rgb(23 19 18 / 0.1);
+  --border-strong: rgb(23 19 18 / 0.17);
+  --input: rgb(23 19 18 / 0.16);
+  --ring: #171312;
+
+  --brand: #e3261c;
+  --brand-foreground: #ffffff;
+  --brand-text: #c21d14;
+  --glow: rgb(227 38 28 / 0.14);
+  /* Status "brand" tone (Live, Paid) stays fuchsia: the look's red would read as Rejected. */
+  --tone-brand: #b3127a;
+
+  --hero-red: #d92e24;
+  --hero-red-deep: #b5170f;
+  --block-1: #d92e24;
+  --block-2: #171312;
+  --block-3: #f2cbbb;
+  --block-4: #6b7a3a;
+  --block-5: #fcfaf8;
+  --block-ink: #ffffff;
+
+  --grid-line: rgb(23 19 18 / 0.05);
+  --spotlight: rgb(255 246 240 / 0.7);
+  --highlight: rgb(255 255 255 / 0.9);
+  --shadow-rgb: 60 20 14;
+}
+
+[data-look="agent"][data-theme="dark"] {
+  --background: #150b0a;
+  --surface: #1e1210;
+  --surface-2: #281916;
+  --surface-3: #33211d;
+  --popover: #221412;
+  --foreground: #f7eeea;
+  --muted-foreground: #c0aba5;
+  --subtle-foreground: #a89590;
+  --border: rgb(247 238 234 / 0.09);
+  --border-strong: rgb(247 238 234 / 0.16);
+  --input: rgb(247 238 234 / 0.13);
+  --ring: #f7eeea;
+
+  --brand: #e3261c;
+  --brand-foreground: #ffffff;
+  --brand-text: #ff7f73;
+  --glow: rgb(242 54 43 / 0.16);
+  --tone-brand: #ff7ac8;
+
+  --block-2: #0d0605;
+  --block-3: #3a1f1a;
+  --block-5: #1e1210;
+
+  --grid-line: rgb(247 238 234 / 0.05);
+  --spotlight: rgb(255 200 180 / 0.06);
+  --highlight: rgb(247 238 234 / 0.08);
+  --shadow-rgb: 0 0 0;
+}
+
+/* ------------------------------------------------------------ look: drop */
+[data-look="drop"] {
+  --radius: 1.5rem;
+  --display-font: var(--font-anton);
+  --display-weight: 400;
+  --display-tracking: 0.005em;
+  --display-leading: 0.9;
+  --display-case: uppercase;
+  --display-scale: 1.18;
+
+  --background: #fbf8f4;
+  --surface: #fffdfb;
+  --surface-2: #f3eee7;
+  --surface-3: #e9e2d8;
+  --popover: #fffdfb;
+  --foreground: #16120f;
+  --muted-foreground: #5c554f;
+  --subtle-foreground: #69625b;
+  --border: rgb(22 18 15 / 0.1);
+  --border-strong: rgb(22 18 15 / 0.17);
+  --input: rgb(22 18 15 / 0.16);
+  --ring: #16120f;
+
+  --brand: #ff5b14;
+  --brand-foreground: #16120f;
+  --brand-text: #b83c00;
+  --glow: rgb(255 91 20 / 0.16);
+  /* Status "brand" tone (Live, Paid) stays fuchsia: the look's orange would read as Full. */
+  --tone-brand: #b3127a;
+
+  --block-1: #e0252b;
+  --block-2: #cf4a00;
+  --block-3: #127a36;
+  --block-4: #5b2ee8;
+  --block-5: #1e6bff;
+  --block-6: #d61f7c;
+  --block-ink: #ffffff;
+
+  --grid-line: rgb(22 18 15 / 0.05);
+  --spotlight: rgb(255 244 232 / 0.7);
+  --highlight: rgb(255 255 255 / 0.9);
+  --shadow-rgb: 70 30 10;
+}
+
+[data-look="drop"][data-theme="dark"] {
+  --background: #110f0e;
+  --surface: #1a1716;
+  --surface-2: #23201e;
+  --surface-3: #2d2926;
+  --popover: #1d1a18;
+  --foreground: #fbf4ec;
+  --muted-foreground: #b5aba2;
+  --subtle-foreground: #9e958c;
+  --border: rgb(251 244 236 / 0.09);
+  --border-strong: rgb(251 244 236 / 0.16);
+  --input: rgb(251 244 236 / 0.13);
+  --ring: #fbf4ec;
+
+  --brand: #ff6a26;
+  --brand-foreground: #16120f;
+  --brand-text: #ff9563;
+  --glow: rgb(255 106 38 / 0.14);
+  --tone-brand: #ff7ac8;
+
+  --grid-line: rgb(251 244 236 / 0.05);
+  --spotlight: rgb(255 220 190 / 0.06);
+  --highlight: rgb(251 244 236 / 0.08);
+  --shadow-rgb: 0 0 0;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-card: var(--surface);
+  --color-card-foreground: var(--foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--foreground);
+  --color-overlay: var(--overlay);
+
+  --color-primary: var(--foreground);
+  --color-primary-foreground: var(--background);
+  --color-secondary: var(--surface-2);
+  --color-secondary-foreground: var(--foreground);
+  --color-muted: var(--surface-2);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-subtle-foreground: var(--subtle-foreground);
+  --color-accent: var(--surface-3);
+  --color-accent-foreground: var(--foreground);
+
+  --color-brand: var(--brand);
+  --color-brand-foreground: var(--brand-foreground);
+  --color-brand-text: var(--brand-text);
+  --color-destructive: var(--destructive);
+  --color-destructive-text: var(--destructive-text);
+  --color-hero-ink: var(--hero-ink);
+
+  --color-block-1: var(--block-1);
+  --color-block-2: var(--block-2);
+  --color-block-3: var(--block-3);
+  --color-block-4: var(--block-4);
+  --color-block-5: var(--block-5);
+  --color-block-6: var(--block-6, var(--block-1));
+  --color-block-ink: var(--block-ink);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
+  --font-display: var(--display-font), var(--font-geist-sans), ui-sans-serif, sans-serif;
+
+  --shadow-soft:
+    0 1px 1px rgb(var(--shadow-rgb) / 0.04), 0 2px 4px rgb(var(--shadow-rgb) / 0.04),
+    0 8px 16px rgb(var(--shadow-rgb) / 0.05), 0 18px 36px rgb(var(--shadow-rgb) / 0.06);
+  --shadow-float:
+    0 2px 3px rgb(var(--shadow-rgb) / 0.06), 0 10px 16px rgb(var(--shadow-rgb) / 0.08),
+    16px 28px 44px rgb(var(--shadow-rgb) / 0.14), 30px 54px 80px rgb(var(--shadow-rgb) / 0.12);
+
+  --radius-sm: calc(var(--radius) * 0.5);
+  --radius-md: calc(var(--radius) * 0.75);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.25);
+  --radius-2xl: calc(var(--radius) * 1.5);
+  --radius-3xl: calc(var(--radius) * 2);
+
+  /*
+   * The motion palette: three curves, one personality.
+   * spring-snappy  everything that arrives (reveals, entries, sheets)
+   * spring-smooth  things that move from A to B (tabs, slides, layout)
+   * snap           hover and press feedback
+   */
+  --ease-spring-snappy: linear(
+    0,
+    0.009,
+    0.035 2.1%,
+    0.141 4.4%,
+    0.723 12.9%,
+    0.938 16.7%,
+    1.017 19.4%,
+    1.067 22.5%,
+    1.089 26%,
+    1.079 30.3%,
+    1.049 36%,
+    1.024 42.6%,
+    1.011 50.3%,
+    1.004 59.2%,
+    1.001 69.3%,
+    1
+  );
+  --ease-spring-smooth: linear(
+    0,
+    0.004,
+    0.016 2.3%,
+    0.063 4.7%,
+    0.141 7.2%,
+    0.25 9.9%,
+    0.601 16.5%,
+    0.815 21%,
+    0.929 25.2%,
+    0.987 29%,
+    1.025 33.5%,
+    1.042 38%,
+    1.04 43.5%,
+    1.027 50%,
+    1.013 57.5%,
+    1.005 67%,
+    1.001 79%,
+    1
+  );
+  --ease-snap: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --animate-shimmer: shimmer 1.8s var(--ease-snap) infinite;
+  --animate-pulse-ring: pulse-ring 2.4s var(--ease-snap) infinite;
+  --animate-rise: rise 0.7s var(--ease-spring-snappy) both;
+  --animate-fade-in: fade-in 0.6s var(--ease-snap) both;
+  --animate-marquee: marquee 40s linear infinite;
+  --animate-float: float 7s ease-in-out infinite;
+  --animate-spin-slow: spin 18s linear infinite;
+  --animate-glow: glow 3.2s ease-in-out infinite;
+  --animate-line: line-up 1s var(--ease-spring-snappy) both;
+  --animate-pop: pop 0.6s var(--ease-spring-snappy) both;
+  --animate-stream: stream 0.9s var(--ease-snap) both;
+
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+
+  @keyframes pulse-ring {
+    0% {
+      transform: scale(1);
+      opacity: 0.7;
+    }
+    80%,
+    100% {
+      transform: scale(2.8);
+      opacity: 0;
+    }
+  }
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translateY(24px);
+      filter: blur(6px);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+      filter: none;
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      translate: 0 0;
+    }
+    50% {
+      translate: 0 -10px;
+    }
+  }
+
+  @keyframes line-up {
+    from {
+      transform: translateY(110%);
+    }
+    to {
+      transform: none;
+    }
+  }
+
+  @keyframes stream {
+    from {
+      opacity: 0;
+      filter: blur(10px);
+      transform: translateY(3px);
+    }
+    to {
+      opacity: 1;
+      filter: none;
+      transform: none;
+    }
+  }
+
+  @keyframes pop {
+    from {
+      opacity: 0;
+      transform: scale(0.92);
+    }
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  @keyframes glow {
+    0%,
+    100% {
+      opacity: 0.75;
+      scale: 1;
+    }
+    50% {
+      opacity: 1;
+      scale: 1.08;
+    }
+  }
+
+  @keyframes marquee {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-50%);
+    }
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html {
+    background-color: var(--background);
+    -webkit-tap-highlight-color: transparent;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background font-sans text-foreground antialiased;
+    letter-spacing: -0.011em;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--brand) 40%, transparent);
+    color: var(--foreground);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+  }
+
+  /* Numbers line up in tables, stats and countdowns. */
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+/* Page transitions between public pages (React <ViewTransition>). */
+::view-transition-old(.page-out) {
+  animation: 160ms var(--ease-snap) both vt-fade reverse;
+}
+::view-transition-new(.page-in) {
+  animation:
+    260ms var(--ease-snap) 120ms both vt-fade,
+    480ms var(--ease-spring-smooth) both vt-rise;
+}
+@keyframes vt-fade {
+  from {
+    opacity: 0;
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    filter: none;
+  }
+}
+@keyframes vt-rise {
+  from {
+    transform: translateY(16px);
+  }
+  to {
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* Only the active look's version of a block is shown (set before paint). */
+.look-renaissance,
+.look-agent,
+.look-drop {
+  display: none;
+}
+:root:not([data-look]) .look-renaissance,
+[data-look="renaissance"] .look-renaissance,
+[data-look="agent"] .look-agent,
+[data-look="drop"] .look-drop {
+  display: contents;
+}
+
+/* Type scale. The display face and its weight, tracking and case come from the
+   active look; fluid sizes so phones and desktops both read well. */
+@utility text-display {
+  font-family: var(--font-display);
+  font-size: calc(clamp(2.75rem, 1.4rem + 5.6vw, 6rem) * var(--display-scale));
+  line-height: var(--display-leading);
+  letter-spacing: var(--display-tracking);
+  font-weight: var(--display-weight);
+  text-transform: var(--display-case);
+}
+
+@utility text-h1 {
+  font-family: var(--font-display);
+  font-size: calc(clamp(2.25rem, 1.45rem + 3.4vw, 4.25rem) * var(--display-scale));
+  line-height: calc(var(--display-leading) + 0.06);
+  letter-spacing: var(--display-tracking);
+  font-weight: var(--display-weight);
+  text-transform: var(--display-case);
+}
+
+@utility text-h2 {
+  font-family: var(--font-display);
+  font-size: calc(clamp(1.875rem, 1.3rem + 2.4vw, 3.25rem) * var(--display-scale));
+  line-height: calc(var(--display-leading) + 0.08);
+  letter-spacing: var(--display-tracking);
+  font-weight: var(--display-weight);
+  text-transform: var(--display-case);
+}
+
+@utility text-h3 {
+  font-size: 1.125rem;
+  line-height: 1.35;
+  letter-spacing: -0.018em;
+  font-weight: 600;
+}
+
+@utility text-lead {
+  font-size: clamp(1.0625rem, 0.98rem + 0.4vw, 1.25rem);
+  line-height: 1.55;
+  letter-spacing: -0.015em;
+}
+
+/* Big figures (money, stats): the sans with tabular digits. */
+@utility text-figure {
+  font-family: var(--font-sans);
+  font-weight: 600;
+  letter-spacing: -0.045em;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Small mono kicker, used sparingly: field labels and meta. */
+@utility text-label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+/* Hairline grid texture. Pair with a mask utility so it fades out. */
+@utility bg-grid {
+  background-image:
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: 64px 64px;
+}
+
+@utility mask-fade-radial {
+  mask-image: radial-gradient(ellipse 65% 55% at 50% 35%, #000 25%, transparent 80%);
+}
+
+@utility mask-fade-bottom {
+  mask-image: linear-gradient(to bottom, #000 60%, transparent);
+}
+
+@utility mask-fade-x {
+  mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
+}
+
+/* Soft light from the top edge of a section. */
+@utility bg-spotlight {
+  background: radial-gradient(60rem 28rem at 50% -8rem, var(--spotlight), transparent 70%);
+}
+
+/* Film grain, scoped to a section so it never costs anything on scroll. */
+@utility texture-noise {
+  position: relative;
+  isolation: isolate;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.05;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .55 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+}
+
+/* A 1px highlight along the top edge of a card. */
+@utility edge-highlight {
+  &::before {
+    content: "";
+    position: absolute;
+    inset-inline: 1.25rem;
+    top: -1px;
+    height: 1px;
+    pointer-events: none;
+    background: linear-gradient(to right, transparent, var(--highlight), transparent);
+  }
+}
+
+/* Press feedback for anything tappable that isn't a <Button>. */
+@utility pressable {
+  transition: transform 160ms var(--ease-snap);
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+/* Status tone, set with data-tone on dots and status text. */
+[data-tone="gray"] {
+  --tone-fg: var(--tone-gray);
+}
+[data-tone="blue"] {
+  --tone-fg: var(--tone-blue);
+}
+[data-tone="violet"] {
+  --tone-fg: var(--tone-violet);
+}
+[data-tone="amber"] {
+  --tone-fg: var(--tone-amber);
+}
+[data-tone="orange"] {
+  --tone-fg: var(--tone-orange);
+}
+[data-tone="teal"] {
+  --tone-fg: var(--tone-teal);
+}
+[data-tone="green"] {
+  --tone-fg: var(--tone-green);
+}
+[data-tone="red"] {
+  --tone-fg: var(--tone-red);
+}
+[data-tone="brand"] {
+  --tone-fg: var(--tone-brand);
+}
+
+/* Bottom tab bar and sheets respect the iPhone home indicator. */
+@utility pb-safe {
+  padding-bottom: max(env(safe-area-inset-bottom), 0.5rem);
+}

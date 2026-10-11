@@ -1,0 +1,88 @@
+# AGI 2027 web platform (agi-2027/). Runs only when that folder changes.
+name: AGI 2027
+
+on:
+  push:
+    paths:
+      - "agi-2027/**"
+      - ".github/workflows/agi-2027.yml"
+  pull_request:
+    paths:
+      - "agi-2027/**"
+      - ".github/workflows/agi-2027.yml"
+
+# A newer push to a pull request replaces the older run. Branch pushes are never
+# cancelled part-way, so a migration can't stop in the middle.
+concurrency:
+  group: agi-2027-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+permissions:
+  contents: read
+
+defaults:
+  run:
+    working-directory: agi-2027
+
+jobs:
+  check:
+    name: Lint, test and build
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: agi-2027/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run typecheck
+      - name: Unit tests
+        run: npm test
+      - name: Database tests (RLS and database functions)
+        run: npm run test:db
+        env:
+          TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+      - run: npm run build
+
+  migrate-dev:
+    name: Apply migrations to the dev database
+    needs: check
+    # Feature branches update the dev project. Production gets its own job at launch.
+    if: github.event_name == 'push' && github.ref != 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Check for the dev database secret
+        id: secret
+        env:
+          DEV_DATABASE_URL: ${{ secrets.DEV_DATABASE_URL }}
+        run: |
+          if [ -z "$DEV_DATABASE_URL" ]; then
+            echo "::notice title=Dev migrations skipped::Add the DEV_DATABASE_URL repository secret to apply migrations to the dev Supabase project."
+            echo "present=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          fi
+      - uses: supabase/setup-cli@v1
+        if: steps.secret.outputs.present == 'true'
+        with:
+          version: latest
+      - name: Push migrations and seed data
+        if: steps.secret.outputs.present == 'true'
+        env:
+          DEV_DATABASE_URL: ${{ secrets.DEV_DATABASE_URL }}
+        run: supabase db push --db-url "$DEV_DATABASE_URL" --include-all --include-seed
