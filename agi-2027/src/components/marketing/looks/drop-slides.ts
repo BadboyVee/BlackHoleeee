@@ -1,7 +1,7 @@
 /**
- * The Drop hero's slides: one word for each kind of attention we sell, the
- * post a creator might write, and the floating icons around it. Brands and
- * creators are made up; numbers are sample data.
+ * The Drop hero's slides: one word for each kind of attention we sell, a real
+ * launch post on X standing in front of it (see src/lib/showcase-posts.ts),
+ * and the floating icons around it.
  */
 
 export type DropIcon = {
@@ -28,17 +28,8 @@ export type DropSlide = {
   shade: string;
   title: string;
   body: string;
-  post: {
-    name: string;
-    handle: string;
-    initials: string;
-    avatar: string;
-    text: string;
-    card: { label: string; from: string; to: string };
-    time: string;
-    views: string;
-    stats: { replies: string; reposts: string; likes: string; saves: string };
-  };
+  /** The real post the phone shows, from showcasePosts. */
+  postId: string;
   icons: DropIcon[];
 };
 
@@ -50,17 +41,7 @@ export const dropSlides: DropSlide[] = [
     shade: "#9e1015",
     title: "Launch campaigns",
     body: "Twenty creators, one launch day, every post timed to the minute.",
-    post: {
-      name: "Amara Okafor",
-      handle: "@amarabuilds",
-      initials: "AO",
-      avatar: "linear-gradient(135deg,#ffb36b,#ff5e7e)",
-      text: "Built a working agent with @nebula_ai 2.0 in ten minutes. No code. This changes who gets to build. #Nebula2",
-      card: { label: "Nebula 2.0", from: "#5b2ee8", to: "#9a6bff" },
-      time: "4:12 PM",
-      views: "412K",
-      stats: { replies: "182", reposts: "1.4K", likes: "9.8K", saves: "2.1K" },
-    },
+    postId: "2105311618284527767",
     icons: [
       { name: "bolt", x: 15, y: 27, size: 9, rotate: -14, depth: 0.35 },
       { name: "heartwhite", x: 80, y: 30, size: 11, rotate: 12, depth: 0.5 },
@@ -76,17 +57,7 @@ export const dropSlides: DropSlide[] = [
     shade: "#0b3aa8",
     title: "Funding news",
     body: "Your raise, explained by the people founders already listen to.",
-    post: {
-      name: "Lucía Ferrer",
-      handle: "@luciaferrer",
-      initials: "LF",
-      avatar: "linear-gradient(135deg,#7ad7ff,#4a6bff)",
-      text: "Search that understands meaning just got funded. Big week for @vectorline and for anyone building AI search.",
-      card: { label: "Series A", from: "#0f172a", to: "#1e6bff" },
-      time: "9:03 AM",
-      views: "268K",
-      stats: { replies: "96", reposts: "812", likes: "5.2K", saves: "1.3K" },
-    },
+    postId: "2108613100413096046",
     icons: [
       { name: "arrow", x: 17, y: 30, size: 9, rotate: 6, depth: 0.4 },
       { name: "sparklime", x: 82, y: 26, size: 8, rotate: -16, depth: 0.3 },
@@ -102,17 +73,7 @@ export const dropSlides: DropSlide[] = [
     shade: "#8a2f00",
     title: "Product drops",
     body: "Creators show it working, on the day it ships, in their own words.",
-    post: {
-      name: "Theo Lindqvist",
-      handle: "@theoships",
-      initials: "TL",
-      avatar: "linear-gradient(135deg,#ffe066,#ff8a3d)",
-      text: "The new @lumenlabs 8B runs on my laptop. Offline, fast, open weights. Clip below, judge for yourself. #LumenOpen",
-      card: { label: "Open weights", from: "#16120f", to: "#cf4a00" },
-      time: "6:40 PM",
-      views: "533K",
-      stats: { replies: "240", reposts: "2.2K", likes: "14K", saves: "3.8K" },
-    },
+    postId: "2105230308132225289",
     icons: [
       { name: "heartwhite", x: 16, y: 25, size: 10, rotate: -18, depth: 0.45 },
       { name: "bubble", x: 84, y: 30, size: 10, rotate: 10, depth: 0.4 },
@@ -128,17 +89,7 @@ export const dropSlides: DropSlide[] = [
     shade: "#2f1494",
     title: "Founder content",
     body: "Your founder's story, carried further by voices people trust.",
-    post: {
-      name: "Hana Sato",
-      handle: "@hanaonai",
-      initials: "HS",
-      avatar: "linear-gradient(135deg,#ff9bd2,#9a6bff)",
-      text: "Year one of @quillwire, told by the founder. The part about shipping docs nobody reads hit home. Worth the read.",
-      card: { label: "Year one", from: "#2f1494", to: "#ff9bd2" },
-      time: "11:26 AM",
-      views: "187K",
-      stats: { replies: "71", reposts: "604", likes: "4.1K", saves: "988" },
-    },
+    postId: "2107497652871155953",
     icons: [
       { name: "sparklime", x: 15, y: 28, size: 8, rotate: 10, depth: 0.3 },
       { name: "heart", x: 81, y: 27, size: 10, rotate: 14, depth: 0.45 },
@@ -148,23 +99,13 @@ export const dropSlides: DropSlide[] = [
     ],
   },
   {
-    id: "daily",
-    word: "Daily",
+    id: "hype",
+    word: "Hype",
     color: "#127a36",
     shade: "#09461e",
-    title: "Always-on posting",
-    body: "A steady drumbeat of posts every month, so your name stays in the feed.",
-    post: {
-      name: "Priya Raman",
-      handle: "@priyaprompts",
-      initials: "PR",
-      avatar: "linear-gradient(135deg,#b6f23a,#2ec27e)",
-      text: "Week four with @orbitar and I sketch every feature on paper first now. Napkin to prototype before lunch. #OrbitarBeta",
-      card: { label: "Week four", from: "#0d2b18", to: "#2ec27e" },
-      time: "2:15 PM",
-      views: "144K",
-      stats: { replies: "58", reposts: "397", likes: "3.3K", saves: "740" },
-    },
+    title: "Hype that converts",
+    body: "Comment, repost, get access: launch posts that turn a feed into a waitlist.",
+    postId: "2106449214536605976",
     icons: [
       { name: "bars", x: 16, y: 28, size: 9, rotate: -8, depth: 0.4 },
       { name: "heartwhite", x: 83, y: 29, size: 10, rotate: 10, depth: 0.45 },

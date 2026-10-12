@@ -11,10 +11,13 @@ import {
   useTransform,
   type MotionValue,
 } from "motion/react";
-import { ArrowLeft, ArrowRight, BarChart3, Bookmark, Heart, MessageCircle, Repeat2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, ArrowUpRight, Bookmark, Heart, MessageCircle, Repeat2, Share2 } from "lucide-react";
 
 import { useLook } from "@/components/theme/look-picker";
+import { getShowcasePost, mediaAspect, STATS_AS_OF, type ShowcasePost } from "@/lib/showcase-posts";
+import { formatUtcDate } from "@/lib/time";
 import { cn } from "@/lib/utils";
+import { PostAvatar, PostText, VerifiedBadge } from "../x-post";
 import { dropSlides, type DropIcon, type DropSlide } from "./drop-slides";
 
 const AUTO_MS = 6500;
@@ -28,7 +31,7 @@ function wordSize(word: string) {
 
 /**
  * Drop hero, after the classic juice-bottle hero: one giant word in white, the
- * product standing in front of it (here, a phone showing a creator's post),
+ * product standing in front of it (here, a phone showing a real launch post),
  * glossy icons floating around it, a juicy color per slide, dots and a
  * counter. Swipe, use the arrows or the keyboard; it moves on by itself until
  * someone interacts.
@@ -42,7 +45,10 @@ function DropHero() {
   const [direction, setDirection] = useState(1);
   const [paused, setPaused] = useState(false);
   const [interacted, setInteracted] = useState(false);
+  // Keyboard and screen reader users get a still carousel while they're in it.
+  const [focusWithin, setFocusWithin] = useState(false);
   const slide = dropSlides[index];
+  const post = getShowcasePost(slide.postId);
   const count = dropSlides.length;
 
   const go = useCallback(
@@ -54,7 +60,7 @@ function DropHero() {
   );
 
   // Advance on a timer while the Drop look is showing and nobody is interacting.
-  const autoplay = look === "drop" && !reduceMotion && !paused && !interacted;
+  const autoplay = look === "drop" && !reduceMotion && !paused && !interacted && !focusWithin;
   useEffect(() => {
     if (!autoplay) return;
     const timer = window.setTimeout(() => go(index + 1, 1), AUTO_MS);
@@ -68,6 +74,19 @@ function DropHero() {
     document.addEventListener("visibilitychange", onVisibility);
     return () => document.removeEventListener("visibilitychange", onVisibility);
   }, []);
+
+  // Fetch every slide's pictures once the page has settled, so no slide
+  // arrives with an empty frame. The phone uses these exact URLs.
+  useEffect(() => {
+    if (look !== "drop") return;
+    const timer = window.setTimeout(() => {
+      for (const item of dropSlides) {
+        const { author, media } = getShowcasePost(item.postId);
+        for (const src of [author.avatar, media.src]) new Image().src = src;
+      }
+    }, 1200);
+    return () => window.clearTimeout(timer);
+  }, [look]);
 
   // Pointer parallax without re-rendering: motion values only.
   const px = useMotionValue(0);
@@ -94,6 +113,10 @@ function DropHero() {
       }}
       onPointerLeave={(event) => {
         if (event.pointerType === "mouse") setPaused(false);
+      }}
+      onFocus={() => setFocusWithin(true)}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocusWithin(false);
       }}
       onPointerDown={(event) => {
         if (event.pointerType !== "mouse") swipeStart.current = { x: event.clientX, y: event.clientY };
@@ -189,7 +212,7 @@ function DropHero() {
             className="[transform-style:preserve-3d]"
           >
             <Floaty disabled={still}>
-              <Phone slide={slide} />
+              <Phone post={post} />
             </Floaty>
           </motion.div>
         </AnimatePresence>
@@ -214,6 +237,21 @@ function DropHero() {
               <p className="mt-1 text-[15px] leading-snug text-white/88">{slide.body}</p>
             </motion.div>
           </AnimatePresence>
+          {/* One lasting link whose text changes, so keyboard focus survives a slide change. */}
+          <p className="mt-1.5 flex flex-wrap items-center gap-x-3 text-[13px] text-white/80">
+            <a
+              href={post.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-6 items-center gap-1 font-semibold text-white/90 underline decoration-white/40 underline-offset-[3px] transition-colors hover:text-white hover:decoration-white"
+            >
+              <motion.span key={post.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+                Example: {post.author.name}&rsquo;s post on X
+              </motion.span>
+              <ArrowUpRight aria-hidden className="size-3.5" />
+            </a>
+            {Object.keys(post.stats).length > 0 ? <span>Numbers as of {formatUtcDate(STATS_AS_OF)}</span> : null}
+          </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Link
               href="/book"
@@ -408,9 +446,9 @@ function FloatingIcon({
   );
 }
 
-/** The product: a phone showing a creator's post, rendered as real UI. */
-function Phone({ slide }: { slide: DropSlide }) {
-  const { post } = slide;
+/** The product: a phone showing a real launch post, drawn as X's post page. */
+function Phone({ post }: { post: ShowcasePost }) {
+  const { author, media, stats } = post;
   return (
     <div
       className="relative w-[292px] origin-center scale-[0.5] rounded-[2.6rem] min-[420px]:scale-[0.58] sm:scale-[0.72] md:scale-[0.8] lg:scale-[0.9] xl:scale-100 [@media(max-height:760px)_and_(min-width:640px)]:scale-[0.78] bg-[linear-gradient(145deg,#3a3a3c,#0d0d0e_45%,#2a2a2c)] p-[9px] shadow-[0_2px_0_1px_rgb(255_255_255/0.12)_inset,0_40px_80px_-20px_rgb(0_0_0/0.55),0_18px_36px_-12px_rgb(0_0_0/0.4)]"
@@ -433,83 +471,82 @@ function Phone({ slide }: { slide: DropSlide }) {
         </div>
         <div className="flex-1 overflow-hidden px-4 pt-3 text-left">
           <div className="flex items-center gap-2.5">
-            <span
-              className="flex size-9 shrink-0 items-center justify-center rounded-full text-[11px] font-bold text-white"
-              style={{ background: post.avatar }}
-            >
-              {post.initials}
-            </span>
+            <PostAvatar author={author} className="size-9" />
             <span className="min-w-0 leading-tight">
               <span className="flex items-center gap-1 text-[13px] font-bold">
-                {post.name}
-                <svg viewBox="0 0 24 24" aria-hidden className="size-3.5 fill-[#1d9bf0]">
-                  <path d="M12 1.5l2.6 1.9 3.2-.2 1 3 2.6 1.9-1 3 1 3-2.6 1.9-1 3-3.2-.2L12 22.5l-2.6-1.9-3.2.2-1-3-2.6-1.9 1-3-1-3 2.6-1.9 1-3 3.2.2z" />
-                  <path d="M10.4 15.6l-3.2-3.2 1.4-1.4 1.8 1.8 4.9-4.9 1.4 1.4z" fill="#fff" />
-                </svg>
+                <span className="truncate">{author.name}</span>
+                <VerifiedBadge badge={author.badge} className="size-3.5 shrink-0" />
               </span>
-              <span className="block text-[11.5px] text-[#536471]">{post.handle}</span>
+              <span className="block text-[11.5px] text-[#536471]">@{author.handle}</span>
             </span>
           </div>
-          <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-[#eef3f6] px-2 py-0.5 text-[9.5px] font-semibold text-[#536471]">
-            Paid partnership
-          </span>
-          <p className="mt-2 text-[12.5px] leading-[1.38]">
-            {post.text.split(/(\s+)/).map((part, i) =>
-              /^[@#]/.test(part) ? (
-                <span key={i} className="text-[#1d9bf0]">
-                  {part}
-                </span>
-              ) : (
-                part
-              ),
-            )}
-          </p>
+          <PostText
+            post={post}
+            max={250}
+            className="mt-2 text-[12.5px] leading-[1.38]"
+            accentClassName="text-[#1d9bf0]"
+            more={<span className="text-[#1d9bf0]"> Show more</span>}
+          />
           <div
-            className="mt-2.5 flex aspect-[16/10] items-end rounded-xl p-2.5"
-            style={{ background: `linear-gradient(135deg, ${post.card.from}, ${post.card.to})` }}
+            className="relative mt-2.5 overflow-hidden rounded-xl bg-black/5 ring-1 ring-black/8"
+            style={{ aspectRatio: mediaAspect(media) }}
           >
-            <span className="font-[family-name:var(--font-anton)] text-[22px] leading-none tracking-[0.01em] text-white uppercase drop-shadow-[0_1px_8px_rgb(0_0_0/0.25)]">
-              {post.card.label}
-            </span>
+            {/* eslint-disable-next-line @next/next/no-img-element -- preloaded by URL for the slide change */}
+            <img
+              src={media.src}
+              alt={media.alt}
+              width={media.width}
+              height={media.height}
+              decoding="async"
+              draggable={false}
+              className="size-full object-cover"
+              style={{ objectPosition: media.focus }}
+            />
           </div>
+          {media.kind === "link" && media.from ? (
+            <p className="mt-1 text-[10px] text-[#536471]">From {media.from}</p>
+          ) : null}
           <p className="mt-2 text-[10.5px] text-[#536471]">
-            {post.time} · <span className="font-semibold text-[#0f1419]">{post.views}</span> Views
+            {formatUtcDate(post.postedAt)}
+            {stats.views ? (
+              <>
+                {" · "}
+                <span className="font-semibold text-[#0f1419]">{stats.views}</span> Views
+              </>
+            ) : null}
           </p>
           <div className="mt-2 flex justify-between border-t border-black/8 pt-2 text-[10.5px] text-[#536471]">
-            <span className="flex items-center gap-1">
-              <MessageCircle className="size-3.5" />
-              {post.stats.replies}
-            </span>
-            <span className="flex items-center gap-1">
-              <Repeat2 className="size-3.5" />
-              {post.stats.reposts}
-            </span>
-            <span className="flex items-center gap-1 text-[#f91880]">
-              <Heart className="size-3.5 fill-current" />
-              {post.stats.likes}
-            </span>
-            <span className="flex items-center gap-1">
-              <BarChart3 className="size-3.5" />
-              {post.views}
-            </span>
-            <Bookmark className="size-3.5" />
+            <PhoneStat icon={MessageCircle} value={stats.replies} />
+            <PhoneStat icon={Repeat2} value={stats.reposts} />
+            <PhoneStat icon={Heart} value={stats.likes} className={stats.likes ? "text-[#f91880] [&_svg]:fill-current" : undefined} />
+            <PhoneStat icon={Bookmark} value={stats.bookmarks} />
+            <Share2 className="size-3.5" />
           </div>
           <div className="mt-3 flex items-center gap-2 border-t border-black/8 pt-3">
-            <span className="size-7 shrink-0 rounded-full bg-[linear-gradient(135deg,#c6ff3a,#2ec27e)]" />
+            <span className="size-7 shrink-0 rounded-full bg-[#e7ecf0]" />
             <span className="flex-1 text-[11.5px] text-[#536471]">Post your reply</span>
             <span className="rounded-full bg-[#0f1419] px-3 py-1 text-[10.5px] font-bold text-white">Reply</span>
-          </div>
-          <div className="mt-3 flex gap-2">
-            <span className="size-7 shrink-0 rounded-full bg-[linear-gradient(135deg,#8fd3ff,#5b2ee8)]" />
-            <span className="text-[11.5px] leading-snug">
-              <span className="font-bold">Kwame</span> <span className="text-[#536471]">@kwamecodes</span>
-              <br />
-              Trying this tonight. Ten minutes, really?
-            </span>
           </div>
         </div>
       </div>
     </div>
+  );
+}
+
+function PhoneStat({
+  icon: Icon,
+  value,
+  className,
+}: {
+  icon: typeof Heart;
+  value?: string;
+  className?: string;
+}) {
+  return (
+    <span className={cn("flex items-center gap-1", className)}>
+      <Icon className="size-3.5" />
+      {value}
+    </span>
   );
 }
 

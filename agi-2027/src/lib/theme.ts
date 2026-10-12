@@ -9,7 +9,8 @@ export type Look = "renaissance" | "agent" | "drop";
 export const THEME_STORAGE_KEY = "agi-theme";
 export const LOOK_STORAGE_KEY = "agi-look";
 export const DEFAULT_THEME: Theme = "light";
-export const DEFAULT_LOOK: Look = "renaissance";
+/** Picked 11 Oct 2026: shows the product at a glance and loads without 3D. */
+export const DEFAULT_LOOK: Look = "drop";
 
 export const LOOKS: { id: Look; name: string; description: string }[] = [
   {
