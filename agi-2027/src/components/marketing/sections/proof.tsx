@@ -58,7 +58,7 @@ function PostCard({ post, index }: { post: ShowcasePost; index: number }) {
       <PostText
         post={post}
         max={280}
-        className="mt-4 flex-1 text-[15px] leading-relaxed text-pretty"
+        className="mt-4 text-[15px] leading-relaxed text-pretty"
         accentClassName="text-[#1d9bf0] drop:font-semibold drop:text-white drop:underline drop:underline-offset-2"
         more={
           <>
@@ -92,7 +92,8 @@ function PostCard({ post, index }: { post: ShowcasePost; index: number }) {
           <figcaption className="mt-1.5 text-xs text-subtle-foreground drop:text-white/75">From {media.from}</figcaption>
         ) : null}
       </figure>
-      <p className="mt-4 text-xs text-subtle-foreground drop:text-white/80">
+      {/* In the phone carousel every card is as tall as the tallest; spare room goes here. */}
+      <p className="mt-auto pt-4 text-xs text-subtle-foreground drop:text-white/80">
         Posted on X, {formatUtcDate(post.postedAt)}
       </p>
       {metrics.length > 0 ? (
