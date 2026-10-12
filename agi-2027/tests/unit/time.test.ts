@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatCountdown, formatDateTime, formatRange, formatTime, formatUtcTime } from "@/lib/time";
+import { formatCountdown, formatDateTime, formatRange, formatTime, formatUtcDate, formatUtcTime } from "@/lib/time";
 
 describe("formatCountdown", () => {
   it("shows days and hours when more than a day is left", () => {
@@ -69,5 +69,12 @@ describe("formatRange", () => {
     expect(formatRange("2026-11-03T22:00:00Z", "2026-11-03T23:30:00Z", "Asia/Tokyo")).toBe(
       "Wed 4 Nov, 07:00 to 08:30",
     );
+  });
+});
+
+describe("formatUtcDate", () => {
+  it("gives the calendar date in UTC with a fixed month name", () => {
+    expect(formatUtcDate("2026-09-30T14:59:39Z")).toBe("30 Sep 2026");
+    expect(formatUtcDate("2026-10-03T23:30:00-05:00")).toBe("4 Oct 2026");
   });
 });

@@ -72,3 +72,14 @@ export function formatRange(start: Date | string, end: Date | string, timeZone?:
     ? `${from} to ${b.hour}:${b.minute}`
     : `${from} to ${b.weekday} ${b.day} ${b.month}, ${b.hour}:${b.minute}`;
 }
+
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+/**
+ * "30 Sep 2026", the calendar date in UTC. Built without Intl: ICU versions
+ * disagree even on month names ("Sep" or "Sept"), which breaks hydration.
+ */
+export function formatUtcDate(date: Date | string): string {
+  const d = new Date(date);
+  return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
+}

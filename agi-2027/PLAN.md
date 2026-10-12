@@ -263,8 +263,13 @@ and claims in every status.
   from our own code. No artwork, text or logos from the reference sites are used.
 - **Currencies to start:** USD, USDC, USDT and NGN, editable in Settings.
 - **Services:** the three from the spec, as placeholders until you confirm the list.
-- **Homepage content** (stats, logos, featured posts, FAQ) is seeded with placeholders in M2. The
-  editor arrives in M9.
+- **Featured posts are real** (12 Oct 2026): the five launch posts you sent (Kled, micro1,
+  Maincode, Ali Ansari, Hedwig) fill the Drop hero's phone and the proof section, most viewed
+  first. Text, numbers and pictures come from your screenshots, each post links to the real one on
+  X, and a number that couldn't be read is left out. They live in `src/lib/showcase-posts.ts`
+  until the content editor (M9) takes over. The numbers are a snapshot and say so on the page.
+- **Other homepage content** (stats, brand names, FAQ) is still placeholder. The editor arrives in
+  M9; send real numbers and client names whenever you have them.
 - **Admin only:** payouts, team, settings and invite links, plus suspending or removing creators.
   Team can do everything else, but never sees payout details.
 - **Your admin account** comes from a one-time setup step in M3, tied to your email.

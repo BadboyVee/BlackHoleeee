@@ -32,38 +32,6 @@ export const brands = [
   "Northwind",
 ];
 
-export type FeaturedPost = {
-  creator: { name: string; handle: string; initials: string; hue: number };
-  brand: string;
-  moment: string;
-  text: string;
-  metrics: { views: number; likes: number; reposts: number };
-};
-
-export const featuredPosts: FeaturedPost[] = [
-  {
-    creator: { name: "Mira Okafor", handle: "mira_builds", initials: "MO", hue: 95 },
-    brand: "Nebula",
-    moment: "Launch day",
-    text: "Nebula 2.0 shipped agents that actually finish the job. I handed it my content calendar and it planned, drafted and scheduled a full week in four minutes.",
-    metrics: { views: 1_240_000, likes: 18_400, reposts: 2_100 },
-  },
-  {
-    creator: { name: "Devon Hale", handle: "devonships", initials: "DH", hue: 210 },
-    brand: "Vectorline",
-    moment: "Funding news",
-    text: "Vectorline just raised to make vector search boring, and boring is the point. Moved a 40M-row index over in an afternoon. p95 went from 180ms to 22ms.",
-    metrics: { views: 862_000, likes: 9_800, reposts: 1_400 },
-  },
-  {
-    creator: { name: "Kai Moreno", handle: "kai_codes", initials: "KM", hue: 280 },
-    brand: "Orbitar",
-    moment: "Product drop",
-    text: "Orbitar's design agent turned a napkin sketch into a clickable prototype while my coffee brewed. If you're a founder still hiring for v0, watch this first.",
-    metrics: { views: 640_000, likes: 7_200, reposts: 950 },
-  },
-];
-
 export const services = [
   {
     title: "Launch campaigns",
