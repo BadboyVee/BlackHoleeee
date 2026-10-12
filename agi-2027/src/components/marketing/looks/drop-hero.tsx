@@ -14,7 +14,7 @@ import {
 import { ArrowLeft, ArrowRight, ArrowUpRight, Bookmark, Heart, MessageCircle, Repeat2, Share2 } from "lucide-react";
 
 import { useLook } from "@/components/theme/look-picker";
-import { getShowcasePost, mediaAspect, type ShowcasePost } from "@/lib/showcase-posts";
+import { getShowcasePost, mediaAspect, STATS_AS_OF, type ShowcasePost } from "@/lib/showcase-posts";
 import { formatUtcDate } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { PostAvatar, PostText, VerifiedBadge } from "../x-post";
@@ -45,6 +45,8 @@ function DropHero() {
   const [direction, setDirection] = useState(1);
   const [paused, setPaused] = useState(false);
   const [interacted, setInteracted] = useState(false);
+  // Keyboard and screen reader users get a still carousel while they're in it.
+  const [focusWithin, setFocusWithin] = useState(false);
   const slide = dropSlides[index];
   const post = getShowcasePost(slide.postId);
   const count = dropSlides.length;
@@ -58,7 +60,7 @@ function DropHero() {
   );
 
   // Advance on a timer while the Drop look is showing and nobody is interacting.
-  const autoplay = look === "drop" && !reduceMotion && !paused && !interacted;
+  const autoplay = look === "drop" && !reduceMotion && !paused && !interacted && !focusWithin;
   useEffect(() => {
     if (!autoplay) return;
     const timer = window.setTimeout(() => go(index + 1, 1), AUTO_MS);
@@ -111,6 +113,10 @@ function DropHero() {
       }}
       onPointerLeave={(event) => {
         if (event.pointerType === "mouse") setPaused(false);
+      }}
+      onFocus={() => setFocusWithin(true)}
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocusWithin(false);
       }}
       onPointerDown={(event) => {
         if (event.pointerType !== "mouse") swipeStart.current = { x: event.clientX, y: event.clientY };
@@ -229,17 +235,23 @@ function DropHero() {
             >
               <p className="text-[19px] font-semibold tracking-[-0.02em] sm:text-[21px]">{slide.title}</p>
               <p className="mt-1 text-[15px] leading-snug text-white/88">{slide.body}</p>
-              <a
-                href={post.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="mt-1.5 inline-flex min-h-6 items-center gap-1 text-[13px] font-semibold text-white/88 underline decoration-white/40 underline-offset-[3px] transition-colors hover:text-white hover:decoration-white"
-              >
-                See {post.author.name}&rsquo;s post on X
-                <ArrowUpRight aria-hidden className="size-3.5" />
-              </a>
             </motion.div>
           </AnimatePresence>
+          {/* One lasting link whose text changes, so keyboard focus survives a slide change. */}
+          <p className="mt-1.5 flex flex-wrap items-center gap-x-3 text-[13px] text-white/80">
+            <a
+              href={post.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-6 items-center gap-1 font-semibold text-white/90 underline decoration-white/40 underline-offset-[3px] transition-colors hover:text-white hover:decoration-white"
+            >
+              <motion.span key={post.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+                Example: {post.author.name}&rsquo;s post on X
+              </motion.span>
+              <ArrowUpRight aria-hidden className="size-3.5" />
+            </a>
+            {Object.keys(post.stats).length > 0 ? <span>Numbers as of {formatUtcDate(STATS_AS_OF)}</span> : null}
+          </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Link
               href="/book"

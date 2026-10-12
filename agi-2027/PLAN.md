@@ -268,6 +268,8 @@ and claims in every status.
   first. Text, numbers and pictures come from your screenshots, each post links to the real one on
   X, and a number that couldn't be read is left out. They live in `src/lib/showcase-posts.ts`
   until the content editor (M9) takes over. The numbers are a snapshot and say so on the page.
+  The hero labels each one "Example", because you haven't said whether these were AGI 2027
+  campaigns. Confirm it and the labels can say so.
 - **Other homepage content** (stats, brand names, FAQ) is still placeholder. The editor arrives in
   M9; send real numbers and client names whenever you have them.
 - **Admin only:** payouts, team, settings and invite links, plus suspending or removing creators.
