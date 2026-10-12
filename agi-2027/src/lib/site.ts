@@ -15,9 +15,9 @@ export const siteConfig = {
     "AGI 2027 gets AI and tech launches seen. We brief the creators your users already follow, they post on X, and you get a clear report on what it did.",
   url: resolveSiteUrl(),
   /**
-   * Where visitors reach the agency: the "email us" links, and where new
-   * campaign inquiries are sent unless LEADS_NOTIFY_EMAIL says otherwise.
-   * Set by the owner on 12 Oct 2026; NEXT_PUBLIC_CONTACT_EMAIL overrides it.
+   * Where visitors reach the agency: the "email us" links only. The owner
+   * asked (12 Oct 2026) that nothing automated is sent here; booking
+   * alerts go to LEADS_NOTIFY_EMAIL. NEXT_PUBLIC_CONTACT_EMAIL overrides it.
    */
   contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "joshhthepluggg@gmail.com",
   /** The agency's X profile. Empty until it is set. */
