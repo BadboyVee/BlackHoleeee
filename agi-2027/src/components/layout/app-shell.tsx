@@ -65,7 +65,7 @@ function AppShell({ area, children }: { area: Area; children: React.ReactNode })
                 </Link>
               </Button>
               <ThemeToggle />
-              <UserMenu area={area} />
+              <UserMenu />
             </div>
           </div>
         </header>

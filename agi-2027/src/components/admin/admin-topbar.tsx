@@ -120,7 +120,7 @@ export function AdminTopBar() {
           </Button>
           <ThemeToggle />
           <LookPicker className="hidden sm:inline-flex" />
-          <UserMenu area="admin" />
+          <UserMenu />
         </div>
       </div>
     </header>

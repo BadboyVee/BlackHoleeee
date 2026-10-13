@@ -1,8 +1,9 @@
 # AGI 2027 build plan
 
-**Status:** Milestone 2 built 13 Oct 2026 and in review (the public website: Book a campaign
-saving to the database and emailing you, the open campaigns board, Privacy and Terms, link
-previews and search basics). Milestone 1 merged 11 Oct 2026. Plan approved 10 Oct 2026.
+**Status:** Milestone 3 built 13 Oct 2026 (accounts: Google and email sign in, email
+confirmation, password reset, log out, private pages and routing by role, your admin account).
+Milestone 2 (the public website) merged 13 Oct 2026. Milestone 1 merged 11 Oct 2026. Plan
+approved 10 Oct 2026.
 
 What we're building is in [SPEC.md](SPEC.md). This file covers how it gets built, and it's
 updated at the end of every milestone.
@@ -240,8 +241,8 @@ How I read the rules:
 | #  | Milestone          | What you'll be able to test                                                                                                                      | Accounts we set up                                              | Status      |
 | -- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- | ----------- |
 | 1  | Setup              | Preview link on your phone: light/dark toggle, the design system page (colors, type, buttons, badges, cards, forms, skeletons), empty public, portal and admin layouts | Supabase (dev), Vercel, one GitHub secret                       | Done, merged 11 Oct 2026 |
-| 2  | Public website     | Full home page with the 3D hero, the open campaigns board from demo data, Book a campaign saving to the database and emailing you                 | Resend (its test sender works until your domain is verified)   | Built 13 Oct 2026, in review |
-| 3  | Accounts           | Google and email sign up, email verification, password reset, log out, routing by role, private pages sending you to login and back, your admin account | Google Cloud OAuth                                              | Not started |
+| 2  | Public website     | Full home page with the 3D hero, the open campaigns board from demo data, Book a campaign saving to the database and emailing you                 | Resend (its test sender works until your domain is verified)   | Done, merged 13 Oct 2026 |
+| 3  | Accounts           | Google and email sign up, email verification, password reset, log out, routing by role, private pages sending you to login and back, your admin account | Google Cloud OAuth                                              | Built 13 Oct 2026, in review |
 | 4  | Creator onboarding | Apply and watch the status screen; approve or reject; invite links that skip the queue; referral links; profile and payout details with the confirmation email | —                                                               | Not started |
 | 5  | Campaigns          | Create, schedule, drop, duplicate, edit, pause and close; creators see only the campaigns meant for them, with local time and UTC                 | —                                                               | Not started |
 | 6  | The loop           | Claim (instant and apply), drop a claim, drafts and changes, proof with free checks and the embedded post, review queue with bulk approve, expiry; changes show live on both sides | —                                                               | Not started |
@@ -279,7 +280,11 @@ and claims in every status.
   M9; send real numbers and client names whenever you have them.
 - **Admin only:** payouts, team, settings and invite links, plus suspending or removing creators.
   Team can do everything else, but never sees payout details.
-- **Your admin account** comes from a one-time setup step in M3, tied to your email.
+- **Your admin account** comes from a one-time setup step (M3): sign up, then run one line in
+  Supabase's SQL editor. It only works while there's no admin, so it can't be used to add a
+  second one later. Team members join by invite (M9).
+- **Staff can open the creator app** (M3) to see what creators see. Creators and applicants
+  can't open the admin.
 - **Contact email** (12 Oct 2026): joshhthepluggg@gmail.com is for visitors only, on every "email
   us" link. Nothing automated is sent there; booking alerts go to the inbox you set as
   `LEADS_NOTIFY_EMAIL`.
@@ -291,7 +296,8 @@ and claims in every status.
 
 ## Open questions
 
-- Netlify or Vercel? I recommend Netlify (see Working setup).
+- Netlify or Vercel? I recommend Netlify (see Working setup). Sign in needs the live address
+  for its email links (Milestone 3 setup, step 1).
 - Which inbox gets booking alerts (`LEADS_NOTIFY_EMAIL`)? It can't be the contact email.
 - Were the five showcase posts AGI 2027 campaigns? If so, the "Example" labels can go.
 - Real stats and client names for the home page, whenever you have them.
@@ -455,3 +461,78 @@ What's left for later milestones:
   pipeline (M9). New leads reach you by email meanwhile.
 - **Profiles grants:** the M1 `profiles` table still relies on Supabase's default grants for
   the service key; M3 makes them explicit like the M2 tables.
+
+## Milestone 3 · Accounts (built 13 Oct 2026)
+
+What's in it:
+
+- **Sign in and sign up** with email and password, or with Google. The Google button appears by
+  itself once Google is switched on in Supabase (checked about once a minute), so nobody meets a
+  half-set-up button. New accounts confirm their email before they can sign in.
+- **Forgot password:** the link in the email opens a page to pick a new password, and you're
+  signed in. The answer never says whether an address has an account.
+- **Log out** from the account menu in the admin and in the creator app, and on the application
+  page. If Supabase can't be reached, the sign-in cookies are cleared anyway.
+- **Private pages:** signed-out visitors go to sign in, then straight back to the page they
+  wanted. Links can only point back into this site.
+- **Routing by role:** admin and team land in the admin, creators in the creator app, and new
+  accounts on the application page (its form arrives in M4). Team can't open Invites, Payouts,
+  Team or Settings. Staff can also open the creator app. A suspended account sees a note on the
+  sign-in page instead of the apps.
+- **Fast, and never stale where it matters:** a database hook writes each person's role into
+  their sign-in token, so pages don't ask the database every time. Before turning anyone away,
+  the site asks the database, so a promotion counts at once.
+- **Your admin account:** sign up, then one line in Supabase's SQL editor (setup step 7).
+- **Abuse protection** on top of Supabase's own limits: per hour, 30 sign-in tries per
+  connection and 10 per account, 10 sign ups per connection, and 10 reset or confirmation
+  emails per connection and 3 per inbox. Counted by salted hashes, never addresses.
+- **Email links that work on any device:** the project's own email templates
+  (`supabase/templates`) link back through `/auth/confirm`, so confirming on your phone works even
+  if you signed up on a laptop. Supabase's standard links work too, in the same browser.
+- **Privacy and Terms** now cover accounts: what an account stores, Google sign in, the sign-in
+  cookie and how long account details are kept.
+- **Database:** the role hook, the sign-in rate limits, the first-admin step, and explicit
+  service-key grants on profiles (the M2 follow-up).
+- **Tests:** 382 unit tests and 90 database tests, including every routing rule, the proxy, each
+  sign-in action and both email-link routes.
+
+Set up before it works for real (I'll walk you through each one):
+
+1. **Addresses:** Supabase > Authentication > URL Configuration. Set Site URL to the live address
+   (for example `https://agi2027.netlify.app`). Under Redirect URLs add `https://agi2027.netlify.app/**`,
+   the preview links (`https://*--agi2027.netlify.app/**` on Netlify) and `http://localhost:3000/**`.
+2. **Email sending:** Supabase > Authentication > Emails > SMTP Settings. Host `smtp.resend.com`,
+   port 465, username `resend`, password your Resend API key, sender the `EMAIL_FROM` address.
+   Supabase's built-in sender only reaches your own team and sends a couple of emails an hour.
+   Until your domain is verified in Resend, emails only reach your Resend account's address.
+3. **Email templates:** Supabase > Authentication > Emails > Templates. Paste
+   `supabase/templates/confirmation.html` into "Confirm signup" (subject: Confirm your AGI 2027
+   account) and `supabase/templates/recovery.html` into "Reset password" (subject: Set a new AGI
+   2027 password).
+4. **Passwords:** Supabase > Authentication > Sign In / Providers > Email. Keep "Confirm email"
+   on, and set the minimum password length to 8.
+5. **Role hook:** Supabase > Authentication > Hooks > Customize Access Token (JWT) Claims, pick
+   the Postgres function `public.custom_access_token_hook` and enable it.
+6. **Google:** in Google Cloud, create an OAuth client (Web application) with the authorized
+   redirect URI `https://<your project>.supabase.co/auth/v1/callback`. Then in Supabase >
+   Authentication > Sign In / Providers > Google, paste its client ID and secret and switch it on.
+7. **Your admin account:** sign up on the site with your email and confirm it. Then in Supabase >
+   SQL Editor run `select private.make_first_admin('your@email');`, sign out and sign in again.
+
+How to test it on the preview link:
+
+1. Open `/admin` signed out: you land on sign in, and after signing in you're back on `/admin`.
+2. Sign up with a second email and confirm it from your phone: you land on the application
+   page. Try `/admin` and `/dashboard`: you're sent back.
+3. Use "Forgot your password?", open the link, pick a new password: you're signed in.
+4. Log out from the account menu: the sign-in page says you're signed out.
+5. Once Google is set up: "Continue with Google".
+6. Get your password wrong 11 times within an hour: the 11th try is refused.
+
+What's left for later milestones:
+
+- **The application itself:** the form, approval and invite links (M4). The application page is
+  a placeholder that offers the contact email meanwhile.
+- **Team invites** (M9). Until then the admin is the only staff account.
+- **The public site's header** still says "Sign in" to signed-in people; the sign-in page sends
+  them straight on to their app.
