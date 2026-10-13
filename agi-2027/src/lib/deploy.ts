@@ -3,12 +3,23 @@
  * Vercel says so in VERCEL_ENV and Netlify in CONTEXT, but Netlify hands the
  * running site fewer variables than the build. So next.config.ts works it out
  * once, while building, and bakes the answer into the code as
- * AGI_DEPLOY_STAGE and AGI_DEPLOY_URL. The site reads only those two.
+ * AGI_DEPLOY_STAGE, AGI_DEPLOY_URL and AGI_DEPLOY_HOST. The site reads only
+ * those.
  */
 
 type Env = Record<string, string | undefined>;
 
 export type DeployStage = "production" | "preview" | "development";
+
+/** Which host built the site: "" for local development or anywhere else. */
+export type DeployHost = "vercel" | "netlify" | "";
+
+/** Vercel sets VERCEL=1 and Netlify sets NETLIFY=true in the build. */
+export function deployHostFrom(env: Env): DeployHost {
+  if (env.VERCEL === "1") return "vercel";
+  if (env.NETLIFY === "true") return "netlify";
+  return "";
+}
 
 /** The stage from the host's build variables, on Vercel or Netlify. */
 export function deployStageFrom(env: Env): DeployStage {

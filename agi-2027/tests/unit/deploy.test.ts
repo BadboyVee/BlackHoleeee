@@ -1,9 +1,21 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { deployStageFrom, deployUrlFrom, isLiveSite } from "@/lib/deploy";
+import { deployHostFrom, deployStageFrom, deployUrlFrom, isLiveSite } from "@/lib/deploy";
 
 afterEach(() => {
   vi.unstubAllEnvs();
+});
+
+describe("deployHostFrom", () => {
+  it("knows Vercel and Netlify by the flags they set in the build", () => {
+    expect(deployHostFrom({ VERCEL: "1" })).toBe("vercel");
+    expect(deployHostFrom({ NETLIFY: "true" })).toBe("netlify");
+  });
+
+  it("is empty anywhere else", () => {
+    expect(deployHostFrom({})).toBe("");
+    expect(deployHostFrom({ VERCEL: "0", NETLIFY: "false" })).toBe("");
+  });
 });
 
 describe("deployStageFrom", () => {

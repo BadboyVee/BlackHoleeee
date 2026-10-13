@@ -240,6 +240,15 @@ describe("submitBooking", () => {
       ]);
     });
 
+    it("on Netlify, uses only the address Netlify sets, never a forwarded one", async () => {
+      vi.stubEnv("AGI_DEPLOY_HOST", "netlify");
+      mocks.headers.mockResolvedValueOnce(
+        new Headers({ "x-forwarded-for": "6.6.6.6", "x-nf-client-connection-ip": "192.0.2.10" }),
+      );
+      await submitBooking(idle, form());
+      expect(mocks.submitLead.mock.calls[0][1].rateKey).toBe(hash("pepper192.0.2.10"));
+    });
+
     it("uses a built-in salt without RATE_LIMIT_SALT, and warns once", async () => {
       vi.stubEnv("RATE_LIMIT_SALT", "");
       const warn = vi.spyOn(console, "warn").mockImplementation(() => {});

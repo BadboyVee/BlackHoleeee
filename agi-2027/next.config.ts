@@ -1,6 +1,6 @@
 import type { NextConfig } from "next";
 
-import { deployStageFrom, deployUrlFrom } from "./src/lib/deploy";
+import { deployHostFrom, deployStageFrom, deployUrlFrom } from "./src/lib/deploy";
 
 // HSTS is added at launch, once the custom domain is settled.
 const securityHeaders = [
@@ -18,6 +18,7 @@ const nextConfig: NextConfig = {
   env: {
     AGI_DEPLOY_STAGE: deployStageFrom(process.env),
     AGI_DEPLOY_URL: deployUrlFrom(process.env),
+    AGI_DEPLOY_HOST: deployHostFrom(process.env),
   },
   turbopack: {
     rules: {

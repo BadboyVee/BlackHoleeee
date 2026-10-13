@@ -26,6 +26,7 @@ import {
 } from "@/lib/leads/errors";
 import { submitLead } from "@/lib/leads/submit";
 import { deliverOutbox } from "@/lib/outbox/deliver";
+import { clientIp } from "@/lib/request-ip";
 import { siteConfig } from "@/lib/site";
 
 /** Used only when RATE_LIMIT_SALT is missing, so local development still rate limits. */
@@ -92,17 +93,6 @@ export async function submitBooking(_prev: BookingState, formData: FormData): Pr
   });
 
   return { status: "success", name: booking.name, email: booking.email };
-}
-
-/**
- * The visitor's IP: the first x-forwarded-for entry, else x-real-ip. On
- * Vercel the platform sets these, so a visitor can't pick their own.
- */
-function clientIp(list: Headers): string {
-  const forwarded = list.get("x-forwarded-for")?.split(",")[0]?.trim();
-  if (forwarded) return forwarded;
-  const real = list.get("x-real-ip")?.trim();
-  return real || "unknown";
 }
 
 /** A salted SHA-256 of the IP, so the rate limit table never holds a real address. */
