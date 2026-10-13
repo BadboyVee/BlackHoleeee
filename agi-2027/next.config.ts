@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
-// HSTS is added at launch, once the custom domain is settled (Vercel already
-// sends it for *.vercel.app).
+import { deployStageFrom, deployUrlFrom } from "./src/lib/deploy";
+
+// HSTS is added at launch, once the custom domain is settled.
 const securityHeaders = [
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "X-Frame-Options", value: "DENY" },
@@ -13,6 +14,11 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   poweredByHeader: false,
+  // Worked out while building, on Vercel or Netlify (see src/lib/deploy.ts).
+  env: {
+    AGI_DEPLOY_STAGE: deployStageFrom(process.env),
+    AGI_DEPLOY_URL: deployUrlFrom(process.env),
+  },
   turbopack: {
     rules: {
       "*.css": {
