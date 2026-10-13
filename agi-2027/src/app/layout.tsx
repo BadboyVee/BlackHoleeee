@@ -30,11 +30,13 @@ export const metadata: Metadata = {
   },
   description: siteConfig.description,
   applicationName: siteConfig.name,
+  // No title or description here on purpose: each page's own title and
+  // description flow into its Open Graph and X card tags. The images come from
+  // the opengraph-image files (X reuses them).
   openGraph: {
     type: "website",
     siteName: siteConfig.name,
-    title: `${siteConfig.name} · ${siteConfig.tagline}`,
-    description: siteConfig.description,
+    locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",

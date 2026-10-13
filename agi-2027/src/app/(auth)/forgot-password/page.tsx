@@ -2,8 +2,13 @@ import type { Metadata } from "next";
 import { KeyRound } from "lucide-react";
 
 import { ComingSoon } from "@/components/layout/coming-soon";
+import { EmailUs } from "@/components/layout/email-us";
 
-export const metadata: Metadata = { title: "Reset your password" };
+export const metadata: Metadata = {
+  title: "Reset your password",
+  description: "Reset the password for your AGI 2027 account.",
+  robots: { index: false, follow: true },
+};
 
 export default function ForgotPasswordPage() {
   return (
@@ -16,8 +21,9 @@ export default function ForgotPasswordPage() {
       <ComingSoon
         icon={KeyRound}
         title="Password reset is on its way"
-        description="Enter your email and we'll send a secure reset link."
+        description="Password reset opens here with accounts. Stuck? Email us and we'll help."
         milestone={3}
+        action={<EmailUs label="Email us" subject="Password help" />}
       />
     </div>
   );

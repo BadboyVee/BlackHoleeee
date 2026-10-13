@@ -2,8 +2,13 @@ import type { Metadata } from "next";
 import { UserPlus } from "lucide-react";
 
 import { ComingSoon } from "@/components/layout/coming-soon";
+import { EmailUs } from "@/components/layout/email-us";
 
-export const metadata: Metadata = { title: "Create your account" };
+export const metadata: Metadata = {
+  title: "Create your account",
+  description: "Create an AGI 2027 account to apply as a creator and claim campaigns.",
+  robots: { index: false, follow: true },
+};
 
 export default function SignupPage() {
   return (
@@ -16,8 +21,9 @@ export default function SignupPage() {
       <ComingSoon
         icon={UserPlus}
         title="Sign up is on its way"
-        description="Create an account with Google in one tap, or with email and a verified address."
+        description="Accounts open here soon, with Google or email. Want in now? Email us your X handle."
         milestone={3}
+        action={<EmailUs label="Email us to join" subject="Joining AGI 2027" />}
       />
     </div>
   );

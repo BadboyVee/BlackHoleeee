@@ -13,6 +13,7 @@
     "test:all": "vitest run"
   },
   "dependencies": {
+    "@fontsource/anton": "5.2.7",
     "@hookform/resolvers": "^5.9.1",
     "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.1",

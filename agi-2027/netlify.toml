@@ -1,0 +1,13 @@
+# Netlify settings for the AGI 2027 site (this folder). In Netlify, make a new
+# site from this repo and set its base directory to agi-2027. The netlify.toml
+# at the repo root belongs to a different site (bmw-m5-cs).
+#
+# Netlify spots Next.js and adds its Next.js runtime on its own, so there is
+# nothing else to install.
+
+[build]
+  command = "npm run build"
+  publish = ".next"
+
+[build.environment]
+  NODE_VERSION = "22"

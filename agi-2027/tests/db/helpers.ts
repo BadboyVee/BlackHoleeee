@@ -49,9 +49,17 @@ export async function asAnon<T>(client: Client, fn: () => Promise<T>) {
   return asRole(client, "anon", { role: "anon" }, fn);
 }
 
+/**
+ * Runs fn as the app's service client (the Supabase secret key): the
+ * service_role role, which skips RLS but still needs grants. Always rolls back.
+ */
+export async function asService<T>(client: Client, fn: () => Promise<T>) {
+  return asRole(client, "service_role", { role: "service_role" }, fn);
+}
+
 async function asRole<T>(
   client: Client,
-  role: "authenticated" | "anon",
+  role: "authenticated" | "anon" | "service_role",
   claims: Record<string, unknown>,
   fn: () => Promise<T>,
 ) {

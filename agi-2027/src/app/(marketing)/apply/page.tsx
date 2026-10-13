@@ -2,12 +2,14 @@ import type { Metadata } from "next";
 import { Sparkles } from "lucide-react";
 
 import { ComingSoon } from "@/components/layout/coming-soon";
+import { EmailUs } from "@/components/layout/email-us";
 import { PageHeader } from "@/components/layout/page-header";
 import { MarketingMain } from "@/components/layout/marketing-main";
 
 export const metadata: Metadata = {
   title: "Apply as a creator",
   description: "Get paid to post about the most interesting launches in AI and tech.",
+  alternates: { canonical: "/apply" },
 };
 
 export default function ApplyPage() {
@@ -18,8 +20,9 @@ export default function ApplyPage() {
         <ComingSoon
           icon={Sparkles}
           title="Applications open soon"
-          description="Create an account, tell us about your audience, and we'll review your application."
+          description="The application form opens here soon. Until then, email us your X handle and what you post about, and we'll be in touch."
           milestone={4}
+          action={<EmailUs label="Email us your X handle" subject="Creator application" />}
         />
       </div>
     </MarketingMain>
