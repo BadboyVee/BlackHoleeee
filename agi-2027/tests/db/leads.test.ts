@@ -522,6 +522,46 @@ describe("submit_lead", () => {
     expect(buckets).toEqual([{ hits: 1, current: true }]);
   });
 
+  it("clears windows that started over two days ago, for every bucket", async () => {
+    const [stale, recent] = [`lead:${randomUUID()}`, `lead:${randomUUID()}`];
+    const left = await asService(db, async () => {
+      await asOwner(() =>
+        db.query(
+          `insert into public.rate_limits (bucket, window_start, hits)
+           values ($1, now() - interval '2 days 1 hour', 3), ($2, now() - interval '1 day', 3)`,
+          [stale, recent],
+        ),
+      );
+      await submitLead({ rate_key: randomUUID() });
+      return asOwner(async () => {
+        const { rows } = await db.query("select bucket from public.rate_limits where bucket in ($1, $2)", [
+          stale,
+          recent,
+        ]);
+        return rows.map((row) => row.bucket);
+      });
+    });
+    expect(left).toEqual([recent]);
+  });
+
+  it("refuses rate limit windows longer than a day, so the cleanup never cuts one short", async () => {
+    await db.query("begin");
+    try {
+      await expect(db.query("select private.take_rate_limit('x', 5, interval '25 hours')")).rejects.toMatchObject({
+        code: "22023",
+      });
+    } finally {
+      await db.query("rollback");
+    }
+    await db.query("begin");
+    try {
+      const { rows } = await db.query("select private.take_rate_limit('x', 5, interval '1 day') as allowed");
+      expect(rows).toEqual([{ allowed: true }]);
+    } finally {
+      await db.query("rollback");
+    }
+  });
+
   it("puts requests without a rate key in one shared bucket instead of skipping the limit", async () => {
     const error = await asService(db, async () => {
       await asOwner(() => db.query("delete from public.rate_limits where bucket = 'lead:unknown'"));
