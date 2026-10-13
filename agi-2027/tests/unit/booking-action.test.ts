@@ -2,15 +2,14 @@ import { createHash } from "node:crypto";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { MIN_FILL_MS, type BookingState } from "@/lib/leads/booking";
+import { isCalendarDate, MIN_FILL_MS, type BookingState } from "@/lib/leads/booking";
 import {
   classifySubmitError,
   FIELDS_MESSAGE,
-  FILL_TIME_MESSAGE,
+  fillTimeMessage,
   fillTimeProblem,
   firstFieldErrors,
   honeypotFilled,
-  isCalendarDate,
   readBookingValues,
   submitErrorMessage,
   type SubmitLeadResult,
@@ -139,7 +138,7 @@ describe("submitBooking", () => {
       const state = await submitBooking(idle, form({ started_at: String(NOW - 1000) }));
       expect(state).toEqual({
         status: "error",
-        message: FILL_TIME_MESSAGE,
+        message: fillTimeMessage(""),
         values: expect.objectContaining({ name: "  Ada Lovelace ", company: "Kled" }),
       });
       expect(mocks.submitLead).not.toHaveBeenCalled();
@@ -148,7 +147,7 @@ describe("submitBooking", () => {
     it("refuses a missing, garbled or day-old timer", async () => {
       for (const started_at of [null, "", "soon", "1e12", String(NOW - DAY - 1)]) {
         const state = await submitBooking(idle, form({ started_at }));
-        expect(state).toMatchObject({ status: "error", message: FILL_TIME_MESSAGE });
+        expect(state).toMatchObject({ status: "error", message: fillTimeMessage("") });
       }
       expect(mocks.submitLead).not.toHaveBeenCalled();
     });
@@ -342,12 +341,22 @@ describe("booking error helpers", () => {
       );
     });
 
+    it("tells people who can't pass the spam timer, such as without JavaScript, how to reach us", () => {
+      expect(fillTimeMessage(" hi@agi.test ")).toBe(
+        "We couldn't check that send. Wait a few seconds and try again. If it keeps happening, turn on JavaScript or email us at hi@agi.test.",
+      );
+      expect(fillTimeMessage("")).toBe(
+        "We couldn't check that send. Wait a few seconds and try again. If it keeps happening, turn on JavaScript.",
+      );
+    });
+
     it("never uses em or en dashes", () => {
       for (const reason of ["rate_limited", "not_configured", "failed"] as const) {
         expect(submitErrorMessage(reason, "")).not.toMatch(DASHES);
         expect(submitErrorMessage(reason, "hi@agi.test")).not.toMatch(DASHES);
       }
-      expect(FILL_TIME_MESSAGE).not.toMatch(DASHES);
+      expect(fillTimeMessage("")).not.toMatch(DASHES);
+      expect(fillTimeMessage("hi@agi.test")).not.toMatch(DASHES);
       expect(FIELDS_MESSAGE).not.toMatch(DASHES);
     });
   });

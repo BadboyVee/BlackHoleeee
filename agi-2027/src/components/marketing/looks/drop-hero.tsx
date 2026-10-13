@@ -179,8 +179,10 @@ function DropHero() {
               <span key={i} className="inline-block overflow-hidden pt-[0.06em] pb-[0.02em]">
                 <motion.span
                   className="inline-block"
-                  initial={reduceMotion ? { opacity: 0 } : { y: "105%" }}
-                  animate={reduceMotion ? { opacity: 1 } : { y: "0%" }}
+                  // Same resting state either way (the server can't know the
+                  // setting); reduced motion only drops the movement.
+                  initial={reduceMotion ? { opacity: 0, y: "0%" } : { y: "105%" }}
+                  animate={{ opacity: 1, y: "0%" }}
                   exit={reduceMotion ? { opacity: 0 } : { y: "-105%", transition: { duration: 0.35, ease: [0.65, 0, 0.35, 1], delay: i * 0.02 } }}
                   transition={{ ...snappy, delay: 0.08 + i * 0.04 }}
                 >
@@ -427,8 +429,8 @@ function FloatingIcon({
     >
     <motion.div
       style={{ x, y }}
-      initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.4, rotate: icon.rotate - 40 }}
-      animate={reduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1, rotate: icon.rotate }}
+      initial={reduceMotion ? { opacity: 0, scale: 1, rotate: icon.rotate } : { opacity: 0, scale: 0.4, rotate: icon.rotate - 40 }}
+      animate={{ opacity: 1, scale: 1, rotate: icon.rotate }}
       exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.6, transition: { duration: 0.25 } }}
       transition={{ ...snappy, delay: 0.12 + index * 0.06 }}
     >

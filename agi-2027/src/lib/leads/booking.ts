@@ -69,6 +69,20 @@ export function normalizeXHandle(input: string): string | null {
   return /^[A-Za-z0-9_]{1,15}$/.test(handle) ? handle : null;
 }
 
+export const LAUNCH_DATE_MESSAGE = "Pick a date, or leave it empty.";
+
+/**
+ * True for a YYYY-MM-DD date that exists on the calendar. JavaScript reads
+ * "2026-02-31" as 3 March, but Postgres refuses it, so the form catches it
+ * in the browser and again on the server, before anything is saved.
+ */
+export function isCalendarDate(value: string): boolean {
+  // Postgres has no year 0, and a rolled-over date no longer reads the same.
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || value.startsWith("0000")) return false;
+  const date = new Date(`${value}T00:00:00Z`);
+  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
+}
+
 export const bookingSchema = z.object({
   name: z.string().trim().min(1, "Tell us your name.").max(LIMITS.name, `Keep it under ${LIMITS.name} characters.`),
   // Trim first: z.email() checks the raw text, so a stray space would fail.
@@ -117,8 +131,8 @@ export const bookingSchema = z.object({
     .optional()
     .transform((value, ctx) => {
       if (!value) return undefined;
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || Number.isNaN(Date.parse(`${value}T00:00:00Z`))) {
-        ctx.addIssue({ code: "custom", message: "Pick a date, or leave it empty." });
+      if (!isCalendarDate(value)) {
+        ctx.addIssue({ code: "custom", message: LAUNCH_DATE_MESSAGE });
         return z.NEVER;
       }
       return value;

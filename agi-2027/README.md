@@ -36,6 +36,20 @@ loads a small stand-in for Supabase's `auth` schema (`tests/db/supabase-shim.sql
 migration, runs the tests as real `anon` and `authenticated` callers, then drops the database.
 GitHub Actions runs all of the above on every push that touches this folder.
 
+## Deploy
+
+The site runs on Netlify or Vercel and works out which one while building
+(`src/lib/deploy.ts`), along with the live address and whether this is the live site or a
+preview.
+
+- **Netlify:** add a new site from this repo with the base directory `agi-2027`. `netlify.toml`
+  sets the build, and Netlify adds its Next.js runtime on its own.
+- **Vercel:** import the repo with the root directory `agi-2027`.
+
+Put the variables from `.env.example` in the host's environment settings. On the live site,
+`/admin`, `/dashboard` and `/styleguide` send visitors home until sign in exists
+(`src/proxy.ts`); preview links still show them.
+
 ## Database changes
 
 Every schema change is a SQL file in `supabase/migrations/`, named `YYYYMMDDHHMMSS_what.sql`.

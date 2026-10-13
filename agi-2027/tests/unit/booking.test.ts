@@ -139,7 +139,8 @@ describe("bookingSchema", () => {
     });
 
     it("a launch date that isn't a date", () => {
-      for (const launchDate of ["12/11/2026", "2026-13-01", "soon", "2026-11-1"]) {
+      const notDates = ["12/11/2026", "2026-13-01", "soon", "2026-11-1", "2026-02-31", "2027-02-29", "0000-01-01"];
+      for (const launchDate of notDates) {
         expect(errorFor({ launchDate }, "launchDate")).toBe("Pick a date, or leave it empty.");
       }
     });

@@ -5,9 +5,16 @@ import { motion, useReducedMotion, type Variants } from "motion/react";
 /**
  * The site's one reveal: things rise into place with a spring and a quick
  * de-blur as they scroll into view, once. Reduced motion gets a plain fade.
+ *
+ * The hidden state is the same with or without reduced motion: the server
+ * can't know the visitor's setting, so a different starting style would
+ * not match after hydration and could leave things stuck hidden. Reduced
+ * motion changes only how the shown state arrives: position and blur
+ * snap back at once, and only the opacity fades.
  */
 
 const arrive = { type: "spring", stiffness: 400, damping: 30 } as const;
+const still = { duration: 0 } as const;
 
 type Tag = "div" | "li" | "p" | "section" | "span" | "h2" | "h3" | "ul" | "ol" | "article" | "figure";
 
@@ -29,15 +36,14 @@ function Reveal({
   return (
     <Component
       className={className}
-      initial={reduce ? { opacity: 0 } : { opacity: 0, y, filter: "blur(6px)" }}
+      initial={{ opacity: 0, y, filter: "blur(6px)" }}
       whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
       viewport={{ once: true, amount: 0.2 }}
-      transition={{
-        ...arrive,
-        delay,
-        opacity: { duration: 0.45, delay },
-        filter: { duration: 0.5, delay },
-      }}
+      transition={
+        reduce
+          ? { y: still, filter: still, opacity: { duration: 0.3, delay } }
+          : { ...arrive, delay, opacity: { duration: 0.45, delay }, filter: { duration: 0.5, delay } }
+      }
     >
       {children}
     </Component>
@@ -78,17 +84,17 @@ function RevealGroup({
 function RevealItem({ as = "div", className, children }: { as?: Tag; className?: string; children: React.ReactNode }) {
   const reduce = useReducedMotion();
   const Component = motion[as];
-  const variants: Variants = reduce
-    ? { hidden: { opacity: 0 }, shown: { opacity: 1 } }
-    : {
-        hidden: { opacity: 0, y: 24, filter: "blur(6px)" },
-        shown: {
-          opacity: 1,
-          y: 0,
-          filter: "blur(0px)",
-          transition: { ...arrive, opacity: { duration: 0.45 }, filter: { duration: 0.5 } },
-        },
-      };
+  const variants: Variants = {
+    hidden: { opacity: 0, y: 24, filter: "blur(6px)" },
+    shown: {
+      opacity: 1,
+      y: 0,
+      filter: "blur(0px)",
+      transition: reduce
+        ? { y: still, filter: still, opacity: { duration: 0.3 } }
+        : { ...arrive, opacity: { duration: 0.45 }, filter: { duration: 0.5 } },
+    },
+  };
   return (
     <Component className={className} variants={variants}>
       {children}
@@ -124,11 +130,7 @@ function WordReveal({
         <span key={i} aria-hidden className="-mt-[0.14em] inline-block overflow-hidden pt-[0.14em] pb-[0.08em] align-bottom">
           <motion.span
             className="inline-block"
-            variants={
-              reduce
-                ? { hidden: { opacity: 0 }, shown: { opacity: 1 } }
-                : { hidden: { y: "105%" }, shown: { y: "0%", transition: arrive } }
-            }
+            variants={{ hidden: { y: "105%" }, shown: { y: "0%", transition: reduce ? still : arrive } }}
           >
             {word}
             {i < words.length - 1 ? " " : null}

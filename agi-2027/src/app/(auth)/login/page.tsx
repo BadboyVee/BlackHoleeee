@@ -2,8 +2,13 @@ import type { Metadata } from "next";
 import { LogIn } from "lucide-react";
 
 import { ComingSoon } from "@/components/layout/coming-soon";
+import { EmailUs } from "@/components/layout/email-us";
 
-export const metadata: Metadata = { title: "Sign in" };
+export const metadata: Metadata = {
+  title: "Sign in",
+  description: "Sign in to AGI 2027 to see campaigns, claims and earnings.",
+  robots: { index: false, follow: true },
+};
 
 export default function LoginPage() {
   return (
@@ -16,8 +21,9 @@ export default function LoginPage() {
       <ComingSoon
         icon={LogIn}
         title="Sign in is on its way"
-        description="Google and email sign-in, with sessions that stay signed in across visits."
+        description="Accounts open here soon, with Google or email. Until then, email us and we'll help."
         milestone={3}
+        action={<EmailUs label="Email us" subject="Signing in to AGI 2027" />}
       />
     </div>
   );

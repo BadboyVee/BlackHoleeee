@@ -1,23 +1,28 @@
 # AGI 2027 build plan
 
-**Status:** Milestone 1 merged 11 Oct 2026 (three switchable looks, with Drop as the default,
-and the owner's admin and the creator portal previewed on demo data). Next: Milestone 2 · plan
-approved 10 Oct 2026
+**Status:** Milestone 2 built 13 Oct 2026 and in review (the public website: Book a campaign
+saving to the database and emailing you, the open campaigns board, Privacy and Terms, link
+previews and search basics). Milestone 1 merged 11 Oct 2026. Plan approved 10 Oct 2026.
 
 What we're building is in [SPEC.md](SPEC.md). This file covers how it gets built, and it's
 updated at the end of every milestone.
 
 ## Working setup
 
-- **Code:** this folder, `agi-2027/`, in the BlackHoleeee repo (decided 10 Oct 2026). Vercel
+- **Code:** this folder, `agi-2027/`, in the BlackHoleeee repo (decided 10 Oct 2026). The host
   builds from this folder.
-- **Testing on your phone:** Vercel builds a preview link for every push. Each milestone ends with
-  a link and a short list of things to test. That's why Vercel gets connected in Milestone 1
-  instead of at launch.
+- **Hosting: Netlify or Vercel** (you asked about Netlify, 13 Oct 2026). The site runs on both
+  and works out which one it's on while building (`src/lib/deploy.ts`). I recommend Netlify: its
+  free plan allows a business site, while Vercel's free plan is for non-commercial use only. On
+  Netlify, make a new site from this repo with the base directory set to `agi-2027`; the
+  `netlify.toml` here does the rest. The repo-root `netlify.toml` belongs to the bmw-m5-cs site
+  and stays as it is.
+- **Testing on your phone:** the host builds a preview link for every pull request. Each
+  milestone ends with a link and a short list of things to test.
 - **One pull request per milestone** (agreed 10 Oct 2026). Each milestone arrives as a pull
-  request into `main` with its preview link. You test it and merge it; merging updates the main
-  Vercel deployment.
-- **Two Supabase projects:** *dev* now (demo data) and *production* at launch (only Vercel and
+  request into `main` with its preview link. You test it and merge it; merging updates the live
+  site.
+- **Two Supabase projects:** *dev* now (demo data) and *production* at launch (only the host and
   GitHub hold its keys, so real creator data never sits in a dev environment).
 - **Database changes are code:** SQL migrations in `supabase/migrations/`, never clicks in the
   dashboard. GitHub Actions applies them to dev on every branch push (repository secret
@@ -26,7 +31,7 @@ updated at the end of every milestone.
   against a real Postgres, and a production build (`.github/workflows/agi-2027.yml`).
 - **This build environment** can't reach Supabase, Resend, Telegram or X, and doesn't need to:
   database logic is tested here against a local Postgres, and the hosted services are checked
-  on the Vercel preview. If end-to-end tests against the dev project become worth it (around
+  on the preview link. If end-to-end tests against the dev project become worth it (around
   Milestone 6), opening those hosts is a two-minute settings change.
 
 ## Stack
@@ -235,7 +240,7 @@ How I read the rules:
 | #  | Milestone          | What you'll be able to test                                                                                                                      | Accounts we set up                                              | Status      |
 | -- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- | ----------- |
 | 1  | Setup              | Preview link on your phone: light/dark toggle, the design system page (colors, type, buttons, badges, cards, forms, skeletons), empty public, portal and admin layouts | Supabase (dev), Vercel, one GitHub secret                       | Done, merged 11 Oct 2026 |
-| 2  | Public website     | Full home page with the 3D hero, the open campaigns board from demo data, Book a campaign saving to the database and emailing you                 | Resend (its test sender works until your domain is verified)   | Not started |
+| 2  | Public website     | Full home page with the 3D hero, the open campaigns board from demo data, Book a campaign saving to the database and emailing you                 | Resend (its test sender works until your domain is verified)   | Built 13 Oct 2026, in review |
 | 3  | Accounts           | Google and email sign up, email verification, password reset, log out, routing by role, private pages sending you to login and back, your admin account | Google Cloud OAuth                                              | Not started |
 | 4  | Creator onboarding | Apply and watch the status screen; approve or reject; invite links that skip the queue; referral links; profile and payout details with the confirmation email | —                                                               | Not started |
 | 5  | Campaigns          | Create, schedule, drop, duplicate, edit, pause and close; creators see only the campaigns meant for them, with local time and UTC                 | —                                                               | Not started |
@@ -244,7 +249,7 @@ How I read the rules:
 | 8  | Notifications      | The live bell, every email as a branded template, reminders, email preferences, drops posted to your Telegram group                               | Telegram bot                                                    | Not started |
 | 9  | Admin extras       | Overview and chart, creators directory with stats and notes, clients, leads pipeline, site content editor, team invites, activity log            | —                                                               | Not started |
 | 10 | Client reports     | Send a private report link, turn it off or regenerate it, print it to PDF                                                                         | —                                                               | Not started |
-| 11 | Polish and launch  | Install the portal on your phone, final animation pass, link previews, Lighthouse and accessibility checks, full test suite, production on your domain | Domain, Resend domain, production Supabase and Vercel          | Not started |
+| 11 | Polish and launch  | Install the portal on your phone, final animation pass, link previews, Lighthouse and accessibility checks, full test suite, production on your domain | Domain, Resend domain, production Supabase and hosting         | Not started |
 
 Demo data grows with each milestone: one admin, a few creators and applicants, and campaigns
 and claims in every status.
@@ -275,24 +280,37 @@ and claims in every status.
 - **Admin only:** payouts, team, settings and invite links, plus suspending or removing creators.
   Team can do everything else, but never sees payout details.
 - **Your admin account** comes from a one-time setup step in M3, tied to your email.
+- **Contact email** (12 Oct 2026): joshhthepluggg@gmail.com is for visitors only, on every "email
+  us" link. Nothing automated is sent there; booking alerts go to the inbox you set as
+  `LEADS_NOTIFY_EMAIL`.
+- **Book a campaign:** name, work email, company and what's launching are required; website, X
+  handle, launch date, budget range and a message are optional. Budget ranges: under $5k, $5k to
+  $10k, $10k to $25k, $25k+, not sure yet. Each connection can send 5 an hour.
+- **Privacy and Terms** are written in plain words from what the site actually does today. They
+  name no country's law. Have a lawyer read them before launch.
 
 ## Open questions
 
-None right now.
+- Netlify or Vercel? I recommend Netlify (see Working setup).
+- Which inbox gets booking alerts (`LEADS_NOTIFY_EMAIL`)? It can't be the contact email.
+- Were the five showcase posts AGI 2027 campaigns? If so, the "Example" labels can go.
+- Real stats and client names for the home page, whenever you have them.
 
 Decided on 10 Oct 2026: the code stays in this repo. On 11 Oct 2026 the acid lime accent was
 replaced by the three looks, with Drop as the default and the switcher kept.
 
 ## Running costs (at launch, not now)
 
-Development fits the free plans. Launch needs three upgrades:
+Development fits the free plans. Launch needs two or three upgrades:
 
-- **Vercel:** the free plan is for non-commercial use, so the agency site needs Pro.
+- **Hosting:** Netlify's free plan allows a business site within a monthly allowance (300
+  credits; each live update and visitor traffic use some, and the site pauses if it runs out).
+  Vercel's free plan is for non-commercial use, so on Vercel the agency site needs Pro.
 - **Supabase:** free projects pause when idle and have no backups, so production should be Pro.
 - **Resend:** the free plan caps at 100 emails a day. A single drop to a few hundred creators
   would go over that.
 
-Each upgrade costs roughly $20–25 a month. Check current pricing when we get there.
+Each upgrade costs roughly $20 to $25 a month. Check current pricing when we get there.
 
 ## Milestone 1 · Setup (built 10 Oct 2026)
 
@@ -380,3 +398,60 @@ What's demo-only today: everything in both apps runs on demo data kept in your b
 campaigns arrives in Milestone 5, real claiming in 6, earnings and payouts in 7, notifications in
 8. There's no sign-in yet (Milestone 3), so anyone with the preview link can open `/admin`; it
 only holds demo data.
+
+## Milestone 2 · Public website (built 13 Oct 2026)
+
+What's in it:
+
+- **Book a campaign** at `/book` and at the bottom of the home page, in every look. Instant
+  checks as you type, the same checks again on the server, and a thank-you that says what
+  happens next. One database function (`public.submit_lead`) rate limits, saves the lead, queues
+  your email and writes the activity log in a single step, so a lead is never half saved.
+- **Spam protection:** a hidden field only bots fill, a minimum fill time, and 5 requests an
+  hour per connection. The connection is stored as a salted one-way hash of the IP, never the
+  address, and hashes over two days old are cleared.
+- **Your email:** each new lead emails `LEADS_NOTIFY_EMAIL` through Resend, sent just after the
+  visitor's thank-you so the form stays fast. If sending fails, the email waits in the outbox
+  and `POST /api/outbox` (protected by `CRON_SECRET`) sends it later, with retries.
+- **Open campaigns** at `/campaigns`: live and full campaigns that are open to every creator,
+  from demo data, with no payouts or budgets. Each card leads to sign up.
+- **Privacy** and **Terms** in plain words, written from what the site does today.
+- **Search and link previews:** a title and description on every page, a link-preview image for
+  the home page, Book a campaign and Open campaigns, canonical links, `sitemap.xml` and
+  `robots.txt`.
+- **Safe to go live:** on the live site, `/admin`, `/dashboard` and `/styleguide` send visitors
+  home until sign in exists (M3), and "Built in Milestone N" notes are hidden. Preview links
+  still show everything. Apply, Sign in and password reset offer an email link meanwhile.
+- **Netlify or Vercel:** see Working setup. On Netlify the rate limit reads the visitor's IP
+  from the header Netlify itself sets, so nobody can fake a new address per request.
+- **Tests:** 291 unit tests and 74 database tests, including every database rule above.
+
+Set up before it works for real (each takes a few minutes, and I'll walk you through them):
+
+1. **Supabase dev project:** create it, then add its connection string as the
+   `DEV_DATABASE_URL` repository secret so GitHub applies the migrations.
+2. **Resend:** create an account and an API key. Its test sender works until your domain is
+   verified, but it only delivers to your Resend account's own email.
+3. **Host settings:** add these environment variables in Netlify (or Vercel), never in the code:
+   `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`,
+   `RESEND_API_KEY`, `EMAIL_FROM`, `LEADS_NOTIFY_EMAIL`, `CRON_SECRET` and `RATE_LIMIT_SALT`.
+   `.env.example` says what each one is.
+
+Until then the site still works: the form says bookings aren't connected yet and offers your
+contact email.
+
+How to test it on the preview link:
+
+1. Open `/book`, send a booking, and check the email at `LEADS_NOTIFY_EMAIL`.
+2. Send six bookings within an hour; the sixth is refused with a friendly message.
+3. Open `/campaigns`, `/privacy` and `/terms` in each look, light and dark, on your phone.
+4. Paste the home page link into X or WhatsApp to see its preview card.
+
+What's left for later milestones:
+
+- **Retrying failed emails on a schedule:** `POST /api/outbox` is ready; the scheduler that
+  calls it arrives with Supabase Cron (key decision 5).
+- **Leads in your admin:** the Leads page shows demo data until sign in (M3) and the leads
+  pipeline (M9). New leads reach you by email meanwhile.
+- **Profiles grants:** the M1 `profiles` table still relies on Supabase's default grants for
+  the service key; M3 makes them explicit like the M2 tables.

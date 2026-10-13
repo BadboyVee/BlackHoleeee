@@ -15,12 +15,10 @@ import {
 } from "@/lib/leads/booking";
 import {
   FIELDS_MESSAGE,
-  FILL_TIME_MESSAGE,
+  fillTimeMessage,
   fillTimeProblem,
   firstFieldErrors,
   honeypotFilled,
-  isCalendarDate,
-  LAUNCH_DATE_MESSAGE,
   readBookingValues,
   submitErrorMessage,
 } from "@/lib/leads/errors";
@@ -48,7 +46,7 @@ export async function submitBooking(_prev: BookingState, formData: FormData): Pr
   }
 
   if (fillTimeProblem(formData.get(STARTED_AT_FIELD), Date.now())) {
-    return { status: "error", message: FILL_TIME_MESSAGE, values };
+    return { status: "error", message: fillTimeMessage(siteConfig.contactEmail), values };
   }
 
   const parsed = bookingSchema.safeParse(values);
@@ -61,14 +59,6 @@ export async function submitBooking(_prev: BookingState, formData: FormData): Pr
     };
   }
   const booking = parsed.data;
-  if (booking.launchDate && !isCalendarDate(booking.launchDate)) {
-    return {
-      status: "error",
-      message: FIELDS_MESSAGE,
-      fieldErrors: { launchDate: LAUNCH_DATE_MESSAGE },
-      values,
-    };
-  }
 
   const rawSource = formData.get("source");
   const source: LeadSource = (LEAD_SOURCES as readonly unknown[]).includes(rawSource)

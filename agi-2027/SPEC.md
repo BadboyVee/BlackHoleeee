@@ -56,7 +56,8 @@ Use this stack. If you have a strong reason to change any part, tell me first.
 - Forms and validation: React Hook Form and Zod
 - Email: Resend with React Email templates
 - Telegram: Telegram Bot API for campaign drop alerts
-- Hosting: Vercel, with a custom domain
+- Hosting: Vercel or Netlify, with a custom domain (Netlify added 13 Oct 2026; the site runs on
+  both)
 
 ## Roles
 
@@ -450,7 +451,7 @@ needs it.
 - [ ] Resend account with a verified sending domain
 - [ ] Telegram bot from BotFather, added to my creators group as an admin
 - [ ] GitHub repository for the code
-- [ ] Vercel account connected to the GitHub repository
+- [ ] Netlify or Vercel account connected to the GitHub repository
 - [ ] A domain for AGI 2027
 
 ## Phase 2 (after launch)
@@ -478,3 +479,5 @@ Leave these out of the first build, but design the database so they can be added
 | 11 Oct 2026 | Design direction replaced at the owner's request: three switchable looks copied closely from three references (Shopify Editions, Mainframe, a juice-bottle product hero), with AGI 2027's own art, words and logos. Every section animates. The owner's admin and the creator portal now have clearly different interfaces, and the campaign builder and claim flow are built against demo data ahead of Milestones 5 and 6. The plaster wall, the floating-object hero and the serif accent are gone. |
 | 11 Oct 2026 | Milestone 1 merged. Drop is the default look (the owner asked me to choose); Renaissance and Agent stay one tap away in the header switcher. |
 | 12 Oct 2026 | Placeholder posts replaced with five real launch posts the owner sent (snapshot from their screenshots, linked to X). The last Drop slide became "Hype" to fit Hedwig's post. X is unreachable from the build environment and its free embed data has no view or repost counts, so posts are stored, not fetched live. Until the owner confirms they were AGI 2027 campaigns, the hero labels each as an example. |
+| 12 Oct 2026 | The contact email (joshhthepluggg@gmail.com) is for visitors only: every "email us" link uses it, and nothing automated is sent there. Booking alerts go to a separate inbox set as `LEADS_NOTIFY_EMAIL`. |
+| 13 Oct 2026 | Milestone 2 built. Hosting can be Netlify or Vercel (the owner asked about Netlify); the site works out which while building, and Netlify is recommended because its free plan allows a business site. Until sign in exists, the live site hides the demo admin, creator portal and styleguide. Privacy and Terms are written in plain words from what the site does, for legal review before launch. Rate limit records (salted IP hashes) are cleared after two days. Details in PLAN.md. |

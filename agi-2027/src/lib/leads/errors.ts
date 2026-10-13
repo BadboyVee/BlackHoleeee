@@ -67,20 +67,6 @@ export function fillTimeProblem(raw: FormDataEntryValue | null, now: number): Fi
   return null;
 }
 
-export const LAUNCH_DATE_MESSAGE = "Pick a date, or leave it empty.";
-
-/**
- * True for a YYYY-MM-DD date that exists on the calendar. JavaScript reads
- * "2026-02-31" as 3 March, but Postgres refuses it, so the action checks
- * before saving rather than failing with a vague error.
- */
-export function isCalendarDate(value: string): boolean {
-  // Postgres has no year 0, and a rolled-over date no longer reads the same.
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value) || value.startsWith("0000")) return false;
-  const date = new Date(`${value}T00:00:00Z`);
-  return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
-}
-
 /** First message for each field, keyed by field name, from zod's issues. */
 export function firstFieldErrors(
   issues: readonly { path: readonly PropertyKey[]; message: string }[],
@@ -117,8 +103,17 @@ export function classifySubmitError(error: unknown): Exclude<SubmitFailure, "not
 
 export const FIELDS_MESSAGE = "Check the highlighted fields.";
 
-export const FILL_TIME_MESSAGE =
-  "Something about that send looked off. Check the form and send it again.";
+/**
+ * When the spam timer fails. The browser sets that timer, so without
+ * JavaScript the form can never pass it: the message says so and offers email.
+ */
+export function fillTimeMessage(contactEmail: string): string {
+  const email = contactEmail.trim();
+  const retry = "We couldn't check that send. Wait a few seconds and try again.";
+  return email
+    ? `${retry} If it keeps happening, turn on JavaScript or email us at ${email}.`
+    : `${retry} If it keeps happening, turn on JavaScript.`;
+}
 
 /** The message for the whole form when saving fails. Adds the contact email when there is one. */
 export function submitErrorMessage(reason: SubmitFailure, contactEmail: string): string {
