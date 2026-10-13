@@ -2,8 +2,8 @@
 
 **Status:** Milestone 3 built 13 Oct 2026 (accounts: Google and email sign in, email
 confirmation, password reset, log out, private pages and routing by role, your admin account).
-Milestone 2 built 13 Oct 2026 and in review (the public website). Milestone 1 merged 11 Oct
-2026. Plan approved 10 Oct 2026.
+Milestone 2 (the public website) merged 13 Oct 2026. Milestone 1 merged 11 Oct 2026. Plan
+approved 10 Oct 2026.
 
 What we're building is in [SPEC.md](SPEC.md). This file covers how it gets built, and it's
 updated at the end of every milestone.
@@ -241,7 +241,7 @@ How I read the rules:
 | #  | Milestone          | What you'll be able to test                                                                                                                      | Accounts we set up                                              | Status      |
 | -- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- | ----------- |
 | 1  | Setup              | Preview link on your phone: light/dark toggle, the design system page (colors, type, buttons, badges, cards, forms, skeletons), empty public, portal and admin layouts | Supabase (dev), Vercel, one GitHub secret                       | Done, merged 11 Oct 2026 |
-| 2  | Public website     | Full home page with the 3D hero, the open campaigns board from demo data, Book a campaign saving to the database and emailing you                 | Resend (its test sender works until your domain is verified)   | Built 13 Oct 2026, in review |
+| 2  | Public website     | Full home page with the 3D hero, the open campaigns board from demo data, Book a campaign saving to the database and emailing you                 | Resend (its test sender works until your domain is verified)   | Done, merged 13 Oct 2026 |
 | 3  | Accounts           | Google and email sign up, email verification, password reset, log out, routing by role, private pages sending you to login and back, your admin account | Google Cloud OAuth                                              | Built 13 Oct 2026, in review |
 | 4  | Creator onboarding | Apply and watch the status screen; approve or reject; invite links that skip the queue; referral links; profile and payout details with the confirmation email | —                                                               | Not started |
 | 5  | Campaigns          | Create, schedule, drop, duplicate, edit, pause and close; creators see only the campaigns meant for them, with local time and UTC                 | —                                                               | Not started |
