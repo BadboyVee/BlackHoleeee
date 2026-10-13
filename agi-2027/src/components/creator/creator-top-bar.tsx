@@ -7,6 +7,8 @@ import { ArrowUpRight, Bell, ChevronLeft, LogIn, RotateCcw, ShieldCheck, UserRou
 import { motion } from "motion/react";
 import { toast } from "sonner";
 
+import { useAccount } from "@/components/auth/account-context";
+import { SignOutMenuItem } from "@/components/auth/sign-out";
 import { LookPicker } from "@/components/theme/look-picker";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import {
@@ -17,6 +19,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Skeleton } from "@/components/ui/skeleton";
+import type { Account } from "@/lib/auth/account-display";
+import { isStaff } from "@/lib/auth/routes";
+import type { CreatorMe } from "@/lib/campaigns/demo-creator";
 import { cn } from "@/lib/utils";
 
 import { resetDemoClaims } from "./claim-store";
@@ -39,29 +45,35 @@ export function DemoNote({ className }: { className?: string }) {
   );
 }
 
-function AvatarMenu() {
-  const { me } = useCreatorDemo();
+/** Who the top bar shows: the signed-in account, or the demo creator on a preview without Supabase. */
+type Person = { name: string; firstName: string; initials: string; detail: string };
+
+function personFrom(account: Account | null, me: CreatorMe): Person {
+  return account
+    ? { name: account.name, firstName: account.firstName, initials: account.initials, detail: account.email }
+    : { name: me.name, firstName: me.firstName, initials: me.initials, detail: `${me.handle} · ${me.tier}` };
+}
+
+function AvatarMenu({ person, account }: { person: Person; account: Account | null }) {
   return (
     <DropdownMenu modal={false}>
       <DropdownMenuTrigger asChild>
         <motion.button
           type="button"
           whileTap={pressed}
-          aria-label="Your account"
+          aria-label={`Your account, ${person.name}`}
           className="relative flex size-11 shrink-0 cursor-pointer items-center justify-center rounded-full outline-none"
         >
           <span className="flex size-10 items-center justify-center rounded-full bg-foreground font-mono text-[13px] font-semibold tracking-tight text-background shadow-[inset_0_1px_0_rgb(255_255_255/0.18),0_4px_12px_-4px_rgb(var(--shadow-rgb)/0.45)]">
-            {me.initials}
+            {person.initials}
           </span>
           <span aria-hidden className="absolute right-0.5 bottom-0.5 size-3 rounded-full border-2 border-background bg-(--tone-green)" />
         </motion.button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-72">
         <DropdownMenuLabel className="flex flex-col gap-1 pb-2.5">
-          <span className="text-[15px] font-semibold">{me.name}</span>
-          <span className="text-xs font-normal text-muted-foreground">
-            {me.handle} · {me.tier}
-          </span>
+          <span className="truncate text-[15px] font-semibold">{person.name}</span>
+          <span className="truncate text-xs font-normal text-muted-foreground">{person.detail}</span>
           <DemoNote className="mt-1.5" />
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
@@ -71,12 +83,14 @@ function AvatarMenu() {
             Your profile
           </Link>
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/admin">
-            <ShieldCheck />
-            Switch to the owner view
-          </Link>
-        </DropdownMenuItem>
+        {!account || isStaff(account.role) ? (
+          <DropdownMenuItem asChild>
+            <Link href="/admin">
+              <ShieldCheck />
+              Switch to the owner view
+            </Link>
+          </DropdownMenuItem>
+        ) : null}
         <DropdownMenuItem asChild>
           <Link href="/">
             <ArrowUpRight />
@@ -93,12 +107,16 @@ function AvatarMenu() {
           <RotateCcw />
           Reset the demo
         </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/login">
-            <LogIn />
-            Sign in
-          </Link>
-        </DropdownMenuItem>
+        {account ? (
+          <SignOutMenuItem />
+        ) : (
+          <DropdownMenuItem asChild>
+            <Link href="/login">
+              <LogIn />
+              Sign in
+            </Link>
+          </DropdownMenuItem>
+        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -106,15 +124,40 @@ function AvatarMenu() {
 
 /** Avatar and a hello. Home has its own big greeting, so the bar shows your name there instead. */
 function Greeting({ home = false }: { home?: boolean }) {
+  return (
+    <Suspense fallback={<GreetingSkeleton />}>
+      <AccountGreeting home={home} />
+    </Suspense>
+  );
+}
+
+function AccountGreeting({ home }: { home: boolean }) {
   const { me } = useCreatorDemo();
+  const account = useAccount();
+  const person = personFrom(account, me);
   return (
     <div className="flex min-w-0 items-center gap-2.5">
-      <AvatarMenu />
+      <AvatarMenu person={person} account={account} />
       <div className="min-w-0">
         <p className="truncate text-[15px] leading-tight font-semibold tracking-[-0.02em]">
-          {home ? me.name : `Hey, ${me.firstName}`}
+          {home ? person.name : `Hey, ${person.firstName}`}
         </p>
         <DemoNote className="mt-1 whitespace-nowrap" />
+      </div>
+    </div>
+  );
+}
+
+/** While the account loads: the avatar's place and a line for the name. */
+function GreetingSkeleton() {
+  return (
+    <div className="flex min-w-0 items-center gap-2.5" aria-hidden>
+      <span className="flex size-11 shrink-0 items-center justify-center">
+        <Skeleton className="size-10 rounded-full" />
+      </span>
+      <div className="grid min-w-0 gap-1.5">
+        <Skeleton className="h-4 w-28" />
+        <Skeleton className="h-3 w-36" />
       </div>
     </div>
   );
@@ -186,7 +229,7 @@ function CreatorTopBar() {
       >
         <div className="mx-auto flex h-[4.25rem] w-full max-w-[68rem] items-center gap-2 px-4 pt-[env(safe-area-inset-top)] sm:h-[4.5rem] sm:px-6 lg:px-10">
           <div className="min-w-0 flex-1">
-            <Suspense fallback={<Greeting />}>
+            <Suspense fallback={<GreetingSkeleton />}>
               <LeftSide />
             </Suspense>
           </div>

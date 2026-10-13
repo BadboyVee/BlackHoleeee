@@ -12,6 +12,10 @@ begin
   if not exists (select from pg_roles where rolname = 'service_role') then
     create role service_role nologin noinherit bypassrls;
   end if;
+  -- The role Supabase Auth runs as, which calls auth hooks.
+  if not exists (select from pg_roles where rolname = 'supabase_auth_admin') then
+    create role supabase_auth_admin nologin noinherit;
+  end if;
 end;
 $$;
 
