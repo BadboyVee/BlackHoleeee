@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { isCalendarDate, MIN_FILL_MS, type BookingState } from "@/lib/leads/booking";
+import { HONEYPOT_FIELD, isCalendarDate, MIN_FILL_MS, type BookingState } from "@/lib/leads/booking";
 import {
   classifySubmitError,
   FIELDS_MESSAGE,
@@ -54,7 +54,7 @@ function form(overrides: Record<string, string | null> = {}) {
   const all: Record<string, string | null> = {
     ...fields,
     source: "home_cta",
-    company_site: "",
+    [HONEYPOT_FIELD]: "",
     started_at: String(NOW - 60_000),
     ...overrides,
   };
@@ -122,14 +122,21 @@ describe("submitBooking", () => {
 
   describe("spam checks", () => {
     it("thanks a bot that fills the honeypot, and saves nothing", async () => {
-      const state = await submitBooking(idle, form({ company_site: "https://spam.example" }));
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      const state = await submitBooking(idle, form({ [HONEYPOT_FIELD]: "https://spam.example" }));
       expect(state).toEqual({ status: "success", name: "Ada Lovelace", email: "ada@kled.ai" });
       expect(mocks.submitLead).not.toHaveBeenCalled();
       expect(mocks.after).not.toHaveBeenCalled();
+      // Logged, so a real person caught by it would show up, but with nothing personal in the log.
+      expect(warn).toHaveBeenCalledTimes(1);
+      const logged = String(warn.mock.calls[0][0]);
+      expect(logged).toContain("honeypot");
+      for (const personal of ["Ada", "ada@kled.ai", "Kled", "203.0.113.7"]) expect(logged).not.toContain(personal);
     });
 
     it("checks the honeypot before anything else, even an invalid form", async () => {
-      const state = await submitBooking(idle, form({ company_site: "x", started_at: null, email: "nope" }));
+      vi.spyOn(console, "warn").mockImplementation(() => {});
+      const state = await submitBooking(idle, form({ [HONEYPOT_FIELD]: "x", started_at: null, email: "nope" }));
       expect(state.status).toBe("success");
       expect(mocks.submitLead).not.toHaveBeenCalled();
     });
@@ -248,8 +255,26 @@ describe("submitBooking", () => {
       expect(mocks.submitLead.mock.calls[0][1].rateKey).toBe(hash("pepper192.0.2.10"));
     });
 
-    it("uses a built-in salt without RATE_LIMIT_SALT, and warns once", async () => {
+    it("without RATE_LIMIT_SALT, salts with a value made from the Supabase secret key", async () => {
       vi.stubEnv("RATE_LIMIT_SALT", "");
+      const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+      vi.stubEnv("SUPABASE_SECRET_KEY", "sb_secret_one");
+      await submitBooking(idle, form());
+      await submitBooking(idle, form());
+      vi.stubEnv("SUPABASE_SECRET_KEY", "sb_secret_two");
+      await submitBooking(idle, form());
+      const [first, again, otherKey] = mocks.submitLead.mock.calls.map(([, options]) => options.rateKey);
+      expect(first).toMatch(/^[0-9a-f]{64}$/);
+      expect(again).toBe(first);
+      expect(otherKey).not.toBe(first);
+      // The key itself never goes into the stored hash.
+      expect(first).not.toBe(hash("sb_secret_one203.0.113.7"));
+      expect(warn).not.toHaveBeenCalled();
+    });
+
+    it("uses a built-in salt without RATE_LIMIT_SALT or a secret key, and warns once", async () => {
+      vi.stubEnv("RATE_LIMIT_SALT", "");
+      vi.stubEnv("SUPABASE_SECRET_KEY", "");
       const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
       vi.resetModules();
       const fresh = await import("@/app/(marketing)/book/actions");
@@ -408,7 +433,7 @@ describe("booking error helpers", () => {
           { path: ["email"], message: "second" },
           { path: ["name"], message: "name" },
           { path: [], message: "form level" },
-          { path: ["company_site"], message: "not a field" },
+          { path: [HONEYPOT_FIELD], message: "not a field" },
           { path: [0], message: "numeric" },
         ]),
       ).toEqual({ email: "first", name: "name" });
@@ -420,7 +445,7 @@ describe("booking error helpers", () => {
       const data = new FormData();
       data.set("name", "Ada");
       data.set("message", new File(["x"], "x.txt"));
-      data.set("company_site", "trap");
+      data.set(HONEYPOT_FIELD, "trap");
       const values = readBookingValues(data);
       expect(values).toEqual({
         name: "Ada",

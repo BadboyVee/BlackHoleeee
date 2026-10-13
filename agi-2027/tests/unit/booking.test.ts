@@ -4,6 +4,7 @@ import {
   BUDGET_RANGES,
   bookingSchema,
   budgetLabel,
+  HONEYPOT_FIELD,
   LIMITS,
   normalizeWebsite,
   normalizeXHandle,
@@ -124,6 +125,18 @@ describe("bookingSchema", () => {
       }
     });
 
+    it("a website that only grows past the limit once it's cleaned up", () => {
+      // Short enough as typed, but https:// and percent-encoding make it longer than the database allows.
+      const withoutScheme = `kled.ai/${"a".repeat(LIMITS.website - "kled.ai/".length)}`;
+      const nonAscii = `kled.ai/${"é".repeat(400)}`;
+      for (const website of [withoutScheme, nonAscii]) {
+        expect(website.length).toBeLessThanOrEqual(LIMITS.website);
+        expect(errorFor({ website }, "website")).toBe("That link is too long. The domain alone is fine.");
+      }
+      const longest = `https://kled.ai/${"a".repeat(LIMITS.website - "https://kled.ai/".length)}`;
+      expect(bookingSchema.parse({ ...valid, website: longest }).website).toHaveLength(LIMITS.website);
+    });
+
     it("an X handle that can't exist", () => {
       for (const xHandle of ["@has space", "@this_handle_is_too_long", "kled.ai", "@"]) {
         expect(errorFor({ xHandle }, "xHandle")).toBe("Enter an X handle like @yourcompany.");
@@ -214,5 +227,16 @@ describe("budgetLabel", () => {
     expect(budgetLabel("10k_25k")).toBe("$10k to $25k");
     expect(budgetLabel("not_sure")).toBe("Not sure yet");
     expect(budgetLabel("mystery")).toBe("mystery");
+  });
+});
+
+describe("HONEYPOT_FIELD", () => {
+  it("has a name no browser autofill or password manager would fill", () => {
+    // Autofill fills fields by name. If it filled the trap, a real person's booking
+    // would get the bot's fake thank-you and never be saved.
+    const autofillWords =
+      /name|mail|company|organi[sz]ation|org|business|phone|tel|fax|address|street|city|state|zip|postal|country|url|web|site|user|login|card|birth/i;
+    expect(HONEYPOT_FIELD).not.toMatch(autofillWords);
+    expect(Object.keys(valid)).not.toContain(HONEYPOT_FIELD);
   });
 });

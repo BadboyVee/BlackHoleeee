@@ -1,6 +1,6 @@
 "use server";
 
-import { createHash } from "node:crypto";
+import { createHash, createHmac } from "node:crypto";
 
 import { headers } from "next/headers";
 import { after } from "next/server";
@@ -27,7 +27,7 @@ import { deliverOutbox } from "@/lib/outbox/deliver";
 import { clientIp } from "@/lib/request-ip";
 import { siteConfig } from "@/lib/site";
 
-/** Used only when RATE_LIMIT_SALT is missing, so local development still rate limits. */
+/** Used only when RATE_LIMIT_SALT and SUPABASE_SECRET_KEY are both missing, so local development still rate limits. */
 const FALLBACK_SALT = "agi-2027-dev-rate-limit-salt";
 let warnedAboutSalt = false;
 
@@ -42,6 +42,8 @@ export async function submitBooking(_prev: BookingState, formData: FormData): Pr
 
   // People never see the honeypot. A bot that fills it gets the same thank-you, and nothing is saved.
   if (honeypotFilled(formData.get(HONEYPOT_FIELD))) {
+    // No names or addresses, just enough to notice in the host's logs if real people ever trip it.
+    console.warn("[book] The honeypot was filled, so nothing was saved.");
     return { status: "success", name: values.name.trim(), email: values.email.trim() };
   }
 
@@ -87,13 +89,23 @@ export async function submitBooking(_prev: BookingState, formData: FormData): Pr
 
 /** A salted SHA-256 of the IP, so the rate limit table never holds a real address. */
 function hashIp(ip: string): string {
-  let salt = process.env.RATE_LIMIT_SALT;
-  if (!salt) {
-    if (!warnedAboutSalt) {
-      warnedAboutSalt = true;
-      console.warn("[book] RATE_LIMIT_SALT is not set. Using a built-in salt; set one before launch.");
-    }
-    salt = FALLBACK_SALT;
+  return createHash("sha256").update(rateLimitSalt() + ip).digest("hex");
+}
+
+/**
+ * RATE_LIMIT_SALT when it's set. Otherwise a value made from the Supabase
+ * secret key, which the site needs to save a booking at all, so the salt is
+ * still secret, as the privacy page says. The key itself never goes into the
+ * hash. The built-in salt is only for local development without either.
+ */
+function rateLimitSalt(): string {
+  const salt = process.env.RATE_LIMIT_SALT;
+  if (salt) return salt;
+  const secretKey = process.env.SUPABASE_SECRET_KEY;
+  if (secretKey) return createHmac("sha256", secretKey).update("agi-2027 rate limit salt").digest("hex");
+  if (!warnedAboutSalt) {
+    warnedAboutSalt = true;
+    console.warn("[book] Neither RATE_LIMIT_SALT nor SUPABASE_SECRET_KEY is set. Using the built-in development salt.");
   }
-  return createHash("sha256").update(salt + ip).digest("hex");
+  return FALLBACK_SALT;
 }

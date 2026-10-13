@@ -424,7 +424,7 @@ What's in it:
   still show everything. Apply, Sign in and password reset offer an email link meanwhile.
 - **Netlify or Vercel:** see Working setup. On Netlify the rate limit reads the visitor's IP
   from the header Netlify itself sets, so nobody can fake a new address per request.
-- **Tests:** 291 unit tests and 74 database tests, including every database rule above.
+- **Tests:** 294 unit tests and 74 database tests, including every database rule above.
 
 Set up before it works for real (each takes a few minutes, and I'll walk you through them):
 
@@ -434,8 +434,8 @@ Set up before it works for real (each takes a few minutes, and I'll walk you thr
    verified, but it only delivers to your Resend account's own email.
 3. **Host settings:** add these environment variables in Netlify (or Vercel), never in the code:
    `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`,
-   `RESEND_API_KEY`, `EMAIL_FROM`, `LEADS_NOTIFY_EMAIL`, `CRON_SECRET` and `RATE_LIMIT_SALT`.
-   `.env.example` says what each one is.
+   `RESEND_API_KEY`, `EMAIL_FROM`, `LEADS_NOTIFY_EMAIL` and `CRON_SECRET`. `RATE_LIMIT_SALT` is
+   optional. `.env.example` says what each one is.
 
 Until then the site still works: the form says bookings aren't connected yet and offers your
 contact email.

@@ -104,6 +104,11 @@ export const bookingSchema = z.object({
         ctx.addIssue({ code: "custom", message: "Enter a website like example.com." });
         return z.NEVER;
       }
+      // Adding https:// and encoding characters can make the link longer than what was typed.
+      if (normalized.length > LIMITS.website) {
+        ctx.addIssue({ code: "custom", message: "That link is too long. The domain alone is fine." });
+        return z.NEVER;
+      }
       return normalized;
     }),
   xHandle: z
@@ -148,8 +153,13 @@ export type BookingFormValues = z.input<typeof bookingSchema>;
 /** Clean, normalized values, ready for the database. */
 export type Booking = z.output<typeof bookingSchema>;
 
-/** Hidden spam traps that travel with the form. */
-export const HONEYPOT_FIELD = "company_site";
+/**
+ * Hidden spam traps that travel with the form. The honeypot's name must not
+ * look like anything browser autofill or a password manager fills (company,
+ * name, email, site and the like): a filled trap gets the bot's fake
+ * thank-you, so a real booking would be lost without anyone knowing.
+ */
+export const HONEYPOT_FIELD = "subject";
 export const STARTED_AT_FIELD = "started_at";
 /** Real people take longer than this to fill the form; bots usually don't. */
 export const MIN_FILL_MS = 3000;
