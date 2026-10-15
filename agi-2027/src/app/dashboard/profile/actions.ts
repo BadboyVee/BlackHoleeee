@@ -2,6 +2,7 @@
 
 import { refresh } from "next/cache";
 
+import { AVATAR_BUCKET, avatarPath, isOwnAvatarUrl } from "@/lib/creators/avatar";
 import { FORM_PROBLEM, NOT_CONNECTED, profileErrorMessage } from "@/lib/creators/messages";
 import { issuesByPath, payoutSchema, profileSchema, type CreatorFormState } from "@/lib/creators/schemas";
 import { deliverSoon } from "@/lib/outbox/deliver-soon";
@@ -65,6 +66,37 @@ export async function updateProfile(_prev: CreatorFormState, formData: FormData)
   }
   refresh();
   return { status: "saved", message: "Profile saved." };
+}
+
+/**
+ * Saves the photo the browser just uploaded to the avatars bucket, or clears
+ * it (null). Only an address in the caller's own folder of this project's
+ * bucket is accepted.
+ */
+export async function saveAvatar(url: string | null): Promise<CreatorFormState> {
+  const env = getSupabaseEnv();
+  if (!env) return { status: "error", message: NOT_CONNECTED };
+
+  const supabase = await createClient();
+  const { data: session } = await supabase.auth.getClaims();
+  const userId = session?.claims?.sub;
+  if (typeof userId !== "string") return { status: "error", message: "Your sign-in has expired. Sign in again." };
+  if (url !== null && (typeof url !== "string" || !isOwnAvatarUrl(url, env.url, userId))) {
+    return { status: "error", message: "That photo didn't upload. Try again." };
+  }
+
+  const { error } = await supabase.from("profiles").update({ avatar_url: url }).eq("id", userId);
+  if (error) {
+    console.error(`[profile] saving the photo failed: ${error.code ?? "no code"}`);
+    return { status: "error", message: profileErrorMessage(error) };
+  }
+  if (url === null) {
+    // Best effort: the profile no longer points at it either way.
+    const { error: removeError } = await supabase.storage.from(AVATAR_BUCKET).remove([avatarPath(userId)]);
+    if (removeError) console.error("[profile] removing the old photo failed");
+  }
+  refresh();
+  return { status: "saved", message: url ? "Photo saved." : "Photo removed." };
 }
 
 /**

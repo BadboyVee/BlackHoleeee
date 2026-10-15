@@ -22,6 +22,7 @@ export type CreatorProfile = {
   email: string | null;
   role: string;
   displayName: string;
+  avatarUrl: string | null;
   xHandle: string | null;
   tiktokUrl: string | null;
   youtubeUrl: string | null;
@@ -77,13 +78,14 @@ export type InviteRow = {
 };
 
 const PROFILE_COLUMNS =
-  "id, email, role, display_name, x_handle, tiktok_url, youtube_url, instagram_url, linkedin_url, niches, followers, avg_views, country, bio, rate_per_post, rate_currency, referral_code";
+  "id, email, role, display_name, avatar_url, x_handle, tiktok_url, youtube_url, instagram_url, linkedin_url, niches, followers, avg_views, country, bio, rate_per_post, rate_currency, referral_code";
 
 type ProfileRow = {
   id: string;
   email: string | null;
   role: string;
   display_name: string;
+  avatar_url: string | null;
   x_handle: string | null;
   tiktok_url: string | null;
   youtube_url: string | null;
@@ -105,6 +107,7 @@ function toProfile(row: ProfileRow): CreatorProfile {
     email: row.email,
     role: row.role,
     displayName: row.display_name,
+    avatarUrl: row.avatar_url,
     xHandle: row.x_handle,
     tiktokUrl: row.tiktok_url,
     youtubeUrl: row.youtube_url,
@@ -248,6 +251,7 @@ export async function listApplications(): Promise<ApplicationRow[] | null> {
             id: profile.id,
             email: profile.email,
             displayName: profile.displayName,
+            avatarUrl: profile.avatarUrl,
             xHandle: profile.xHandle,
             tiktokUrl: profile.tiktokUrl,
             youtubeUrl: profile.youtubeUrl,

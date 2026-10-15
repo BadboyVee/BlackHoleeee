@@ -225,6 +225,9 @@ describe("lists", () => {
     expect(isCountryCode("us")).toBe(true);
     expect(isCountryCode("EU")).toBe(false);
     for (const country of COUNTRIES) expect(country.code, country.name).toMatch(/^[A-Z]{2}$/);
+    // Retired codes (YU, SU, UK...) would show a country twice.
+    expect(new Set(COUNTRIES.map((country) => country.name)).size).toBe(COUNTRIES.length);
+    expect(isCountryCode("YU")).toBe(false);
   });
 
   it("keeps niches in the order the forms show, with unique values", () => {

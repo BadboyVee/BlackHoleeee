@@ -17,6 +17,7 @@ const mocks = vi.hoisted(() => ({
   refresh: vi.fn(),
   after: vi.fn(),
   deliverOutbox: vi.fn(),
+  remove: vi.fn(async (_paths: string[]) => ({ data: [], error: null as { message: string } | null })),
 }));
 
 vi.mock("server-only", () => ({}));
@@ -32,6 +33,12 @@ vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({
     rpc: mocks.rpc,
     auth: { getClaims: async () => ({ data: mocks.claims ? { claims: mocks.claims } : null, error: null }) },
+    storage: {
+      from: (bucket: string) => {
+        expect(bucket).toBe("avatars");
+        return { remove: mocks.remove };
+      },
+    },
     from: (table: string) => {
       expect(table).toBe("profiles");
       return {
@@ -47,7 +54,7 @@ vi.mock("@/lib/supabase/server", () => ({
 const { redeemInvite, submitApplication } = await import("@/app/(auth)/application/actions");
 const { reviewApplication } = await import("@/app/admin/applications/actions");
 const { createInvite, revokeInvite } = await import("@/app/admin/invites/actions");
-const { savePayoutDetails, updateProfile } = await import("@/app/dashboard/profile/actions");
+const { saveAvatar, savePayoutDetails, updateProfile } = await import("@/app/dashboard/profile/actions");
 
 const idle: CreatorFormState = { status: "idle" };
 const APPLICATION_ID = "2b0f6c1e-1111-4111-8111-111111111111";
@@ -83,7 +90,9 @@ const application = {
   followers: "18.4k",
   avgViews: "6200",
   country: "NG",
-  bestPosts: ["x.com/a/status/1", "x.com/a/status/2", "x.com/a/status/3"],
+  "bestPosts.0": "x.com/a/status/1",
+  "bestPosts.1": "x.com/a/status/2",
+  "bestPosts.2": "x.com/a/status/3",
   why: "I review AI tools every week for founders.",
   referralCode: "9F3A1C2B",
 };
@@ -130,7 +139,7 @@ describe("submitApplication", () => {
   });
 
   it("puts each problem on its own field, the second post link included", async () => {
-    const { state } = await run(submitApplication(idle, form({ ...application, bestPosts: ["x.com/a/status/1", "", "x.com/a/status/3"], niches: [] })));
+    const { state } = await run(submitApplication(idle, form({ ...application, "bestPosts.1": "", niches: [] })));
     expect(state).toMatchObject({
       status: "error",
       fieldErrors: { "bestPosts.1": "Paste a link to the post.", niches: "Pick at least one." },
@@ -285,6 +294,43 @@ describe("updateProfile", () => {
     mocks.claims = null;
     expect((await run(updateProfile(idle, form(profile)))).state).toMatchObject({ status: "error", message: expect.stringContaining("Sign in again") });
     expect(mocks.update).not.toHaveBeenCalled();
+  });
+});
+
+describe("saveAvatar", () => {
+  const me = "8a7d5c1e-0000-4000-8000-000000000001";
+  const photo = `https://project.supabase.co/storage/v1/object/public/avatars/${me}/avatar.webp?v=1760540000000`;
+
+  it("saves the caller's own uploaded photo", async () => {
+    expect(await saveAvatar(photo)).toEqual({ status: "saved", message: "Photo saved." });
+    expect(mocks.update).toHaveBeenCalledWith({ avatar_url: photo });
+    expect(mocks.eq).toHaveBeenCalledWith("id", me);
+    expect(mocks.remove).not.toHaveBeenCalled();
+    expect(mocks.refresh).toHaveBeenCalled();
+  });
+
+  it("refuses any other address: another person's folder, another project, or a lookalike", async () => {
+    for (const url of [
+      photo.replace(me, "8a7d5c1e-0000-4000-8000-000000000002"),
+      photo.replace("project.supabase.co", "evil.supabase.co"),
+      `${photo}&x=1`,
+      "https://tracker.example/pixel.gif",
+      `https://project.supabase.co/storage/v1/object/public/avatars/${me}/avatar.webp.evil`,
+    ]) {
+      expect(await saveAvatar(url), url).toEqual({ status: "error", message: "That photo didn't upload. Try again." });
+    }
+    expect(mocks.update).not.toHaveBeenCalled();
+  });
+
+  it("clears the photo and removes the file", async () => {
+    expect(await saveAvatar(null)).toEqual({ status: "saved", message: "Photo removed." });
+    expect(mocks.update).toHaveBeenCalledWith({ avatar_url: null });
+    expect(mocks.remove).toHaveBeenCalledWith([`${me}/avatar.webp`]);
+  });
+
+  it("asks them to sign in again when the session has gone", async () => {
+    mocks.claims = null;
+    expect(await saveAvatar(photo)).toEqual({ status: "error", message: "Your sign-in has expired. Sign in again." });
   });
 });
 

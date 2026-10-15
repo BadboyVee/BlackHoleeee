@@ -357,6 +357,7 @@ const kindLabels: Record<StatusKind, string> = {
   claim: "Claims",
   campaign: "Campaigns",
   application: "Applications",
+  invite: "Invite links",
   lead: "Leads",
   earning: "Earnings",
 };

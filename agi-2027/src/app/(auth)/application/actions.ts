@@ -34,7 +34,8 @@ function texts(formData: FormData, name: string): string[] {
 }
 
 export async function submitApplication(_prev: CreatorFormState, formData: FormData): Promise<CreatorFormState> {
-  const posts = texts(formData, "bestPosts");
+  // One field per post, named like their errors: bestPosts.0 to bestPosts.2.
+  const posts = [0, 1, 2].map((index) => text(formData, `bestPosts.${index}`));
   const parsed = applicationSchema.safeParse({
     displayName: text(formData, "displayName"),
     xHandle: text(formData, "xHandle"),
@@ -46,7 +47,7 @@ export async function submitApplication(_prev: CreatorFormState, formData: FormD
     followers: text(formData, "followers"),
     avgViews: text(formData, "avgViews"),
     country: text(formData, "country"),
-    bestPosts: [posts[0] ?? "", posts[1] ?? "", posts[2] ?? ""],
+    bestPosts: [posts[0], posts[1], posts[2]],
     why: text(formData, "why"),
     referralCode: text(formData, "referralCode"),
   });

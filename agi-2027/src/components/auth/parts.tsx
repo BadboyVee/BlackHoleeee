@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { PageNote } from "@/lib/auth/messages";
 import type { AuthFormState } from "@/lib/auth/schemas";
+import type { CreatorFormState } from "@/lib/creators/schemas";
 import { siteConfig } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -77,7 +78,7 @@ export function WithEmailLink({ text }: { text: string }) {
  * problem, or to the alert when the problem isn't a single field.
  */
 export function useServerErrors<T extends FieldValues>(
-  state: AuthFormState,
+  state: AuthFormState | CreatorFormState,
   form: UseFormReturn<T, unknown, unknown>,
   fields: readonly Path<T>[],
   alertRef: React.RefObject<HTMLDivElement | null>,
@@ -99,7 +100,7 @@ export function useServerErrors<T extends FieldValues>(
   }, [state, form, fields, alertRef]);
 }
 
-/** The server's message for the whole form, read out and focusable. */
+/** The server's message for the whole form, read out and focusable. Shared by the creator forms too. */
 export function ServerAlert({
   message,
   children,
