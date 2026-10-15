@@ -3,14 +3,12 @@ import { brands } from "@/lib/marketing-content";
 import { cn } from "@/lib/utils";
 
 /**
- * The one marquee on the page: brands we've worked with. It pauses on hover
- * and stands still for reduced motion.
+ * The one marquee on the page: brands we've worked with (placeholder marks
+ * until real logos are uploaded from the admin in Milestone 9). It pauses on
+ * hover and stands still for reduced motion.
  */
 function BrandsMarquee() {
-  // The band slides by half its width, so each half must outrun a wide
-  // screen: four names repeat twice per half.
-  const half = [...brands, ...brands];
-  const row = [...half, ...half];
+  const row = [...brands, ...brands];
   return (
     // Drop tilts the band; it runs a little past both edges and is clipped
     // here so the corners never leave a gap or make the page scroll sideways.
@@ -21,14 +19,14 @@ function BrandsMarquee() {
       >
         <ul className="sr-only">
           {brands.map((brand) => (
-            <li key={brand.name}>{brand.name}</li>
+            <li key={brand}>{brand}</li>
           ))}
         </ul>
         <div aria-hidden className="mask-fade-x drop:[mask-image:none]">
           <div className="flex w-max animate-marquee items-center gap-12 group-hover/marquee:[animation-play-state:paused] motion-reduce:animate-none sm:gap-16 drop:gap-10">
             {row.map((brand, index) => (
               <span
-                key={`${brand.name}-${index}`}
+                key={`${brand}-${index}`}
                 className={cn(
                   "flex shrink-0 items-center gap-2.5 text-foreground/75 drop:text-white",
                   "text-[22px] font-bold tracking-[-0.045em] sm:text-[26px]",
@@ -37,10 +35,10 @@ function BrandsMarquee() {
                 )}
               >
                 <BrandGlyph
-                  mark={brand.mark}
+                  index={index % brands.length}
                   className="size-6 agent:text-brand drop:size-8 drop:text-[#ffd23f]"
                 />
-                {brand.name}
+                {brand}
               </span>
             ))}
           </div>
