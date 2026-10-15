@@ -1,8 +1,9 @@
 /**
  * Home page copy and placeholder content. Stats, logos, featured posts and the
  * FAQ move into the site_content table in Milestone 2 so they can be edited
- * from the admin; until then they live here. Brands, creators and numbers
- * below are placeholders, not real companies or people.
+ * from the admin; until then they live here. Creators and numbers below are
+ * placeholders, not real people. The brands are Claude products; their names
+ * and marks belong to Anthropic.
  */
 
 export const hero = {
@@ -21,16 +22,15 @@ export const stats: Stat[] = [
   { label: "Creators in the network", value: 15, format: "plain" },
 ];
 
+/** The marquee's marks are drawn by `BrandGlyph`, keyed by `mark`. */
 export const brands = [
-  "Nebula",
-  "Vectorline",
-  "Orbitar",
-  "Lumen Labs",
-  "Parallax",
-  "Quanta",
-  "Helix",
-  "Northwind",
-];
+  { name: "Claude Code", mark: "claude-code" },
+  { name: "Claude Chat", mark: "claude" },
+  { name: "Cowork", mark: "claude" },
+  { name: "Claude Design", mark: "claude" },
+] as const;
+
+export type BrandMark = (typeof brands)[number]["mark"];
 
 export const services = [
   {
