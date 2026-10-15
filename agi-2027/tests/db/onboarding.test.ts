@@ -369,7 +369,7 @@ describe("reviewing applications", () => {
       expect(await one("select recipient, template, payload from public.outbox where id = $1", [outbox.id])).toEqual({
         recipient: profile.email,
         template: "application_approved",
-        payload: { application_id: applicationId },
+        payload: { application_id: applicationId, profile_id: applicant },
       });
       const log = await rows("select actor, action from public.activity_log where entity_id in ($1, $2) order by id", [applicationId, applicant]);
       expect(log).toEqual([
@@ -518,7 +518,7 @@ describe("invite links", () => {
       });
       expect(await one("select template, payload from public.outbox where id = $1", [outbox.id])).toEqual({
         template: "application_approved",
-        payload: { invite_id: invite.id },
+        payload: { invite_id: invite.id, profile_id: newcomer },
       });
 
       // The single use is gone now.
@@ -608,7 +608,7 @@ describe("payout details", () => {
       expect(await one("select recipient, template, payload from public.outbox where id = $1", [id])).toEqual({
         recipient: creatorEmail,
         template: "payout_details_changed",
-        payload: { summary: "USDC on Base, wallet ending 9EE7" },
+        payload: { summary: "USDC on Base, wallet ending 9EE7", profile_id: creator },
       });
       const log = await one<{ action: string; details: Record<string, unknown> }>(
         "select action, details from public.activity_log where actor = $1 and action = 'payout_details.changed'",
@@ -630,6 +630,7 @@ describe("payout details", () => {
         ["tron", EVM, "USDT"],
         ["ethereum", "0x123", "USDC"],
         ["base", EVM, "USDT"],
+        ["tron", TRON, "USDC"],
       ]) {
         await db.query("savepoint attempt");
         await expect(setPayout({ method: "crypto", asset, network, wallet }), `${asset} on ${network}`).rejects.toMatchObject({
@@ -661,7 +662,7 @@ describe("payout details", () => {
       });
       await as("owner");
       expect(await one("select payload from public.outbox where id = $1", [id])).toEqual({
-        payload: { summary: "GTBank, account ending 6789" },
+        payload: { summary: "GTBank, account ending 6789", profile_id: creator },
       });
       await as(creator);
       await setPayout({ method: "other", other: "PayPal: amara@example.com" });

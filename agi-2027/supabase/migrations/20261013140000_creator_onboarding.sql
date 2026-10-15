@@ -215,8 +215,8 @@ create table public.payout_details (
     or (crypto_network = 'solana' and wallet_address ~ '^[1-9A-HJ-NP-Za-km-z]{32,44}$')
     or (crypto_network = 'tron' and wallet_address ~ '^T[1-9A-HJ-NP-Za-km-z]{33}$')
   ),
-  -- USDT on Base isn't a thing worth paying to.
-  check (not (crypto_asset = 'USDT' and crypto_network = 'base'))
+  -- Only the stablecoins we send on each network: no USDT on Base, no USDC on Tron.
+  check (not (crypto_asset = 'USDT' and crypto_network = 'base') and not (crypto_asset = 'USDC' and crypto_network = 'tron'))
 );
 
 comment on table public.payout_details is
@@ -278,7 +278,8 @@ begin
 end;
 $$;
 
--- Queues an email to a profile's address. Returns the outbox row, or null when
+-- Queues an email to a profile's address, adding profile_id to the payload so
+-- the email can be built from the profile. Returns the outbox row, or null when
 -- the profile has no usable address.
 create function private.queue_profile_email(p_profile uuid, p_template text, p_payload jsonb)
 returns uuid
@@ -296,7 +297,7 @@ begin
     return null;
   end if;
   insert into public.outbox (channel, recipient, template, payload)
-  values ('email', v_email, p_template, p_payload)
+  values ('email', v_email, p_template, coalesce(p_payload, '{}'::jsonb) || pg_catalog.jsonb_build_object('profile_id', p_profile))
   returning id into v_id;
   return v_id;
 end;
