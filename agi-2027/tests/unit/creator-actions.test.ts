@@ -17,7 +17,7 @@ const mocks = vi.hoisted(() => ({
   refresh: vi.fn(),
   after: vi.fn(),
   deliverOutbox: vi.fn(),
-  remove: vi.fn(async (_paths: string[]) => ({ data: [], error: null as { message: string } | null })),
+  remove: vi.fn<(paths: string[]) => Promise<{ data: unknown[]; error: { message: string } | null }>>(async () => ({ data: [], error: null })),
 }));
 
 vi.mock("server-only", () => ({}));
