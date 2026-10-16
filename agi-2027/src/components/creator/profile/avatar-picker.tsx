@@ -105,6 +105,13 @@ export function AvatarPicker({
   const uploading = pending && task === "upload";
   const removing = pending && task === "remove";
 
+  // The buttons switch off while a change runs, and Remove goes with the
+  // photo: put focus back on the photo button instead of losing it.
+  const changeRef = useRef<HTMLButtonElement>(null);
+  useEffect(() => {
+    if (!pending && task && document.activeElement === document.body) changeRef.current?.focus();
+  }, [pending, task]);
+
   function upload(file: File) {
     if (!supabaseUrl) return;
     const problem = avatarTypeProblem(file.type, file.size);
@@ -192,6 +199,7 @@ export function AvatarPicker({
 
         <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
           <Button
+            ref={changeRef}
             type="button"
             variant="secondary"
             size="lg"

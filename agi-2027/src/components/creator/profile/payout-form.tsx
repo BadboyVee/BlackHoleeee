@@ -60,6 +60,7 @@ const FIELDS = [
 ] as const;
 
 const OTHER_LIMIT = 500;
+const OTHER_HINT = "Who to pay, where, and in which currency.";
 
 const METHOD_ICONS = { crypto: Coins, bank: Landmark, other: MessageSquareText } as const;
 
@@ -182,7 +183,7 @@ export function PayoutForm({
       <fieldset disabled={locked} className="grid min-w-0 gap-7">
         <fieldset className="min-w-0">
           <legend className="mb-3 text-sm leading-none font-medium">How should we pay you?</legend>
-          <div className="grid gap-2 sm:grid-cols-3">
+          <div className="grid gap-2 md:grid-cols-3">
             {PAYOUT_METHODS.map((option) => {
               const Icon = METHOD_ICONS[option.value];
               return (
@@ -230,7 +231,9 @@ export function PayoutForm({
                     <input
                       type="radio"
                       value={coin}
-                      defaultChecked={defaults.asset === coin}
+                      // The current pick, not the saved one: these remount after a switch to another
+                      // method and back, and the form library reads a checked default as the value.
+                      defaultChecked={asset === coin}
                       className={cn("peer sr-only", SCROLL_MARGIN)}
                       {...assetField}
                     />
@@ -337,14 +340,9 @@ export function PayoutForm({
         ) : null}
 
         {method === "other" ? (
-          <Field
-            id={id("otherDetails")}
-            label="How should we pay you?"
-            hint="Who to pay, where, and in which currency."
-            error={errors.otherDetails?.message}
-          >
+          <Field id={id("otherDetails")} label="Payment details" hint={OTHER_HINT} error={errors.otherDetails?.message}>
             <Textarea
-              {...describe("otherDetails", "Who to pay, where, and in which currency.", errors.otherDetails)}
+              {...describe("otherDetails", OTHER_HINT, errors.otherDetails)}
               rows={4}
               maxLength={OTHER_LIMIT}
               required

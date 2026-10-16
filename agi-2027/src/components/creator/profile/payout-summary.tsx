@@ -38,7 +38,7 @@ export function payoutSummaryText(payout: PayoutDetails): string {
 export function PayoutSummary({ payout }: { payout: PayoutDetails }) {
   const Icon = ICONS[payout.method];
   return (
-    <div className="flex items-start gap-3.5 rounded-xl border bg-surface-2/50 p-4">
+    <div className="flex min-w-0 items-start gap-3.5 rounded-xl border bg-surface-2/50 p-4">
       <span
         aria-hidden
         className="flex size-10 shrink-0 items-center justify-center rounded-xl border bg-surface text-muted-foreground shadow-xs"

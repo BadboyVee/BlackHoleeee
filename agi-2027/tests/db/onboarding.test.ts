@@ -650,7 +650,7 @@ describe("payout details", () => {
         bank_country: "ng",
         bank_name: "GTBank",
         account_name: "Amara Okafor",
-        account_number: "0123456789",
+        account_number: "GB29 NWBK 6016 1331 9268 19",
         // Fields of other methods are dropped, whatever the form sent.
         wallet: EVM,
       });
@@ -658,11 +658,12 @@ describe("payout details", () => {
         method: "bank",
         wallet_address: null,
         bank_country: "NG",
-        account_number: "0123456789",
+        account_number: "GB29 NWBK 6016 1331 9268 19",
       });
       await as("owner");
       expect(await one("select payload from public.outbox where id = $1", [id])).toEqual({
-        payload: { summary: "GTBank, account ending 6789", profile_id: creator },
+        // The spaces in an IBAN don't count: the same ending the profile page shows.
+        payload: { summary: "GTBank, account ending 6819", profile_id: creator },
       });
       await as(creator);
       await setPayout({ method: "other", other: "PayPal: amara@example.com" });

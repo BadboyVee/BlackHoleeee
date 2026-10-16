@@ -686,7 +686,9 @@ begin
   v_summary := case v_method
     when 'crypto' then upper(btrim(p_crypto_asset)) || ' on ' || initcap(btrim(p_crypto_network))
       || ', wallet ending ' || right(btrim(p_wallet_address), 4)
-    when 'bank' then btrim(p_bank_name) || ', account ending ' || right(btrim(p_account_number), 4)
+    -- Spaces and dashes people type in an IBAN don't count, so this matches the profile page.
+    when 'bank' then btrim(p_bank_name) || ', account ending '
+      || right(pg_catalog.regexp_replace(btrim(p_account_number), '[[:space:]-]+', '', 'g'), 4)
     else 'Other: see your profile'
   end;
 

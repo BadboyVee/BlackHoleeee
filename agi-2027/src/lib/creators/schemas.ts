@@ -261,7 +261,8 @@ export const inviteSchema = z.object({
     .optional()
     .transform((value, ctx) => {
       if (!value) return undefined;
-      const uses = Number(value);
+      // "10,000" is how people write it, and how the message below writes it.
+      const uses = Number(value.replace(/[,\s]/g, ""));
       if (!Number.isInteger(uses) || uses < 1 || uses > 10_000) {
         ctx.addIssue({ code: "custom", message: "A whole number from 1 to 10,000, or leave it empty." });
         return z.NEVER;

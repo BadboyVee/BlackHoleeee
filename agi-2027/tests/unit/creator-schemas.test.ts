@@ -213,6 +213,8 @@ describe("inviteSchema", () => {
     expect(inviteSchema.parse({ label: "", maxUses: "25", expiresIn: "7d" })).toMatchObject({ maxUses: 25 });
     expect(inviteSchema.safeParse({ label: "", maxUses: "0", expiresIn: "never" }).success).toBe(false);
     expect(inviteSchema.safeParse({ label: "", maxUses: "2.5", expiresIn: "never" }).success).toBe(false);
+    expect(inviteSchema.parse({ label: "", maxUses: "10,000", expiresIn: "never" }).maxUses).toBe(10_000);
+    expect(inviteSchema.safeParse({ label: "", maxUses: "10,001", expiresIn: "never" }).success).toBe(false);
     expect(inviteSchema.safeParse({ label: "", maxUses: "", expiresIn: "forever" }).success).toBe(false);
   });
 });
