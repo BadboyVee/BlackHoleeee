@@ -243,7 +243,7 @@ How I read the rules:
 | 1  | Setup              | Preview link on your phone: light/dark toggle, the design system page (colors, type, buttons, badges, cards, forms, skeletons), empty public, portal and admin layouts | Supabase (dev), Vercel, one GitHub secret                       | Done, merged 11 Oct 2026 |
 | 2  | Public website     | Full home page with the 3D hero, the open campaigns board from demo data, Book a campaign saving to the database and emailing you                 | Resend (its test sender works until your domain is verified)   | Done, merged 13 Oct 2026 |
 | 3  | Accounts           | Google and email sign up, email verification, password reset, log out, routing by role, private pages sending you to login and back, your admin account | Google Cloud OAuth                                              | Built 13 Oct 2026, in review |
-| 4  | Creator onboarding | Apply and watch the status screen; approve or reject; invite links that skip the queue; referral links; profile and payout details with the confirmation email | —                                                               | Not started |
+| 4  | Creator onboarding | Apply and watch the status screen; approve or reject; invite links that skip the queue; referral links; profile and payout details with the confirmation email | —                                                               | Built 16 Oct 2026 |
 | 5  | Campaigns          | Create, schedule, drop, duplicate, edit, pause and close; creators see only the campaigns meant for them, with local time and UTC                 | —                                                               | Not started |
 | 6  | The loop           | Claim (instant and apply), drop a claim, drafts and changes, proof with free checks and the embedded post, review queue with bulk approve, expiry; changes show live on both sides | —                                                               | Not started |
 | 7  | Earnings, payouts  | Earnings appear on approval; mark one or many paid with a reference; bonuses and deductions; totals per currency; CSV export                       | —                                                               | Not started |
@@ -536,3 +536,85 @@ What's left for later milestones:
 - **Team invites** (M9). Until then the admin is the only staff account.
 - **The public site's header** still says "Sign in" to signed-in people; the sign-in page sends
   them straight on to their app.
+
+## Milestone 4 · Creator onboarding (built 16 Oct 2026)
+
+What's in it:
+
+- **The application** at `/application`, where every new account lands. One page in four short
+  sections: the name you post under, X handle and country; followers, average views, up to five
+  niches and any other socials; links to three posts and why you want to join; and a referral
+  code, filled in for you when you came through a creator's link. Instant checks as you type,
+  the same checks on the server, and the database checks them a third time.
+- **The status screen:** after sending, the same page shows "Application received" with where
+  it stands. When you decide, the applicant gets an email and the page changes: "You're in"
+  with a way into the creator app, or a kind "Not this time". One application per account.
+- **Your inbox** gets an email for every new application (`LEADS_NOTIFY_EMAIL`, the same inbox
+  as leads), with a button to review it.
+- **Applications** in the admin (`/admin/applications`), for you and your team: tabs for
+  Waiting (oldest first), Approved, Rejected and All, with counts. Each card shows the answers,
+  links to their X and other profiles, their three posts, who referred them, and a private team
+  note. Pick Approve or Reject, then one button sends the decision and the email, so a stray
+  tap can't decide anything. If two people decide at once, the second is told who got there
+  first.
+- **Invite links** in the admin (`/admin/invites`, admin only): a label only you see, an
+  optional use limit and an expiry (never, a day, a week, 30 or 90 days). Copy a link, see how
+  many have used it, and switch it off. Anyone who signs up through a link is approved straight
+  away and lands in the creator app. Use it to move your Telegram creators in. Links are 16
+  random characters, so nobody can guess one.
+- **The invite page** (`/invite/<code>`): signed out, it explains the link and offers sign up or
+  sign in (both come back to it); signed in as an applicant, it's one "Accept invite" button. A
+  link that's expired, used up, switched off or mistyped says so kindly and offers the normal
+  application. Creators and staff are told they're already in.
+- **Referral links:** every approved creator gets a personal link (`/apply?ref=<code>`) on their
+  profile, with Copy and Share. The code rides through sign up and the confirmation email into
+  the application, the review card shows who referred them, and the creator sees how many
+  applied and how many were approved (never who).
+- **Profile** in the creator app (`/dashboard/profile`): photo (cropped to a square and shrunk
+  in the browser before it uploads), name, socials, niches, audience numbers, country, a short
+  bio and an optional rate per post. The X handle is locked once approved; changing it is an
+  email to you.
+- **Payout details** on the same page: crypto (USDC or USDT, then only the networks that carry
+  that coin, then a wallet address checked against the network's format), bank transfer, or
+  something else. Every change is logged and emails the creator, so nobody can swap them
+  quietly. Only the creator and you can see them; team can't.
+- **`/apply`** is now a real page for creators: what you get, how it works in four steps, what
+  we look for, and Apply now.
+- **Preview links without Supabase** show every screen with sample data, and the forms say
+  nothing is saved. Add `?preview=submitted`, `rejected` or `approved` to `/application`, and
+  `?preview=applicant`, `creator`, `admin`, `inactive`, `revoked`, `expired`, `used_up` or
+  `error` to an invite link, to see each state.
+- **Privacy** now covers applications, profiles, photos and payout details, and who sees what.
+- **Also fixed:** the proxy now refreshes the sign-in on invite links, so accepting an invite
+  after a long break can't sign anyone out; logging out from an invite page brings you back to
+  it once you sign in again; and
+  the country list lost retired codes that showed some countries twice.
+- **Database:** `20261013140000_creator_onboarding.sql` (applications, invites, payout details,
+  referral codes, and one function per action, each checking who's calling) and
+  `20261013150000_avatars.sql` (the photo bucket: anyone can view a photo by its address, each
+  person can only write in their own folder, and photo addresses must be https).
+- **Tests:** 458 unit tests and 123 database tests, including every database function and policy,
+  each server action, the invite proxy rule and the review tabs.
+
+Set up before it works for real: nothing new beyond Milestone 3's steps. The photo bucket and
+everything else arrive with the migrations. Application alerts go to `LEADS_NOTIFY_EMAIL`.
+
+How to test it on the preview link:
+
+1. Sign up with a second email and confirm it: you land on the application. Send it.
+2. Your inbox gets the alert. In `/admin/applications`, approve it with a note. The applicant
+   gets the welcome email, and their `/application` sends them on to the creator app.
+3. Try another account and reject it: it gets the kind email and "Not this time".
+4. In `/admin/invites`, create a link with a use limit of 1. Open it in a private window, sign
+   up through it and confirm: you're in the creator app straight away. Open the link in another
+   private window: it's used up.
+5. In the creator app, open Profile: add a photo, change your niches, save. Add payout details:
+   the email confirming the change arrives.
+6. Copy your referral link, apply through it with a third account: the review card says who
+   referred them, and your profile counts it.
+
+What's left for later milestones:
+
+- **Tiers and tags** on each creator, and the creators directory with notes and stats (M9).
+- **Team invites** (M9).
+- **Reapplying** after a rejection isn't possible yet; the page offers your email instead.
