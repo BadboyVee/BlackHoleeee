@@ -559,9 +559,9 @@ What's in it:
   first.
 - **Invite links** in the admin (`/admin/invites`, admin only): a label only you see, an
   optional use limit and an expiry (never, a day, a week, 30 or 90 days). Copy a link, see how
-  many have used it, and switch it off. Anyone who signs up through a link is approved straight
-  away and lands in the creator app. Use it to move your Telegram creators in. Links are 16
-  random characters, so nobody can guess one.
+  many have used it, and switch it off. Anyone who signs up through a link and taps Accept is
+  approved straight away and lands in the creator app. Use it to move your Telegram creators
+  in. Links are 16 random characters, so nobody can guess one.
 - **The invite page** (`/invite/<code>`): signed out, it explains the link and offers sign up or
   sign in (both come back to it); signed in as an applicant, it's one "Accept invite" button. A
   link that's expired, used up, switched off or mistyped says so kindly and offers the normal
@@ -606,8 +606,8 @@ How to test it on the preview link:
    gets the welcome email, and their `/application` sends them on to the creator app.
 3. Try another account and reject it: it gets the kind email and "Not this time".
 4. In `/admin/invites`, create a link with a use limit of 1. Open it in a private window, sign
-   up through it and confirm: you're in the creator app straight away. Open the link in another
-   private window: it's used up.
+   up through it and confirm: you land back on the invite. Tap Accept invite and you're in the
+   creator app. Open the link in another private window: it's used up.
 5. In the creator app, open Profile: add a photo, change your niches, save. Add payout details:
    the email confirming the change arrives.
 6. Copy your referral link, apply through it with a third account: the review card says who

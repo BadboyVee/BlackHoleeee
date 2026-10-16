@@ -31,7 +31,7 @@ const STEPS = [
   },
   {
     title: "Post and get paid",
-    body: "Follow the brief and post on X. Once your post is approved, we pay you in USDC or USDT on Base, Solana and other networks, or by bank transfer.",
+    body: "Follow the brief and post on X. Once your post is approved, we pay you in USDC or USDT on networks like Base and Solana, or by bank transfer.",
   },
 ];
 

@@ -11,7 +11,7 @@ import { DropdownMenuItem } from "@/components/ui/dropdown-menu";
 function SignOutSubmit() {
   const { pending } = useFormStatus();
   return (
-    <Button type="submit" variant="ghost" loading={pending}>
+    <Button type="submit" variant="ghost" size="lg" loading={pending}>
       {pending ? null : <LogOut />}
       Log out
     </Button>
