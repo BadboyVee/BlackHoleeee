@@ -64,10 +64,15 @@ $$;
 
 alter table public.profiles
   add column x_handle text check (x_handle ~ '^[A-Za-z0-9_]{1,15}$'),
-  add column tiktok_url text check (tiktok_url is null or private.all_https_links(array[tiktok_url])),
-  add column youtube_url text check (youtube_url is null or private.all_https_links(array[youtube_url])),
-  add column instagram_url text check (instagram_url is null or private.all_https_links(array[instagram_url])),
-  add column linkedin_url text check (linkedin_url is null or private.all_https_links(array[linkedin_url])),
+  -- Each link must point at its own platform, as the forms check (normalizeSocialLink).
+  add column tiktok_url text check (tiktok_url is null or (private.all_https_links(array[tiktok_url])
+    and tiktok_url ~* '^https://([a-z0-9-]+\.)*tiktok\.com(/|$)')),
+  add column youtube_url text check (youtube_url is null or (private.all_https_links(array[youtube_url])
+    and youtube_url ~* '^https://([a-z0-9-]+\.)*(youtube\.com|youtu\.be)(/|$)')),
+  add column instagram_url text check (instagram_url is null or (private.all_https_links(array[instagram_url])
+    and instagram_url ~* '^https://([a-z0-9-]+\.)*instagram\.com(/|$)')),
+  add column linkedin_url text check (linkedin_url is null or (private.all_https_links(array[linkedin_url])
+    and linkedin_url ~* '^https://([a-z0-9-]+\.)*linkedin\.com(/|$)')),
   add column niches text[] not null default '{}'
     check (niches <@ private.known_niches() and cardinality(niches) <= 5),
   add column followers integer check (followers between 0 and 2000000000),
@@ -82,7 +87,8 @@ alter table public.profiles
   add constraint profiles_not_self_referred check (referred_by is distinct from id);
 
 comment on column public.profiles.x_handle is
-  'Without the @. One account per handle. Set by the application; creators can''t change it themselves.';
+  'Without the @. Set by the application; creators can''t change it themselves. Unique among '
+  'approved accounts only, so nobody can block a real creator by applying with their handle first.';
 comment on column public.profiles.niches is 'Up to five of private.known_niches().';
 comment on column public.profiles.followers is 'Self reported on X, for now.';
 comment on column public.profiles.avg_views is 'Self reported average views per post, for now.';
@@ -90,7 +96,8 @@ comment on column public.profiles.country is 'ISO 3166-1 alpha-2 code, such as N
 comment on column public.profiles.referral_code is 'Given on approval. Their link is /apply?ref=<code>.';
 comment on column public.profiles.referred_by is 'The creator whose referral link they applied through.';
 
-create unique index profiles_x_handle_key on public.profiles (lower(x_handle)) where x_handle is not null;
+create unique index profiles_x_handle_key on public.profiles (lower(x_handle))
+  where x_handle is not null and role in ('creator', 'team', 'admin');
 create index profiles_referred_by_idx on public.profiles (referred_by) where referred_by is not null;
 
 -- Creators edit these themselves. Role, status, email, X handle, referral code
@@ -99,6 +106,35 @@ grant update (
   tiktok_url, youtube_url, instagram_url, linkedin_url, niches, followers, avg_views,
   country, bio, rate_per_post, rate_currency
 ) on table public.profiles to authenticated;
+
+-- Only active creators edit them directly. Applicants' answers stay as they sent them while
+-- staff review, and a suspended creator can't change anything. Edits through the API run as
+-- "authenticated"; the onboarding functions run as their owner and aren't affected.
+create function private.guard_creator_profile_edits()
+returns trigger
+language plpgsql
+set search_path = ''
+as $$
+begin
+  if current_user = 'authenticated'
+    and (old.role <> 'creator' or old.status <> 'active')
+    and (new.tiktok_url, new.youtube_url, new.instagram_url, new.linkedin_url, new.niches, new.followers,
+         new.avg_views, new.country, new.bio, new.rate_per_post, new.rate_currency)
+      is distinct from
+        (old.tiktok_url, old.youtube_url, old.instagram_url, old.linkedin_url, old.niches, old.followers,
+         old.avg_views, old.country, old.bio, old.rate_per_post, old.rate_currency)
+  then
+    raise exception 'Only approved creators can change their profile' using errcode = '42501';
+  end if;
+  return new;
+end;
+$$;
+
+revoke all on function private.guard_creator_profile_edits() from public, anon, authenticated, service_role;
+
+create trigger profiles_guard_creator_edits
+  before update on public.profiles
+  for each row execute function private.guard_creator_profile_edits();
 
 -- Invites --------------------------------------------------------------------------
 
@@ -143,9 +179,7 @@ create table public.applications (
   why text check (char_length(btrim(why)) between 20 and 1000),
   referred_by uuid references public.profiles (id) on delete set null,
   invite_id uuid references public.invites (id) on delete set null,
-  reviewed_by uuid references public.profiles (id) on delete set null,
   reviewed_at timestamptz,
-  review_note text not null default '' check (char_length(review_note) <= 2000),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   -- Invited creators skip the questions; everyone else answers them.
@@ -156,7 +190,6 @@ create table public.applications (
 comment on table public.applications is
   'One per person: their answers and where it stands. Written only by database functions. '
   'An invited creator gets an approved row with no answers.';
-comment on column public.applications.review_note is 'Private staff notes. Never shown to the applicant.';
 
 create index applications_status_created_at_idx on public.applications (status, created_at desc);
 
@@ -175,6 +208,31 @@ create policy "Applicants read their own application"
 
 create policy "Staff read every application"
   on public.applications for select to authenticated
+  using ((select private.is_staff()));
+
+-- Who decided, and their private note. A table of its own, so applicants, who can read their
+-- own application, never see it.
+create table public.application_reviews (
+  application_id uuid primary key references public.applications (id) on delete cascade,
+  reviewed_by uuid references public.profiles (id) on delete set null,
+  note text not null default '' check (char_length(note) <= 2000),
+  created_at timestamptz not null default now()
+);
+
+comment on table public.application_reviews is
+  'The staff decision on an application: who made it and their private note. Staff only. '
+  'Invited creators have none. Written by public.review_application.';
+
+create index application_reviews_reviewed_by_idx on public.application_reviews (reviewed_by)
+  where reviewed_by is not null;
+
+alter table public.application_reviews enable row level security;
+
+revoke all on table public.application_reviews from anon, authenticated, service_role;
+grant select on table public.application_reviews to authenticated, service_role;
+
+create policy "Staff read reviews"
+  on public.application_reviews for select to authenticated
   using ((select private.is_staff()));
 
 -- Payout details ---------------------------------------------------------------------
@@ -370,6 +428,14 @@ begin
   if exists (select 1 from public.applications a where a.applicant = v_me) then
     raise exception 'already_applied' using errcode = 'P0409';
   end if;
+  -- Applicants may share a handle until one is approved (staff decide who's real), but
+  -- nobody applies with a handle an approved account already has.
+  if exists (
+    select 1 from public.profiles p
+    where lower(p.x_handle) = lower(btrim(p_x_handle)) and p.id <> v_me and p.role in ('creator', 'team', 'admin')
+  ) then
+    raise exception 'x_handle_taken' using errcode = '23505';
+  end if;
 
   -- A referral code counts when it belongs to an active creator who isn't the applicant.
   if nullif(btrim(p_referral_code), '') is not null then
@@ -447,10 +513,11 @@ begin
 
   update public.applications a
   set status = case when p_decision = 'approve' then 'approved' else 'rejected' end::public.application_status,
-      reviewed_by = v_me,
-      reviewed_at = now(),
-      review_note = left(coalesce(btrim(p_note), ''), 2000)
+      reviewed_at = now()
   where a.id = p_application;
+
+  insert into public.application_reviews (application_id, reviewed_by, note)
+  values (p_application, v_me, left(coalesce(btrim(p_note), ''), 2000));
 
   if p_decision = 'approve' then
     perform private.approve_profile(v_application.applicant, v_me, 'application');
@@ -581,8 +648,17 @@ declare
   v_state text;
   v_outbox uuid;
 begin
-  if v_me is null or private.current_user_role() is distinct from 'applicant' then
+  -- Locking the caller's profile first means one person's repeated or parallel taps queue up
+  -- here, and only the first one finds them still an applicant.
+  perform 1 from public.profiles p
+  where p.id = v_me and p.role = 'applicant' and p.status = 'active'
+  for update;
+  if v_me is null or not found then
     raise exception 'Only applicants can use an invite' using errcode = '42501';
+  end if;
+  -- An invite doesn't overturn a decision the team already made.
+  if exists (select 1 from public.applications a where a.applicant = v_me and a.status = 'rejected') then
+    raise exception 'application_rejected' using errcode = 'P0409';
   end if;
 
   select * into v_invite from public.invites i where i.code = lower(btrim(p_code)) for update;
@@ -593,14 +669,13 @@ begin
 
   update public.invites i set uses = i.uses + 1 where i.id = v_invite.id;
 
-  -- An application already waiting is approved through the invite; otherwise one is recorded.
+  -- An application still waiting is approved through the invite; otherwise one is recorded.
   insert into public.applications (applicant, status, invite_id, reviewed_at)
   values (v_me, 'approved', v_invite.id, now())
   on conflict (applicant) do update
     set status = 'approved',
         invite_id = excluded.invite_id,
-        reviewed_at = coalesce(public.applications.reviewed_at, now()),
-        reviewed_by = null;
+        reviewed_at = now();
 
   perform private.approve_profile(v_me, v_me, 'invite');
   v_outbox := private.queue_profile_email(
@@ -616,7 +691,8 @@ $$;
 comment on function public.redeem_invite(text) is
   'A signed-in applicant uses an invite link: counts the use, approves them (role creator, '
   'referral code), emails a welcome and logs it. Raises invite_<state> (P0410) for an invite '
-  'that is revoked, expired, used up or unknown. Returns the outbox row.';
+  'that is revoked, expired, used up or unknown, and application_rejected (P0409) for someone '
+  'the team already turned down. Returns the outbox row.';
 
 -- Payout details --------------------------------------------------------------------
 
@@ -649,6 +725,10 @@ begin
   end if;
   if p_method is null or p_method not in ('crypto', 'bank', 'other') then
     raise exception 'The method is crypto, bank or other' using errcode = '22023';
+  end if;
+  -- Each change sends an email, so changes are limited per hour.
+  if not private.take_rate_limit('payout_details:' || v_me::text, 10, interval '1 hour') then
+    raise exception 'rate_limited' using errcode = 'P0429';
   end if;
   v_method := p_method::public.payout_method;
 
@@ -706,7 +786,15 @@ $$;
 comment on function public.set_payout_details(text, text, text, text, text, text, text, text, text, text) is
   'A creator saves where they want to be paid. Keeps only the chosen method''s fields, logs '
   'the change (never the details) and emails the creator a masked summary, so nobody can '
-  'quietly swap them. Returns the outbox row.';
+  'quietly swap them. Ten changes an hour, then rate_limited (P0429). Returns the outbox row.';
+
+-- The change email carries that masked summary, and staff can read the outbox. Team can't see
+-- payout details, so those emails are admin only.
+drop policy "Staff read the outbox" on public.outbox;
+
+create policy "Staff read the outbox"
+  on public.outbox for select to authenticated
+  using ((select private.is_staff()) and (template <> 'payout_details_changed' or (select private.is_admin())));
 
 -- Referrals --------------------------------------------------------------------------
 

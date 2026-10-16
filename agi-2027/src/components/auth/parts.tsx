@@ -83,7 +83,9 @@ export function useServerErrors<T extends FieldValues>(
   fields: readonly Path<T>[],
   alertRef: React.RefObject<HTMLDivElement | null>,
 ) {
-  const handled = useRef(state);
+  // Starts empty, not with the first state: a form sent before the page's JavaScript loaded
+  // arrives with the server's answer as its first state, and its errors still need setting.
+  const handled = useRef<AuthFormState | CreatorFormState | null>(null);
   useEffect(() => {
     if (state === handled.current) return;
     handled.current = state;

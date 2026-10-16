@@ -132,10 +132,12 @@ describe("the schema", () => {
   it("has row level security on every new table", async () => {
     const result = await rows(
       `select relname, relrowsecurity from pg_class
-       where oid in ('public.applications'::regclass, 'public.invites'::regclass, 'public.payout_details'::regclass)
+       where oid in ('public.applications'::regclass, 'public.application_reviews'::regclass,
+                     'public.invites'::regclass, 'public.payout_details'::regclass)
        order by relname`,
     );
     expect(result).toEqual([
+      { relname: "application_reviews", relrowsecurity: true },
       { relname: "applications", relrowsecurity: true },
       { relname: "invites", relrowsecurity: true },
       { relname: "payout_details", relrowsecurity: true },
@@ -198,9 +200,35 @@ describe("profiles", () => {
         "update public.profiles set rate_per_post = 10, rate_currency = null where id = $1",
         "update public.profiles set instagram_url = 'http://instagram.com/x' where id = $1",
         "update public.profiles set niches = '{ai,tech,crypto,startups,design,gaming}' where id = $1",
+        // Each social link points at its own platform, as the forms check.
+        "update public.profiles set linkedin_url = 'https://evil.example/login' where id = $1",
+        "update public.profiles set instagram_url = 'https://instagram.com.evil.example/x' where id = $1",
+        "update public.profiles set tiktok_url = 'https://tiktok.com@evil.example/x' where id = $1",
+        "update public.profiles set youtube_url = 'https://tiktok.com/@amara' where id = $1",
       ]) {
         await fails(sql, [creator], CHECK_VIOLATION);
       }
+      await as(creator);
+      await db.query(
+        `update public.profiles set youtube_url = 'https://youtu.be/abc', tiktok_url = 'https://www.tiktok.com/@amara',
+           linkedin_url = 'https://uk.linkedin.com/in/amara' where id = $1`,
+        [creator],
+      );
+    });
+  });
+
+  it("keeps applicants' answers as sent, and stops suspended creators editing", async () => {
+    const applicant = await createUser(db);
+    const suspended = await createUser(db);
+    await setProfile(db, suspended, { role: "creator", status: "suspended" });
+    await scenario(async (as) => {
+      await as(applicant);
+      await fails("update public.profiles set followers = 2000000000 where id = $1", [applicant], PERMISSION_DENIED);
+      await fails("update public.profiles set linkedin_url = 'https://linkedin.com/in/x' where id = $1", [applicant], PERMISSION_DENIED);
+      // Their name is still theirs to change.
+      await db.query("update public.profiles set display_name = 'New name' where id = $1", [applicant]);
+      await as(suspended);
+      await fails("update public.profiles set bio = 'Back.' where id = $1", [suspended], PERMISSION_DENIED);
     });
   });
 
@@ -282,7 +310,7 @@ describe("applying", () => {
     });
   });
 
-  it("refuses broken answers and a handle someone else has", async () => {
+  it("refuses broken answers and a handle an approved creator has", async () => {
     const applicant = await createUser(db);
     const other = await createUser(db);
     await scenario(async (as) => {
@@ -302,11 +330,20 @@ describe("applying", () => {
         await db.query("rollback to savepoint attempt");
       }
 
+      // Two applicants can claim the same handle: staff decide who's real.
       await as(other);
-      await apply({ x_handle: "taken_handle" });
+      await apply({ x_handle: "shared_handle" });
       await as(applicant);
       await db.query("savepoint attempt");
-      await expect(apply({ x_handle: "TAKEN_handle" })).rejects.toMatchObject({ code: UNIQUE_VIOLATION });
+      await apply({ x_handle: "SHARED_handle" });
+      await db.query("rollback to savepoint attempt");
+
+      // A handle an approved account has is taken.
+      await as("owner");
+      await db.query("update public.profiles set role = 'creator' where id = $1", [other]);
+      await as(applicant);
+      await db.query("savepoint attempt");
+      await expect(apply({ x_handle: "SHARED_handle" })).rejects.toMatchObject({ code: UNIQUE_VIOLATION });
       await db.query("rollback to savepoint attempt");
     });
   });
@@ -354,11 +391,13 @@ describe("reviewing applications", () => {
       const outbox = await one<{ id: string }>("select public.review_application($1, 'approve', ' Strong AI audience. ') as id", [applicationId]);
 
       await as("owner");
-      expect(await one("select status, reviewed_by, review_note, reviewed_at is not null as reviewed from public.applications where id = $1", [applicationId])).toEqual({
+      expect(await one("select status, reviewed_at is not null as reviewed from public.applications where id = $1", [applicationId])).toEqual({
         status: "approved",
-        reviewed_by: team,
-        review_note: "Strong AI audience.",
         reviewed: true,
+      });
+      expect(await one("select reviewed_by, note from public.application_reviews where application_id = $1", [applicationId])).toEqual({
+        reviewed_by: team,
+        note: "Strong AI audience.",
       });
       const profile = await one<{ role: string; referral_code: string; email: string }>(
         "select role, referral_code, email from public.profiles where id = $1",
@@ -400,6 +439,41 @@ describe("reviewing applications", () => {
       await db.query("select public.review_application($1, 'reject')", [applicationId]);
       await fails("select public.review_application($1, 'approve')", [applicationId], CONFLICT, /already_reviewed/);
       await fails("select public.review_application(gen_random_uuid(), 'approve')", [], "P0002");
+    });
+  });
+
+  it("keeps the team's note and who decided away from the applicant", async () => {
+    const { applicant, applicationId } = await submitted();
+    await scenario(async (as) => {
+      await as(team);
+      await db.query("select public.review_application($1, 'reject', 'Mostly giveaways.')", [applicationId]);
+      await as(applicant);
+      expect(await rows("select id, status from public.applications")).toEqual([{ id: applicationId, status: "rejected" }]);
+      expect(await rows("select note from public.application_reviews")).toEqual([]);
+      await as(admin);
+      expect(await rows("select note from public.application_reviews where application_id = $1", [applicationId])).toEqual([
+        { note: "Mostly giveaways." },
+      ]);
+    });
+  });
+
+  it("won't approve a second account with a handle an approved creator has", async () => {
+    const handle = `h${randomUUID().slice(0, 8)}`;
+    const make = async () => {
+      const applicant = await createUser(db);
+      await db.query("begin");
+      await db.query("set local role authenticated");
+      await db.query("select set_config('request.jwt.claims', $1, true)", [JSON.stringify({ sub: applicant, role: "authenticated" })]);
+      const { rows: [result] } = await apply({ x_handle: handle });
+      await db.query("commit");
+      return result.application_id as string;
+    };
+    const real = await make();
+    const copycat = await make();
+    await scenario(async (as) => {
+      await as(team);
+      await db.query("select public.review_application($1, 'approve')", [real]);
+      await fails("select public.review_application($1, 'approve')", [copycat], UNIQUE_VIOLATION);
     });
   });
 
@@ -570,6 +644,42 @@ describe("invite links", () => {
       }
     });
   });
+
+  it("counts one use per person, however often they tap", async () => {
+    const newcomer = await createUser(db);
+    await scenario(async (as) => {
+      await as(admin);
+      const invite = await newInvite({ maxUses: 5 });
+      await as(newcomer);
+      await db.query("select public.redeem_invite($1)", [invite.code]);
+      await fails("select public.redeem_invite($1)", [invite.code], PERMISSION_DENIED);
+      await as("owner");
+      expect(await one("select uses from public.invites where id = $1", [invite.id])).toEqual({ uses: 1 });
+    });
+  });
+
+  it("doesn't overturn a rejection", async () => {
+    const { applicant, applicationId } = await (async () => {
+      const id = await createUser(db);
+      await db.query("begin");
+      await db.query("set local role authenticated");
+      await db.query("select set_config('request.jwt.claims', $1, true)", [JSON.stringify({ sub: id, role: "authenticated" })]);
+      const { rows: [result] } = await apply({ x_handle: `r${randomUUID().slice(0, 8)}` });
+      await db.query("commit");
+      return { applicant: id, applicationId: result.application_id as string };
+    })();
+    await scenario(async (as) => {
+      await as(team);
+      await db.query("select public.review_application($1, 'reject')", [applicationId]);
+      await as(admin);
+      const invite = await newInvite();
+      await as(applicant);
+      await fails("select public.redeem_invite($1)", [invite.code], CONFLICT, /application_rejected/);
+      await as("owner");
+      expect(await one("select uses from public.invites where id = $1", [invite.id])).toEqual({ uses: 0 });
+      expect(await one("select role from public.profiles where id = $1", [applicant])).toEqual({ role: "applicant" });
+    });
+  });
 });
 
 describe("payout details", () => {
@@ -616,6 +726,30 @@ describe("payout details", () => {
       );
       expect(log).toEqual({ action: "payout_details.changed", details: { method: "crypto" } });
       expect(JSON.stringify(log)).not.toContain(EVM);
+    });
+  });
+
+  it("allows ten changes an hour, since each one sends an email", async () => {
+    await scenario(async (as) => {
+      await as(creator);
+      for (let i = 0; i < 10; i += 1) await setPayout({ method: "other", other: `PayPal ${i}` });
+      await fails(
+        "select public.set_payout_details(p_method => 'other', p_other_details => 'PayPal 11')",
+        [],
+        "P0429",
+        /rate_limited/,
+      );
+    });
+  });
+
+  it("keeps the change emails, which name the bank or network, from team", async () => {
+    await scenario(async (as) => {
+      await as(creator);
+      const { rows: [{ id }] } = await setPayout({ method: "crypto", asset: "USDC", network: "base", wallet: EVM });
+      await as(team);
+      expect(await rows("select id from public.outbox where id = $1", [id])).toEqual([]);
+      await as(admin);
+      expect(await rows("select id from public.outbox where id = $1", [id])).toEqual([{ id }]);
     });
   });
 

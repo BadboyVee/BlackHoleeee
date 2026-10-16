@@ -192,6 +192,15 @@ describe("redeemInvite", () => {
     expect((await run(redeemInvite(idle, form({ code: "short" })))).state).toEqual({ status: "error", message: inviteStateMessage("unknown") });
   });
 
+  it("tells someone the team turned down that the invite can't change that", async () => {
+    mocks.rpc.mockResolvedValue({ data: null, error: { code: "P0409", message: "application_rejected" } });
+    expect((await run(redeemInvite(idle, form({ code: INVITE })))).state).toEqual({
+      status: "error",
+      message: "Your application was already decided, so this invite can't be used. Email us if you think that's wrong.",
+    });
+    expect(mocks.after).not.toHaveBeenCalled();
+  });
+
   it("tells someone already in to head to the dashboard", async () => {
     mocks.rpc.mockResolvedValue({ data: null, error: { code: "42501", message: "Only applicants can use an invite" } });
     expect((await run(redeemInvite(idle, form({ code: INVITE })))).state).toMatchObject({ message: expect.stringContaining("already in") });
@@ -210,6 +219,14 @@ describe("reviewApplication", () => {
     });
     expect(mocks.after).toHaveBeenCalledTimes(1);
     expect(mocks.refresh).toHaveBeenCalled();
+  });
+
+  it("explains a handle an approved creator already has", async () => {
+    mocks.rpc.mockResolvedValue({ data: null, error: { code: "23505", message: "duplicate key" } });
+    expect((await run(reviewApplication(idle, form({ id: APPLICATION_ID, decision: "approve", note: "" })))).state).toEqual({
+      status: "error",
+      message: "An approved creator already has this X handle. Check which account is really theirs before approving.",
+    });
   });
 
   it("refuses a made-up decision or id, and explains a race", async () => {
@@ -371,6 +388,14 @@ describe("savePayoutDetails", () => {
     const { state } = await run(savePayoutDetails(idle, form({ method: "crypto", asset: "USDC", network: "solana", wallet: EVM })));
     expect(state).toMatchObject({ status: "error", fieldErrors: { wallet: expect.stringContaining("doesn't look like an address") } });
     expect(mocks.rpc).not.toHaveBeenCalled();
+  });
+
+  it("asks them to wait after too many changes in an hour", async () => {
+    mocks.rpc.mockResolvedValue({ data: null, error: { code: "P0429", message: "rate_limited" } });
+    expect((await run(savePayoutDetails(idle, form({ method: "other", otherDetails: "Wise" })))).state).toEqual({
+      status: "error",
+      message: "You've changed these a lot in the last hour. Try again later, or email us if something's wrong.",
+    });
   });
 
   it("explains when the account isn't a creator", async () => {

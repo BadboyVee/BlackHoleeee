@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import {
   applicationErrorMessage,
   FORM_PROBLEM,
+  INVITE_AFTER_REJECTION,
   inviteStateFromError,
   inviteStateMessage,
   NOT_CONNECTED,
@@ -105,6 +106,7 @@ export async function redeemInvite(_prev: CreatorFormState, formData: FormData):
     const state = inviteStateFromError(error);
     if (state) return { status: "error", message: inviteStateMessage(state) };
     if (error.code === "42501") return { status: "error", message: "This account is already in. Head to your dashboard." };
+    if (error.code === "P0409") return { status: "error", message: INVITE_AFTER_REJECTION };
     console.error(`[invite] redeem failed: ${error.code ?? "no code"}`);
     return { status: "error", message: "We couldn't use that invite just now. Try again in a minute." };
   }

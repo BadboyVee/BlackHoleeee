@@ -48,11 +48,14 @@ describe("the avatars bucket", () => {
     expect(rows).toEqual([{ public: true, file_size_limit: "2097152", allowed_mime_types: ["image/jpeg", "image/png", "image/webp"] }]);
   });
 
-  it("lets people upload, replace, read and delete only inside their own folder", async () => {
+  it("lets people upload, replace, read and delete their own photo, and only that one file", async () => {
     await asUser(db, amara, async () => {
       expect(await attempt(() => upload(`${amara}/avatar.webp`))).toBeNull();
       expect(await attempt(() => upload(`${bayo}/avatar.webp`))).toBe(RLS_VIOLATION);
       expect(await attempt(() => upload("avatar.webp"))).toBe(RLS_VIOLATION);
+      // Nothing else in their folder, so the bucket can't be used as free image hosting.
+      expect(await attempt(() => upload(`${amara}/other.png`))).toBe(RLS_VIOLATION);
+      expect(await attempt(() => upload(`${amara}/sub/avatar.webp`))).toBe(RLS_VIOLATION);
 
       await upload(`${amara}/avatar.webp`);
       const own = await db.query("update storage.objects set updated_at = now() where name = $1 returning id", [`${amara}/avatar.webp`]);
@@ -100,11 +103,26 @@ describe("the avatars bucket", () => {
 });
 
 describe("profile photo addresses", () => {
-  it("accepts https addresses only", async () => {
+  it("accepts only their own photo in the bucket, or a Google profile picture", async () => {
     await asUser(db, amara, async () => {
-      const url = `https://project.supabase.co/storage/v1/object/public/avatars/${amara}/avatar.webp?v=1`;
-      await db.query("update public.profiles set avatar_url = $1 where id = $2", [url, amara]);
-      for (const bad of ["http://tracker.example/pixel.gif", "javascript:alert(1)", "https://example.com/a b.png"]) {
+      for (const url of [
+        `https://project.supabase.co/storage/v1/object/public/avatars/${amara}/avatar.webp?v=1`,
+        `https://project.supabase.co/storage/v1/object/public/avatars/${amara}/avatar.webp`,
+        "https://lh3.googleusercontent.com/a/ACg8ocK=s96-c",
+      ]) {
+        await db.query("update public.profiles set avatar_url = $1 where id = $2", [url, amara]);
+      }
+      for (const bad of [
+        "http://tracker.example/pixel.gif",
+        "javascript:alert(1)",
+        "https://example.com/a b.png",
+        // A server they control would learn who opened their application, and when.
+        "https://attacker.example/p.png?u=me",
+        `https://attacker.example/storage/v1/object/public/avatars/${amara}/avatar.webp`,
+        `https://project.supabase.co/storage/v1/object/public/avatars/${bayo}/avatar.webp`,
+        `https://project.supabase.co/storage/v1/object/public/avatars/${amara}/other.png`,
+        "https://lh3.googleusercontent.com.attacker.example/a",
+      ]) {
         expect(await attempt(() => db.query("update public.profiles set avatar_url = $1 where id = $2", [bad, amara]))).toBe(
           CHECK_VIOLATION,
         );
@@ -113,8 +131,8 @@ describe("profile photo addresses", () => {
     });
   });
 
-  it("drops a non-https photo at sign-up instead of refusing the account", async () => {
-    const plain = await createUser(db, { meta: { avatar_url: "http://example.com/me.png", full_name: "Plain" } });
+  it("drops any other photo at sign-up instead of refusing the account", async () => {
+    const plain = await createUser(db, { meta: { avatar_url: "https://example.com/me.png", full_name: "Plain" } });
     const google = await createUser(db, { meta: { avatar_url: "https://lh3.googleusercontent.com/a/me", full_name: "Goog" } });
     const { rows } = await db.query("select id, avatar_url from public.profiles where id = any($1) order by display_name", [
       [plain, google],

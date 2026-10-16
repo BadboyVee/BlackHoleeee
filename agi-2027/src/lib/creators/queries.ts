@@ -218,10 +218,10 @@ export async function listApplications(): Promise<ApplicationRow[] | null> {
     const { data, error } = await current.supabase
       .from("applications")
       .select(
-        `id, status, best_posts, why, review_note, created_at, reviewed_at, invite_id,
+        `id, status, best_posts, why, created_at, reviewed_at, invite_id,
          applicant:profiles!applications_applicant_fkey (${PROFILE_COLUMNS}),
          referrer:profiles!applications_referred_by_fkey (display_name, x_handle),
-         reviewer:profiles!applications_reviewed_by_fkey (display_name)`,
+         review:application_reviews (note, reviewer:profiles!application_reviews_reviewed_by_fkey (display_name))`,
       )
       .order("created_at", { ascending: false })
       .limit(500);
@@ -235,7 +235,12 @@ export async function listApplications(): Promise<ApplicationRow[] | null> {
       const referrer = (Array.isArray(row.referrer) ? row.referrer[0] : row.referrer) as
         | { display_name: string; x_handle: string | null }
         | null;
-      const reviewer = (Array.isArray(row.reviewer) ? row.reviewer[0] : row.reviewer) as { display_name: string } | null;
+      // The decision and private note live in a staff-only table of their own (one per application).
+      const review = (Array.isArray(row.review) ? row.review[0] : row.review) as
+        | { note: string; reviewer: { display_name: string } | { display_name: string }[] | null }
+        | null
+        | undefined;
+      const reviewer = review ? (Array.isArray(review.reviewer) ? review.reviewer[0] : review.reviewer) : null;
       const profile = toProfile(applicant);
       return [
         {
@@ -243,7 +248,7 @@ export async function listApplications(): Promise<ApplicationRow[] | null> {
           status: row.status,
           bestPosts: row.best_posts,
           why: row.why,
-          reviewNote: row.review_note,
+          reviewNote: review?.note ?? "",
           createdAt: row.created_at,
           reviewedAt: row.reviewed_at,
           invited: row.invite_id !== null,

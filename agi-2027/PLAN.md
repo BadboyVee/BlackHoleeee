@@ -561,7 +561,8 @@ What's in it:
   optional use limit and an expiry (never, a day, a week, 30 or 90 days). Copy a link, see how
   many have used it, and switch it off. Anyone who signs up through a link and taps Accept is
   approved straight away and lands in the creator app. Use it to move your Telegram creators
-  in. Links are 16 random characters, so nobody can guess one.
+  in. Links are 16 random characters, so nobody can guess one. Someone you already turned
+  down can't use one to get in, and tapping Accept twice only counts one use.
 - **The invite page** (`/invite/<code>`): signed out, it explains the link and offers sign up or
   sign in (both come back to it); signed in as an applicant, it's one "Accept invite" button. A
   link that's expired, used up, switched off or mistyped says so kindly and offers the normal
@@ -573,11 +574,15 @@ What's in it:
 - **Profile** in the creator app (`/dashboard/profile`): photo (cropped to a square and shrunk
   in the browser before it uploads), name, socials, niches, audience numbers, country, a short
   bio and an optional rate per post. The X handle is locked once approved; changing it is an
-  email to you.
+  email to you. Nobody can apply with an approved creator's handle. Two applicants can give
+  the same one, so a copycat can't block the real person: you see both, and only one can be
+  approved. Only approved creators can edit their profile; an applicant's answers stay as
+  they sent them while you review.
 - **Payout details** on the same page: crypto (USDC or USDT, then only the networks that carry
   that coin, then a wallet address checked against the network's format), bank transfer, or
   something else. Every change is logged and emails the creator, so nobody can swap them
-  quietly. Only the creator and you can see them; team can't.
+  quietly, and there can be at most ten changes an hour. Only the creator and you can see
+  them, including in those emails; team can't.
 - **`/apply`** is now a real page for creators: what you get, how it works in four steps, what
   we look for, and Apply now.
 - **Preview links without Supabase** show every screen with sample data, and the forms say
@@ -589,11 +594,18 @@ What's in it:
   after a long break can't sign anyone out; logging out from an invite page brings you back to
   it once you sign in again; and
   the country list lost retired codes that showed some countries twice.
-- **Database:** `20261013140000_creator_onboarding.sql` (applications, invites, payout details,
-  referral codes, and one function per action, each checking who's calling) and
-  `20261013150000_avatars.sql` (the photo bucket: anyone can view a photo by its address, each
-  person can only write in their own folder, and photo addresses must be https).
-- **Tests:** 458 unit tests and 123 database tests, including every database function and policy,
+- **Database:** `20261013140000_creator_onboarding.sql` (applications, a staff-only table for
+  decisions and notes, invites, payout details, referral codes, and one function per action,
+  each checking who's calling) and `20261013150000_avatars.sql` (the photo bucket: anyone can
+  view a photo by its address, and each person can only write their own one file). A photo
+  address must be the person's own file or the Google picture they signed up with, so nobody
+  can make your browser load an image from their own server. Social links must point at their
+  own platform.
+- **Security review:** every database function, policy, action and screen was read for ways
+  around the rules. All it found is fixed above: review notes were readable by the applicant,
+  and the smaller items (invites after a rejection, double taps, photo and link addresses,
+  payout emails visible to team, handle squatting, unlimited payout changes and photo files).
+- **Tests:** 462 unit tests and 130 database tests, including every database function and policy,
   each server action, the invite proxy rule and the review tabs.
 
 Set up before it works for real: nothing new beyond Milestone 3's steps. The photo bucket and

@@ -28,6 +28,10 @@ export function inviteStateMessage(state: InviteState): string {
   }
 }
 
+/** What the invite page says to someone the team already turned down. */
+export const INVITE_AFTER_REJECTION =
+  "Your application was already decided, so this invite can't be used. Email us if you think that's wrong.";
+
 /** The invite's state from redeem_invite's error ("invite_expired" and so on), or null for any other error. */
 export function inviteStateFromError(error: DbError): InviteState | null {
   if (error?.code !== "P0410") return null;
@@ -56,6 +60,8 @@ export function reviewErrorMessage(error: DbError): string {
       return "Someone already decided on this application. The list is up to date now.";
     case "P0002":
       return "That application no longer exists.";
+    case "23505":
+      return "An approved creator already has this X handle. Check which account is really theirs before approving.";
     case "42501":
       return "Only the agency team can review applications.";
     default:
@@ -71,6 +77,8 @@ export function profileErrorMessage(error: DbError): string {
   switch (error?.code) {
     case "42501":
       return "Only approved creators can change this.";
+    case "P0429":
+      return "You've changed these a lot in the last hour. Try again later, or email us if something's wrong.";
     case "23514":
       return "Something in the form didn't pass our checks. Look it over and try again.";
     default:
