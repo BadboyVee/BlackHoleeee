@@ -144,7 +144,11 @@ export const applicationSchema = z.object({
   country,
   bestPosts: z
     .tuple([postLink, postLink, postLink])
-    .refine((links) => new Set(links).size === links.length, "Three different posts, please."),
+    // Only about repeats: an empty link already has its own message.
+    .refine((links) => {
+      const given = links.filter(Boolean);
+      return new Set(given).size === given.length;
+    }, "Three different posts, please."),
   why: z
     .string()
     .trim()

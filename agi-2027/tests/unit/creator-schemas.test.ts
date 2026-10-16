@@ -120,6 +120,12 @@ describe("applicationSchema", () => {
     expect(errors.bestPosts).toBe("Three different posts, please.");
   });
 
+  it("doesn't call empty post links repeats", () => {
+    const errors = errorsOf(applicationSchema.safeParse({ ...application, bestPosts: ["", "", ""] }));
+    expect(errors.bestPosts).toBeUndefined();
+    expect(errors["bestPosts.0"]).toBe("Paste a link to the post.");
+  });
+
   it("takes up to five niches, all from the list", () => {
     expect(applicationSchema.safeParse({ ...application, niches: ["ai", "tech", "crypto", "startups", "design", "gaming"] }).success).toBe(false);
     expect(applicationSchema.safeParse({ ...application, niches: ["knitting"] }).success).toBe(false);
