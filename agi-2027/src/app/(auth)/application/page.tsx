@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { getAccount } from "@/lib/auth/account";
 import { nameFromEmail } from "@/lib/auth/account-display";
 import { firstParam } from "@/lib/auth/search-params";
+import { parseReferralCode } from "@/lib/creators/display";
 import { getMyApplication } from "@/lib/creators/queries";
 import { getSupabaseEnv } from "@/lib/supabase/env";
 
@@ -18,12 +19,6 @@ export const metadata: Metadata = {
   title: "Your application",
   robots: { index: false, follow: false },
 };
-
-/** A referral code from the link that brought them here (/apply?ref= passes it on). */
-function referralFrom(value: string | null): string {
-  const code = value?.trim().toLowerCase() ?? "";
-  return /^[a-f0-9]{8}$/.test(code) ? code : "";
-}
 
 /**
  * Where new accounts land: they start as applicants. With no application yet
@@ -40,7 +35,8 @@ export default function ApplicationPage({ searchParams }: PageProps<"/applicatio
 
 async function Application({ searchParams }: Pick<PageProps<"/application">, "searchParams">) {
   const params = await searchParams;
-  const referralCode = referralFrom(firstParam(params, "ref"));
+  // From the link that brought them here (/apply?ref= passes it on).
+  const referralCode = parseReferralCode(firstParam(params, "ref")) ?? "";
 
   // A preview link without Supabase: the form can be tried, and ?preview= shows each status.
   if (!getSupabaseEnv()) {

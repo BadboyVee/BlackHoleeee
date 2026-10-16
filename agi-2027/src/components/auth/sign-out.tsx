@@ -18,10 +18,14 @@ function SignOutSubmit() {
   );
 }
 
-/** A log out button as a plain form, so it works before the page's JavaScript loads. */
-export function SignOutButton() {
+/**
+ * A log out button as a plain form, so it works before the page's JavaScript
+ * loads. `next`: where signing in again should go back to.
+ */
+export function SignOutButton({ next }: { next?: string }) {
   return (
     <form action={signOut}>
+      {next ? <input type="hidden" name="next" value={next} /> : null}
       <SignOutSubmit />
     </form>
   );

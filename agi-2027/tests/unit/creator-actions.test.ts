@@ -214,7 +214,10 @@ describe("reviewApplication", () => {
 
   it("refuses a made-up decision or id, and explains a race", async () => {
     expect((await run(reviewApplication(idle, form({ id: APPLICATION_ID, decision: "maybe", note: "" })))).state).toMatchObject({ status: "error" });
-    expect((await run(reviewApplication(idle, form({ id: "nope", decision: "approve", note: "" })))).state).toMatchObject({ status: "error" });
+    expect((await run(reviewApplication(idle, form({ id: "nope", decision: "approve", note: "" })))).state).toEqual({
+      status: "error",
+      message: "That application no longer exists.",
+    });
     expect(mocks.rpc).not.toHaveBeenCalled();
     mocks.rpc.mockResolvedValue({ data: null, error: { code: "P0409", message: "already_reviewed" } });
     expect((await run(reviewApplication(idle, form({ id: APPLICATION_ID, decision: "reject", note: "" })))).state).toMatchObject({
@@ -245,6 +248,14 @@ describe("invites", () => {
       status: "error",
       message: "Only the admin can manage invite links.",
     });
+  });
+
+  it("answers sample data on a preview link with the not-connected note, not a form problem", async () => {
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "");
+    const notConnected = { status: "error", message: "Accounts aren't connected yet, so this can't be saved." };
+    expect((await run(reviewApplication(idle, form({ id: "demo-app-1", decision: "approve", note: "" })))).state).toEqual(notConnected);
+    expect((await run(revokeInvite(idle, form({ id: "demo-invite-1" })))).state).toEqual(notConnected);
+    expect(mocks.rpc).not.toHaveBeenCalled();
   });
 
   it("switches a link off", async () => {

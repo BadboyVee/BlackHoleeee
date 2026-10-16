@@ -4,6 +4,7 @@ import { normalizeWebsite, normalizeXHandle } from "@/lib/leads/booking";
 import { CURRENCIES } from "@/lib/campaigns/options";
 
 import { isCountryCode } from "./countries";
+import { parseReferralCode } from "./display";
 import {
   assetOnNetwork,
   CRYPTO_ASSETS,
@@ -155,8 +156,8 @@ export const applicationSchema = z.object({
     .optional()
     .transform((value, ctx) => {
       if (!value) return undefined;
-      const code = value.toLowerCase();
-      if (!/^[a-f0-9]{8}$/.test(code)) {
+      const code = parseReferralCode(value);
+      if (!code) {
         ctx.addIssue({ code: "custom", message: "Referral codes are 8 letters and numbers." });
         return z.NEVER;
       }

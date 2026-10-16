@@ -204,7 +204,12 @@ export async function updatePassword(_prev: AuthFormState, formData: FormData): 
  * Logs out on this device. If Supabase can't be reached, the session cookies
  * are cleared by hand, so logging out always works.
  */
-export async function signOut(): Promise<void> {
+/**
+ * Logs out on this device. A form can send `next` (a page on this site) so
+ * signing in again goes back there, such as the invite they were looking at.
+ */
+export async function signOut(formData?: FormData): Promise<void> {
+  const next = formData ? safeNextPath(text(formData, "next")) : null;
   if (getSupabaseEnv()) {
     const supabase = await createClient();
     const { error } = await supabase.auth.signOut({ scope: "local" });
@@ -216,5 +221,5 @@ export async function signOut(): Promise<void> {
       }
     }
   }
-  redirect("/login?status=signed-out");
+  redirect(next ? `/login?status=signed-out&next=${encodeURIComponent(next)}` : "/login?status=signed-out");
 }

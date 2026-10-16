@@ -37,9 +37,10 @@ export async function createInvite(_prev: CreatorFormState, formData: FormData):
 
 /** Switches a link off. People who already joined through it stay in. */
 export async function revokeInvite(_prev: CreatorFormState, formData: FormData): Promise<CreatorFormState> {
-  const id = String(formData.get("id") ?? "");
-  if (!UUID.test(id)) return { status: "error", message: FORM_PROBLEM };
+  // First, so the sample links on a preview link get this answer, not a form problem.
   if (!getSupabaseEnv()) return { status: "error", message: NOT_CONNECTED };
+  const id = String(formData.get("id") ?? "");
+  if (!UUID.test(id)) return { status: "error", message: "That link no longer exists." };
   const supabase = await createClient();
   const { error } = await supabase.rpc("revoke_invite", { p_invite: id });
   if (error) {

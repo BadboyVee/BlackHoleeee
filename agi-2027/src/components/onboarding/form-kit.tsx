@@ -127,6 +127,8 @@ export function NichePicker({
               <input
                 type="checkbox"
                 value={niche.value}
+                // Saved picks show in the server's HTML, before the form library takes over.
+                defaultChecked={checked}
                 disabled={full && !checked}
                 className={cn("peer sr-only", SCROLL_MARGIN)}
                 {...register}

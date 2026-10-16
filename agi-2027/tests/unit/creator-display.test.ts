@@ -7,6 +7,8 @@ import {
   inviteStatusOf,
   inviteUsage,
   otherSocials,
+  parseInviteCode,
+  parseReferralCode,
   referralLink,
   shortLink,
   xProfileUrl,
@@ -54,6 +56,20 @@ describe("links", () => {
       { platform: "youtube", label: "YouTube", url: "https://youtube.com/@a" },
       { platform: "linkedin", label: "LinkedIn", url: "https://linkedin.com/in/a" },
     ]);
+  });
+});
+
+describe("codes from links and forms", () => {
+  it("accepts 8 hex characters as a referral code, in any case", () => {
+    expect(parseReferralCode(" 9F3A1C2B ")).toBe("9f3a1c2b");
+    for (const bad of [null, undefined, "", "9f3a1c2", "9f3a1c2bb", "9f3a1c2g", "9f3a 1c2b"]) expect(parseReferralCode(bad), String(bad)).toBeNull();
+  });
+
+  it("accepts 16 hex characters as an invite code, in any case", () => {
+    expect(parseInviteCode("7C2E9A41D03F5B86")).toBe("7c2e9a41d03f5b86");
+    for (const bad of [null, "", "7c2e9a41d03f5b8", "7c2e9a41d03f5b866", "7c2e9a41d03f5b8z", "../7c2e9a41d03f5b"]) {
+      expect(parseInviteCode(bad), String(bad)).toBeNull();
+    }
   });
 });
 

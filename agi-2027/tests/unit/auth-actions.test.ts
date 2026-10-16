@@ -311,6 +311,16 @@ describe("signOut", () => {
     expect(mocks.auth.signOut).toHaveBeenCalledWith({ scope: "local" });
   });
 
+  it("comes back to a page on this site after signing in again, and only to one", async () => {
+    const data = new FormData();
+    data.set("next", "/invite/7c2e9a41d03f5b86");
+    expect((await run(actions.signOut(data))).redirect).toBe(
+      `/login?status=signed-out&next=${encodeURIComponent("/invite/7c2e9a41d03f5b86")}`,
+    );
+    data.set("next", "https://evil.example/x");
+    expect((await run(actions.signOut(data))).redirect).toBe("/login?status=signed-out");
+  });
+
   it("clears the session cookies by hand when Supabase can't be reached", async () => {
     mocks.auth.signOut.mockResolvedValue({ error: { code: "unexpected_failure" } });
     mocks.cookieJar = new Map([

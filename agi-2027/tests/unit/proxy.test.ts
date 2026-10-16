@@ -91,6 +91,7 @@ describe("config", () => {
       "/login",
       "/signup",
       "/reset-password",
+      "/invite/:path*",
     ]);
   });
 });
@@ -246,6 +247,19 @@ describe("session refresh", () => {
     expect(location(response)).toBe("https://agi2027.example/dashboard");
     expect(response.cookies.get("sb-project-auth-token")?.value).toBe("new-token");
     expect(response.headers.get("cache-control")).toContain("no-store");
+  });
+
+  it("refreshes the session on invite links, and never sends anyone away from them", async () => {
+    mocks.refresh = refreshed;
+    for (const role of [undefined, "creator", "applicant"]) {
+      if (role) signIn(role);
+      else mocks.claims = null;
+      const response = await proxy(request("/invite/7c2e9a41d03f5b86"));
+      expect(location(response), String(role)).toBeNull();
+      expect(response.cookies.get("sb-project-auth-token")?.value).toBe("new-token");
+    }
+    // Nothing to decide there, so no role lookup either.
+    expect(mocks.profileReads).toBe(0);
   });
 
   it("reads the request's own cookies", async () => {

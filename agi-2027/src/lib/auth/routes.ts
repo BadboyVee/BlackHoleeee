@@ -50,8 +50,9 @@ export const ADMIN_ONLY_PATHS = ["/admin/invites", "/admin/payouts", "/admin/tea
  * - staff: the design system page
  * - guest: sign in and sign up, which signed-in people skip
  * - session: setting a new password, which needs the sign-in a reset link gives
+ * - open: invite links, for everyone, which read the session when there is one
  */
-export type Area = "admin" | "creator" | "applicant" | "staff" | "guest" | "session";
+export type Area = "admin" | "creator" | "applicant" | "staff" | "guest" | "session" | "open";
 
 function under(pathname: string, base: string): boolean {
   return pathname === base || pathname.startsWith(`${base}/`);
@@ -64,6 +65,7 @@ export function areaFor(pathname: string): Area | null {
   if (under(pathname, "/styleguide")) return "staff";
   if (pathname === "/login" || pathname === "/signup") return "guest";
   if (pathname === "/reset-password") return "session";
+  if (pathname.startsWith("/invite/")) return "open";
   return null;
 }
 
@@ -83,7 +85,7 @@ const redirectTo = (to: string): Decision => ({ kind: "redirect", to });
  */
 export function accessFor(pathname: string, role: RoleClaim, next?: string | null): Decision {
   const area = areaFor(pathname);
-  if (area === null || area === "session") return allow;
+  if (area === null || area === "session" || area === "open") return allow;
   if (area === "guest") {
     // An account that isn't active stays on the sign-in page, which explains why.
     return role === "none" ? allow : redirectTo(destinationFor(role, next));

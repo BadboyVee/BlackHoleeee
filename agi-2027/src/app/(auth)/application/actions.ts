@@ -10,6 +10,7 @@ import {
   inviteStateMessage,
   NOT_CONNECTED,
 } from "@/lib/creators/messages";
+import { parseInviteCode } from "@/lib/creators/display";
 import { applicationSchema, issuesByPath, type CreatorFormState } from "@/lib/creators/schemas";
 import { deliverSoon } from "@/lib/outbox/deliver-soon";
 import { getSupabaseEnv } from "@/lib/supabase/env";
@@ -91,8 +92,8 @@ export async function submitApplication(_prev: CreatorFormState, formData: FormD
 
 /** Uses an invite link: approved on the spot, then straight to the creator app. */
 export async function redeemInvite(_prev: CreatorFormState, formData: FormData): Promise<CreatorFormState> {
-  const code = text(formData, "code").trim().toLowerCase();
-  if (!/^[a-f0-9]{16}$/.test(code)) return { status: "error", message: inviteStateMessage("unknown") };
+  const code = parseInviteCode(text(formData, "code"));
+  if (!code) return { status: "error", message: inviteStateMessage("unknown") };
   if (!getSupabaseEnv()) return { status: "error", message: NOT_CONNECTED };
 
   const supabase = await createClient();

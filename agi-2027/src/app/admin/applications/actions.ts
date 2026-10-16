@@ -16,12 +16,12 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
  * applicant.
  */
 export async function reviewApplication(_prev: CreatorFormState, formData: FormData): Promise<CreatorFormState> {
+  // First, so the sample applications on a preview link get this answer, not a form problem.
+  if (!getSupabaseEnv()) return { status: "error", message: NOT_CONNECTED };
   const id = String(formData.get("id") ?? "");
   const parsed = reviewSchema.safeParse({ decision: formData.get("decision"), note: String(formData.get("note") ?? "") });
-  if (!UUID.test(id) || !parsed.success) {
-    return { status: "error", message: FORM_PROBLEM, fieldErrors: parsed.success ? {} : issuesByPath(parsed.error.issues) };
-  }
-  if (!getSupabaseEnv()) return { status: "error", message: NOT_CONNECTED };
+  if (!parsed.success) return { status: "error", message: FORM_PROBLEM, fieldErrors: issuesByPath(parsed.error.issues) };
+  if (!UUID.test(id)) return { status: "error", message: "That application no longer exists." };
 
   const supabase = await createClient();
   const { data, error } = await supabase.rpc("review_application", {

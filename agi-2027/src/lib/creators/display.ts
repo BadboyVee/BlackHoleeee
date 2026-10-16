@@ -26,6 +26,18 @@ function base(siteUrl: string): string {
   return siteUrl.replace(/\/+$/, "");
 }
 
+/** A referral code from a link or a form: 8 hex characters, lower case. Null for anything else. */
+export function parseReferralCode(value: string | null | undefined): string | null {
+  const code = value?.trim().toLowerCase() ?? "";
+  return /^[a-f0-9]{8}$/.test(code) ? code : null;
+}
+
+/** An invite code from a link or a form: 16 hex characters, lower case. Null for anything else. */
+export function parseInviteCode(value: string | null | undefined): string | null {
+  const code = value?.trim().toLowerCase() ?? "";
+  return /^[a-f0-9]{16}$/.test(code) ? code : null;
+}
+
 /** The creator's personal link: /apply with their code, which the application form picks up. */
 export function referralLink(code: string, siteUrl: string = siteConfig.url): string {
   return `${base(siteUrl)}/apply?ref=${code}`;
