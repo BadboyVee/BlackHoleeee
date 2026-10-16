@@ -5,24 +5,33 @@ import { AuthHeading } from "@/components/auth/parts";
 import { EmailUs } from "@/components/layout/email-us";
 import { Button } from "@/components/ui/button";
 import type { ApplicationStatus } from "@/lib/creators/queries";
+import { applicationStatusMeta } from "@/lib/statuses";
 import { formatUtcDate } from "@/lib/time";
 import { cn } from "@/lib/utils";
+
+import { FocusOnArrival } from "./form-kit";
 
 /*
  * What an applicant sees once they've applied. The page reads the status on
  * every visit, so it's up to date when they come back from our email.
  */
 
+/** The step under way is the application's status, so its label and color come from statuses.ts. */
+const IN_REVIEW = applicationStatusMeta.submitted;
+
 export function ApplicationStatusView({
   status,
   createdAt,
   firstName,
   email,
+  note,
 }: {
   status: ApplicationStatus;
   createdAt: string;
   firstName: string;
   email: string;
+  /** Sits under the heading, such as the preview notice. */
+  note?: React.ReactNode;
 }) {
   if (status === "approved") {
     return (
@@ -30,10 +39,10 @@ export function ApplicationStatusView({
         <StatusIcon tone="green">
           <PartyPopper className="size-6" />
         </StatusIcon>
-        <AuthHeading
-          eyebrow="Your application"
+        <StatusHeading
           title="You're in"
           lead={`Welcome to AGI 2027, ${firstName}. Your creator dashboard is ready.`}
+          note={note}
         />
         <Button asChild size="xl" variant="brand" className="w-full">
           <Link href="/dashboard">
@@ -48,10 +57,10 @@ export function ApplicationStatusView({
   if (status === "rejected") {
     return (
       <div className="grid gap-6">
-        <AuthHeading
-          eyebrow="Your application"
+        <StatusHeading
           title="Not this time"
           lead={`Thanks for applying, ${firstName}. We can't take you on right now.`}
+          note={note}
         />
         <p className="text-center text-[15px] leading-relaxed text-pretty text-muted-foreground">
           Audiences change. If yours grows, or moves toward AI and tech launches, email us and we&apos;ll take another look.
@@ -68,8 +77,7 @@ export function ApplicationStatusView({
       <StatusIcon tone="green">
         <Check className="size-6" strokeWidth={2.5} />
       </StatusIcon>
-      <AuthHeading
-        eyebrow="Your application"
+      <StatusHeading
         title="Application received"
         lead={
           <>
@@ -77,11 +85,12 @@ export function ApplicationStatusView({
             <span className="font-medium break-words text-foreground">{email}</span> with the answer.
           </>
         }
+        note={note}
       />
 
       <ol aria-label="Where your application is" className="grid gap-0 rounded-2xl border bg-surface px-4 py-2 sm:px-5">
         <Step state="done" title="Received" detail={formatUtcDate(createdAt)} icon={<Check className="size-3.5" strokeWidth={3} />} />
-        <Step state="current" title="In review" detail="Our team is reading it" icon={<Clock className="size-3.5" />} />
+        <Step state="current" title={IN_REVIEW.label} detail="Our team is reading it" icon={<Clock className="size-3.5" />} />
         <Step state="next" title="Our answer" detail="By email, and on this page" icon={<Mail className="size-3.5" />} last />
       </ol>
 
@@ -95,6 +104,18 @@ export function ApplicationStatusView({
         </div>
       </div>
     </div>
+  );
+}
+
+/** The heading, which takes focus when it replaces the form just sent, and the note under it. */
+function StatusHeading({ title, lead, note }: { title: string; lead: React.ReactNode; note?: React.ReactNode }) {
+  return (
+    <>
+      <FocusOnArrival>
+        <AuthHeading eyebrow="Your application" title={title} lead={lead} />
+      </FocusOnArrival>
+      {note}
+    </>
   );
 }
 
@@ -129,7 +150,7 @@ function Step({
       className={cn("flex items-center gap-3.5 py-3", !last && "border-b")}
     >
       <span
-        data-tone={state === "done" ? "green" : state === "current" ? "amber" : undefined}
+        data-tone={state === "done" ? "green" : state === "current" ? IN_REVIEW.tone : undefined}
         aria-hidden
         className={cn(
           "flex size-7 shrink-0 items-center justify-center rounded-full",
@@ -143,7 +164,7 @@ function Step({
         <span className="block text-[13px] text-muted-foreground">{detail}</span>
       </span>
       {state === "current" ? (
-        <span data-tone="amber" className="relative flex size-2 text-(--tone-fg)" aria-hidden>
+        <span data-tone={IN_REVIEW.tone} className="relative flex size-2 text-(--tone-fg)" aria-hidden>
           <span className="absolute inset-0 animate-pulse-ring rounded-full bg-current" />
           <span className="relative size-full rounded-full bg-current" />
         </span>

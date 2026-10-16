@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import type { UseFormRegisterReturn } from "react-hook-form";
 import { CircleAlert, CircleCheck } from "lucide-react";
 
@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 
 export const IDLE: CreatorFormState = { status: "idle" };
 
-/** A titled group of fields. */
+/** A titled group of fields. The legend is the fieldset's first child, which is what names the group. */
 export function FormSection({
   title,
   description,
@@ -35,10 +35,8 @@ export function FormSection({
 }) {
   return (
     <fieldset className={cn("grid min-w-0 gap-5", className)}>
-      <div>
-        <legend className="text-[15px] font-semibold tracking-[-0.01em]">{title}</legend>
-        {description ? <p className="mt-1 text-[13px] leading-snug text-pretty text-muted-foreground">{description}</p> : null}
-      </div>
+      <legend className={cn("text-[15px] font-semibold tracking-[-0.01em]", description ? "mb-1" : "mb-5")}>{title}</legend>
+      {description ? <p className="text-[13px] leading-snug text-pretty text-muted-foreground">{description}</p> : null}
       {children}
     </fieldset>
   );
@@ -162,7 +160,8 @@ export function CountrySelect({
       id={id}
       required
       autoComplete="country"
-      defaultValue={defaultValue}
+      // With no default the browser would show, and send, the first country until the page's JavaScript runs.
+      defaultValue={defaultValue ?? ""}
       aria-invalid={error ? true : undefined}
       aria-describedby={fieldDescribedBy(id, { hint, error })}
       className={SCROLL_MARGIN}
@@ -220,15 +219,34 @@ export function HandleInput({
 
 /**
  * Brings a form's success into view and gives it focus once, so it's seen
- * and read out. Returns the ref for the heading.
+ * and read out. Returns the ref for the heading. Pass false to skip it.
  */
-export function useFocusOnMount<T extends HTMLElement>() {
+export function useFocusOnMount<T extends HTMLElement>(enabled = true) {
   const ref = useRef<T>(null);
   useEffect(() => {
     const element = ref.current;
-    if (!element) return;
+    if (!enabled || !element) return;
     element.focus({ preventScroll: true });
     element.scrollIntoView({ block: "center" });
-  }, []);
+  }, [enabled]);
   return ref;
+}
+
+const noopSubscribe = () => () => {};
+
+/**
+ * Wraps what the server shows in place of a form it has just answered, such
+ * as the application's status once it's sent. Arriving like that, it takes
+ * focus; on a fresh page load it leaves focus where the browser put it.
+ */
+export function FocusOnArrival({ children, className }: { children: React.ReactNode; className?: string }) {
+  // False while the server's HTML hydrates, true when this first renders in the browser.
+  const inBrowser = useSyncExternalStore(noopSubscribe, () => true, () => false);
+  const [arrived] = useState(inBrowser);
+  const ref = useFocusOnMount<HTMLDivElement>(arrived);
+  return (
+    <div ref={ref} tabIndex={-1} className={cn("outline-none", className)}>
+      {children}
+    </div>
+  );
 }

@@ -10,6 +10,7 @@ import { ApplicationStatusView } from "@/components/onboarding/application-statu
 import { Button } from "@/components/ui/button";
 import { getAccount } from "@/lib/auth/account";
 import { nameFromEmail } from "@/lib/auth/account-display";
+import { loginHref } from "@/lib/auth/routes";
 import { firstParam } from "@/lib/auth/search-params";
 import { parseReferralCode } from "@/lib/creators/display";
 import { getMyApplication } from "@/lib/creators/queries";
@@ -43,7 +44,13 @@ async function Application({ searchParams }: Pick<PageProps<"/application">, "se
     const preview = firstParam(params, "preview");
     if (preview === "submitted" || preview === "rejected" || preview === "approved") {
       return (
-        <ApplicationStatusView status={preview} createdAt="2026-11-03T08:12:00Z" firstName="Amara" email="amara@example.com" />
+        <ApplicationStatusView
+          status={preview}
+          createdAt="2026-11-03T08:12:00Z"
+          firstName="Amara"
+          email="amara@example.com"
+          note={<NoteBanner note={{ tone: "info", text: "Preview: accounts aren't connected yet, so this is sample data and nothing is saved." }} />}
+        />
       );
     }
     return (
@@ -61,7 +68,7 @@ async function Application({ searchParams }: Pick<PageProps<"/application">, "se
       <div className="grid gap-6">
         <AuthHeading eyebrow="For creators" title="Your application" lead="Sign in to apply, or to see where your application stands." />
         <Button asChild size="xl" variant="brand" className="w-full">
-          <Link href={`/login?next=${encodeURIComponent("/application")}`}>Sign in</Link>
+          <Link href={loginHref("/application")}>Sign in</Link>
         </Button>
       </div>
     );

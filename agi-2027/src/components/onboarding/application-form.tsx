@@ -127,6 +127,8 @@ export function ApplicationForm({
             autoComplete="name"
             maxLength={LIMITS.name}
             required
+            // In the server's HTML too, so it's filled in before the page's JavaScript loads.
+            defaultValue={defaultName}
             {...form.register("displayName")}
           />
         </Field>
@@ -173,10 +175,10 @@ export function ApplicationForm({
           </Field>
         </div>
         <NichePicker id={id("niches")} selected={niches} error={errors.niches?.message} register={form.register("niches")} />
-        <div className="grid gap-5">
-          <p className="-mb-2 text-sm font-medium">
+        <fieldset className="min-w-0">
+          <legend className="mb-3 text-sm font-medium">
             Other socials <span className="font-normal text-subtle-foreground">(optional)</span>
-          </p>
+          </legend>
           <div className="grid gap-4 sm:grid-cols-2">
             {SOCIALS.map((social) => (
               <Field key={social.name} id={id(social.name)} label={social.label} error={errors[social.name]?.message}>
@@ -194,7 +196,7 @@ export function ApplicationForm({
               </Field>
             ))}
           </div>
-        </div>
+        </fieldset>
       </FormSection>
 
       <FormSection title="Your best work" description="Links to three posts you're proud of, on any platform.">
@@ -251,6 +253,7 @@ export function ApplicationForm({
           placeholder="8 letters and numbers"
           maxLength={8}
           className={`${SCROLL_MARGIN} font-mono`}
+          defaultValue={referralCode}
           {...form.register("referralCode")}
         />
       </Field>
