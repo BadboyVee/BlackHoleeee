@@ -60,7 +60,9 @@ export function CreateInviteForm() {
     if (state === handled.current) return;
     handled.current = state;
     if (state.status !== "saved") return;
-    form.reset(DEFAULTS);
+    // No values: the form library resets the form natively, so "Never" is checked again.
+    // With values it reads the unchecked "Never" radio back and leaves no expiry picked.
+    form.reset();
     savedRef.current?.focus();
   }, [state, form]);
 

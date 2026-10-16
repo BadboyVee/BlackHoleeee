@@ -38,7 +38,7 @@ async function Applications({ searchParams }: Pick<PageProps<"/admin/application
         <NoteBanner
           note={{ tone: "info", text: "Sample applications. Accounts aren't connected yet, so nothing you decide here is saved or sent." }}
         />
-        <ApplicationList rows={demoApplications} initialTab={initialTab} preview />
+        <ApplicationList rows={demoApplications} initialTab={initialTab} />
       </div>
     );
   }

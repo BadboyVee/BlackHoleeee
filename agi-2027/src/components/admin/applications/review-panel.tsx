@@ -1,3 +1,5 @@
+"use client";
+
 import { startTransition, useActionState, useEffect, useId, useRef, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,7 +12,6 @@ import { CharactersLeft, chipClass, GroupError, IDLE, SavedNote } from "@/compon
 import { Button } from "@/components/ui/button";
 import { Field, fieldDescribedBy } from "@/components/ui/field";
 import { Textarea } from "@/components/ui/textarea";
-import { NOT_CONNECTED } from "@/lib/creators/messages";
 import type { ApplicationRow } from "@/lib/creators/queries";
 import { LIMITS, reviewSchema, type CreatorFormState } from "@/lib/creators/schemas";
 import { applicationStatusMeta } from "@/lib/statuses";
@@ -45,22 +46,16 @@ function submitLabel(decision: ReviewInput["decision"] | undefined, pending: boo
 
 export function ReviewPanel({
   row,
-  preview,
   onReviewStart,
 }: {
   row: ApplicationRow;
-  /** Supabase isn't connected: the form can be tried, and says nothing is saved. */
-  preview: boolean;
   /** Called as the decision is sent, so the list keeps this card in view to show the answer. */
   onReviewStart: (id: string) => void;
 }) {
   const uid = useId();
   const noteId = `${uid}-note`;
   const decisionErrorId = `${uid}-decision-error`;
-  const [serverState, dispatch, pending] = useActionState(reviewApplication, IDLE);
-  // A preview has no accounts to save to, so it answers here instead of asking the server.
-  const [previewState, setPreviewState] = useState<CreatorFormState | null>(null);
-  const state = previewState ?? serverState;
+  const [state, dispatch, pending] = useActionState(reviewApplication, IDLE);
   const [dismissed, setDismissed] = useState<CreatorFormState | null>(null);
 
   const form = useForm<ReviewInput, unknown, ReviewValues>({
@@ -101,10 +96,6 @@ export function ReviewPanel({
             const element = event.currentTarget;
             setDismissed(state);
             void form.handleSubmit(() => {
-              if (preview) {
-                setPreviewState({ status: "error", message: NOT_CONNECTED });
-                return;
-              }
               onReviewStart(row.id);
               startTransition(() => dispatch(new FormData(element)));
             })(event);

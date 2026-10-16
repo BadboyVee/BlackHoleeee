@@ -21,8 +21,6 @@ export type InviteView = {
   uses: number;
   maxUses: number | null;
   expiresAt: string | null;
-  /** The expiry is behind us, whatever else happened to the link. */
-  expiryPassed: boolean;
   revokedAt: string | null;
   createdAt: string;
 };
@@ -41,7 +39,6 @@ export function toInviteViews(rows: readonly InviteRow[], now: Date): InviteView
       uses: row.uses,
       maxUses: row.maxUses,
       expiresAt: row.expiresAt,
-      expiryPassed: row.expiresAt !== null && new Date(row.expiresAt).getTime() <= now.getTime(),
       revokedAt: row.revokedAt,
       createdAt: row.createdAt,
     }));

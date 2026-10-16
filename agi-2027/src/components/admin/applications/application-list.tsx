@@ -56,16 +56,7 @@ const ORDER_NOTE: Record<ApplicationTab, string> = {
  * All. Arrow keys move between tabs. The tab sits in the address so a reload
  * opens the same view.
  */
-export function ApplicationList({
-  rows,
-  initialTab = DEFAULT_TAB,
-  preview = false,
-}: {
-  rows: ApplicationRow[];
-  initialTab?: ApplicationTab;
-  /** Sample data: nothing can be saved. */
-  preview?: boolean;
-}) {
+export function ApplicationList({ rows, initialTab = DEFAULT_TAB }: { rows: ApplicationRow[]; initialTab?: ApplicationTab }) {
   const [tab, setTab] = useState<ApplicationTab>(initialTab);
   // Decided from Waiting just now: kept in place to show the answer until the tab changes.
   const [kept, setKept] = useState<ReadonlySet<string>>(() => new Set());
@@ -133,7 +124,7 @@ export function ApplicationList({
           className="min-w-0 rounded-lg focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-ring"
         >
           {entry.id === tab ? (
-            <TabRows tab={tab} rows={visible} preview={preview} onReviewStart={keep} />
+            <TabRows tab={tab} rows={visible} onReviewStart={keep} />
           ) : null}
         </TabsContent>
       ))}
@@ -144,12 +135,10 @@ export function ApplicationList({
 function TabRows({
   tab,
   rows,
-  preview,
   onReviewStart,
 }: {
   tab: ApplicationTab;
   rows: ApplicationRow[];
-  preview: boolean;
   onReviewStart: (id: string) => void;
 }) {
   if (rows.length === 0) {
@@ -162,7 +151,7 @@ function TabRows({
       <ul className="grid grid-cols-1 gap-3">
         {rows.map((row) => (
           <li key={row.id} className="min-w-0">
-            <ApplicationCard row={row} preview={preview} onReviewStart={onReviewStart} />
+            <ApplicationCard row={row} onReviewStart={onReviewStart} />
           </li>
         ))}
       </ul>

@@ -1,3 +1,5 @@
+"use client";
+
 import { useId } from "react";
 import { ArrowUpRight, Clock, MapPin, Ticket, UserPlus } from "lucide-react";
 
@@ -164,15 +166,7 @@ function Answers({ row }: { row: ApplicationRow }) {
   );
 }
 
-export function ApplicationCard({
-  row,
-  preview,
-  onReviewStart,
-}: {
-  row: ApplicationRow;
-  preview: boolean;
-  onReviewStart: (id: string) => void;
-}) {
+export function ApplicationCard({ row, onReviewStart }: { row: ApplicationRow; onReviewStart: (id: string) => void }) {
   const headingId = useId();
   const { applicant, referrer } = row;
   const country = countryName(applicant.country);
@@ -203,7 +197,8 @@ export function ApplicationCard({
                   href={xProfileUrl(applicant.xHandle)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex max-w-full items-center gap-1.5 rounded-sm font-medium text-foreground underline-offset-4 outline-none hover:underline focus-visible:ring-4 focus-visible:ring-ring/20"
+                  // A full 44px to tap on touch screens, without making the line taller.
+                  className="relative inline-flex max-w-full items-center gap-1.5 rounded-sm font-medium text-foreground underline-offset-4 outline-none hover:underline focus-visible:ring-4 focus-visible:ring-ring/20 pointer-coarse:after:absolute pointer-coarse:after:inset-x-0 pointer-coarse:after:-inset-y-3"
                 >
                   <PlatformIcon platform="x" className="size-3" />
                   <span className="min-w-0 wrap-anywhere">@{applicant.xHandle}</span>
@@ -241,7 +236,7 @@ export function ApplicationCard({
       </header>
 
       <Answers row={row} />
-      <ReviewPanel row={row} preview={preview} onReviewStart={onReviewStart} />
+      <ReviewPanel row={row} onReviewStart={onReviewStart} />
     </article>
   );
 }

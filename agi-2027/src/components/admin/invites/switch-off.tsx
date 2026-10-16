@@ -32,6 +32,7 @@ export function SwitchOff({
 }) {
   const uid = useId();
   const errorId = `${uid}-error`;
+  const questionId = `${uid}-question`;
   const [state, dispatch, pending] = useActionState(revokeInvite, IDLE);
   const [confirming, setConfirming] = useState(false);
   // The answer to the last try, hidden once they cancel or try again.
@@ -79,6 +80,7 @@ export function SwitchOff({
       {confirming ? (
         <form
           action={dispatch}
+          aria-labelledby={questionId}
           onSubmit={() => setDismissed(state)}
           onKeyDown={(event) => {
             if (event.key === "Escape" && !pending) {
@@ -89,7 +91,7 @@ export function SwitchOff({
           className="flex flex-wrap items-center gap-x-3 gap-y-2"
         >
           <input type="hidden" name="id" value={id} />
-          <p className="text-[13px] font-medium text-foreground">Switch off for good?</p>
+          <p id={questionId} className="text-[13px] font-medium text-foreground">Switch off for good?</p>
           <div className="flex items-center gap-2">
             <Button
               ref={confirmRef}

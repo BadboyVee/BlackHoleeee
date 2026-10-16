@@ -29,7 +29,7 @@ function applicationPath(referral: string | null): string {
  * - hero: on the page background (on Drop, on the hero's color block).
  * - block: on the closing color block (bg-block-1, bg-block-5 on Drop).
  */
-export function ApplyCtaLinks({
+function ApplyCtaLinks({
   referral = null,
   surface = "hero",
   className,

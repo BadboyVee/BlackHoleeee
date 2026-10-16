@@ -139,7 +139,7 @@ function Ending({ invite }: { invite: InviteView }) {
       <Clock className="size-3.5 shrink-0" aria-hidden />
       {invite.expiresAt ? (
         <span className="min-w-0">
-          {invite.expiryPassed ? "Expired" : "Expires"} <LocalDateTime value={invite.expiresAt} />
+          {invite.status === "expired" ? "Expired" : "Expires"} <LocalDateTime value={invite.expiresAt} />
         </span>
       ) : (
         "Never expires"
