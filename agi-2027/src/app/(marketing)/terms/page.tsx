@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 /** The day this text last changed. Update it with every change. */
-const UPDATED = "2026-10-13";
+const UPDATED = "2026-10-17";
 
 const linkClass = "font-medium underline underline-offset-4 hover:text-brand-text";
 
@@ -55,13 +55,12 @@ const SECTIONS: LegalSection[] = [
     ),
   },
   {
-    id: "open-campaigns",
-    title: "Open campaigns",
+    id: "campaigns",
+    title: "Campaigns",
     body: (
       <LegalText>
-        The <Link href="/campaigns" className={linkClass}>campaigns board</Link> shows campaigns open to creators.
-        Details can change, and a campaign can fill or close at any time. Seeing a campaign there isn&apos;t an offer
-        of work: creators take part through an approved account, under that campaign&apos;s own brief.
+        Campaign details can change, and a campaign can fill or close at any time. Seeing a campaign isn&apos;t an
+        offer of work: creators take part through an approved account, under that campaign&apos;s own brief.
       </LegalText>
     ),
   },

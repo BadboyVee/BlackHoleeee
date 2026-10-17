@@ -48,7 +48,6 @@ function AgentHero() {
   const pills: Pill[] = [
     { href: "/book", label: "Book a campaign" },
     { href: "/apply", label: "Apply as a creator" },
-    { href: "/campaigns", label: "See open campaigns" },
     { href: "#how-it-works", label: "How it works" },
     siteConfig.contactEmail
       ? { href: `mailto:${siteConfig.contactEmail}`, label: `Email us at ${siteConfig.contactEmail}`, outline: true }

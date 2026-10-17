@@ -13,7 +13,6 @@ const index = [
   { href: "#proof", label: "Proof" },
   { href: "#how-it-works", label: "How it works" },
   { href: "#creators", label: "For creators" },
-  { href: "/campaigns", label: "Open campaigns" },
   { href: "#faq", label: "FAQ" },
 ];
 

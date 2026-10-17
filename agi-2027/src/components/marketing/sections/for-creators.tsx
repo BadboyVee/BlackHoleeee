@@ -70,10 +70,10 @@ function ForCreatorsSection() {
               <ArrowRight className="size-4" />
             </Link>
             <Link
-              href="/campaigns"
+              href="/login"
               className="pressable inline-flex h-12 items-center justify-center gap-2 rounded-full px-6 text-[15px] font-semibold ring-1 ring-border-strong transition-colors duration-200 ease-snap ring-inset hover:bg-surface-2 drop:ring-white/60 drop:hover:bg-white/10"
             >
-              See open campaigns
+              Already a creator? Sign in
             </Link>
           </Reveal>
         </div>

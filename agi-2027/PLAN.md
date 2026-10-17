@@ -112,7 +112,8 @@ Settled while building Milestone 1:
 **Public**
 
 - `/` home: the 10 sections, in order
-- `/campaigns` open campaigns teaser, payout hidden
+- `/campaigns` open campaigns teaser, payout hidden (off until real campaigns are live in M5;
+  it redirects to `/apply` meanwhile)
 - `/book` Book a campaign
 - `/apply` the creator pitch, then sign up and the application form (`?ref=CODE` carries a
   referral)
@@ -592,6 +593,9 @@ What's in it:
   `?preview=applicant`, `creator`, `admin`, `inactive`, `revoked`, `expired`, `used_up` or
   `error` to an invite link, to see each state.
 - **Privacy** now covers applications, profiles, photos and payout details, and who sees what.
+- **No more sample campaigns in public** (you asked, 17 Oct 2026): the open campaigns board
+  showed demo campaigns, so it's gone from the site, its links and the sitemap until real
+  campaigns are live (Milestone 5). Old `/campaigns` links go to `/apply`.
 - **Also fixed:** the proxy now refreshes the sign-in on invite links, so accepting an invite
   after a long break can't sign anyone out; logging out from an invite page brings you back to
   it once you sign in again; and
