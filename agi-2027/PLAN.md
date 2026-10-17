@@ -259,10 +259,11 @@ and claims in every status.
 ## Small calls I made (tell me to change any)
 
 - **Looks** (your references, 11 Oct 2026): Renaissance, Agent and Drop, switchable from the
-  header. **Drop is the default** (you asked me to pick, 11 Oct 2026): it shows what the agency
-  does at a glance, a creator's launch post on X, and it loads fastest on phones because it needs
-  no 3D. The switcher stays so visitors can find Echo and the painting. Each look has a light and
-  a dark mode; light is the default. Changing the default is one line in `src/lib/theme.ts`.
+  header. **Renaissance is the default** (you chose it, 17 Oct 2026, over Drop, which I had
+  picked on 11 Oct): visitors, shared links and the sign-in pages open in it. The switcher stays
+  so visitors can find Echo and Drop, and a look someone picks is remembered on their device.
+  Each look has a light and a dark mode; light is the default. Changing the default is one line
+  in `src/lib/theme.ts`.
 - **Fonts:** Geist for body text and UI, Geist Mono for small labels. Headings follow the look:
   bold Geist (Renaissance), soft Geist (Agent), Anton capitals (Drop).
 - **Art:** the paintings are public-domain works from The Met's open-access collection (Poussin,
