@@ -597,6 +597,10 @@ What's in it:
 - **No more sample campaigns in public** (you asked, 17 Oct 2026): the open campaigns board
   showed demo campaigns, so it's gone from the site, its links and the sitemap until real
   campaigns are live (Milestone 5). Old `/campaigns` links go to `/apply`.
+- **Meet the founder** (you asked, 17 Oct 2026): a home page section between How it works and
+  For creators, with your X picture, a Follow on X button and one line about AGI 2027. X
+  blocks this server, so the name is your handle until you send the one you want shown. It all
+  lives in `src/lib/founder.ts`; set `founder` to null there to hide the section.
 - **Also fixed:** the proxy now refreshes the sign-in on invite links, so accepting an invite
   after a long break can't sign anyone out; logging out from an invite page brings you back to
   it once you sign in again; and
@@ -612,7 +616,7 @@ What's in it:
   around the rules. All it found is fixed above: review notes were readable by the applicant,
   and the smaller items (invites after a rejection, double taps, photo and link addresses,
   payout emails visible to team, handle squatting, unlimited payout changes and photo files).
-- **Tests:** 462 unit tests and 130 database tests, including every database function and policy,
+- **Tests:** 454 unit tests and 130 database tests, including every database function and policy,
   each server action, the invite proxy rule and the review tabs.
 
 Set up before it works for real: nothing new beyond Milestone 3's steps. The photo bucket and
