@@ -2,8 +2,10 @@
 # site from this repo and set its base directory to agi-2027. The netlify.toml
 # at the repo root belongs to a different site (bmw-m5-cs).
 #
-# Netlify spots Next.js and adds its Next.js runtime on its own, so there is
-# nothing else to install.
+# The Next.js runtime is named below and pinned in package.json. Netlify
+# usually adds it on its own, but didn't for this site (first deploy, 17 Oct
+# 2026): without it, the raw .next folder was published and every page was a
+# 404. Naming it means it always runs.
 
 [build]
   command = "npm run build"
@@ -11,3 +13,6 @@
 
 [build.environment]
   NODE_VERSION = "22"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
