@@ -12,9 +12,10 @@ export const siteConfig = {
   /**
    * Where visitors reach the agency: the "email us" links only. The owner
    * asked (12 Oct 2026) that nothing automated is sent here; booking
-   * alerts go to LEADS_NOTIFY_EMAIL. NEXT_PUBLIC_CONTACT_EMAIL overrides it.
+   * alerts go to LEADS_NOTIFY_EMAIL. The address is theirs, from 17 Oct
+   * 2026. NEXT_PUBLIC_CONTACT_EMAIL overrides it.
    */
-  contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "joshhthepluggg@gmail.com",
+  contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "superartificalint2027@gmail.com",
   /** The agency's X profile. Empty until it is set. */
   xUrl: process.env.NEXT_PUBLIC_X_URL ?? "",
 } as const;

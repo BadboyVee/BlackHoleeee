@@ -285,7 +285,7 @@ and claims in every status.
   second one later. Team members join by invite (M9).
 - **Staff can open the creator app** (M3) to see what creators see. Creators and applicants
   can't open the admin.
-- **Contact email** (12 Oct 2026): joshhthepluggg@gmail.com is for visitors only, on every "email
+- **Contact email** (17 Oct 2026): superartificalint2027@gmail.com is for visitors only, on every "email
   us" link. Nothing automated is sent there; booking alerts go to the inbox you set as
   `LEADS_NOTIFY_EMAIL`.
 - **Book a campaign:** name, work email, company and what's launching are required; website, X
