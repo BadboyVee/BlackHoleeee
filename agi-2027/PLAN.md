@@ -311,6 +311,8 @@ Development fits the free plans. Launch needs two or three upgrades:
 
 - **Hosting:** Netlify's free plan allows a business site within a monthly allowance (300
   credits; each live update and visitor traffic use some, and the site pauses if it runs out).
+  Each update of the live site (a merge into `main`) costs 15 credits; preview links for pull
+  requests are free. Netlify's AI agent also spends credits, so we don't use it.
   Vercel's free plan is for non-commercial use, so on Vercel the agency site needs Pro.
 - **Supabase:** free projects pause when idle and have no backups, so production should be Pro.
 - **Resend:** the free plan caps at 100 emails a day. A single drop to a few hundred creators
