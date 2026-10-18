@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { Suspense, useMemo } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 
+import { AccountFirstName } from "@/components/auth/account-context";
 import { CampaignCard } from "@/components/campaign/campaign-card";
 import { toCardData } from "@/components/campaign/card-data";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -119,7 +120,10 @@ function Hero({ open, needs }: { open: number; needs: number }) {
         ) : null}
       </p>
       <h1 id="hello" className="text-h1 text-balance">
-        Hey {me.firstName}
+        Hey{" "}
+        <Suspense fallback={<span className="invisible">{me.firstName}</span>}>
+          <AccountFirstName fallback={me.firstName} />
+        </Suspense>
       </h1>
       <div className="mt-3 min-h-[1.6em] max-w-xl text-[1.0625rem] leading-relaxed text-pretty text-muted-foreground sm:text-lg">
         {hydrated ? (

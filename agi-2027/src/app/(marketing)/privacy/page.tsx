@@ -17,11 +17,12 @@ const UPDATED = "2026-10-13";
 const HOSTS: Record<string, string> = { netlify: "Netlify", vercel: "Vercel" };
 
 /*
- * Written from what the site does today: the Book a campaign form, the
- * hashed-IP rate limit (private.take_rate_limit clears codes over two days
- * old on each call), look and theme choices in local storage, X posts shown
- * as local images. Creator accounts, applications and payouts come in later
- * milestones; add them here before they launch.
+ * Written from what the site does today: the Book a campaign form, accounts
+ * (Supabase Auth, email or Google, a sign-in cookie), the hashed-IP and
+ * hashed-email rate limits (private.take_rate_limit clears codes over two
+ * days old on each call), look and theme choices in local storage, X posts
+ * shown as local images. Applications and payouts come in later milestones;
+ * add them here before they launch.
  */
 function sections(): LegalSection[] {
   const host = HOSTS[process.env.AGI_DEPLOY_HOST ?? ""];
@@ -48,16 +49,22 @@ function sections(): LegalSection[] {
               range and message. We note which form you used.
             </>,
             <>
-              <strong className="font-semibold">To stop spam:</strong> a one-way code made from your IP address and
-              a secret key, so we can limit how many forms one connection sends in an hour. We never store the
-              address itself, and codes over two days old are deleted whenever the form is used.
+              <strong className="font-semibold">When you create an account:</strong> your name, email address and
+              password. The password is stored scrambled, so nobody can read it, us included. If you sign in with
+              Google, Google shares your name, email address and profile picture with us.
+            </>,
+            <>
+              <strong className="font-semibold">To stop spam and password guessing:</strong> one-way codes made from
+              your IP address, and from the email address you sign in with, plus a secret key. They let us limit how
+              many forms and sign-in tries one connection or account gets in an hour. We never store the address
+              itself, and codes over two days old are deleted whenever a form is used.
             </>,
             <>
               <strong className="font-semibold">When you email us:</strong> whatever you choose to write.
             </>,
             <>
-              Creator accounts, applications and payouts aren&apos;t open yet. Before they are, this page will say
-              what they collect and why.
+              Creator applications and payouts aren&apos;t open yet. Before they are, this page will say what they
+              collect and why.
             </>,
           ]}
         />
@@ -72,7 +79,8 @@ function sections(): LegalSection[] {
             items={[
               "To reply to you and plan the campaign you asked about.",
               "To keep a record of each request, so our team can follow up.",
-              "To protect the site and its forms from spam and abuse.",
+              "To run your account: signing you in, and emailing you links to confirm your address or reset your password.",
+              "To protect the site, its forms and your account from spam and abuse.",
             ]}
           />
           <LegalText>
@@ -80,7 +88,8 @@ function sections(): LegalSection[] {
           </LegalText>
           <LegalText>
             If you&apos;re in the UK or the EU: we use your booking details because you asked us for a proposal,
-            and the spam check because we have a legitimate interest in keeping the site safe.
+            your account details to provide the account you asked for, and the spam checks because we have a
+            legitimate interest in keeping the site safe.
           </LegalText>
         </>
       ),
@@ -94,11 +103,16 @@ function sections(): LegalSection[] {
           <LegalList
             items={[
               <>
-                <strong className="font-semibold">Supabase</strong> stores what you send in our database.
+                <strong className="font-semibold">Supabase</strong> stores your account and what you send in our
+                database, and handles signing in.
               </>,
               <>
-                <strong className="font-semibold">Resend</strong> sends the email that tells our team about a new
-                booking.
+                <strong className="font-semibold">Resend</strong> sends our emails: the alert that tells our team
+                about a new booking, and the links to confirm your email or reset your password.
+              </>,
+              <>
+                <strong className="font-semibold">Google</strong>, only if you choose to sign in with it, confirms who
+                you are.
               </>,
               host ? (
                 <>
@@ -125,6 +139,7 @@ function sections(): LegalSection[] {
         <LegalList
           items={[
             "The site remembers the look you picked and light or dark mode in your browser's local storage. That stays on your device and never reaches us.",
+            "When you sign in, the site keeps a sign-in cookie so you stay signed in. The site needs it to work, and it's deleted when you log out.",
             "We don't use advertising or analytics cookies, and we don't track you across other sites.",
             "The X posts on this site are pictures with links. Nothing loads from X unless you click through to it.",
           ]}
@@ -138,7 +153,8 @@ function sections(): LegalSection[] {
         <LegalList
           items={[
             "Booking details: while we're talking with you or working together, and after that only as long as we need for basic business records. Ask, and we'll delete them sooner unless the law says we must keep something.",
-            "The spam check code: deleted once it's two days old, the next time the form is used.",
+            "Account details: while your account is open. Ask, and we'll close it and delete them.",
+            "The spam check codes: deleted once they're two days old, the next time a form is used.",
           ]}
         />
       ),
@@ -197,7 +213,7 @@ export default function PrivacyPage() {
       lead="What we collect, why we collect it, and who helps us handle it, in plain words."
       updated={UPDATED}
       summary={[
-        "We collect what you type into our forms, and use it to reply and plan your campaign.",
+        "We collect what you type into our forms and your account details, and use them to reply, plan campaigns and run your account.",
         "We don't sell your information, show you ads, or track you around the web.",
         <>
           Email <ContactLink /> any time to see, fix or delete what we hold about you.

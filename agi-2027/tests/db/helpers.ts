@@ -57,9 +57,17 @@ export async function asService<T>(client: Client, fn: () => Promise<T>) {
   return asRole(client, "service_role", { role: "service_role" }, fn);
 }
 
+/**
+ * Runs fn as Supabase Auth itself (the supabase_auth_admin role), the way it
+ * calls auth hooks. Always rolls back.
+ */
+export async function asAuthAdmin<T>(client: Client, fn: () => Promise<T>) {
+  return asRole(client, "supabase_auth_admin", {}, fn);
+}
+
 async function asRole<T>(
   client: Client,
-  role: "authenticated" | "anon" | "service_role",
+  role: "authenticated" | "anon" | "service_role" | "supabase_auth_admin",
   claims: Record<string, unknown>,
   fn: () => Promise<T>,
 ) {

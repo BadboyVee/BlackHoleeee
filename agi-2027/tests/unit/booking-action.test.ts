@@ -23,6 +23,8 @@ const mocks = vi.hoisted(() => ({
   site: { name: "AGI 2027", url: "https://agi2027.test", contactEmail: "" },
 }));
 
+// The shared rate limit module is server-only; tests run it in plain Node.
+vi.mock("server-only", () => ({}));
 vi.mock("next/headers", () => ({ headers: mocks.headers }));
 vi.mock("next/server", () => ({ after: mocks.after }));
 vi.mock("@/lib/leads/submit", () => ({ submitLead: mocks.submitLead }));

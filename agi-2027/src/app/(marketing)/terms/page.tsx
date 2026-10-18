@@ -86,6 +86,19 @@ const SECTIONS: LegalSection[] = [
     ),
   },
   {
+    id: "your-account",
+    title: "Your account",
+    body: (
+      <LegalList
+        items={[
+          "One account per person, with your real name and an email address you use.",
+          "Keep your password to yourself. You're responsible for what happens in your account, so tell us straight away if you think someone else got in.",
+          "We may pause or close an account that breaks these terms, and we'll tell you why.",
+        ]}
+      />
+    ),
+  },
+  {
     id: "using-the-site",
     title: "Using the site",
     body: (

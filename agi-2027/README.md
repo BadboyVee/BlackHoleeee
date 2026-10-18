@@ -50,6 +50,19 @@ Put the variables from `.env.example` in the host's environment settings. On the
 `/admin`, `/dashboard` and `/styleguide` send visitors home until sign in exists
 (`src/proxy.ts`); preview links still show them.
 
+## Accounts
+
+Sign in runs on Supabase Auth: email and password, or Google. `src/proxy.ts` keeps each session
+fresh, sends signed-out visitors to `/login` and routes people by role (the rules are in
+`src/lib/auth/routes.ts`). Supabase sends people back to `/auth/callback` (Google, and its
+standard email links) or `/auth/confirm` (this project's email templates in
+`supabase/templates/`). The setup steps in the Supabase dashboard, including making the first
+admin, are in [PLAN.md](PLAN.md) under Milestone 3.
+
+For Google sign in with a local Supabase (`supabase start`), set
+`SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID` and `SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET` and switch
+it on in `supabase/config.toml`.
+
 ## Database changes
 
 Every schema change is a SQL file in `supabase/migrations/`, named `YYYYMMDDHHMMSS_what.sql`.
@@ -65,7 +78,9 @@ Rules for every migration are at the top of
 | Path | What |
 | --- | --- |
 | `src/app/(marketing)` | Public site |
-| `src/app/(auth)` | Sign in, sign up, password reset |
+| `src/app/(auth)` | Sign in, sign up, password reset, the application page |
+| `src/app/auth` | Where Google and email links come back to |
+| `src/lib/auth` | Routing rules, sign-in schemas and messages, the signed-in account |
 | `src/app/dashboard` | Creator portal |
 | `src/app/admin` | Agency admin |
 | `src/app/styleguide` | Design system page |
