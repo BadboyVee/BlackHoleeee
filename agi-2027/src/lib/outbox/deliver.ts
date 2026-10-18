@@ -2,6 +2,12 @@ import "server-only";
 
 import type { SupabaseClient } from "@supabase/supabase-js";
 
+import {
+  applicationApprovedEmail,
+  applicationReceivedEmail,
+  applicationRejectedEmail,
+  payoutDetailsChangedEmail,
+} from "@/lib/email/creator-emails";
 import { leadReceivedEmail, type LeadEmailData } from "@/lib/email/lead-received";
 import { sendEmail, type EmailMessage } from "@/lib/email/resend";
 import { siteConfig } from "@/lib/site";
@@ -150,7 +156,96 @@ async function buildMessage(admin: SupabaseClient, row: OutboxRow): Promise<Buil
       // Replies go straight to the person who booked.
       return { ok: true, email: { ...rendered, replyTo: lead.email } };
     }
+    case "application_received": {
+      const applicationId = row.payload?.application_id;
+      if (typeof applicationId !== "string") return { ok: false, error: "The payload has no application_id." };
+      const { data, error } = await admin
+        .from("applications")
+        .select(
+          `created_at, best_posts, why,
+           applicant:profiles!applications_applicant_fkey (display_name, email, x_handle, followers, avg_views, niches, country, tiktok_url, youtube_url, instagram_url, linkedin_url),
+           referrer:profiles!applications_referred_by_fkey (display_name, x_handle)`,
+        )
+        .eq("id", applicationId)
+        .maybeSingle();
+      if (error) return { ok: false, error: `Couldn't load the application: ${error.code ?? error.message}` };
+      const applicant = first(data?.applicant) as ApplicantRow | null;
+      if (!data || !applicant) return { ok: false, error: "The application no longer exists." };
+      const referrer = first(data.referrer) as { display_name: string; x_handle: string | null } | null;
+      const rendered = applicationReceivedEmail(
+        {
+          createdAt: data.created_at,
+          bestPosts: data.best_posts,
+          why: data.why,
+          applicant: {
+            displayName: applicant.display_name,
+            email: applicant.email,
+            xHandle: applicant.x_handle,
+            followers: applicant.followers,
+            avgViews: applicant.avg_views,
+            niches: applicant.niches ?? [],
+            country: applicant.country,
+            tiktokUrl: applicant.tiktok_url,
+            youtubeUrl: applicant.youtube_url,
+            instagramUrl: applicant.instagram_url,
+            linkedinUrl: applicant.linkedin_url,
+          },
+          referrer: referrer ? { displayName: referrer.display_name, xHandle: referrer.x_handle } : null,
+        },
+        { siteUrl: siteConfig.url },
+      );
+      // Replies go straight to the applicant.
+      return { ok: true, email: { ...rendered, ...(applicant.email ? { replyTo: applicant.email } : {}) } };
+    }
+    case "application_approved":
+    case "application_rejected":
+    case "payout_details_changed": {
+      const profileId = row.payload?.profile_id;
+      if (typeof profileId !== "string") return { ok: false, error: "The payload has no profile_id." };
+      const { data, error } = await admin
+        .from("profiles")
+        .select("display_name, referral_code")
+        .eq("id", profileId)
+        .maybeSingle();
+      if (error) return { ok: false, error: `Couldn't load the profile: ${error.code ?? error.message}` };
+      if (!data) return { ok: false, error: "The profile no longer exists." };
+      const options = { siteUrl: siteConfig.url, contactEmail: siteConfig.contactEmail };
+      const rendered =
+        row.template === "application_approved"
+          ? applicationApprovedEmail(
+              { displayName: data.display_name, referralCode: data.referral_code, viaInvite: typeof row.payload?.invite_id === "string" },
+              options,
+            )
+          : row.template === "application_rejected"
+            ? applicationRejectedEmail({ displayName: data.display_name }, options)
+            : payoutDetailsChangedEmail(
+                { displayName: data.display_name, summary: String(row.payload?.summary ?? "New details") },
+                options,
+              );
+      // Replies reach the agency's contact address.
+      const replyTo = siteConfig.contactEmail.trim();
+      return { ok: true, email: { ...rendered, ...(replyTo ? { replyTo } : {}) } };
+    }
     default:
       return { ok: false, error: `Unknown template "${row.template}".` };
   }
+}
+
+type ApplicantRow = {
+  display_name: string;
+  email: string | null;
+  x_handle: string | null;
+  followers: number | null;
+  avg_views: number | null;
+  niches: string[] | null;
+  country: string | null;
+  tiktok_url: string | null;
+  youtube_url: string | null;
+  instagram_url: string | null;
+  linkedin_url: string | null;
+};
+
+/** PostgREST returns an embedded row as an object, or a one-item list depending on the relation. */
+function first<T>(value: T | T[] | null | undefined): T | null {
+  return (Array.isArray(value) ? value[0] : value) ?? null;
 }

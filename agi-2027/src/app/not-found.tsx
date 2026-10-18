@@ -42,7 +42,7 @@ export default function NotFound() {
       <p className="text-sm font-semibold text-subtle-foreground drop:hidden">404</p>
       <h1 className="mt-3 text-h1 text-balance">This page doesn&apos;t exist.</h1>
       <p className="mt-4 max-w-md text-pretty text-muted-foreground">
-        The link may be old or mistyped. Head back home, or browse the campaigns that are open right now.
+        The link may be old or mistyped. Head back home, or apply to join as a creator.
       </p>
       <div className="mt-9 flex flex-col gap-3 sm:flex-row">
         <Button asChild size="lg">
@@ -52,7 +52,7 @@ export default function NotFound() {
           </Link>
         </Button>
         <Button asChild variant="secondary" size="lg">
-          <Link href="/campaigns">Open campaigns</Link>
+          <Link href="/apply">Apply as a creator</Link>
         </Button>
       </div>
     </main>

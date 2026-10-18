@@ -11,6 +11,12 @@ export type ShowcasePost = {
   /** The X post ID. */
   id: string;
   url: string;
+  /**
+   * The client whose launch this was, as they write their name. Not always
+   * the author: Ali Ansari posts for micro1. The home page counts the brands
+   * from this, so two posts for one client count once.
+   */
+  brand: string;
   author: {
     name: string;
     handle: string;
@@ -46,6 +52,7 @@ export const showcasePosts: ShowcasePost[] = [
   {
     id: "2105311618284527767",
     url: "https://x.com/useKled/status/2105311618284527767",
+    brand: "Kled AI",
     author: { name: "Kled AI", handle: "useKled", avatar: "/posts/avatar-kled.webp", avatarShape: "square", badge: "gold" },
     text: "This is Kled V3. We’ve solved data collection for artificial general intelligence.\n\nAny consumer dataset that can exist, can now be collected from physical reality in under 72 hours.\n\nAll powered by the largest and most comprehensive data application layer on the planet. (Thread)",
     postedAt: "2026-09-30T14:59:39Z",
@@ -61,6 +68,7 @@ export const showcasePosts: ShowcasePost[] = [
   {
     id: "2108613100413096046",
     url: "https://x.com/aliansarinik/status/2108613100413096046",
+    brand: "micro1",
     author: { name: "Ali Ansari", handle: "aliansarinik", avatar: "/posts/avatar-ali.webp", avatarShape: "circle", badge: "blue" },
     text: "Today micro1 is announcing a commitment to spend $1B over the next 12 months on the acquisition & licensing of enterprise data for AI training, with financial backing from Citi and Hercules.",
     postedAt: "2026-10-09T17:38:33Z",
@@ -77,6 +85,7 @@ export const showcasePosts: ShowcasePost[] = [
   {
     id: "2105230308132225289",
     url: "https://x.com/MaincodeAU/status/2105230308132225289",
+    brand: "Maincode",
     author: { name: "Maincode", handle: "MaincodeAU", avatar: "/posts/avatar-maincode.webp", avatarShape: "square", badge: "gold" },
     text: "Today we are open-sourcing Matilda Jev, Australia’s first decision model, conditioned for Australian deployment and post-trained with our own specialised recipe. Decision models do not generate text. They answer a typed question and respond with a calibrated probability for each option in a single forward pass, reducing hallucination and making intelligent decisions faster and more efficient.\n\nThis release proves that highly capable AI models can be built, post-trained, evaluated, and served entirely within Australia. Post-trained end-to-end on our local infrastructure, the model achieved a median decision latency of 56.8ms on a single @AMD MI355X across 150,317 evaluation requests.",
     postedAt: "2026-09-30T09:36:33Z",
@@ -93,6 +102,7 @@ export const showcasePosts: ShowcasePost[] = [
   {
     id: "2107497652871155953",
     url: "https://x.com/aliansarinik/status/2107497652871155953",
+    brand: "micro1",
     author: { name: "Ali Ansari", handle: "aliansarinik", avatar: "/posts/avatar-ali.webp", avatarShape: "circle", badge: "blue" },
     text: "Which personal agent is the best life assistant?\n\nToday we’re releasing the micro1 PersonalAgentBench to help answer that, and we’re paying real personal agent users to contribute to the benchmark.\n\nPersonal agents can now book your flights, answer emails, and move your meetings around. That’s great, until one messages the wrong person or makes a purchase without confirming.\n\nCapability is not the same as trust. So we put four personal agents to the test: Instinct, Muse, Grok Bot, and Gemini Spark. We found that even when agents found the right information, they still often miss what matters, overshare, or make things up.\n\nTo find out for yourself how your agent compares, you can join our benchmark. We’re paying the first 100 users to run our prompts and share their results.",
     postedAt: "2026-10-06T15:46:10Z",
@@ -109,6 +119,7 @@ export const showcasePosts: ShowcasePost[] = [
   {
     id: "2106449214536605976",
     url: "https://x.com/hedwigdotco/status/2106449214536605976",
+    brand: "Hedwig",
     author: { name: "Hedwig", handle: "hedwigdotco", avatar: "/posts/avatar-hedwig.webp", avatarShape: "circle", badge: "blue" },
     text: "we’re going to kill a one trillion dollar industry.\n\nwe’re building Hedwig: one visual workspace that connects your tools and gives your agent the full picture, and going after the biggest players like google and meta.\n\nbuilt by a team from stanford, meta, and polymarket.\n\nloved by 6,000+ across the world\n\ncomment + RT for free access\n\nhedwigmail.com",
     links: ["hedwigmail.com"],
@@ -170,12 +181,45 @@ export function excerptPost(text: string, max: number): { text: string; cut: boo
   return { text: `${cut}…`, cut: true };
 }
 
-/** X's short counts back to numbers: "3.7M" is 3,700,000. Used only for ordering. */
+/**
+ * A count the way X shows it back to a whole number: "3.7M" is 3,700,000,
+ * "171K" is 171,000, "6,237" is 6,237. Exact (no floating point drift), and
+ * null for anything that isn't a count.
+ */
+export function parseXCount(value: string | undefined): number | null {
+  const match = /^(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d+))?([KMB])?$/.exec(value?.trim() ?? "");
+  if (!match) return null;
+  const [, whole, fraction = "", unit] = match;
+  const scale = unit === "B" ? 1_000_000_000 : unit === "M" ? 1_000_000 : unit === "K" ? 1_000 : 1;
+  // "3.7" without a K or M isn't a count.
+  if (fraction && scale === 1) return null;
+  const digits = Number(whole.replace(/,/g, ""));
+  return digits * scale + Math.round((Number(fraction || "0") * scale) / 10 ** fraction.length);
+}
+
+/** X's short counts back to numbers, for ordering: -1 when there's none. */
 export function statNumber(value: string | undefined): number {
-  if (!value) return -1;
-  const match = /^(\d+(?:\.\d+)?)([KM]?)$/.exec(value);
-  if (!match) return -1;
-  return Number(match[1]) * (match[2] === "M" ? 1_000_000 : match[2] === "K" ? 1_000 : 1);
+  return parseXCount(value) ?? -1;
+}
+
+/**
+ * The views X showed on these posts, added up. `partial` is true when a post's
+ * views couldn't be read, so the real total is at least `views`.
+ */
+export function totalViews(posts: ShowcasePost[]): { views: number; partial: boolean } {
+  let views = 0;
+  let partial = false;
+  for (const post of posts) {
+    const count = parseXCount(post.stats.views);
+    if (count === null) partial = true;
+    else views += count;
+  }
+  return { views, partial };
+}
+
+/** The brands these posts launched for, each once, in the order they first appear. */
+export function showcaseBrands(posts: ShowcasePost[]): string[] {
+  return [...new Set(posts.map((post) => post.brand))];
 }
 
 /** Most viewed first; posts whose views we don't know go last, in their given order. */

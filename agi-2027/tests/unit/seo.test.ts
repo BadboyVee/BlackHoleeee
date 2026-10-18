@@ -7,7 +7,7 @@ import robots from "@/app/robots";
 import sitemap from "@/app/sitemap";
 import { siteConfig } from "@/lib/site";
 
-const PUBLIC_PATHS = ["/", "/campaigns", "/book", "/apply", "/terms", "/privacy"];
+const PUBLIC_PATHS = ["/", "/book", "/apply", "/terms", "/privacy"];
 const PRIVATE_PATHS = ["/admin", "/dashboard", "/styleguide", "/api"];
 
 describe("sitemap", () => {

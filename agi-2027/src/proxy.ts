@@ -15,7 +15,7 @@ import { isLiveSite } from "@/lib/deploy";
 import { getSupabaseEnv } from "@/lib/supabase/env";
 
 /**
- * Runs before every private page and the sign-in pages:
+ * Runs before every private page, the sign-in pages and invite links:
  *
  * 1. Refreshes the Supabase session when its token is about to run out, so
  *    Server Components (which can't set cookies) always see a fresh one.
@@ -66,6 +66,9 @@ export async function proxy(request: NextRequest) {
   } catch (error) {
     console.error(`[proxy] checking the session failed: ${error instanceof Error ? error.name : "unknown error"}`);
   }
+
+  // Invite links are for everyone: they only needed the session refreshed.
+  if (area === "open") return response;
 
   const userId = typeof claims?.sub === "string" ? claims.sub : null;
   if (!userId) {
@@ -128,5 +131,6 @@ export const config = {
     "/login",
     "/signup",
     "/reset-password",
+    "/invite/:path*",
   ],
 };

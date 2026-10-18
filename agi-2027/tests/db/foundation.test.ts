@@ -17,7 +17,7 @@ describe("new users", () => {
   it("get a profile as an applicant, named from their sign-up details", async () => {
     const id = await createUser(db, {
       email: "ada@example.com",
-      meta: { full_name: "  Ada Lovelace ", avatar_url: "https://example.com/a.png" },
+      meta: { full_name: "  Ada Lovelace ", avatar_url: "https://lh3.googleusercontent.com/a/ada" },
     });
     const { rows } = await db.query("select * from public.profiles where id = $1", [id]);
     expect(rows[0]).toMatchObject({
@@ -25,7 +25,7 @@ describe("new users", () => {
       status: "active",
       email: "ada@example.com",
       display_name: "Ada Lovelace",
-      avatar_url: "https://example.com/a.png",
+      avatar_url: "https://lh3.googleusercontent.com/a/ada",
       timezone: "UTC",
     });
   });

@@ -1,13 +1,27 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 
+import { formatXCount, withCommas } from "@/lib/creators/display";
 import { cn } from "@/lib/utils";
+
+type CountFormat = "compact" | "plain";
+
+/**
+ * The number as text. No Intl: ICU versions differ between Node and browsers,
+ * which breaks hydration, so the server and every browser write the same.
+ * compact reads the way X shows counts (9,560, then 128.6K), rounding down so
+ * a number never reads higher than it is; plain is a whole number with
+ * commas (12,400).
+ */
+export function countText(value: number, format: CountFormat): string {
+  return format === "compact" ? formatXCount(value) : withCommas(value);
+}
 
 type CountUpProps = {
   value: number;
-  /** compact: 12.4M. plain: 12,400,000. */
-  format?: "compact" | "plain";
+  /** compact: 9,560 or 12.4M, the way X shows counts. plain: 12,400,000. */
+  format?: CountFormat;
   prefix?: string;
   suffix?: string;
   durationMs?: number;
@@ -28,17 +42,7 @@ function CountUp({
   className,
 }: CountUpProps) {
   const ref = useRef<HTMLSpanElement>(null);
-  const formatter = useMemo(
-    () =>
-      new Intl.NumberFormat(
-        "en-US",
-        format === "compact"
-          ? { notation: "compact", maximumFractionDigits: 1 }
-          : { maximumFractionDigits: 0 },
-      ),
-    [format],
-  );
-  const finalText = `${prefix}${formatter.format(value)}${suffix}`;
+  const finalText = `${prefix}${countText(value, format)}${suffix}`;
 
   useEffect(() => {
     const el = ref.current;
@@ -48,7 +52,7 @@ function CountUp({
     if (rect.top < window.innerHeight && rect.bottom > 0) return;
 
     let frame = 0;
-    el.textContent = `${prefix}${formatter.format(0)}${suffix}`;
+    el.textContent = `${prefix}${countText(0, format)}${suffix}`;
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (!entry?.isIntersecting) return;
@@ -57,7 +61,7 @@ function CountUp({
         const tick = (now: number) => {
           const t = Math.min(1, (now - start) / durationMs);
           const eased = 1 - Math.pow(1 - t, 4);
-          el.textContent = `${prefix}${formatter.format(value * eased)}${suffix}`;
+          el.textContent = `${prefix}${countText(value * eased, format)}${suffix}`;
           if (t < 1) frame = requestAnimationFrame(tick);
         };
         frame = requestAnimationFrame(tick);
@@ -70,7 +74,7 @@ function CountUp({
       cancelAnimationFrame(frame);
       el.textContent = finalText;
     };
-  }, [value, prefix, suffix, durationMs, formatter, finalText]);
+  }, [value, prefix, suffix, durationMs, format, finalText]);
 
   return (
     <span className={cn("tabular", className)}>

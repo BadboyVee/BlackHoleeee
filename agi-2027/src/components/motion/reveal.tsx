@@ -106,11 +106,13 @@ function RevealItem({ as = "div", className, children }: { as?: Tag; className?:
 function WordReveal({
   text,
   as = "h2",
+  id,
   className,
   delay = 0,
 }: {
   text: string;
   as?: "h1" | "h2" | "h3" | "p";
+  id?: string;
   className?: string;
   delay?: number;
 }) {
@@ -119,6 +121,7 @@ function WordReveal({
   const words = text.split(" ");
   return (
     <Component
+      id={id}
       className={className}
       initial="hidden"
       whileInView="shown"

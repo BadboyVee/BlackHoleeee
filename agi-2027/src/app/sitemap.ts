@@ -8,7 +8,6 @@ import { siteConfig } from "@/lib/site";
  */
 const PUBLIC_PAGES: { path: string; changeFrequency: "daily" | "weekly" | "monthly" | "yearly"; priority: number }[] = [
   { path: "/", changeFrequency: "weekly", priority: 1 },
-  { path: "/campaigns", changeFrequency: "daily", priority: 0.9 },
   { path: "/book", changeFrequency: "monthly", priority: 0.9 },
   { path: "/apply", changeFrequency: "monthly", priority: 0.8 },
   { path: "/terms", changeFrequency: "yearly", priority: 0.3 },

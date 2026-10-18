@@ -30,7 +30,6 @@ export type NavItem = {
 export type NavGroup = { label: string; items: NavItem[] };
 
 export const marketingNav = [
-  { href: "/campaigns", label: "Campaigns" },
   { href: "/#how-it-works", label: "How it works" },
   { href: "/#creators", label: "Creators" },
   { href: "/#faq", label: "FAQ" },

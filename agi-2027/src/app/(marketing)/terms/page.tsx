@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 /** The day this text last changed. Update it with every change. */
-const UPDATED = "2026-10-13";
+const UPDATED = "2026-10-18";
 
 const linkClass = "font-medium underline underline-offset-4 hover:text-brand-text";
 
@@ -55,13 +55,12 @@ const SECTIONS: LegalSection[] = [
     ),
   },
   {
-    id: "open-campaigns",
-    title: "Open campaigns",
+    id: "campaigns",
+    title: "Campaigns",
     body: (
       <LegalText>
-        The <Link href="/campaigns" className={linkClass}>campaigns board</Link> shows campaigns open to creators.
-        Details can change, and a campaign can fill or close at any time. Seeing a campaign there isn&apos;t an offer
-        of work: creators take part through an approved account, under that campaign&apos;s own brief.
+        Campaign details can change, and a campaign can fill or close at any time. Seeing a campaign isn&apos;t an
+        offer of work: creators take part through an approved account, under that campaign&apos;s own brief.
       </LegalText>
     ),
   },
@@ -115,7 +114,7 @@ const SECTIONS: LegalSection[] = [
       <LegalList
         items={[
           "Company names and logos belong to their owners.",
-          "The X posts we show belong to the people who posted them. We show them as examples, with links to the originals on X.",
+          "The X posts we show are from launches AGI 2027 worked on. They belong to the people who posted them, and each one links to the original on X.",
           "The site's own words, design and code belong to AGI 2027.",
         ]}
       />

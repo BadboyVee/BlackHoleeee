@@ -153,14 +153,15 @@ export const campaignStatusMeta: Record<CampaignStatus, StatusMeta> = {
   },
 };
 
-export const APPLICATION_STATUSES = ["pending", "approved", "rejected"] as const;
+export const APPLICATION_STATUSES = ["submitted", "approved", "rejected"] as const;
 export type ApplicationStatus = (typeof APPLICATION_STATUSES)[number];
 
 export const applicationStatusMeta: Record<ApplicationStatus, StatusMeta> = {
-  pending: {
+  submitted: {
     label: "In review",
     tone: "amber",
-    description: "We're reviewing your application.",
+    description: "Waiting for a decision.",
+    attention: true,
   },
   approved: {
     label: "Approved",
@@ -172,6 +173,17 @@ export const applicationStatusMeta: Record<ApplicationStatus, StatusMeta> = {
     tone: "gray",
     description: "Your application wasn't approved this time.",
   },
+};
+
+/** Where an invite link stands. Mirrors private.invite_state in the onboarding migration. */
+export const INVITE_STATUSES = ["valid", "expired", "used_up", "revoked"] as const;
+export type InviteStatus = (typeof INVITE_STATUSES)[number];
+
+export const inviteStatusMeta: Record<InviteStatus, StatusMeta> = {
+  valid: { label: "Active", tone: "green", description: "Anyone with the link can join." },
+  expired: { label: "Expired", tone: "gray", description: "Past its expiry date." },
+  used_up: { label: "Used up", tone: "gray", description: "Used as many times as it allows." },
+  revoked: { label: "Switched off", tone: "red", description: "Switched off. It no longer works." },
 };
 
 export const LEAD_STATUSES = ["new", "contacted", "won", "lost"] as const;
@@ -208,6 +220,7 @@ export const statusMeta = {
   claim: claimStatusMeta,
   campaign: campaignStatusMeta,
   application: applicationStatusMeta,
+  invite: inviteStatusMeta,
   lead: leadStatusMeta,
   earning: earningStatusMeta,
 } as const;

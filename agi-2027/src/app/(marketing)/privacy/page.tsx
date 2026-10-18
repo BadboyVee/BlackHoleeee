@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 /** The day this text last changed. Update it with every change. */
-const UPDATED = "2026-10-13";
+const UPDATED = "2026-10-15";
 
 /** Whoever hosts this deployment, baked in at build (see src/lib/deploy.ts). */
 const HOSTS: Record<string, string> = { netlify: "Netlify", vercel: "Vercel" };
@@ -21,8 +21,11 @@ const HOSTS: Record<string, string> = { netlify: "Netlify", vercel: "Vercel" };
  * (Supabase Auth, email or Google, a sign-in cookie), the hashed-IP and
  * hashed-email rate limits (private.take_rate_limit clears codes over two
  * days old on each call), look and theme choices in local storage, X posts
- * shown as local images. Applications and payouts come in later milestones;
- * add them here before they launch.
+ * shown as local images, creator applications, invite and referral links,
+ * creator profiles with a photo in a public storage bucket, and payout
+ * details (creator and admin only, every change logged and emailed).
+ * Campaign work and payments come in later milestones; add them here before
+ * they launch.
  */
 function sections(): LegalSection[] {
   const host = HOSTS[process.env.AGI_DEPLOY_HOST ?? ""];
@@ -54,6 +57,17 @@ function sections(): LegalSection[] {
               Google, Google shares your name, email address and profile picture with us.
             </>,
             <>
+              <strong className="font-semibold">When you apply as a creator:</strong> the name you post under, your
+              X handle and any other social profiles you add, what you post about, your follower and view numbers,
+              your country, links to three of your posts and why you want to join. If a creator referred you, or you
+              joined through an invite link, we note that too. Our team adds private notes when reviewing.
+            </>,
+            <>
+              <strong className="font-semibold">When you&apos;re a creator:</strong> your profile, including a photo
+              and short bio if you add them and your rate per post if you give one, and your payout details: a wallet
+              address and its network, your bank details, or the other way you&apos;d like to be paid.
+            </>,
+            <>
               <strong className="font-semibold">To stop spam and password guessing:</strong> one-way codes made from
               your IP address, and from the email address you sign in with, plus a secret key. They let us limit how
               many forms and sign-in tries one connection or account gets in an hour. We never store the address
@@ -63,8 +77,8 @@ function sections(): LegalSection[] {
               <strong className="font-semibold">When you email us:</strong> whatever you choose to write.
             </>,
             <>
-              Creator applications and payouts aren&apos;t open yet. Before they are, this page will say what they
-              collect and why.
+              Campaign work and payments aren&apos;t open yet. Before they are, this page will say what they collect
+              and why.
             </>,
           ]}
         />
@@ -80,6 +94,8 @@ function sections(): LegalSection[] {
               "To reply to you and plan the campaign you asked about.",
               "To keep a record of each request, so our team can follow up.",
               "To run your account: signing you in, and emailing you links to confirm your address or reset your password.",
+              "To review your creator application, email you our answer, and if you're approved, offer you campaigns and pay you.",
+              "To email you whenever your payout details change, so nobody can change them without you knowing.",
               "To protect the site, its forms and your account from spam and abuse.",
             ]}
           />
@@ -88,8 +104,8 @@ function sections(): LegalSection[] {
           </LegalText>
           <LegalText>
             If you&apos;re in the UK or the EU: we use your booking details because you asked us for a proposal,
-            your account details to provide the account you asked for, and the spam checks because we have a
-            legitimate interest in keeping the site safe.
+            your account, application and creator details to provide what you signed up for, and the spam checks
+            because we have a legitimate interest in keeping the site safe.
           </LegalText>
         </>
       ),
@@ -103,12 +119,13 @@ function sections(): LegalSection[] {
           <LegalList
             items={[
               <>
-                <strong className="font-semibold">Supabase</strong> stores your account and what you send in our
-                database, and handles signing in.
+                <strong className="font-semibold">Supabase</strong> stores your account, your profile photo and
+                what you send in our database, and handles signing in.
               </>,
               <>
-                <strong className="font-semibold">Resend</strong> sends our emails: the alert that tells our team
-                about a new booking, and the links to confirm your email or reset your password.
+                <strong className="font-semibold">Resend</strong> sends our emails: alerts that tell our team about
+                a new booking or application, the links to confirm your email or reset your password, our answer to
+                your application, and the note when your payout details change.
               </>,
               <>
                 <strong className="font-semibold">Google</strong>, only if you choose to sign in with it, confirms who
@@ -133,6 +150,20 @@ function sections(): LegalSection[] {
       ),
     },
     {
+      id: "who-sees-what",
+      title: "Who sees what",
+      body: (
+        <LegalList
+          items={[
+            "Your application and creator profile: you and our team.",
+            "Your payout details: only you and the agency admin. Other team members can't see them.",
+            "Who you referred: you see how many applied and how many were approved, not who they are.",
+            "Your profile photo is stored at a web address that isn't listed anywhere, so the site can show it. Anyone who has that exact address can open it, so only upload a photo you're happy to share.",
+          ]}
+        />
+      ),
+    },
+    {
       id: "in-your-browser",
       title: "In your browser",
       body: (
@@ -154,6 +185,8 @@ function sections(): LegalSection[] {
           items={[
             "Booking details: while we're talking with you or working together, and after that only as long as we need for basic business records. Ask, and we'll delete them sooner unless the law says we must keep something.",
             "Account details: while your account is open. Ask, and we'll close it and delete them.",
+            "Your application, including one we turned down: while your account is open, so we have a record. Ask, and we'll delete it.",
+            "Payout details: while you're a creator. We keep a record of each change, and of what we paid, as long as we need it for our accounts.",
             "The spam check codes: deleted once they're two days old, the next time a form is used.",
           ]}
         />
@@ -213,7 +246,7 @@ export default function PrivacyPage() {
       lead="What we collect, why we collect it, and who helps us handle it, in plain words."
       updated={UPDATED}
       summary={[
-        "We collect what you type into our forms and your account details, and use them to reply, plan campaigns and run your account.",
+        "We collect what you type into our forms, your account details and, for creators, your application, profile and payout details. We use them to reply, plan campaigns, run your account and pay you.",
         "We don't sell your information, show you ads, or track you around the web.",
         <>
           Email <ContactLink /> any time to see, fix or delete what we hold about you.

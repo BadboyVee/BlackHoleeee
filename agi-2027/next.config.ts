@@ -31,6 +31,11 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
+  // The public campaigns board showed sample campaigns, so it's off until real ones are
+  // live (Milestone 5). Old links go to the creator page instead.
+  async redirects() {
+    return [{ source: "/campaigns", destination: "/apply", permanent: false }];
+  },
 };
 
 export default nextConfig;

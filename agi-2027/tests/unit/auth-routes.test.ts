@@ -52,12 +52,13 @@ describe("areaFor", () => {
       "/login": "guest",
       "/signup": "guest",
       "/reset-password": "session",
+      "/invite/7c2e9a41d03f5b86": "open",
     };
     for (const [path, area] of Object.entries(cases)) expect(areaFor(path), path).toBe(area);
   });
 
   it("leaves public pages, and look-alike paths, alone", () => {
-    for (const path of ["/", "/book", "/campaigns", "/apply", "/forgot-password", "/administrator", "/dashboards", "/login/x", "/auth/callback"]) {
+    for (const path of ["/", "/book", "/campaigns", "/apply", "/forgot-password", "/administrator", "/dashboards", "/login/x", "/auth/callback", "/invite", "/invites"]) {
       expect(areaFor(path), path).toBeNull();
     }
   });
@@ -73,6 +74,12 @@ describe("ADMIN_ONLY_PATHS", () => {
 describe("accessFor", () => {
   const allowed = { kind: "allow" };
   const goTo = (to: string) => ({ kind: "redirect", to });
+
+  it("lets everyone open an invite link, whatever their role", () => {
+    for (const role of ["admin", "team", "creator", "applicant", "none"] as const) {
+      expect(accessFor("/invite/7c2e9a41d03f5b86", role), role).toEqual(allowed);
+    }
+  });
 
   it("lets admin open every admin page, team all but the admin-only ones", () => {
     expect(accessFor("/admin/payouts", "admin")).toEqual(allowed);

@@ -2,191 +2,293 @@
 
 import { useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion, useInView, useReducedMotion } from "motion/react";
-import { Check, Clock, Sparkles } from "lucide-react";
+import { BadgeDollarSign, Check, Clock, House, Layers, Megaphone, Sparkles, UserRound, Wallet } from "lucide-react";
+
+import { XLogo } from "@/components/brand/social-icons";
+import { springMove, springPop } from "@/components/creator/motion";
+import { PostAvatar, VerifiedBadge } from "@/components/marketing/x-post";
+import { getShowcasePost } from "@/lib/showcase-posts";
+import { formatUtcDay, formatUtcTime } from "@/lib/time";
+import { PhoneFrame } from "./phone-frame";
+
+/*
+ * A campaign the owner really ran: Kled's V3 launch on 30 Sep 2026. The name,
+ * picture, video still and launch time all come from Kled's own post, and the
+ * angle is a line from it. No pay amount or slot count: the card shows only
+ * what is true of every campaign (posted on X, paid per post).
+ */
+const KLED_POST_ID = "2105311618284527767";
+// Throws if the post is ever taken out of showcase-posts.ts, so the build fails
+// loudly instead of showing a broken card.
+const kled = getShowcasePost(KLED_POST_ID);
+/**
+ * When the launch went live: the minute of Kled's post (14:59:39 UTC), to the
+ * nearest minute, so the card always follows the data. It reads 15:00.
+ */
+export const KLED_LAUNCH_AT = new Date(Math.round(Date.parse(kled.postedAt) / 60_000) * 60_000).toISOString();
+
+export const CLAIM_PREVIEW = {
+  creator: "Jesse",
+  brand: kled.author.name,
+  title: "Kled V3 launch day",
+  launch: `Launch ${formatUtcDay(KLED_LAUNCH_AT)}, ${formatUtcTime(KLED_LAUNCH_AT)}`,
+  angle: "Any consumer dataset, collected in under 72 hours",
+};
+
+/** What a screen reader hears for this phone. */
+export const CLAIM_PREVIEW_LABEL = `A creator's phone: ${CLAIM_PREVIEW.creator} claims the ${CLAIM_PREVIEW.title} campaign from ${CLAIM_PREVIEW.brand} in one tap.`;
+
+/** The creator app's own tab bar, as in `creator-nav.tsx`. */
+const TABS = [
+  { label: "Home", icon: House },
+  { label: "Campaigns", icon: Megaphone },
+  { label: "Mine", icon: Layers },
+  { label: "Earnings", icon: Wallet },
+  { label: "Profile", icon: UserRound },
+];
+
+/*
+ * The claim, in steps: the finger glides onto Claim, presses it, and the
+ * button turns into "You're in" as the confetti pops. Times are from the
+ * moment the phone is in view.
+ */
+type Phase = "idle" | "approach" | "press" | "done";
+const TIMELINE: [Phase, number][] = [
+  ["approach", 450],
+  ["press", 1150],
+  ["done", 1400],
+];
+
+/** Where the fingertip lands on the button, right of the word so it never hides it. */
+const TOUCH = "top-1/2 left-[74%]";
+
+/** The site's ease-snap curve (globals.css), for the fades that have no spring. */
+const EASE_SNAP = [0.22, 1, 0.36, 1] as const;
 
 /**
- * A creator's phone showing a real-looking campaign card. When it scrolls into
- * view, a finger "taps" Claim: the slot counter ticks down, the button turns
- * into "You're in" and a little burst of confetti pops. It replays each time
- * it comes back into view.
+ * Jesse's phone with the Kled V3 drop. The first time it scrolls into view a
+ * finger taps Claim, the button turns into "You're in" and a little burst of
+ * confetti pops. It plays once, like every reveal on the site; with reduced
+ * motion the phone simply shows the end: "You're in".
  */
 function ClaimPreview({ className }: { className?: string }) {
   const host = useRef<HTMLDivElement>(null);
-  const inView = useInView(host, { amount: 0.6 });
+  const inView = useInView(host, { amount: 0.6, once: true });
   const reduce = useReducedMotion();
-  const [claimed, setClaimed] = useState(false);
-  const [tapping, setTapping] = useState(false);
+  const [phase, setPhase] = useState<Phase>("idle");
 
   useEffect(() => {
-    if (!inView) {
-      const reset = window.setTimeout(() => setClaimed(false), 400);
-      return () => window.clearTimeout(reset);
-    }
+    // Reduced motion skips the story and shows how it ends. It's set here, not
+    // while rendering: the server can't know the setting, so the first render
+    // has to match its "Claim".
     if (reduce) {
-      const show = window.setTimeout(() => setClaimed(true), 600);
-      return () => window.clearTimeout(show);
+      const end = window.setTimeout(() => setPhase("done"), 0);
+      return () => window.clearTimeout(end);
     }
-    const tap = window.setTimeout(() => setTapping(true), 1100);
-    const done = window.setTimeout(() => {
-      setTapping(false);
-      setClaimed(true);
-    }, 1450);
-    return () => {
-      window.clearTimeout(tap);
-      window.clearTimeout(done);
-    };
+    if (!inView) return;
+    const steps = TIMELINE.map(([next, at]) => window.setTimeout(() => setPhase(next), at));
+    return () => steps.forEach((step) => window.clearTimeout(step));
   }, [inView, reduce]);
 
-  const taken = claimed ? 14 : 13;
-  const total = 20;
+  const claimed = phase === "done";
+  const pressing = phase === "press";
+  const touched = !reduce && (pressing || claimed);
 
   return (
-    <div ref={host} className={className}>
-      <div className="relative mx-auto w-[min(19rem,78vw)] rounded-[2.6rem] bg-[linear-gradient(145deg,#3a3a3c,#0d0d0e_45%,#2a2a2c)] p-[9px] shadow-[0_2px_0_1px_rgb(255_255_255/0.12)_inset,0_40px_80px_-24px_rgb(0_0_0/0.5)]">
-        <div className="relative overflow-hidden rounded-[2.1rem] bg-[#f7f5f2] text-[#16120f]" style={{ aspectRatio: "9 / 17" }}>
-          <div className="absolute top-2 left-1/2 h-[22px] w-[34%] -translate-x-1/2 rounded-full bg-black" />
-          <div className="flex h-11 items-end justify-between px-6 pb-1 text-[11px] font-semibold">
-            <span>9:41</span>
-            <span className="h-2.5 w-5 rounded-[3px] border border-current p-px">
-              <span className="block h-full w-3/4 rounded-[1px] bg-current" />
+    <PhoneFrame ref={host} className={className} label={CLAIM_PREVIEW_LABEL}>
+      <div className="px-[18px] pt-[14px]">
+        <p className="text-[12px] font-semibold text-[#6b635c]">Good morning, {CLAIM_PREVIEW.creator}</p>
+        <p className="mt-px text-[24px] leading-tight font-bold tracking-[-0.045em]">New drops</p>
+      </div>
+
+      <div className="relative mx-[12px] mt-[12px] rounded-[1.5rem] bg-white p-[14px] shadow-[0_1px_2px_rgb(0_0_0/0.06),0_14px_30px_-14px_rgb(0_0_0/0.22)]">
+        <div className="flex items-center gap-[10px]">
+          <PostAvatar author={kled.author} className="size-[38px] ring-1 ring-black/10" />
+          <span className="min-w-0 leading-tight">
+            <span className="flex items-center gap-[3px] text-[12px] font-semibold text-[#6b635c]">
+              {CLAIM_PREVIEW.brand}
+              <VerifiedBadge badge={kled.author.badge} className="size-[13px] shrink-0" />
             </span>
-          </div>
-          <div className="px-4 pt-3">
-            <p className="text-[11px] font-semibold text-[#6b635c]">Good morning, Amara</p>
-            <p className="text-[20px] font-bold tracking-[-0.04em]">New drops</p>
-          </div>
+            <span className="block text-[15px] font-bold tracking-[-0.025em]">{CLAIM_PREVIEW.title}</span>
+          </span>
+        </div>
 
-          <div className="mx-3 mt-3 rounded-[1.4rem] bg-white p-4 shadow-[0_1px_2px_rgb(0_0_0/0.06),0_12px_28px_-12px_rgb(0_0_0/0.18)]">
-            <div className="flex items-center gap-2.5">
-              <span className="flex size-9 items-center justify-center rounded-xl bg-[#5b2ee8] text-[11px] font-bold text-white">
-                NA
-              </span>
-              <span className="leading-tight">
-                <span className="block text-[12px] font-semibold text-[#6b635c]">Nebula AI</span>
-                <span className="block text-[14px] font-bold tracking-[-0.02em]">Nebula 2.0 launch day</span>
-              </span>
-              <span className="ml-auto rounded-full bg-[#e9f9d4] px-2 py-0.5 text-[10px] font-bold text-[#3d6a00]">NEW</span>
-            </div>
-            <div className="mt-4 flex items-end justify-between">
-              <span>
-                <span className="block text-[10px] font-semibold text-[#6b635c]">You earn</span>
-                <span className="text-[28px] leading-none font-bold tracking-[-0.05em]">
-                  250 <span className="text-[13px] tracking-normal text-[#6b635c]">USDC</span>
-                </span>
-              </span>
-              <span className="text-right">
-                <span className="block text-[10px] font-semibold text-[#6b635c]">Slots left</span>
-                <span className="relative inline-flex h-7 items-end overflow-hidden text-[22px] leading-none font-bold tracking-[-0.04em] tabular-nums">
-                  <AnimatePresence mode="popLayout" initial={false}>
-                    <motion.span
-                      key={total - taken}
-                      initial={{ y: "100%", opacity: 0 }}
-                      animate={{ y: "0%", opacity: 1 }}
-                      exit={{ y: "-100%", opacity: 0 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 26 }}
-                    >
-                      {total - taken}
-                    </motion.span>
-                  </AnimatePresence>
-                  <span className="ml-0.5 text-[13px] text-[#6b635c]">/{total}</span>
-                </span>
-              </span>
-            </div>
-            <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#efebe6]">
-              <motion.div
-                className="h-full w-full rounded-full bg-[#16120f]"
-                style={{ originX: 0 }}
-                initial={false}
-                animate={{ scaleX: taken / total }}
-                transition={{ type: "spring", stiffness: 200, damping: 24 }}
+        <div className="relative mt-[12px] overflow-hidden rounded-[0.9rem] bg-black ring-1 ring-black/5" style={{ aspectRatio: "16 / 9" }}>
+          {/* eslint-disable-next-line @next/next/no-img-element -- a small still inside a scaled mockup */}
+          <img
+            src={kled.media.src}
+            alt=""
+            width={kled.media.width}
+            height={kled.media.height}
+            loading="lazy"
+            decoding="async"
+            draggable={false}
+            className="size-full object-cover"
+            style={{ objectPosition: "50% 28%" }}
+          />
+          <span className="absolute top-[8px] left-[8px] rounded-full bg-[#e9f9d4] px-[7px] py-[2px] text-[10px] font-bold tracking-[0.04em] text-[#3d6a00] shadow-[0_2px_6px_rgb(0_0_0/0.25)]">
+            NEW
+          </span>
+        </div>
+
+        <p className="mt-[11px] flex items-center gap-[6px] text-[11.5px] font-medium text-[#4a443e]">
+          <Clock className="size-[13px] shrink-0 text-[#6b635c]" />
+          {CLAIM_PREVIEW.launch}
+        </p>
+        <div className="mt-[8px] flex gap-[6px] text-[11px] font-semibold text-[#4a443e]">
+          <span className="flex items-center gap-[5px] rounded-full bg-[#f3f0ec] px-[9px] py-[4px]">
+            <XLogo className="size-[11px]" />
+            Post on X
+          </span>
+          <span className="flex items-center gap-[5px] rounded-full bg-[#f3f0ec] px-[9px] py-[4px]">
+            <BadgeDollarSign className="size-[13px]" />
+            Paid per post
+          </span>
+        </div>
+
+        <div className="relative mt-[13px]">
+          <motion.div
+            initial={false}
+            animate={{ scale: pressing ? 0.95 : 1 }}
+            transition={springPop}
+            className={`relative flex h-[44px] items-center justify-center overflow-hidden rounded-full text-[15px] font-bold text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.16),0_8px_18px_-10px_rgb(0_0_0/0.5)] transition-colors duration-300 ${
+              claimed ? "bg-[#1f9d55]" : "bg-[#16120f]"
+            }`}
+          >
+            {/* The press spreads from under the fingertip, like ink. */}
+            {touched ? (
+              <motion.span
+                className={`absolute ${TOUCH} -mt-[22px] -ml-[22px] size-[44px] rounded-full bg-white/35`}
+                initial={{ scale: 0.3, opacity: 1 }}
+                animate={{ scale: 6, opacity: 0 }}
+                transition={{ scale: springMove, opacity: { duration: 0.7, ease: EASE_SNAP } }}
               />
-            </div>
-            <p className="mt-3 flex items-center gap-1.5 text-[11px] text-[#6b635c]">
-              <Clock className="size-3" aria-hidden />
-              Post window Tue 3 Nov, 16:00 to 20:00 UTC
-            </p>
+            ) : null}
+            <AnimatePresence mode="wait" initial={false}>
+              {claimed ? (
+                <motion.span
+                  key="in"
+                  className="relative flex items-center gap-1.5"
+                  initial={reduce ? false : { opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={springMove}
+                >
+                  <Check className="size-4" strokeWidth={3} /> You&apos;re in
+                </motion.span>
+              ) : (
+                <motion.span
+                  key="claim"
+                  className="relative"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={reduce ? { opacity: 0 } : { opacity: 0, y: -8, transition: { duration: 0.15 } }}
+                >
+                  Claim
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </motion.div>
 
-            <div className="relative mt-4">
-              <motion.div
-                animate={tapping ? { scale: 0.95 } : { scale: 1 }}
-                transition={{ type: "spring", stiffness: 500, damping: 18 }}
-                className={`flex h-11 items-center justify-center gap-2 rounded-full text-[14px] font-bold transition-colors duration-300 ${
-                  claimed ? "bg-[#1f9d55] text-white" : "bg-[#16120f] text-white"
-                }`}
-              >
-                <AnimatePresence mode="wait" initial={false}>
-                  {claimed ? (
-                    <motion.span
-                      key="in"
-                      className="flex items-center gap-1.5"
-                      initial={{ opacity: 0, y: 8 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0 }}
-                    >
-                      <Check className="size-4" aria-hidden /> You&apos;re in
-                    </motion.span>
-                  ) : (
-                    <motion.span key="claim" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, y: -8 }}>
-                      Claim
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-              </motion.div>
-              <Confetti show={claimed && !reduce} />
-              {/* The "finger". */}
-              <AnimatePresence>
-                {!claimed && !reduce && inView ? (
-                  <motion.span
-                    aria-hidden
-                    className="pointer-events-none absolute top-1/2 left-1/2 size-10 rounded-full bg-white/70 ring-2 ring-black/10 backdrop-blur"
-                    initial={{ opacity: 0, x: 40, y: 40, scale: 1 }}
-                    animate={tapping ? { opacity: 1, x: -20, y: -20, scale: 0.8 } : { opacity: 1, x: -10, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, scale: 1.4 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 22 }}
-                  />
-                ) : null}
-              </AnimatePresence>
-            </div>
-          </div>
+          <Confetti show={claimed && !reduce} />
 
-          <div className="mx-3 mt-3 flex items-center gap-2 rounded-[1.2rem] bg-white/70 p-3 text-[11.5px] text-[#4a443e]">
-            <Sparkles className="size-3.5 text-[#c27a00]" aria-hidden />
-            Your angle: the 10-minute build
-          </div>
+          {/*
+            The fingertip: glides in from the bottom right, presses, lifts away.
+            A bright, see-through tip with a soft glow, like a screen recording's
+            touch, so on the black button it reads as a touch, not a switch.
+          */}
+          <AnimatePresence>
+            {!reduce && (phase === "approach" || pressing) ? (
+              <motion.span
+                key="finger"
+                className={`pointer-events-none absolute ${TOUCH} z-10 -mt-[17px] -ml-[17px] size-[34px] rounded-full bg-white/80 shadow-[0_0_0_4px_rgb(255_255_255/0.28),0_0_18px_4px_rgb(255_255_255/0.4),0_8px_16px_-6px_rgb(0_0_0/0.45)] ring-1 ring-black/5 backdrop-blur-[2px]`}
+                initial={{ opacity: 0, x: 40, y: 64, scale: 1.2 }}
+                animate={pressing ? { opacity: 1, x: 0, y: 1, scale: 0.8 } : { opacity: 1, x: 0, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -6, scale: 1.25, transition: { duration: 0.25, ease: EASE_SNAP } }}
+                transition={springMove}
+              />
+            ) : null}
+          </AnimatePresence>
         </div>
       </div>
-    </div>
+
+      <p className="mx-[12px] mt-[10px] flex items-start gap-[8px] rounded-[1.1rem] bg-white/75 px-[12px] py-[10px] text-[11.5px] leading-snug text-[#4a443e] ring-1 ring-black/[0.04]">
+        <Sparkles className="mt-px size-[14px] shrink-0 text-[#c27a00]" />
+        <span>
+          <span className="font-semibold text-[#16120f]">Your angle:</span> {CLAIM_PREVIEW.angle}
+        </span>
+      </p>
+
+      <div className="mt-auto flex justify-between border-t border-black/[0.06] bg-white/85 px-[14px] pt-[8px] pb-[22px]">
+        {TABS.map(({ label, icon: Icon }, index) => (
+          <span
+            key={label}
+            className={`flex w-[44px] flex-col items-center gap-[3px] text-[9.5px] font-semibold ${index === 0 ? "text-[#16120f]" : "text-[#9a918a]"}`}
+          >
+            <Icon className="size-[18px]" strokeWidth={index === 0 ? 2.4 : 2} />
+            {label}
+          </span>
+        ))}
+      </div>
+    </PhoneFrame>
   );
 }
 
+/*
+ * A fixed spread (the golden angle) so the burst looks placed, never
+ * random: strips, squares and dots that pop out, then drift down.
+ */
+const CONFETTI_COLORS = ["#ff2e8a", "#ffd23f", "#2ec27e", "#4da3ff", "#ff7a1a", "#9a6bff"];
+const CONFETTI = Array.from({ length: 22 }, (_, index) => {
+  const angle = (index * 137.508 * Math.PI) / 180;
+  const distance = 52 + ((index * 29) % 58);
+  const shape = index % 3;
+  return {
+    x: Math.round(Math.cos(angle) * distance * 1.35),
+    y: Math.round(Math.sin(angle) * distance * 0.8 - 18),
+    width: shape === 0 ? 4 : shape === 1 ? 7 : 6,
+    height: shape === 0 ? 10 : shape === 1 ? 7 : 6,
+    radius: shape === 2 ? 999 : 1.5,
+    rotate: ((index * 83) % 420) - 210,
+    color: CONFETTI_COLORS[index % CONFETTI_COLORS.length],
+    delay: (index % 5) * 0.02,
+  };
+});
+
 function Confetti({ show }: { show: boolean }) {
-  const pieces = Array.from({ length: 14 }, (_, i) => i);
-  const colors = ["#ff2e8a", "#ffd23f", "#2ec27e", "#4da3ff", "#ff7a1a", "#9a6bff"];
   return (
     <AnimatePresence>
       {show
-        ? pieces.map((i) => {
-            const angle = (i / pieces.length) * Math.PI * 2;
-            const distance = 60 + (i % 3) * 22;
-            return (
-              <motion.span
-                key={i}
-                aria-hidden
-                className="pointer-events-none absolute top-1/2 left-1/2 block size-2 rounded-[2px]"
-                style={{ backgroundColor: colors[i % colors.length] }}
-                initial={{ x: 0, y: 0, opacity: 1, rotate: 0, scale: 1 }}
-                animate={{
-                  x: Math.cos(angle) * distance,
-                  y: Math.sin(angle) * distance - 20,
-                  opacity: 0,
-                  rotate: 180 + i * 30,
-                  scale: 0.6,
-                }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
-              />
-            );
-          })
+        ? CONFETTI.map((piece, index) => (
+            <motion.span
+              key={index}
+              className="pointer-events-none absolute top-1/2 left-1/2 z-10 block"
+              style={{
+                width: piece.width,
+                height: piece.height,
+                marginLeft: -piece.width / 2,
+                marginTop: -piece.height / 2,
+                borderRadius: piece.radius,
+                backgroundColor: piece.color,
+              }}
+              initial={{ x: 0, y: 0, opacity: 1, rotate: 0, scale: 0.4 }}
+              animate={{
+                x: [0, piece.x, piece.x * 1.08],
+                y: [0, piece.y, piece.y + 46],
+                rotate: piece.rotate,
+                scale: 1,
+                opacity: [1, 1, 0],
+              }}
+              exit={{ opacity: 0 }}
+              transition={{
+                duration: 1.15,
+                times: [0, 0.4, 1],
+                ease: EASE_SNAP,
+                delay: piece.delay,
+                scale: { ...springPop, delay: piece.delay },
+              }}
+            />
+          ))
         : null}
     </AnimatePresence>
   );

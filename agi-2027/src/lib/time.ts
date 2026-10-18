@@ -83,3 +83,11 @@ export function formatUtcDate(date: Date | string): string {
   const d = new Date(date);
   return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
+
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+/** "Wed 30 Sep", the weekday and date in UTC, built without Intl like `formatUtcDate`. */
+export function formatUtcDay(date: Date | string): string {
+  const d = new Date(date);
+  return `${WEEKDAYS[d.getUTCDay()]} ${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
+}

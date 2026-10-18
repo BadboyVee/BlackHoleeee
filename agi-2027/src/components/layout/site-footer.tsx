@@ -19,7 +19,6 @@ const columns = [
     title: "Creators",
     links: [
       { href: "/apply", label: "Apply as a creator" },
-      { href: "/campaigns", label: "Open campaigns" },
       { href: "/login", label: "Sign in" },
     ],
   },

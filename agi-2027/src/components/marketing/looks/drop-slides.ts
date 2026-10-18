@@ -40,7 +40,7 @@ export const dropSlides: DropSlide[] = [
     color: "#e0252b",
     shade: "#9e1015",
     title: "Launch campaigns",
-    body: "Twenty creators, one launch day, every post timed to the minute.",
+    body: "A wave of creators, one launch day, every post timed to the minute.",
     postId: "2105311618284527767",
     icons: [
       { name: "bolt", x: 15, y: 27, size: 9, rotate: -14, depth: 0.35 },
@@ -56,7 +56,7 @@ export const dropSlides: DropSlide[] = [
     color: "#1e6bff",
     shade: "#0b3aa8",
     title: "Funding news",
-    body: "Your raise, explained by the people founders already listen to.",
+    body: "Your big news, explained by the people founders already listen to.",
     postId: "2108613100413096046",
     icons: [
       { name: "arrow", x: 17, y: 30, size: 9, rotate: 6, depth: 0.4 },
