@@ -206,7 +206,8 @@ export function OgLaunchPost() {
           {bar(96)}
         </div>
       </div>
-      <div style={{ display: "flex", fontSize: 24, lineHeight: 1.3 }}>We just launched. Here it is in 30 seconds.</div>
+      {/* The opening words of a real launch post, Kled V3 (src/lib/showcase-posts.ts). */}
+      <div style={{ display: "flex", fontSize: 24, lineHeight: 1.3 }}>This is Kled V3.</div>
       <div
         style={{
           display: "flex",

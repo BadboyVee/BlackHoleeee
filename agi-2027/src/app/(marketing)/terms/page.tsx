@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 /** The day this text last changed. Update it with every change. */
-const UPDATED = "2026-10-17";
+const UPDATED = "2026-10-18";
 
 const linkClass = "font-medium underline underline-offset-4 hover:text-brand-text";
 
@@ -114,7 +114,7 @@ const SECTIONS: LegalSection[] = [
       <LegalList
         items={[
           "Company names and logos belong to their owners.",
-          "The X posts we show belong to the people who posted them. We show them as examples, with links to the originals on X.",
+          "The X posts we show are from launches AGI 2027 worked on. They belong to the people who posted them, and each one links to the original on X.",
           "The site's own words, design and code belong to AGI 2027.",
         ]}
       />

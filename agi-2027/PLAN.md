@@ -613,6 +613,9 @@ What's in it:
   missing to message you on X. The stats are worked out from real data: 128.6K followers between
   the creators, 6.1M+ views on your clients' launch posts, 4 brands worked with and 14 creators on the roster. The
   brand strip shows only Kled AI, micro1, Maincode and Hedwig, and no launch post says "Example".
+- **Your answers** (18 Oct 2026): no ® next to the name in the Agent look, the share picture
+  quotes Kled's V3 post, the funding slide says "Your big news", and the terms say the posts
+  are from launches we worked on. The timings, the report line and "Tap Claim" stay.
 - **Also fixed:** the proxy now refreshes the sign-in on invite links, so accepting an invite
   after a long break can't sign anyone out; logging out from an invite page brings you back to
   it once you sign in again; and

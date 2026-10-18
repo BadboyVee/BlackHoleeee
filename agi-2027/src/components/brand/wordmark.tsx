@@ -14,7 +14,6 @@ function Wordmark() {
       <span className="look-agent">
         <span className="flex items-center gap-1.5">
           <span className="text-[16px] font-medium tracking-[-0.04em]">AGI 2027</span>
-          <span className="-ml-1 self-start pt-0.5 text-[9px] font-medium">®</span>
           <LogoMark className="size-[15px]" />
         </span>
       </span>

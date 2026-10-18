@@ -56,7 +56,7 @@ export const dropSlides: DropSlide[] = [
     color: "#1e6bff",
     shade: "#0b3aa8",
     title: "Funding news",
-    body: "Your raise, explained by the people founders already listen to.",
+    body: "Your big news, explained by the people founders already listen to.",
     postId: "2108613100413096046",
     icons: [
       { name: "arrow", x: 17, y: 30, size: 9, rotate: 6, depth: 0.4 },
