@@ -47,8 +47,8 @@ async function Application({ searchParams }: Pick<PageProps<"/application">, "se
         <ApplicationStatusView
           status={preview}
           createdAt="2026-11-03T08:12:00Z"
-          firstName="Amara"
-          email="amara@example.com"
+          firstName="Jesse"
+          email="jesse@example.com"
           note={<NoteBanner note={{ tone: "info", text: "Preview: accounts aren't connected yet, so this is sample data and nothing is saved." }} />}
         />
       );

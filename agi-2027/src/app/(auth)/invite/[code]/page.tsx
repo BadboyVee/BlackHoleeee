@@ -74,7 +74,7 @@ const PREVIEW_NOTE = (
 
 /** Sample views for preview links, where nobody can sign in. */
 function InvitePreview({ code, preview }: { code: string; preview: string | null }) {
-  const sample = { firstName: "Amara", email: "amara@example.com" };
+  const sample = { firstName: "Jesse", email: "jesse@example.com" };
   switch (preview) {
     case "applicant":
       return <InviteAccept code={code} {...sample} note={PREVIEW_NOTE} />;

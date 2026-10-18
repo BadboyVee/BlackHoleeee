@@ -1,12 +1,14 @@
 import { RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { CountUp } from "@/components/ui/count-up";
 import { stats } from "@/lib/marketing-content";
+import { formatUtcDate } from "@/lib/time";
 import { EchoSays } from "./shared";
 
 /**
- * The network in four numbers, counting up as they arrive. Renaissance sets
- * them like a museum banner, Agent in a red panel Echo introduces, Drop in a
- * juicy color block.
+ * The network in four real numbers, counting up as they arrive. Each one is
+ * worked out from the data (src/lib/marketing-content.ts), and a number taken
+ * from X says which day it's from. Renaissance sets them like a museum
+ * banner, Agent in a red panel Echo introduces, Drop in a juicy color block.
  */
 function StatsSection() {
   return (
@@ -24,9 +26,14 @@ function StatsSection() {
                 suffix={stat.suffix}
                 className="block text-[clamp(2.75rem,1.5rem+4.6vw,5.75rem)] leading-[0.9] font-bold tracking-[-0.055em] tabular-nums agent:font-medium drop:font-[family-name:var(--font-anton)] drop:text-[clamp(3.25rem,1.8rem+5.4vw,7rem)] drop:font-normal drop:tracking-[0.01em]"
               />
-              <p className="mt-3 text-[15px] leading-snug text-muted-foreground agent:text-white/85 drop:text-white/90">
+              <p className="mt-3 text-[15px] leading-snug text-balance text-muted-foreground agent:text-white/85 drop:text-white/90">
                 {stat.label}
               </p>
+              {stat.asOf ? (
+                <p className="mt-1 text-xs text-subtle-foreground agent:text-white/70 drop:text-white/75">
+                  From X, {formatUtcDate(stat.asOf)}
+                </p>
+              ) : null}
             </RevealItem>
           ))}
         </RevealGroup>

@@ -2,7 +2,7 @@ import Image from "next/image";
 
 import { XLogo } from "@/components/brand/social-icons";
 import { Reveal } from "@/components/motion/reveal";
-import type { Founder } from "@/lib/founder";
+import { founderXHandle, type Founder } from "@/lib/founder";
 import { cn } from "@/lib/utils";
 import { EchoSays, SectionTitle } from "./shared";
 
@@ -13,12 +13,6 @@ function initialsOf(name: string) {
   const words = name.trim().split(/\s+/).filter(Boolean);
   const picked = words.length > 1 ? [words[0], words[words.length - 1]] : words;
   return picked.map((word) => Array.from(word)[0]).join("").toUpperCase();
-}
-
-/** The X handle without its @, or null when there isn't one. */
-function handleOf(xHandle: string | null) {
-  const handle = xHandle?.trim().replace(/^@+/, "") ?? "";
-  return handle || null;
 }
 
 /**
@@ -68,7 +62,7 @@ function Portrait({ founder }: { founder: Founder }) {
  */
 function FounderSection({ founder }: { founder: Founder | null }) {
   if (!founder) return null;
-  const handle = handleOf(founder.xHandle);
+  const handle = founderXHandle(founder);
   const bio = founder.bio.filter((paragraph) => paragraph.trim());
   return (
     <section id="founder" aria-labelledby={HEADING_ID} className="relative scroll-mt-20 py-20 sm:py-28">

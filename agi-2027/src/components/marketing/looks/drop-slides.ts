@@ -40,7 +40,7 @@ export const dropSlides: DropSlide[] = [
     color: "#e0252b",
     shade: "#9e1015",
     title: "Launch campaigns",
-    body: "Twenty creators, one launch day, every post timed to the minute.",
+    body: "A wave of creators, one launch day, every post timed to the minute.",
     postId: "2105311618284527767",
     icons: [
       { name: "bolt", x: 15, y: 27, size: 9, rotate: -14, depth: 0.35 },

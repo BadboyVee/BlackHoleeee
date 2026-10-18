@@ -41,3 +41,9 @@ export const founder: Founder | null = {
   bio: ["Started AGI 2027 to get AI and tech launches seen by the people who'd actually use them."],
   quote: null,
 };
+
+/** The founder's X handle without the @, or null when there isn't one (or no founder). */
+export function founderXHandle(person: Founder | null): string | null {
+  const handle = person?.xHandle?.trim().replace(/^@+/, "") ?? "";
+  return handle || null;
+}

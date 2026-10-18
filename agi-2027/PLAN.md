@@ -276,10 +276,10 @@ and claims in every status.
   first. Text, numbers and pictures come from your screenshots, each post links to the real one on
   X, and a number that couldn't be read is left out. They live in `src/lib/showcase-posts.ts`
   until the content editor (M9) takes over. The numbers are a snapshot and say so on the page.
-  The hero labels each one "Example", because you haven't said whether these were AGI 2027
-  campaigns. Confirm it and the labels can say so.
-- **Other homepage content** (stats, brand names, FAQ) is still placeholder. The editor arrives in
-  M9; send real numbers and client names whenever you have them.
+  You confirmed on 17 Oct 2026 that these were AGI 2027 campaigns, so the hero no longer labels
+  them "Example".
+- **Other homepage content:** the stats and brand names are real since 17 Oct 2026, worked out
+  from your creators and launch posts. The FAQ is still placeholder. The editor arrives in M9.
 - **Admin only:** payouts, team, settings and invite links, plus suspending or removing creators.
   Team can do everything else, but never sees payout details.
 - **Your admin account** comes from a one-time setup step (M3): sign up, then run one line in
@@ -601,6 +601,18 @@ What's in it:
   For creators, with your X picture, a Follow on X button and one line about AGI 2027. X
   blocks this server, so the name is your handle until you send the one you want shown. It all
   lives in `src/lib/founder.ts`; set `founder` to null there to hide the section.
+- **Two phones in For creators** (you asked, 17 Oct 2026): the made up Nebula card is gone. The
+  first phone shows a campaign you really ran, Kled V3 launch day, with Kled's own picture,
+  video still, launch time and an angle from their post. It shows no pay or slot numbers, and
+  the creator is now Jesse. The second phone is a guide to how the site works for a creator,
+  in five steps from Apply to getting paid per post, ticking off as it scrolls into view. Both
+  share one phone frame and sit in every look: hung over the painting in Renaissance, side by
+  side in Agent, fanned like stickers in Drop. The preview screens' sample person is Jesse too.
+- **Real creators, stats and brands** (you asked, 17 Oct 2026): a grid of your 14 creators now
+  sits before For creators, in your order, each linking to their X, with a line asking anyone
+  missing to message you on X. The stats are worked out from real data: 128.6K followers between
+  the creators, 6.1M+ views on your clients' launch posts, 4 brands launched and 14 creators. The
+  brand strip shows only Kled AI, micro1, Maincode and Hedwig, and no launch post says "Example".
 - **Also fixed:** the proxy now refreshes the sign-in on invite links, so accepting an invite
   after a long break can't sign anyone out; logging out from an invite page brings you back to
   it once you sign in again; and

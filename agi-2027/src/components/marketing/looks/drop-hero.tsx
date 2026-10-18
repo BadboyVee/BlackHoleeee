@@ -248,7 +248,7 @@ function DropHero() {
               className="inline-flex min-h-6 items-center gap-1 font-semibold text-white/90 underline decoration-white/40 underline-offset-[3px] transition-colors hover:text-white hover:decoration-white"
             >
               <motion.span key={post.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-                Example: {post.author.name}&rsquo;s post on X
+                {post.author.name}&rsquo;s post on X
               </motion.span>
               <ArrowUpRight aria-hidden className="size-3.5" />
             </a>
