@@ -1,5 +1,5 @@
 import Image from "next/image";
-import { ArrowUpRight } from "lucide-react";
+import { Mail } from "lucide-react";
 
 import { Fragment } from "react";
 
@@ -12,6 +12,9 @@ import { RosterGrid, RosterItem } from "./roster-grid";
 import { EchoSays, SectionTitle } from "./shared";
 
 const HEADING_ID = "roster-heading";
+
+/** The subject of the email from a creator who isn't in the grid yet. */
+export const ROSTER_EMAIL_SUBJECT = "I'm one of your creators";
 
 /**
  * Drop cards are stickers: each takes a juicy color and a little tilt. Five
@@ -120,22 +123,22 @@ function CreatorCard({ creator, index }: { creator: RosterCreator; index: number
  * for the owner's 14), each linking to the creator on X. A last row that isn't
  * full is centered.
  * Under it, a line for creators who work with us and aren't listed yet, which
- * links to `contactXHandle` on X (the founder's, from src/lib/founder.ts) and
- * is left out when there's no handle.
+ * opens an email to `contactEmail` (the site's contact address) and is left
+ * out when there's no address.
  * Renders nothing until the owner adds creators (src/lib/creator-roster.ts).
  */
 function CreatorRosterSection({
   creators,
   asOf,
-  contactXHandle = null,
+  contactEmail = null,
 }: {
   creators: RosterCreator[];
   asOf: string | null;
-  contactXHandle?: string | null;
+  contactEmail?: string | null;
 }) {
   if (creators.length === 0) return null;
   const total = combinedFollowers(creators);
-  const contact = bareXHandle(contactXHandle ?? "") || null;
+  const contact = contactEmail?.trim() || null;
   return (
     <section id="roster" aria-labelledby={HEADING_ID} className="relative scroll-mt-20 py-20 sm:py-28">
       <div className="mx-auto max-w-[84rem] px-5 sm:px-8 lg:px-10">
@@ -202,17 +205,14 @@ function CreatorRosterSection({
               <p className="text-[15px] leading-snug text-muted-foreground">
                 One of our creators and not on here?{" "}
                 <a
-                  href={xProfileUrl(contact)}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  href={`mailto:${contact}?subject=${encodeURIComponent(ROSTER_EMAIL_SUBJECT)}`}
                   className={cn(
                     "inline-flex min-h-11 items-center gap-1 font-semibold whitespace-nowrap text-foreground underline decoration-border-strong underline-offset-4 transition-colors hover:decoration-current",
                     "agent:text-brand-text drop:font-bold",
                   )}
                 >
-                  Message us on X
-                  <ArrowUpRight aria-hidden className="size-4 shrink-0" />
-                  <span className="sr-only"> (opens in a new tab)</span>
+                  <Mail aria-hidden className="size-4 shrink-0" />
+                  Email us
                 </a>
               </p>
             ) : null}

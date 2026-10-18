@@ -5,11 +5,10 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import { CreatorRosterSection } from "@/components/marketing/sections/creator-roster";
+import { CreatorRosterSection, ROSTER_EMAIL_SUBJECT } from "@/components/marketing/sections/creator-roster";
 import { combinedFollowers, creatorRoster, ROSTER_AS_OF, type RosterCreator } from "@/lib/creator-roster";
-import { founderXHandle, type Founder } from "@/lib/founder";
 
-// Made up creators and a made up founder for this test only. Never copy them into src/lib.
+// Made up creators for this test only. Never copy them into src/lib.
 const sample: RosterCreator[] = [
   { name: "Test Person", xHandle: "test_person", followers: 980, avatar: "/test/one.webp" },
   { name: "Another Tester", xHandle: "another_tester", followers: 51_200, avatar: "/test/two.webp" },
@@ -17,14 +16,6 @@ const sample: RosterCreator[] = [
   { name: "Big Account", xHandle: "big_account", followers: 1_250_000, avatar: "/test/four.webp" },
   { name: "SmallerTester", xHandle: "smaller_tester", followers: 9_560, avatar: "/test/five.webp" },
 ];
-const sampleFounder: Founder = {
-  name: "Test Founder",
-  role: "Founder",
-  photo: null,
-  xHandle: "test_founder",
-  bio: [],
-  quote: null,
-};
 
 const render = (creators: RosterCreator[], asOf: string | null = "2026-10-17") =>
   renderToStaticMarkup(createElement(CreatorRosterSection, { creators, asOf }));
@@ -174,35 +165,23 @@ describe("CreatorRosterSection", () => {
     }
   });
 
-  it("asks creators who aren't listed to message the founder on X, in a new tab", () => {
-    const handle = founderXHandle(sampleFounder);
+  it("asks creators who aren't listed to email us", () => {
     const html = renderToStaticMarkup(
-      createElement(CreatorRosterSection, { creators: sample, asOf: "2026-10-17", contactXHandle: handle }),
+      createElement(CreatorRosterSection, { creators: sample, asOf: "2026-10-17", contactEmail: " hello@example.com " }),
     );
-    expect(html.replace(/<[^>]+>/g, "")).toContain("One of our creators and not on here? Message us on X");
+    expect(html.replace(/<[^>]+>/g, "")).toContain("One of our creators and not on here? Email us");
     const all = links(html);
     expect(all).toHaveLength(sample.length + 1);
     const note = all[all.length - 1];
-    expect(note.href).toBe("https://x.com/test_founder");
-    expect(note.tag).toContain('target="_blank"');
-    expect(note.tag).toContain('rel="noopener noreferrer"');
-    expect(note.srText).toBe(" (opens in a new tab)");
+    // The HTML writes the subject's apostrophe as &#x27;.
+    expect(note.href?.replace(/&#x27;/g, "'")).toBe(`mailto:hello@example.com?subject=${encodeURIComponent(ROSTER_EMAIL_SUBJECT)}`);
+    // An email link opens the mail app, not a new tab.
+    expect(note.tag).not.toContain("target=");
   });
 
-  it("leaves the @ out of the founder's address too", () => {
-    const html = renderToStaticMarkup(
-      createElement(CreatorRosterSection, { creators: sample, asOf: null, contactXHandle: " @someone " }),
-    );
-    expect(links(html).at(-1)?.href).toBe("https://x.com/someone");
-  });
-
-  it("leaves the note out when there's no handle to message", () => {
-    expect(founderXHandle(null)).toBeNull();
-    expect(founderXHandle({ ...sampleFounder, xHandle: null })).toBeNull();
-    expect(founderXHandle({ ...sampleFounder, xHandle: " @ " })).toBeNull();
-    expect(founderXHandle({ ...sampleFounder, xHandle: " @test_founder " })).toBe("test_founder");
-    for (const contactXHandle of [null, undefined, "", "  ", "@"]) {
-      const html = renderToStaticMarkup(createElement(CreatorRosterSection, { creators: sample, asOf: null, contactXHandle }));
+  it("leaves the note out when there's no address to email", () => {
+    for (const contactEmail of [null, undefined, "", "  "]) {
+      const html = renderToStaticMarkup(createElement(CreatorRosterSection, { creators: sample, asOf: null, contactEmail }));
       expect(html).not.toContain("not on here");
       expect(links(html)).toHaveLength(sample.length);
     }

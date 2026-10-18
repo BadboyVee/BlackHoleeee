@@ -7,13 +7,12 @@ import { CreatorRosterSection } from "@/components/marketing/sections/creator-ro
 import { FaqSection } from "@/components/marketing/sections/faq";
 import { FinalCtaSection } from "@/components/marketing/sections/final-cta";
 import { ForCreatorsSection } from "@/components/marketing/sections/for-creators";
-import { FounderSection } from "@/components/marketing/sections/founder";
 import { HowItWorksSection } from "@/components/marketing/sections/how-it-works";
 import { ProofSection } from "@/components/marketing/sections/proof";
 import { ServicesSection } from "@/components/marketing/sections/services";
 import { StatsSection } from "@/components/marketing/sections/stats";
 import { creatorRoster, ROSTER_AS_OF } from "@/lib/creator-roster";
-import { founder, founderXHandle } from "@/lib/founder";
+import { siteConfig } from "@/lib/site";
 
 // The title and description come from the root layout.
 export const metadata: Metadata = {
@@ -29,8 +28,7 @@ export default function HomePage() {
       <ProofSection />
       <ServicesSection />
       <HowItWorksSection />
-      <FounderSection founder={founder} />
-      <CreatorRosterSection creators={creatorRoster} asOf={ROSTER_AS_OF} contactXHandle={founderXHandle(founder)} />
+      <CreatorRosterSection creators={creatorRoster} asOf={ROSTER_AS_OF} contactEmail={siteConfig.contactEmail} />
       <ForCreatorsSection />
       <FaqSection />
       <FinalCtaSection />
