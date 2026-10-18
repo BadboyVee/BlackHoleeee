@@ -30,7 +30,8 @@ export type Founder = {
 /**
  * Sent by the owner on 17 Oct 2026: their X profile and its picture. X blocks
  * this server, so the name is their handle until they send the name they want
- * shown. The bio only restates what the site already says about the agency.
+ * shown. The bio only restates what the site already says about the agency;
+ * the owner chose to keep it as written (18 Oct 2026).
  */
 export const founder: Founder | null = {
   name: "Vikktorrrre",
