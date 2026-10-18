@@ -597,10 +597,6 @@ What's in it:
 - **No more sample campaigns in public** (you asked, 17 Oct 2026): the open campaigns board
   showed demo campaigns, so it's gone from the site, its links and the sitemap until real
   campaigns are live (Milestone 5). Old `/campaigns` links go to `/apply`.
-- **Meet the founder** (you asked, 17 Oct 2026): a home page section between How it works and
-  For creators, with your X picture, a Follow on X button and one line about AGI 2027. X
-  blocks this server, so the name is your handle until you send the one you want shown. It all
-  lives in `src/lib/founder.ts`; set `founder` to null there to hide the section.
 - **Two phones in For creators** (you asked, 17 Oct 2026): the made up Nebula card is gone. The
   first phone shows a campaign you really ran, Kled V3 launch day, with Kled's own picture,
   video still, launch time and an angle from their post. It shows no pay or slot numbers, and
@@ -610,13 +606,14 @@ What's in it:
   side in Agent, fanned like stickers in Drop. The preview screens' sample person is Jesse too.
 - **Real creators, stats and brands** (you asked, 17 Oct 2026): a grid of your 14 creators now
   sits before For creators, in your order, each linking to their X, with a line asking anyone
-  missing to message you on X. The stats are worked out from real data: 128.6K followers between
+  missing to email us. The stats are worked out from real data: 128.6K followers between
   the creators, 6.1M+ views on your clients' launch posts, 4 brands worked with and 14 creators on the roster. The
   brand strip shows only Kled AI, micro1, Maincode and Hedwig, and no launch post says "Example".
 - **Your answers** (18 Oct 2026): no ® next to the name in the Agent look, the share picture
   quotes Kled's V3 post, the funding slide says "Your big news", and the terms say the posts
-  are from launches we worked on. The timings, the report line, "Tap Claim" and your one line
-  bio stay.
+  are from launches we worked on. The timings, the report line and "Tap Claim" stay.
+- **No founder details** (you asked, 18 Oct 2026): the founder section, its photo and every
+  detail about you are gone from the site.
 - **Also fixed:** the proxy now refreshes the sign-in on invite links, so accepting an invite
   after a long break can't sign anyone out; logging out from an invite page brings you back to
   it once you sign in again; and
@@ -632,7 +629,7 @@ What's in it:
   around the rules. All it found is fixed above: review notes were readable by the applicant,
   and the smaller items (invites after a rejection, double taps, photo and link addresses,
   payout emails visible to team, handle squatting, unlimited payout changes and photo files).
-- **Tests:** 454 unit tests and 130 database tests, including every database function and policy,
+- **Tests:** 506 unit tests and 130 database tests, including every database function and policy,
   each server action, the invite proxy rule and the review tabs.
 
 Set up before it works for real: nothing new beyond Milestone 3's steps. The photo bucket and
