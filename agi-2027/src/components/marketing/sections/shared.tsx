@@ -31,17 +31,20 @@ function SectionShell({
 function SectionTitle({
   title,
   lead,
+  titleId,
   className,
   align = "left",
 }: {
   title: string;
   lead?: string;
+  /** An id for the heading, so a section can take its name from it (aria-labelledby). */
+  titleId?: string;
   className?: string;
   align?: "left" | "center";
 }) {
   return (
     <div className={cn("max-w-3xl", align === "center" && "mx-auto text-center", className)}>
-      <WordReveal text={title} className="text-h2 text-balance" />
+      <WordReveal id={titleId} text={title} className="text-h2 text-balance" />
       {lead ? (
         <Reveal as="p" delay={0.12} className="mt-5 max-w-[34rem] text-lead text-pretty text-muted-foreground">
           {lead}

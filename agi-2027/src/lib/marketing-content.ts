@@ -12,13 +12,6 @@ import { showcaseBrands, showcasePosts, STATS_AS_OF, totalViews } from "@/lib/sh
  * number in here by hand.
  */
 
-export const hero = {
-  eyebrow: "Creator marketing for AI launches",
-  title: ["Your launch,", "on every"],
-  titleAccent: "timeline",
-  lead: "AGI 2027 puts AI and tech launches in front of millions through the creators their users already follow. Briefed in hours, posted on time, measured in one report you can share.",
-};
-
 export type Stat = {
   label: string;
   value: number;
@@ -47,8 +40,11 @@ export const stats: Stat[] = [
     suffix: views.partial ? "+" : undefined,
     asOf: STATS_AS_OF,
   },
-  { label: "Brands launched", value: showcaseBrands(showcasePosts).length, format: "plain" },
-  { label: "Creators in the network", value: creatorRoster.length, format: "plain" },
+  // The clients in the brand strip and the launch posts. Not "brands launched":
+  // micro1's posts were a data commitment and a benchmark, not a brand launch.
+  { label: "Brands we've worked with", value: showcaseBrands(showcasePosts).length, format: "plain" },
+  // Exactly the creators in the grid, which says others may not be listed yet.
+  { label: "Creators on our roster", value: creatorRoster.length, format: "plain" },
 ];
 
 export type Brand = {
@@ -99,12 +95,6 @@ export const steps = [
   { title: "Drop", description: "Creators claim the campaign and get the brief, assets and timing." },
   { title: "Post", description: "They post inside your launch window, labelled as a paid partnership." },
   { title: "Report", description: "You get a private link with every post and the numbers behind it." },
-];
-
-export const creatorPerks = [
-  "Pick the campaigns you want. New drops land in your portal and on Telegram.",
-  "Clear briefs, your own angle, and assets ready to download.",
-  "Paid per post, with every payment and its reference in your portal.",
 ];
 
 export const faqs = [

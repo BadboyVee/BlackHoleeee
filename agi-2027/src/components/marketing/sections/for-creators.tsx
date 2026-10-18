@@ -115,6 +115,7 @@ function ForCreatorsSection() {
             </figure>
           </div>
 
+          {/* Phones narrower than 375 get a smaller scale in Agent and Drop, so the pair fits across. */}
           <div className="look-agent">
             <Reveal className="relative isolate -mx-2 overflow-hidden rounded-[2.5rem] bg-surface px-2.5 pt-8 pb-12 shadow-soft ring-1 ring-border sm:mx-0 sm:px-8 sm:pt-12 sm:pb-16">
               <div
@@ -122,8 +123,8 @@ function ForCreatorsSection() {
                 className="absolute inset-0 -z-10 bg-[radial-gradient(60%_50%_at_30%_35%,var(--glow),transparent_70%),radial-gradient(50%_45%_at_75%_70%,var(--glow),transparent_70%)]"
               />
               <div className="flex items-start justify-center gap-1.5 sm:gap-8 lg:gap-5 xl:gap-8">
-                <ClaimPreview className="[--phone-scale:0.58] sm:[--phone-scale:0.9] lg:[--phone-scale:0.64] xl:[--phone-scale:0.8]" />
-                <GuidePreview className="mt-10 [--phone-scale:0.58] sm:mt-16 sm:[--phone-scale:0.9] lg:mt-12 lg:[--phone-scale:0.64] xl:mt-16 xl:[--phone-scale:0.8]" />
+                <ClaimPreview className="[--phone-scale:0.58] max-[374px]:[--phone-scale:0.5] sm:[--phone-scale:0.9] lg:[--phone-scale:0.64] xl:[--phone-scale:0.8]" />
+                <GuidePreview className="mt-10 [--phone-scale:0.58] max-[374px]:[--phone-scale:0.5] sm:mt-16 sm:[--phone-scale:0.9] lg:mt-12 lg:[--phone-scale:0.64] xl:mt-16 xl:[--phone-scale:0.8]" />
               </div>
             </Reveal>
           </div>
@@ -135,10 +136,10 @@ function ForCreatorsSection() {
               <img src="/art/icons/sparklime.webp" alt="" aria-hidden className="absolute top-0 left-[2%] z-30 w-16 animate-float drop-shadow-xl sm:-top-4 sm:left-[6%] sm:w-24" />
               {/* eslint-disable-next-line @next/next/no-img-element -- decorative sprite */}
               <img src="/art/icons/heart.webp" alt="" aria-hidden className="absolute -right-1 bottom-0 z-30 w-16 animate-float drop-shadow-xl [animation-delay:-2s] sm:right-[2%] sm:bottom-2 sm:w-24" />
-              <div className="relative z-20 mt-10 -rotate-[4deg] rounded-[calc(45.6px*var(--phone-scale)+6px)] bg-white p-1.5 shadow-[0_30px_60px_-20px_rgb(0_0_0/0.45)] [--phone-scale:0.52] sm:mt-14 sm:mr-4 sm:-rotate-6 sm:[--phone-scale:0.86] lg:mr-2 lg:[--phone-scale:0.6] xl:mr-4 xl:[--phone-scale:0.76]">
+              <div className="relative z-20 mt-10 -rotate-[4deg] rounded-[calc(45.6px*var(--phone-scale)+6px)] bg-white p-1.5 shadow-[0_30px_60px_-20px_rgb(0_0_0/0.45)] [--phone-scale:0.52] max-[374px]:[--phone-scale:0.46] sm:mt-14 sm:mr-4 sm:-rotate-6 sm:[--phone-scale:0.86] lg:mr-2 lg:[--phone-scale:0.6] xl:mr-4 xl:[--phone-scale:0.76]">
                 <ClaimPreview />
               </div>
-              <div className="relative z-10 rotate-[4deg] rounded-[calc(45.6px*var(--phone-scale)+6px)] bg-white p-1.5 shadow-[0_30px_60px_-20px_rgb(0_0_0/0.45)] [--phone-scale:0.52] sm:rotate-[5deg] sm:[--phone-scale:0.86] lg:[--phone-scale:0.6] xl:[--phone-scale:0.76]">
+              <div className="relative z-10 rotate-[4deg] rounded-[calc(45.6px*var(--phone-scale)+6px)] bg-white p-1.5 shadow-[0_30px_60px_-20px_rgb(0_0_0/0.45)] [--phone-scale:0.52] max-[374px]:[--phone-scale:0.46] sm:rotate-[5deg] sm:[--phone-scale:0.86] lg:[--phone-scale:0.6] xl:[--phone-scale:0.76]">
                 <GuidePreview />
               </div>
             </Reveal>

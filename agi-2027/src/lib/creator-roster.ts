@@ -1,5 +1,3 @@
-import { formatCount } from "@/lib/creators/display";
-
 /**
  * The creators in the grid on the home page, "The creators behind the
  * launches" (src/components/marketing/sections/creator-roster.tsx). Each card
@@ -46,7 +44,9 @@ export const ROSTER_AS_OF: string | null = "2026-10-17";
  *
  * Sent by the owner on 17 Oct 2026, in the owner's order. The follower counts
  * were read from the owner's screenshots of each X profile, taken that day.
- * X rounds counts over 10K ("26.3K"), so those are stored as X showed them.
+ * X shows a count exactly below 10,000 and rounds it from there ("26.3K"),
+ * so those are stored as X showed them. The cards show every count the way X
+ * does (formatXCount in src/lib/creators/display.ts).
  */
 export const creatorRoster: RosterCreator[] = [
   { name: "Pain", xHandle: "painn_x", followers: 9_560, avatar: "/creators/painn_x.webp" },
@@ -64,16 +64,6 @@ export const creatorRoster: RosterCreator[] = [
   { name: "Vorpal", xHandle: "vorpal_onchain", followers: 3_700, avatar: "/creators/vorpal_onchain.webp" },
   { name: "Jazii", xHandle: "notjazii", followers: 12_100, avatar: "/creators/notjazii.webp" },
 ];
-
-/**
- * A follower count the way X shows it: 980, 51.2K, 1.2M. Rounded down, so a
- * count never reads higher than it is, and built without Intl so the server
- * and browsers always agree.
- */
-export function compactFollowers(count: number): string {
-  // formatCount writes "51.2k"; X and the rest of the home page write "51.2K".
-  return formatCount(count).toUpperCase();
-}
 
 /** Everyone's followers added up, for the "between them" line. */
 export function combinedFollowers(creators: RosterCreator[]): number {

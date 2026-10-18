@@ -11,7 +11,9 @@ import { cn } from "@/lib/utils";
  *
  * The screen is a picture of the creator app, so it keeps the app's own light
  * colors in every look and mode. The whole phone is one image for screen
- * readers: `label` says what it shows, and nothing inside is focusable.
+ * readers: `label` says what it shows, everything inside is hidden from them
+ * (not every screen reader skips the inside of an image on its own), and
+ * nothing inside is focusable.
  */
 
 const SIDE_BUTTON = "absolute w-[3px] bg-[linear-gradient(90deg,#1c1c1e,#4a4a4d)]";
@@ -38,7 +40,7 @@ function PhoneFrame({
         className,
       )}
     >
-      <div className="absolute top-0 left-0 h-[600px] w-[288px] origin-top-left [scale:var(--phone-scale,1)]">
+      <div aria-hidden className="absolute top-0 left-0 h-[600px] w-[288px] origin-top-left [scale:var(--phone-scale,1)]">
         {/* Side buttons: action and volume on the left, power on the right. */}
         <span className={cn(SIDE_BUTTON, "top-[104px] -left-[2px] h-[26px] rounded-l-[2px]")} />
         <span className={cn(SIDE_BUTTON, "top-[150px] -left-[2px] h-[46px] rounded-l-[2px]")} />

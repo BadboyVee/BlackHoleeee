@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 
-import { formatCount } from "@/lib/creators/display";
+import { formatXCount, withCommas } from "@/lib/creators/display";
 import { cn } from "@/lib/utils";
 
 type CountFormat = "compact" | "plain";
@@ -10,17 +10,17 @@ type CountFormat = "compact" | "plain";
 /**
  * The number as text. No Intl: ICU versions differ between Node and browsers,
  * which breaks hydration, so the server and every browser write the same.
- * compact rounds down like X does (128,660 is 128.6K), so a number never
- * reads higher than it is; plain is a whole number with commas (12,400).
+ * compact reads the way X shows counts (9,560, then 128.6K), rounding down so
+ * a number never reads higher than it is; plain is a whole number with
+ * commas (12,400).
  */
 export function countText(value: number, format: CountFormat): string {
-  if (format === "compact") return formatCount(value).toUpperCase();
-  return String(Math.max(0, Math.floor(value))).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  return format === "compact" ? formatXCount(value) : withCommas(value);
 }
 
 type CountUpProps = {
   value: number;
-  /** compact: 12.4M. plain: 12,400,000. */
+  /** compact: 9,560 or 12.4M, the way X shows counts. plain: 12,400,000. */
   format?: CountFormat;
   prefix?: string;
   suffix?: string;

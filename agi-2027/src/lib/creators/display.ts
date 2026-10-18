@@ -22,6 +22,25 @@ export function formatCount(value: number | null | undefined): string {
   return `${trimZero(Math.floor(value / 100_000) / 10)}M`;
 }
 
+/** A whole number with commas: 9,560 or 12,400,000. Rounds down, never below 0. */
+export function withCommas(value: number): string {
+  return String(Math.max(0, Math.floor(value))).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
+/**
+ * A count the way X shows it on a profile: exact below 10,000 ("9,560"), then
+ * short ("26.3K", "1.2M"), so the home page reads the same as X. Rounds down,
+ * so a count never reads higher than it is.
+ */
+export function formatXCount(value: number): string {
+  return value < 10_000 ? withCommas(value) : formatCount(value).toUpperCase();
+}
+
+/** An X handle as stored and shown: no spaces around it, no @ in front. Empty when there's nothing left. */
+export function bareXHandle(handle: string): string {
+  return handle.trim().replace(/^@+/, "");
+}
+
 function base(siteUrl: string): string {
   return siteUrl.replace(/\/+$/, "");
 }
@@ -49,7 +68,7 @@ export function inviteLink(code: string, siteUrl: string = siteConfig.url): stri
 
 /** "amarabuilds" (stored without the @) to their X profile. */
 export function xProfileUrl(handle: string): string {
-  return `https://x.com/${handle.replace(/^@+/, "")}`;
+  return `https://x.com/${bareXHandle(handle)}`;
 }
 
 export type InviteLike = { revokedAt: string | null; expiresAt: string | null; maxUses: number | null; uses: number };

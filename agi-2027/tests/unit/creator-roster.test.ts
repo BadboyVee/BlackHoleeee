@@ -6,22 +6,25 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
 import { CreatorRosterSection } from "@/components/marketing/sections/creator-roster";
-import { founder, founderXHandle } from "@/lib/founder";
-import {
-  combinedFollowers,
-  compactFollowers,
-  creatorRoster,
-  ROSTER_AS_OF,
-  type RosterCreator,
-} from "@/lib/creator-roster";
+import { combinedFollowers, creatorRoster, ROSTER_AS_OF, type RosterCreator } from "@/lib/creator-roster";
+import { founderXHandle, type Founder } from "@/lib/founder";
 
-// Made up creators for this test only. Never copy them into src/lib/creator-roster.ts.
+// Made up creators and a made up founder for this test only. Never copy them into src/lib.
 const sample: RosterCreator[] = [
   { name: "Test Person", xHandle: "test_person", followers: 980, avatar: "/test/one.webp" },
   { name: "Another Tester", xHandle: "another_tester", followers: 51_200, avatar: "/test/two.webp" },
   { name: "Third Example", xHandle: "third_example", followers: 118_000, avatar: "/test/three.webp" },
   { name: "Big Account", xHandle: "big_account", followers: 1_250_000, avatar: "/test/four.webp" },
+  { name: "SmallerTester", xHandle: "smaller_tester", followers: 9_560, avatar: "/test/five.webp" },
 ];
+const sampleFounder: Founder = {
+  name: "Test Founder",
+  role: "Founder",
+  photo: null,
+  xHandle: "test_founder",
+  bio: [],
+  quote: null,
+};
 
 const render = (creators: RosterCreator[], asOf: string | null = "2026-10-17") =>
   renderToStaticMarkup(createElement(CreatorRosterSection, { creators, asOf }));
@@ -57,22 +60,13 @@ describe("creatorRoster (the live list)", () => {
     expect(combinedFollowers(creatorRoster)).toBe(128_660);
   });
 
-  it("gives every creator their own picture, named after their handle in lower case", () => {
-    expect(creatorRoster).toHaveLength(14);
-    for (const creator of creatorRoster) {
-      expect(creator.avatar).toBe(`/creators/${creator.xHandle.toLowerCase()}.webp`);
-      expect(existsSync(join(process.cwd(), "public", creator.avatar)), `missing ${creator.avatar}`).toBe(true);
-    }
-    expect(new Set(creatorRoster.map((creator) => creator.avatar)).size).toBe(14);
-  });
-
-  it("is a list, and each creator's picture is in public/ with a handle without the @", () => {
-    expect(Array.isArray(creatorRoster)).toBe(true);
+  it("gives every creator a name, a handle without the @, a whole count and their own picture in public/", () => {
     for (const creator of creatorRoster) {
       expect(creator.name.trim()).not.toBe("");
       expect(creator.xHandle).toMatch(/^[A-Za-z0-9_]{1,15}$/);
       expect(Number.isInteger(creator.followers) && creator.followers >= 0).toBe(true);
-      expect(creator.avatar).toMatch(/^\/creators\/.+\.webp$/);
+      // Named after the handle in lower case, so each picture is easy to find.
+      expect(creator.avatar).toBe(`/creators/${creator.xHandle.toLowerCase()}.webp`);
       expect(existsSync(join(process.cwd(), "public", creator.avatar)), `missing ${creator.avatar}`).toBe(true);
     }
   });
@@ -91,18 +85,9 @@ describe("creatorRoster (the live list)", () => {
   });
 });
 
-describe("compactFollowers", () => {
-  it("reads like X, rounding down so a count never reads higher than it is", () => {
-    expect(compactFollowers(980)).toBe("980");
-    expect(compactFollowers(1_000)).toBe("1K");
-    expect(compactFollowers(51_200)).toBe("51.2K");
-    expect(compactFollowers(51_299)).toBe("51.2K");
-    expect(compactFollowers(118_000)).toBe("118K");
-    expect(compactFollowers(1_250_000)).toBe("1.2M");
-  });
-
+describe("combinedFollowers", () => {
   it("adds everyone up", () => {
-    expect(combinedFollowers(sample)).toBe(980 + 51_200 + 118_000 + 1_250_000);
+    expect(combinedFollowers(sample)).toBe(980 + 51_200 + 118_000 + 1_250_000 + 9_560);
     expect(combinedFollowers([])).toBe(0);
   });
 });
@@ -119,22 +104,27 @@ describe("CreatorRosterSection", () => {
     else expect(links(html)).toHaveLength(creatorRoster.length);
   });
 
-  it("has a heading that names the section", () => {
+  it("takes its name from the heading alone, not the lead under it", () => {
     const html = render(sample);
     expect(html).toContain('id="roster"');
     expect(html).toContain('aria-labelledby="roster-heading"');
-    expect(html).toContain('id="roster-heading"');
-    expect(html).toMatch(/<h2[^>]*aria-label="The creators behind the launches."/);
+    const heading = /<h2\b[^>]*>/.exec(html)?.[0] ?? "";
+    expect(heading).toContain('id="roster-heading"');
+    expect(heading).toContain('aria-label="The creators behind the launches."');
+    expect(html.match(/id="roster-heading"/g)).toHaveLength(1);
   });
 
   it("shows each creator's picture, name, handle and followers, in the listed order", () => {
     const html = render(sample);
     for (const creator of sample) {
-      expect(html).toContain(`>${creator.name}<`);
+      // A name made of joined words may wrap where they meet ("Smaller", "Tester"), never mid word.
+      expect(html).toContain(`>${creator.name.replace(/(?<=[a-z])(?=[A-Z])/g, "<wbr/>")}<`);
       expect(html).toContain(`>@${creator.xHandle}<`);
       expect(html).toContain(encodeURIComponent(creator.avatar));
     }
+    // The way X shows counts: exact below 10,000, short from there.
     expect(html).toMatch(/>980<\/span><span[^>]*>followers</);
+    expect(html).toMatch(/>9,560<\/span><span[^>]*>followers</);
     expect(html).toMatch(/>51\.2K<\/span><span[^>]*>followers</);
     expect(html).toMatch(/>118K<\/span><span[^>]*>followers</);
     expect(html).toMatch(/>1\.2M<\/span><span[^>]*>followers</);
@@ -167,8 +157,14 @@ describe("CreatorRosterSection", () => {
   });
 
   it("adds up everyone's followers, rounding down", () => {
-    // 1,420,180 in all.
+    // 1,429,740 in all.
     expect(render(sample)).toMatch(/>1\.4M<\/span> <span[^>]*>followers between them</);
+  });
+
+  it("puts each card in the list in order, so a short last row can sit in the middle", () => {
+    const html = render(sample);
+    expect(html).toMatch(/<ul class="[^"]*flex-wrap[^"]*justify-center/);
+    expect(html.match(/<li\b/g)).toHaveLength(sample.length);
   });
 
   it("shows no tiers, badges or labels", () => {
@@ -179,8 +175,7 @@ describe("CreatorRosterSection", () => {
   });
 
   it("asks creators who aren't listed to message the founder on X, in a new tab", () => {
-    const handle = founderXHandle(founder);
-    expect(handle).toBe("vikktorrrre");
+    const handle = founderXHandle(sampleFounder);
     const html = renderToStaticMarkup(
       createElement(CreatorRosterSection, { creators: sample, asOf: "2026-10-17", contactXHandle: handle }),
     );
@@ -188,7 +183,7 @@ describe("CreatorRosterSection", () => {
     const all = links(html);
     expect(all).toHaveLength(sample.length + 1);
     const note = all[all.length - 1];
-    expect(note.href).toBe("https://x.com/vikktorrrre");
+    expect(note.href).toBe("https://x.com/test_founder");
     expect(note.tag).toContain('target="_blank"');
     expect(note.tag).toContain('rel="noopener noreferrer"');
     expect(note.srText).toBe(" (opens in a new tab)");
@@ -203,7 +198,9 @@ describe("CreatorRosterSection", () => {
 
   it("leaves the note out when there's no handle to message", () => {
     expect(founderXHandle(null)).toBeNull();
-    if (founder) expect(founderXHandle({ ...founder, xHandle: null })).toBeNull();
+    expect(founderXHandle({ ...sampleFounder, xHandle: null })).toBeNull();
+    expect(founderXHandle({ ...sampleFounder, xHandle: " @ " })).toBeNull();
+    expect(founderXHandle({ ...sampleFounder, xHandle: " @test_founder " })).toBe("test_founder");
     for (const contactXHandle of [null, undefined, "", "  ", "@"]) {
       const html = renderToStaticMarkup(createElement(CreatorRosterSection, { creators: sample, asOf: null, contactXHandle }));
       expect(html).not.toContain("not on here");

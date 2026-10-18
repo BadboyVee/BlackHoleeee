@@ -18,9 +18,14 @@ import { PhoneFrame } from "./phone-frame";
  * what is true of every campaign (posted on X, paid per post).
  */
 const KLED_POST_ID = "2105311618284527767";
+// Throws if the post is ever taken out of showcase-posts.ts, so the build fails
+// loudly instead of showing a broken card.
 const kled = getShowcasePost(KLED_POST_ID);
-/** The launch slot. Kled's post went out at 14:59:39, just before it. */
-export const KLED_LAUNCH_AT = "2026-09-30T15:00:00Z";
+/**
+ * When the launch went live: the minute of Kled's post (14:59:39 UTC), to the
+ * nearest minute, so the card always follows the data. It reads 15:00.
+ */
+export const KLED_LAUNCH_AT = new Date(Math.round(Date.parse(kled.postedAt) / 60_000) * 60_000).toISOString();
 
 export const CLAIM_PREVIEW = {
   creator: "Jesse",
@@ -57,15 +62,18 @@ const TIMELINE: [Phase, number][] = [
 /** Where the fingertip lands on the button, right of the word so it never hides it. */
 const TOUCH = "top-1/2 left-[74%]";
 
+/** The site's ease-snap curve (globals.css), for the fades that have no spring. */
+const EASE_SNAP = [0.22, 1, 0.36, 1] as const;
+
 /**
- * Jesse's phone with the Kled V3 drop. When it scrolls into view a finger
- * taps Claim, the button turns into "You're in" and a little burst of
- * confetti pops. It replays each time it comes back into view; with reduced
+ * Jesse's phone with the Kled V3 drop. The first time it scrolls into view a
+ * finger taps Claim, the button turns into "You're in" and a little burst of
+ * confetti pops. It plays once, like every reveal on the site; with reduced
  * motion the phone simply shows the end: "You're in".
  */
 function ClaimPreview({ className }: { className?: string }) {
   const host = useRef<HTMLDivElement>(null);
-  const inView = useInView(host, { amount: 0.6 });
+  const inView = useInView(host, { amount: 0.6, once: true });
   const reduce = useReducedMotion();
   const [phase, setPhase] = useState<Phase>("idle");
 
@@ -77,10 +85,7 @@ function ClaimPreview({ className }: { className?: string }) {
       const end = window.setTimeout(() => setPhase("done"), 0);
       return () => window.clearTimeout(end);
     }
-    if (!inView) {
-      const reset = window.setTimeout(() => setPhase("idle"), 400);
-      return () => window.clearTimeout(reset);
-    }
+    if (!inView) return;
     const steps = TIMELINE.map(([next, at]) => window.setTimeout(() => setPhase(next), at));
     return () => steps.forEach((step) => window.clearTimeout(step));
   }, [inView, reduce]);
@@ -156,7 +161,7 @@ function ClaimPreview({ className }: { className?: string }) {
                 className={`absolute ${TOUCH} -mt-[22px] -ml-[22px] size-[44px] rounded-full bg-white/35`}
                 initial={{ scale: 0.3, opacity: 1 }}
                 animate={{ scale: 6, opacity: 0 }}
-                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ scale: springMove, opacity: { duration: 0.7, ease: EASE_SNAP } }}
               />
             ) : null}
             <AnimatePresence mode="wait" initial={false}>
@@ -187,16 +192,20 @@ function ClaimPreview({ className }: { className?: string }) {
 
           <Confetti show={claimed && !reduce} />
 
-          {/* The fingertip: glides in from the bottom right, presses, lifts away. */}
+          {/*
+            The fingertip: glides in from the bottom right, presses, lifts away.
+            A bright, see-through tip with a soft glow, like a screen recording's
+            touch, so on the black button it reads as a touch, not a switch.
+          */}
           <AnimatePresence>
             {!reduce && (phase === "approach" || pressing) ? (
               <motion.span
                 key="finger"
-                className={`pointer-events-none absolute ${TOUCH} z-10 -mt-[17px] -ml-[17px] size-[34px] rounded-full bg-white/55 shadow-[0_8px_20px_-4px_rgb(0_0_0/0.4),inset_0_0_0_1.5px_rgb(255_255_255/0.9)] backdrop-blur-[3px]`}
+                className={`pointer-events-none absolute ${TOUCH} z-10 -mt-[17px] -ml-[17px] size-[34px] rounded-full bg-white/80 shadow-[0_0_0_4px_rgb(255_255_255/0.28),0_0_18px_4px_rgb(255_255_255/0.4),0_8px_16px_-6px_rgb(0_0_0/0.45)] ring-1 ring-black/5 backdrop-blur-[2px]`}
                 initial={{ opacity: 0, x: 40, y: 64, scale: 1.2 }}
                 animate={pressing ? { opacity: 1, x: 0, y: 1, scale: 0.8 } : { opacity: 1, x: 0, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -6, scale: 1.25, transition: { duration: 0.25 } }}
-                transition={{ type: "spring", stiffness: 260, damping: 24 }}
+                exit={{ opacity: 0, y: -6, scale: 1.25, transition: { duration: 0.25, ease: EASE_SNAP } }}
+                transition={springMove}
               />
             ) : null}
           </AnimatePresence>
@@ -274,7 +283,7 @@ function Confetti({ show }: { show: boolean }) {
               transition={{
                 duration: 1.15,
                 times: [0, 0.4, 1],
-                ease: [0.22, 1, 0.36, 1],
+                ease: EASE_SNAP,
                 delay: piece.delay,
                 scale: { ...springPop, delay: piece.delay },
               }}

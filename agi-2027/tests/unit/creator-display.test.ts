@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import { avatarPath, avatarPublicUrl, avatarTypeProblem, isOwnAvatarUrl } from "@/lib/creators/avatar";
 import {
+  bareXHandle,
   formatCount,
+  formatXCount,
   inviteLink,
   inviteStatusOf,
   inviteUsage,
@@ -11,6 +13,7 @@ import {
   parseReferralCode,
   referralLink,
   shortLink,
+  withCommas,
   xProfileUrl,
 } from "@/lib/creators/display";
 
@@ -29,6 +32,39 @@ describe("formatCount", () => {
   it("says when there's no number", () => {
     expect(formatCount(null)).toBe("Not given");
     expect(formatCount(undefined)).toBe("Not given");
+  });
+});
+
+describe("formatXCount", () => {
+  it("reads like an X profile: exact below 10,000, short from there, rounding down", () => {
+    expect(formatXCount(0)).toBe("0");
+    expect(formatXCount(980)).toBe("980");
+    expect(formatXCount(3_598)).toBe("3,598");
+    expect(formatXCount(9_059)).toBe("9,059");
+    expect(formatXCount(9_999)).toBe("9,999");
+    expect(formatXCount(10_000)).toBe("10K");
+    expect(formatXCount(26_300)).toBe("26.3K");
+    expect(formatXCount(128_660)).toBe("128.6K");
+    expect(formatXCount(6_127_000)).toBe("6.1M");
+  });
+});
+
+describe("withCommas", () => {
+  it("writes whole numbers with commas, rounding down and never below zero", () => {
+    expect(withCommas(14)).toBe("14");
+    expect(withCommas(9_560)).toBe("9,560");
+    expect(withCommas(12_400_000)).toBe("12,400,000");
+    expect(withCommas(13.9)).toBe("13");
+    expect(withCommas(-5)).toBe("0");
+  });
+});
+
+describe("bareXHandle", () => {
+  it("drops the spaces and any @ in front", () => {
+    expect(bareXHandle("khushiirl")).toBe("khushiirl");
+    expect(bareXHandle(" @@someone ")).toBe("someone");
+    expect(bareXHandle("  ")).toBe("");
+    expect(bareXHandle("@")).toBe("");
   });
 });
 

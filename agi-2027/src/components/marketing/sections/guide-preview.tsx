@@ -28,14 +28,14 @@ const FIRST_TICK = 600;
 const TICK_EVERY = 480;
 
 /**
- * Jesse's phone with the guide. When it scrolls into view the steps tick off
- * one by one while the current step lifts, and the bar on top fills. It
- * replays each time it comes back into view; with reduced motion every step
- * simply shows as done.
+ * Jesse's phone with the guide. The first time it scrolls into view the steps
+ * tick off one by one while the current step lifts, and the bar on top fills.
+ * It plays once, like every reveal on the site; with reduced motion every
+ * step simply shows as done.
  */
 function GuidePreview({ className }: { className?: string }) {
   const host = useRef<HTMLDivElement>(null);
-  const inView = useInView(host, { amount: 0.6 });
+  const inView = useInView(host, { amount: 0.6, once: true });
   const reduce = useReducedMotion();
   const [done, setDone] = useState(0);
 
@@ -47,10 +47,7 @@ function GuidePreview({ className }: { className?: string }) {
       const end = window.setTimeout(() => setDone(GUIDE_STEPS.length), 0);
       return () => window.clearTimeout(end);
     }
-    if (!inView) {
-      const reset = window.setTimeout(() => setDone(0), 400);
-      return () => window.clearTimeout(reset);
-    }
+    if (!inView) return;
     const ticks = GUIDE_STEPS.map((_, index) =>
       window.setTimeout(() => setDone(index + 1), FIRST_TICK + index * TICK_EVERY),
     );

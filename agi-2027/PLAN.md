@@ -611,7 +611,7 @@ What's in it:
 - **Real creators, stats and brands** (you asked, 17 Oct 2026): a grid of your 14 creators now
   sits before For creators, in your order, each linking to their X, with a line asking anyone
   missing to message you on X. The stats are worked out from real data: 128.6K followers between
-  the creators, 6.1M+ views on your clients' launch posts, 4 brands launched and 14 creators. The
+  the creators, 6.1M+ views on your clients' launch posts, 4 brands worked with and 14 creators on the roster. The
   brand strip shows only Kled AI, micro1, Maincode and Hedwig, and no launch post says "Example".
 - **Also fixed:** the proxy now refreshes the sign-in on invite links, so accepting an invite
   after a long break can't sign anyone out; logging out from an invite page brings you back to

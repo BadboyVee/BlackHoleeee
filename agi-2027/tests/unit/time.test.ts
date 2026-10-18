@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { formatCountdown, formatDateTime, formatRange, formatTime, formatUtcDate, formatUtcTime } from "@/lib/time";
+import { formatCountdown, formatDateTime, formatRange, formatTime, formatUtcDate, formatUtcDay, formatUtcTime } from "@/lib/time";
 
 describe("formatCountdown", () => {
   it("shows days and hours when more than a day is left", () => {
@@ -76,5 +76,19 @@ describe("formatUtcDate", () => {
   it("gives the calendar date in UTC with a fixed month name", () => {
     expect(formatUtcDate("2026-09-30T14:59:39Z")).toBe("30 Sep 2026");
     expect(formatUtcDate("2026-10-03T23:30:00-05:00")).toBe("4 Oct 2026");
+  });
+});
+
+describe("formatUtcDay", () => {
+  it("gives the weekday and date in UTC with fixed names, never Intl's", () => {
+    expect(formatUtcDay("2026-09-30T14:59:39Z")).toBe("Wed 30 Sep");
+    expect(formatUtcDay(new Date("2026-09-30T15:00:00Z"))).toBe("Wed 30 Sep");
+  });
+
+  it("takes the UTC day when an offset moves the time across midnight", () => {
+    // 23:30 in New York on Saturday 3 Oct is 04:30 UTC on Sunday 4 Oct.
+    expect(formatUtcDay("2026-10-03T23:30:00-05:00")).toBe("Sun 4 Oct");
+    // 00:30 in Paris on 1 Jan 2027 is still 31 Dec 2026 in UTC.
+    expect(formatUtcDay("2027-01-01T00:30:00+01:00")).toBe("Thu 31 Dec");
   });
 });

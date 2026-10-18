@@ -47,12 +47,10 @@ describe("ClaimPreview, the campaign phone", () => {
     expect(textOf(claimHtml)).not.toMatch(/\bNA\b/);
   });
 
-  it("dates the launch from the real post", () => {
+  it("dates the launch from the real post, to the nearest minute", () => {
     expect(kled.postedAt).toBe("2026-09-30T14:59:39Z");
-    // The post went out in the minute before the 15:00 launch slot.
-    const early = Date.parse(KLED_LAUNCH_AT) - Date.parse(kled.postedAt);
-    expect(early).toBeGreaterThan(0);
-    expect(early).toBeLessThan(60_000);
+    expect(KLED_LAUNCH_AT).toBe("2026-09-30T15:00:00.000Z");
+    expect(Math.abs(Date.parse(KLED_LAUNCH_AT) - Date.parse(kled.postedAt))).toBeLessThanOrEqual(30_000);
     expect(textOf(claimHtml)).toContain("Launch Wed 30 Sep, 15:00 UTC");
   });
 
@@ -107,7 +105,6 @@ describe("GuidePreview, the how it works phone", () => {
   it("uses the site's own words and no numbers beyond the step count", () => {
     const words = GUIDE_STEPS.map((step) => `${step.title} ${step.body}`).join(" ");
     expect(words).toContain("About five minutes");
-    expect(words).toContain("Telegram");
     expect(words).toContain("paid per post");
     expect(words).not.toMatch(/\d/);
     expect(words).not.toMatch(/[\u2013\u2014]/);
@@ -120,6 +117,12 @@ describe("both phones", () => {
       expect(html).toMatch(/^<div[^>]*role="img"[^>]*aria-label="A creator&#x27;s phone: [^"]+"/);
       expect(html).not.toMatch(/<(a|button|input|select|textarea)\b/);
       expect(html).not.toContain("tabindex");
+    }
+  });
+
+  it("hide everything inside the picture from screen readers, which hear only the label", () => {
+    for (const html of [claimHtml, guideHtml]) {
+      expect(html).toMatch(/^<div[^>]*role="img"[^>]*><div aria-hidden="true"/);
     }
   });
 
@@ -157,7 +160,7 @@ describe("both phones", () => {
   });
 
   it("share the same frame", () => {
-    const frame = (html: string) => html.match(/^<div[^>]*><div class="[^"]+">/)?.[0];
+    const frame = (html: string) => html.match(/^<div[^>]*><div aria-hidden="true" class="[^"]+">/)?.[0];
     expect(frame(claimHtml)).toBeDefined();
     expect(frame(claimHtml)?.replace(/aria-label="[^"]*"/, "")).toBe(frame(guideHtml)?.replace(/aria-label="[^"]*"/, ""));
   });

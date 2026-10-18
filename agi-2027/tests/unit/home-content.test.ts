@@ -10,7 +10,8 @@ import { BrandsMarquee } from "@/components/marketing/sections/brands";
 import { ProofSection } from "@/components/marketing/sections/proof";
 import { StatsSection } from "@/components/marketing/sections/stats";
 import { countText } from "@/components/ui/count-up";
-import { combinedFollowers, compactFollowers, creatorRoster } from "@/lib/creator-roster";
+import { combinedFollowers, creatorRoster } from "@/lib/creator-roster";
+import { formatXCount } from "@/lib/creators/display";
 import { brands, stats } from "@/lib/marketing-content";
 import {
   parseXCount,
@@ -88,15 +89,16 @@ describe("countText", () => {
     expect(countText(128_660, "compact")).toBe("128.6K");
     expect(countText(6_127_000, "compact")).toBe("6.1M");
     expect(countText(980, "compact")).toBe("980");
+    expect(countText(9_560, "compact")).toBe("9,560");
     expect(countText(0, "compact")).toBe("0");
     expect(countText(14, "plain")).toBe("14");
     expect(countText(12_400_000, "plain")).toBe("12,400,000");
     expect(countText(13.9, "plain")).toBe("13");
   });
 
-  it("matches the roster's own follower format", () => {
+  it("is the same X style count the roster cards use", () => {
     for (const value of [9_560, 26_300, 128_660, 1_250_000]) {
-      expect(countText(value, "compact")).toBe(compactFollowers(value));
+      expect(countText(value, "compact")).toBe(formatXCount(value));
     }
   });
 });
@@ -106,8 +108,8 @@ describe("stats", () => {
     expect(stats.map(({ label, value, format, suffix }) => ({ label, value, format, suffix }))).toEqual([
       { label: "Combined followers on X", value: combinedFollowers(creatorRoster), format: "compact", suffix: undefined },
       { label: "Views on our clients' launch posts", value: 6_127_000, format: "compact", suffix: "+" },
-      { label: "Brands launched", value: 4, format: "plain", suffix: undefined },
-      { label: "Creators in the network", value: creatorRoster.length, format: "plain", suffix: undefined },
+      { label: "Brands we've worked with", value: 4, format: "plain", suffix: undefined },
+      { label: "Creators on our roster", value: creatorRoster.length, format: "plain", suffix: undefined },
     ]);
     expect(stats[0].value).toBe(128_660);
     expect(stats[3].value).toBe(14);
@@ -126,8 +128,8 @@ describe("stats", () => {
     const text = textOf(renderToStaticMarkup(createElement(StatsSection)));
     expect(text).toContain("128.6K Combined followers on X From X, 17 Oct 2026");
     expect(text).toContain("6.1M+ Views on our clients' launch posts From X, 12 Oct 2026");
-    expect(text).toContain("4 Brands launched");
-    expect(text).toContain("14 Creators in the network");
+    expect(text).toContain("4 Brands we've worked with");
+    expect(text).toContain("14 Creators on our roster");
     for (const made_up of ["12.4M", "85M", "140", "15 Creators", "every month"]) expect(text).not.toContain(made_up);
   });
 });
@@ -164,11 +166,21 @@ describe("brand strip", () => {
   it("loops two identical halves, each repeating the list, so the strip stays full", () => {
     const html = renderToStaticMarkup(createElement(BrandsMarquee));
     const track = html.slice(html.indexOf("animate-marquee"));
-    const names = [...track.matchAll(/(?:\/>|">)(Kled AI|micro1|Maincode|Hedwig)<\/span>/g)].map((match) => match[1]);
+    const names = [...track.matchAll(/(?:\/>|">|<\/span>)(Kled AI|micro1|Maincode|Hedwig)<\/span>/g)].map((match) => match[1]);
     expect(names.length % 8).toBe(0);
     expect(names.length).toBeGreaterThanOrEqual(16);
     const half = names.length / 2;
     expect(names.slice(0, half)).toEqual(names.slice(half));
+  });
+
+  it("keeps a logo sized space before a name with no logo, so micro1 stands apart from Kled AI", () => {
+    const html = renderToStaticMarkup(createElement(BrandsMarquee));
+    const track = html.slice(html.indexOf("animate-marquee"));
+    const before = [...track.matchAll(/(<img [^>]*\/>|<span aria-hidden="true" class="size-6[^"]*"><\/span>)(Kled AI|micro1|Maincode|Hedwig)<\/span>/g)];
+    expect(before).toHaveLength(48);
+    for (const [, mark, name] of before) {
+      expect(mark.startsWith("<img"), name).toBe(name !== "micro1");
+    }
   });
 
   it("is free of the invented names everywhere in the site's code", () => {
