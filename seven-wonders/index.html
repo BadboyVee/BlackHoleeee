@@ -1619,19 +1619,21 @@
 
     try {
       const THREE = await import("three");
-      const [controlsModule, composerModule, renderPassModule, bloomModule, outputModule] = await Promise.all([
+      const [controlsModule, composerModule, renderPassModule, bloomModule, outputModule, geometryModule] = await Promise.all([
         import("three/addons/controls/OrbitControls.js"),
         import("three/addons/postprocessing/EffectComposer.js"),
         import("three/addons/postprocessing/RenderPass.js"),
         import("three/addons/postprocessing/UnrealBloomPass.js"),
-        import("three/addons/postprocessing/OutputPass.js")
+        import("three/addons/postprocessing/OutputPass.js"),
+        import("three/addons/utils/BufferGeometryUtils.js")
       ]);
       initializeWorld(THREE, {
         OrbitControls: controlsModule.OrbitControls,
         EffectComposer: composerModule.EffectComposer,
         RenderPass: renderPassModule.RenderPass,
         UnrealBloomPass: bloomModule.UnrealBloomPass,
-        OutputPass: outputModule.OutputPass
+        OutputPass: outputModule.OutputPass,
+        mergeGeometries: geometryModule.mergeGeometries
       });
     } catch (error) {
       console.error(error);
@@ -1641,7 +1643,7 @@
       document.getElementById("loadingNote").textContent = "This experience needs WebGL and an internet connection to load the 3D engine. Please try a current browser.";
     }
 
-    function initializeWorld(THREE, { OrbitControls, EffectComposer, RenderPass, UnrealBloomPass, OutputPass }) {
+    function initializeWorld(THREE, { OrbitControls, EffectComposer, RenderPass, UnrealBloomPass, OutputPass, mergeGeometries }) {
       // ---------------------------------------------------------------------------------------------
       // Data
       // ---------------------------------------------------------------------------------------------
@@ -1941,15 +1943,20 @@
       const coarsePointer = matchMedia("(pointer: coarse)").matches;
       const lowPower = qualityParam === "low" || (qualityParam !== "high" && coarsePointer);
       const adaptiveQuality = qualityParam !== "high";
-      const maxPixelRatio = lowPower ? 1.5 : 1.85;
+      const maxPixelRatio = lowPower ? 1.25 : 1.5;
       let pixelRatio = Math.min(window.devicePixelRatio || 1, maxPixelRatio);
 
       const canvas = document.getElementById("scene");
-      const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: "high-performance" });
+      // Phones render straight to the screen with plain multisampling; bloom goes through a composer.
+      let usePost = !lowPower;
+      const renderer = new THREE.WebGLRenderer({ canvas, antialias: !usePost, powerPreference: "high-performance" });
       renderer.setPixelRatio(pixelRatio);
       renderer.setSize(window.innerWidth, window.innerHeight, false);
       renderer.shadowMap.enabled = true;
       renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      // The island barely moves, so the shadow map is redrawn only when the light or a wonder changes.
+      renderer.shadowMap.autoUpdate = false;
+      renderer.shadowMap.needsUpdate = true;
       renderer.outputColorSpace = THREE.SRGBColorSpace;
       renderer.toneMapping = THREE.ACESFilmicToneMapping;
       renderer.toneMappingExposure = 1.05;
@@ -1979,14 +1986,31 @@
       camera.position.set(0, 52, 96);
       camera.lookAt(controls.target);
 
-      const samples = renderer.capabilities.isWebGL2 ? (lowPower ? 2 : 4) : 0;
-      const composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples }));
-      composer.setPixelRatio(pixelRatio);
-      composer.setSize(window.innerWidth, window.innerHeight);
-      composer.addPass(new RenderPass(scene, camera));
-      const bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.45, 0.6, 0.95);
-      composer.addPass(bloomPass);
-      composer.addPass(new OutputPass());
+      let composer = null;
+      let bloomPass = null;
+      if (usePost) {
+        const samples = renderer.capabilities.isWebGL2 ? 4 : 0;
+        composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples }));
+        composer.setPixelRatio(pixelRatio);
+        composer.setSize(window.innerWidth, window.innerHeight);
+        composer.addPass(new RenderPass(scene, camera));
+        bloomPass = new UnrealBloomPass(new THREE.Vector2(window.innerWidth, window.innerHeight), 0.45, 0.6, 0.95);
+        composer.addPass(bloomPass);
+        composer.addPass(new OutputPass());
+      }
+
+      function renderFrame() {
+        if (composer) composer.render();
+        else renderer.render(scene, camera);
+      }
+
+      function disablePost() {
+        composer.dispose();
+        bloomPass.dispose();
+        composer = null;
+        bloomPass = null;
+        usePost = false;
+      }
 
       // ---------------------------------------------------------------------------------------------
       // Lights
@@ -1997,7 +2021,7 @@
 
       const sunlight = new THREE.DirectionalLight(0xffdfaa, 3);
       sunlight.castShadow = true;
-      sunlight.shadow.mapSize.set(lowPower ? 1024 : 2048, lowPower ? 1024 : 2048);
+      sunlight.shadow.mapSize.set(lowPower ? 1024 : 1536, lowPower ? 1024 : 1536);
       sunlight.shadow.camera.left = -30;
       sunlight.shadow.camera.right = 30;
       sunlight.shadow.camera.top = 30;
@@ -2396,6 +2420,8 @@
               float fade = 1.0 - smoothstep(0.25, 1.0, t);
               float alpha = (bands * 0.5 * fade + shore * 0.85) * (0.45 + n * 0.75);
               gl_FragColor = vec4(vec3(0.92, 0.97, 0.98) * uBright, clamp(alpha, 0.0, 1.0) * 0.8);
+              #include <tonemapping_fragment>
+              #include <colorspace_fragment>
             }`,
           transparent: true,
           depthWrite: false
@@ -2494,6 +2520,49 @@
         return addMesh(parent, geometry, material, x, y, z);
       }
 
+      // Hundreds of small meshes become one mesh per material, which cuts draw calls by an order of magnitude.
+      // Anything that moves on its own is marked noMerge and left alone.
+      function mergeStatic(root) {
+        root.updateWorldMatrix(true, true);
+        const inverse = root.matrixWorld.clone().invert();
+        const buckets = new Map();
+        const visit = node => {
+          for (const child of node.children) {
+            if (child.userData.noMerge) continue;
+            if (child.isMesh && !child.isInstancedMesh && !Array.isArray(child.material) && !child.material.isShaderMaterial) {
+              const key = `${child.material.uuid}|${child.castShadow}|${child.receiveShadow}`;
+              if (!buckets.has(key)) buckets.set(key, []);
+              buckets.get(key).push(child);
+            }
+            visit(child);
+          }
+        };
+        visit(root);
+        const matrix = new THREE.Matrix4();
+        for (const meshes of buckets.values()) {
+          if (meshes.length < 2) continue;
+          const geometries = meshes.map(mesh => {
+            const geometry = mesh.geometry.index ? mesh.geometry.toNonIndexed() : mesh.geometry.clone();
+            for (const name of Object.keys(geometry.attributes)) {
+              if (name !== "position" && name !== "normal" && name !== "uv") geometry.deleteAttribute(name);
+            }
+            if (!geometry.attributes.normal) geometry.computeVertexNormals();
+            if (!geometry.attributes.uv) geometry.setAttribute("uv", new THREE.Float32BufferAttribute(new Float32Array(geometry.attributes.position.count * 2), 2));
+            geometry.clearGroups();
+            geometry.applyMatrix4(matrix.multiplyMatrices(inverse, mesh.matrixWorld));
+            return geometry;
+          });
+          const merged = mergeGeometries(geometries);
+          geometries.forEach(geometry => geometry.dispose());
+          if (!merged) continue;
+          const mesh = new THREE.Mesh(merged, meshes[0].material);
+          mesh.castShadow = meshes[0].castShadow;
+          mesh.receiveShadow = meshes[0].receiveShadow;
+          root.add(mesh);
+          for (const original of meshes) original.removeFromParent();
+        }
+      }
+
       function makeGlowSprite(color, scale, opacity = 1) {
         const sprite = new THREE.Sprite(new THREE.SpriteMaterial({
           map: glowTexture,
@@ -2508,7 +2577,6 @@
         return sprite;
       }
 
-      const foliage = [];
       const beaconBeams = [];
       const beaconLights = [];
       const flames = [];
@@ -2526,7 +2594,6 @@
         addMesh(crown, new THREE.IcosahedronGeometry(0.29, 1), M.leafLight, 0.26, 0.03, -0.08);
         tree.add(crown);
         parent.add(tree);
-        foliage.push({ node: crown, phase: Math.random() * Math.PI * 2 });
       }
 
       const frondGeometry = (() => {
@@ -2564,7 +2631,6 @@
         addSphere(crown, 0.09, M.trunk, 0, -0.02, 0, 8);
         palm.add(crown);
         parent.add(palm);
-        foliage.push({ node: crown, phase: Math.random() * Math.PI * 2 });
         return palm;
       }
 
@@ -2624,7 +2690,11 @@
       scene.add(centralHalo);
 
       const centralRings = [];
-      for (let i = 0; i < 3; i++) centralRings.push(addTorus(scene, 1.35 + i * 0.18, 0.027, M.gold, 0, 4.15, 0));
+      for (let i = 0; i < 3; i++) {
+        const ring = addTorus(scene, 1.35 + i * 0.18, 0.027, M.gold, 0, 4.15, 0);
+        ring.userData.noMerge = true;
+        centralRings.push(ring);
+      }
       centralRings[0].rotation.x = Math.PI / 2;
       centralRings[1].rotation.y = Math.PI / 2.5;
       centralRings[2].rotation.x = Math.PI / 3;
@@ -3003,6 +3073,7 @@
         beaconLights.push(halo);
 
         const beam = new THREE.Group();
+        beam.userData.noMerge = true;
         beam.position.set(0, f + 6.0, 0);
         const beamMaterial = new THREE.MeshBasicMaterial({
           color: 0xffd88b,
@@ -3137,7 +3208,15 @@
         group.add(ruins);
 
         const relic = createRelic(wonder, index);
+        relic.group.userData.noMerge = true;
         monument.add(relic.group);
+
+        mergeStatic(monument);
+        mergeStatic(ruins);
+        monument.userData.noMerge = true;
+        ruins.userData.noMerge = true;
+        mergeStatic(group);
+        group.userData.noMerge = true;
 
         group.traverse(object => {
           if (object.isMesh || object.isInstancedMesh) object.userData.wonderIndex = index;
@@ -3228,6 +3307,7 @@
         const curl = addTorus(ship, 0.16, 0.035, M.hull, 0, 0.5, -1.18, Math.PI * 1.2);
         curl.rotation.y = Math.PI / 2;
         outer.scale.setScalar(0.95 + Math.random() * 0.25);
+        outer.userData.noMerge = true;
         scene.add(outer);
         ships.push({
           outer,
@@ -3260,6 +3340,7 @@
         right.add(rightWing);
         bird.add(left, right);
         bird.scale.setScalar(1.1 + Math.random() * 0.4);
+        bird.userData.noMerge = true;
         scene.add(bird);
         birds.push({
           bird,
@@ -3273,6 +3354,8 @@
           flap: 7 + Math.random() * 3
         });
       }
+
+      mergeStatic(scene);
 
       const fireflyCount = 150;
       const fireflyBase = new Float32Array(fireflyCount * 3);
@@ -3339,6 +3422,8 @@
               float a = smoothstep(0.5, 0.05, d) * vAlpha;
               if (a < 0.004) discard;
               gl_FragColor = vec4(vColor, a);
+              #include <tonemapping_fragment>
+              #include <colorspace_fragment>
             }`,
           transparent: true,
           depthWrite: false,
@@ -3536,7 +3621,8 @@
         sunlight.position.copy(s.lightDir).multiplyScalar(60);
         rimLight.intensity = 0.5 * (1 - s.night * 0.6);
         renderer.toneMappingExposure = s.exposure;
-        bloomPass.strength = 0.38 + s.night * 0.5;
+        if (bloomPass) bloomPass.strength = 0.38 + s.night * 0.5;
+        renderer.shadowMap.needsUpdate = true;
         waterMaterial.color.copy(s.water);
         foamUniforms.uBright.value = 1 - s.night * 0.72;
         for (const layer of starLayers) layer.material.opacity = Math.min(1, Math.max(0, s.night - 0.15) * 1.2);
@@ -3580,7 +3666,7 @@
       function cycleSky() {
         skyPreset = (skyPreset + 1) % SKY_PRESETS.length;
         const delta = (SKY_PRESETS[skyPreset].hour - hour + 24) % 24;
-        skyTransition = { from: hour, delta, start: performance.now(), duration: 2600 + delta * 160 };
+        skyTransition = { from: hour, delta, start: performance.now(), duration: 1300 + delta * 90 };
         updateSkyButton();
         sfx.chime();
       }
@@ -3680,7 +3766,7 @@
           7.4 + (index === 6 ? 0.7 : 0) + narrow * 0.4,
           position.z + outward.z * (9.5 + narrow)
         );
-        flyTo(cameraPosition, new THREE.Vector3(position.x, wonder.anchor * 0.48, position.z), 1600);
+        flyTo(cameraPosition, new THREE.Vector3(position.x, wonder.anchor * 0.48, position.z), 1100);
       }
 
       function setAccent(color) {
@@ -3717,7 +3803,7 @@
         stopTour();
         selectWonder(-1, { focus: false });
         controls.autoRotate = save.rotate;
-        flyTo(overviewPosition(), new THREE.Vector3(0, 1.5, 0), 1800);
+        flyTo(overviewPosition(), new THREE.Vector3(0, 1.5, 0), 1200);
       }
 
       // Info panel ------------------------------------------------------------------------------------
@@ -3807,7 +3893,7 @@
         }
         selectWonder(tourStops, { fromTour: true });
         tourStops++;
-        nextTourAt = now + 8200;
+        nextTourAt = now + 6000;
       }
 
       // Modes -----------------------------------------------------------------------------------------
@@ -3936,7 +4022,7 @@
         const position = overviewPosition();
         position.y += 6;
         position.z += 4;
-        flyTo(position, new THREE.Vector3(0, 0.5, 0), 1600);
+        flyTo(position, new THREE.Vector3(0, 0.5, 0), 1100);
         setTime(yearToT(-2560));
         setTimePlaying(false);
         timeRange.focus({ preventScroll: true });
@@ -3955,7 +4041,7 @@
           entry.ruinTarget = 0;
           entry.label.classList.remove("faded");
         });
-        flyTo(overviewPosition(), new THREE.Vector3(0, 1.5, 0), 1600);
+        flyTo(overviewPosition(), new THREE.Vector3(0, 1.5, 0), 1100);
       }
 
       timeRange.addEventListener("input", () => {
@@ -4088,7 +4174,7 @@
         quiz.answered = false;
         quiz.finished = true;
         selectWonder(-1, { focus: false });
-        flyTo(overviewPosition(), new THREE.Vector3(0, 1.5, 0), 1800);
+        flyTo(overviewPosition(), new THREE.Vector3(0, 1.5, 0), 1200);
         if (correct >= 6) unlock("scholar");
         if (correct === total) {
           unlock("oracle");
@@ -4263,7 +4349,7 @@
       }
 
       function capture() {
-        composer.render();
+        renderFrame();
         canvas.toBlob(blob => {
           if (!blob) return;
           const url = URL.createObjectURL(blob);
@@ -4753,12 +4839,29 @@
         camera.updateProjectionMatrix();
         renderer.setPixelRatio(pixelRatio);
         renderer.setSize(width, height, false);
-        composer.setPixelRatio(pixelRatio);
-        composer.setSize(width, height);
+        if (composer) {
+          composer.setPixelRatio(pixelRatio);
+          composer.setSize(width, height);
+        }
         particleScale.value = (height * pixelRatio) / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
       }
 
       window.addEventListener("resize", applySize);
+
+      function lowerQuality() {
+        if (pixelRatio > 1.2) {
+          pixelRatio = Math.max(1.2, pixelRatio * 0.8);
+          applySize();
+        } else if (usePost) {
+          disablePost();
+        } else if (pixelRatio > 0.75) {
+          pixelRatio = Math.max(0.75, pixelRatio * 0.85);
+          applySize();
+        } else if (sunlight.castShadow) {
+          sunlight.castShadow = false;
+          renderer.shadowMap.enabled = false;
+        }
+      }
 
       function approach(value, target, step) {
         return value < target ? Math.min(target, value + step) : Math.max(target, value - step);
@@ -4781,8 +4884,8 @@
         document.body.classList.remove("intro");
         initAudio();
         sfx.chime();
-        flyTo(overviewPosition(), new THREE.Vector3(0, 1.5, 0), 3400);
-        setTimeout(() => toast("Welcome, traveller", "Seven relics are hidden around the island. Can you find them all?", "✦"), 3800);
+        flyTo(overviewPosition(), new THREE.Vector3(0, 1.5, 0), 2000);
+        setTimeout(() => toast("Welcome, traveller", "Seven relics are hidden around the island. Can you find them all?", "✦"), 2300);
       }
 
       $("beginButton").addEventListener("click", begin);
@@ -4832,7 +4935,7 @@
           const k = Math.min(1, (now - skyTransition.start) / skyTransition.duration);
           hour = (skyTransition.from + skyTransition.delta * easeInOutCubic(k)) % 24;
           applySky();
-          if (circularGap(hour, envHour) > 0.4 || k >= 1) refreshEnvironment(hour);
+          if (circularGap(hour, envHour) > 0.8 || k >= 1) refreshEnvironment(hour);
           if (k >= 1) {
             skyTransition = null;
             if (nightLevel > 0.9 && entries[6].presence > 0.5) unlock("night");
@@ -4852,8 +4955,9 @@
         }
 
         for (const entry of entries) {
-          entry.presence = approach(entry.presence, entry.presenceTarget, dt / 1.3);
-          entry.ruin = approach(entry.ruin, entry.ruinTarget, dt / 1.3);
+          if (entry.presence !== entry.presenceTarget || entry.ruin !== entry.ruinTarget) renderer.shadowMap.needsUpdate = true;
+          entry.presence = approach(entry.presence, entry.presenceTarget, dt / 0.9);
+          entry.ruin = approach(entry.ruin, entry.ruinTarget, dt / 0.9);
           entry.monument.visible = entry.presence > 0.002;
           entry.monument.scale.y = Math.max(0.001, easeOutCubic(entry.presence));
           entry.ruins.visible = entry.ruin > 0.002;
@@ -4866,7 +4970,6 @@
           }
         }
 
-        centralOrb.rotation.y = time * 0.22;
         centralHalo.material.opacity = 0.58 + Math.sin(time * 1.6) * 0.08;
         centralRings[0].rotation.z = time * 0.13;
         centralRings[1].rotation.z = -time * 0.11;
@@ -4876,11 +4979,6 @@
         waterfallTexture.offset.y = (time * 0.34) % 1;
         waterfallTexture.offset.x = Math.sin(time * 0.11) * 0.035;
         for (const beam of beaconBeams) beam.rotation.y = time * 0.24;
-
-        for (const item of foliage) {
-          item.node.rotation.z = Math.sin(time * 0.72 + item.phase) * 0.026;
-          item.node.rotation.x = Math.cos(time * 0.48 + item.phase) * 0.014;
-        }
 
         for (const cloud of clouds) {
           cloud.node.position.x = cloud.x + Math.sin(time * 0.035 + cloud.phase) * 4.5;
@@ -4955,16 +5053,15 @@
 
         if (audio.ctx) scheduleMusic();
 
-        composer.render();
+        renderFrame();
 
+        // If frames come slower than ~40 per second, step quality down: resolution, then bloom, then
+        // resolution again, then shadows.
         if (adaptiveQuality && loaderDone) {
           adaptTime += dt;
           adaptFrames++;
-          if (adaptTime > 3) {
-            if (adaptTime / adaptFrames > 1 / 38 && pixelRatio > 0.8) {
-              pixelRatio = Math.max(0.8, pixelRatio * 0.85);
-              applySize();
-            }
+          if (adaptTime > 2) {
+            if (adaptFrames / adaptTime < 40) lowerQuality();
             adaptTime = 0;
             adaptFrames = 0;
           }
@@ -4972,7 +5069,7 @@
 
         if (firstFrame) {
           firstFrame = false;
-          setTimeout(showReady, 200);
+          showReady();
         }
       }
 

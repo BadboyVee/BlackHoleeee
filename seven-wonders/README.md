@@ -54,6 +54,8 @@ changes so metal, marble and water pick up its light. The sea uses a procedurall
 generated, seamlessly tiling normal map sampled twice at different scrolls, with a foam
 shader around the shore.
 
-Quality adapts on its own: phones get a lighter shadow map and less multisampling, and the
-resolution steps down if the frame rate drops. Add `?q=high` or `?q=low` to the URL to pin
-it.
+It is built to stay fast. Static meshes that share a material are merged at load (about 700
+geometries become about 160), and the shadow map is redrawn only when the sun moves or a
+wonder rises or falls. Phones skip bloom and render straight to the screen. If the frame
+rate still drops below about 40 per second, quality steps down on its own: resolution, then
+bloom, then resolution again, then shadows. Add `?q=high` or `?q=low` to the URL to pin it.
