@@ -24,8 +24,9 @@ station stops with boarding passengers, and a workshop where you bolt new parts 
 
 ### 🏛️ [Seven Wonders](seven-wonders/)
 
-An interactive 3D atlas of the Seven Wonders of the Ancient World, gathered on one floating
-island. Orbit around it, fly to each wonder for its story, or let the guided tour take you round.
+The Seven Wonders of the Ancient World gathered on one island. Travel through time and watch
+them rise and fall, hunt for seven hidden relics, take the Oracle's quiz, and watch the island
+turn from dawn to night. Synthesised music and sound, ships, gulls and fireworks, all in one file.
 
 **▶ [Play it](https://badboyvee.github.io/BlackHoleeee/seven-wonders/)** · [source](seven-wonders/)
 
