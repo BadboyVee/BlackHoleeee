@@ -22,6 +22,13 @@ station stops with boarding passengers, and a workshop where you bolt new parts 
 
 **▶ [Play it](https://badboyvee.github.io/BlackHoleeee/skyline-tram/)** · [source & prompt](skyline-tram/)
 
+### 🏛️ [Seven Wonders](seven-wonders/)
+
+An interactive 3D atlas of the Seven Wonders of the Ancient World, gathered on one floating
+island. Orbit around it, fly to each wonder for its story, or let the guided tour take you round.
+
+**▶ [Play it](https://badboyvee.github.io/BlackHoleeee/seven-wonders/)** · [source](seven-wonders/)
+
 ### 🚗 [BMW M5 CS](bmw-m5-cs/)
 
 A procedural BMW M5 CS model rendered in a studio lighting setup.
