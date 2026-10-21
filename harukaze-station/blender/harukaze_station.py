@@ -10,7 +10,8 @@ Usage (Blender 4.2 LTS or newer, EEVEE):
     blender -b --python harukaze_station.py -- --save harukaze_station.blend
     blender -b --python harukaze_station.py -- --render day.png --frame 300
     blender -b --python harukaze_station.py -- --render night.png --night
-    blender -b --python harukaze_station.py -- --render-anim frames/
+    blender -b --python harukaze_station.py -- --quality ultra --render ultra.png
+    blender -b --python harukaze_station.py -- --video loop.mp4
 
 Everything loops every 32 s (768 frames at 24 fps): the train, doors, crossing lamps and
 barrier arms, the petals and a full turn of the camera. Drag the Night slider on the
@@ -100,6 +101,24 @@ FPS = 24
 CYCLE = 32.0
 FRAMES = int(CYCLE * FPS)
 HERO_FRAME = 300  # 12.5 s in: the train stands at the platform with its doors open
+
+# Two tiers of the same art direction. Classic is the scene as designed; Ultra adds
+# geometric detail (bevels, rounder crowns, a meadow of grass tufts and fallen petals,
+# more petals in the air), a tilt-shift depth of field, motion blur and more samples.
+QUALITY = {
+    'classic': dict(resolution=(1920, 1080), samples=16, video_samples=8, petals=460, detail=False,
+                    dof=False, fstop=0.0, motion_blur=False, bloom=0.55, shadow_rays=1, shadow_steps=6),
+    'ultra': dict(resolution=(3840, 2160), samples=64, video_samples=16, petals=1100, detail=True,
+                  dof=True, fstop=0.12, motion_blur=True, bloom=0.8, shadow_rays=2, shadow_steps=8),
+}
+Q = QUALITY['classic']
+
+# Ultra modifiers per material key: soft subdivision for the round things, a small bevel
+# that catches a highlight on everything built from boxes
+ROUNDED = {'blossom1', 'blossom2', 'blossom3', 'leaf', 'leafDark', 'leafLight', 'cloud'}
+BEVELLED = {'wall', 'wallPink', 'wallBlue', 'roofTeal', 'roofRed', 'roofBlue', 'roofGrey', 'roofBrown',
+            'concrete', 'concreteDark', 'wood', 'earthDark', 'stone', 'stoneLight', 'signBoard', 'signWood',
+            'vendRed', 'binBlue', 'binGreen', 'binYellow', 'shelterWall', 'frame', 'tWhite', 'tGrey', 'tDark'}
 T_ARR0, T_ARR1, T_DEP0, T_DEP1 = 2.0, 10.0, 17.0, 25.0
 CAR_L, CAR_GAP = 9.4, 0.5
 CAR_OFF = (CAR_L + CAR_GAP) / 2
@@ -907,13 +926,40 @@ def paint_grass(px=24):
 
     # fallen sakura petals under every tree, and a scatter on the wind
     petals = np.stack([hex_np(c) for c in ('#ffc4d4', '#ffb0c6', '#ffd9e3', '#ff9fbb', '#ffe6ec')])
+    fallen = np.zeros((h, w, 3), np.float32)
     for tx, tz, s in CHERRIES:
         n = int(700 * s)
         r = np.abs(np_rng.normal(size=n)) * 1.6 * s + np_rng.uniform(0, 0.8, n)
         a = np_rng.uniform(0, 2 * math.pi, n)
-        stamp(img, Z(tz + np.sin(a) * r * 0.9), X(tx + np.cos(a) * r + 0.6), petals[np_rng.integers(0, 5, n)], 2, 3)
+        rows, cols = Z(tz + np.sin(a) * r * 0.9), X(tx + np.cos(a) * r + 0.6)
+        stamp(img, rows, cols, petals[np_rng.integers(0, 5, n)], 2, 3)
+        stamp(fallen, rows, cols, np.ones(3, np.float32), 2, 3)
     n = 1600
     stamp(img, np_rng.integers(0, h, n), np_rng.integers(0, w, n), petals[np_rng.integers(0, 5, n)], 2, 3)
+
+    # the Ultra meadow mask: red where grass tufts may grow (painted green, outside roads,
+    # buildings and the hills), green where 3D petals lie under the trees
+    zs = (np.arange(h)[:, None] + 0.5) / px - D / 2
+    xs = (np.arange(w)[None, :] + 0.5) / px - W / 2
+    grows = (img[..., 1] > img[..., 0] * 1.12) & (img[..., 1] > img[..., 2] * 1.35)
+    blocked = [(ROAD_X0 - 0.25, ROAD_X1 + 0.25, -D / 2, D / 2),
+               (PLAT['x0'] - 0.1, PLAT['x1'] + 2.3, PLAT['z0'] - 1.8, PLAT['z1'] + 0.1),
+               (-12.4, -3.6, -16.7, -9.9)]
+    for hs in HOUSES:
+        turned = abs(math.sin(hs.get('ry', 0.0))) > 0.5
+        hx = (hs['d'] if turned else hs['w']) / 2 + 0.45
+        hz = (hs['w'] if turned else hs['d']) / 2 + 0.45
+        blocked.append((hs['x'] - hx, hs['x'] + hx, hs['z'] - hz, hs['z'] + hz))
+    for x0, x1, z0, z1 in blocked:
+        grows &= ~((xs > x0) & (xs < x1) & (zs > z0) & (zs < z1))
+    for hl in HILLS:
+        inside = ((xs - hl['cx']) / hl['rx']) ** 2 + ((zs - hl['cz']) / hl['rz']) ** 2 < 1.0
+        grows &= ~(inside & (hl['s'] * xs > HILL_FRONT - 0.5))
+    mask = np.zeros((h, w, 3), np.float32)
+    mask[..., 0] = grows
+    mask[..., 1] = fallen[..., 0]
+    IMAGES['meadow'] = to_image('harukaze_meadow_mask', mask)
+    IMAGES['meadow'].colorspace_settings.name = 'Non-Color'
     return to_image('harukaze_grass', img)
 
 
@@ -1702,6 +1748,15 @@ def make_mesh_object(name, key, part, coll, parent=None):
     if parent is not None:
         obj.parent = parent
     mesh.materials.append(material(key))
+    if Q['detail'] and key in ROUNDED:
+        sub = obj.modifiers.new('Ultra smooth', 'SUBSURF')
+        sub.levels, sub.render_levels = 1, 2
+    elif Q['detail'] and key in BEVELLED:
+        bev = obj.modifiers.new('Ultra bevel', 'BEVEL')
+        bev.width = 0.025
+        bev.segments = 2
+        bev.limit_method = 'ANGLE'
+        bev.angle_limit = math.radians(40)
     thickness = SPEC[key][1]
     if thickness:
         mesh.materials.append(ink_material(SPEC[key][2].get('clip', False)))
@@ -1827,7 +1882,7 @@ def build_petals(blossoms, coll):
         info.inputs['Object'].default_value = o
         l.new(info.outputs['Geometry'], join.inputs['Geometry'])
     scatter = n.new('GeometryNodeDistributePointsOnFaces')
-    scatter.inputs['Density'].default_value = 460 / max(area, 1.0)
+    scatter.inputs['Density'].default_value = Q['petals'] / max(area, 1.0)
     scatter.inputs['Seed'].default_value = 7
     l.new(join.outputs[0], scatter.inputs['Mesh'])
 
@@ -1901,6 +1956,184 @@ def build_petals(blossoms, coll):
 
 
 PETAL_MATERIAL = None
+
+
+def tuft_source(coll):
+    """Three leaning grass blades; normals point up so tufts shade like the meadow."""
+    verts, faces = [], []
+    for b in range(3):
+        a = b / 3 * 2 * math.pi + 0.4
+        ca, sa = math.cos(a), math.sin(a)
+        base = len(verts)
+        verts += [(-sa * 0.028, ca * 0.028, 0.0), (sa * 0.028, -ca * 0.028, 0.0), (ca * 0.08, sa * 0.08, 0.26 - b * 0.04)]
+        faces.append((base, base + 1, base + 2))
+    mesh = bpy.data.meshes.new('Grass tuft')
+    mesh.from_pydata(verts, [], faces)
+    mesh.update()
+    try:
+        mesh.normals_split_custom_set([(0.0, 0.0, 1.0)] * len(mesh.loops))
+    except Exception:
+        pass
+    m = new_material('tuft')
+    n, l = m.node_tree.nodes, m.node_tree.links
+    out = n.new('ShaderNodeOutputMaterial')
+    toon = n.new('ShaderNodeGroup')
+    toon.node_tree = node_group_toon()
+    attr = n.new('ShaderNodeAttribute')
+    attr.attribute_type = 'INSTANCER'
+    attr.attribute_name = 'tone'
+    ramp = n.new('ShaderNodeValToRGB')
+    cr = ramp.color_ramp
+    stops = [(0.0, '#5ea947'), (0.35, '#6fbd4e'), (0.7, '#86cf5c'), (1.0, '#9ad96d')]
+    while len(cr.elements) < len(stops):
+        cr.elements.new(0.5)
+    for el, (pos, col) in zip(cr.elements, stops):
+        el.position = pos
+        el.color = lin(col)
+    l.new(attr.outputs['Fac'], ramp.inputs[0])
+    l.new(ramp.outputs['Color'], toon.inputs['Color'])
+    l.new(toon.outputs[0], out.inputs['Surface'])
+    m.use_backface_culling = False
+    mesh.materials.append(m)
+    obj = bpy.data.objects.new('Grass tuft (source)', mesh)
+    coll.objects.link(obj)
+    obj.location = (0, 0, -60)
+    obj.hide_render = True
+    return obj
+
+
+def build_meadow(coll, ground):
+    """Ultra: grass tufts where the painted meadow is green and petals lying on the grass
+    where they were painted under the trees, both read from the packed meadow mask."""
+    source = tuft_source(coll)
+    ng = bpy.data.node_groups.new('Meadow', 'GeometryNodeTree')
+    ng.interface.new_socket('Geometry', in_out='OUTPUT', socket_type='NodeSocketGeometry')
+    n, l = ng.nodes, ng.links
+
+    def math_node(op, a, b=None):
+        m = n.new('ShaderNodeMath')
+        m.operation = op
+        for i, v in enumerate((a, b)):
+            if v is None:
+                continue
+            if isinstance(v, (int, float)):
+                m.inputs[i].default_value = v
+            else:
+                l.new(v, m.inputs[i])
+        return m.outputs[0]
+
+    def random_float(lo, hi, seed):
+        r = n.new('FunctionNodeRandomValue')
+        r.data_type = 'FLOAT'
+        find_socket(r.inputs, 'Min', 'VALUE').default_value = lo
+        find_socket(r.inputs, 'Max', 'VALUE').default_value = hi
+        find_socket(r.inputs, 'Seed', 'INT').default_value = seed
+        return find_socket(r.outputs, 'Value', 'VALUE')
+
+    ground_info = n.new('GeometryNodeObjectInfo')
+    ground_info.transform_space = 'RELATIVE'
+    ground_info.inputs['Object'].default_value = ground
+    source_info = n.new('GeometryNodeObjectInfo')
+    source_info.transform_space = 'ORIGINAL'
+    source_info.inputs['Object'].default_value = source
+    join = n.new('GeometryNodeJoinGeometry')
+
+    def scatter(density, seed, channel, instance, scale, lift, tone_name=None):
+        dist = n.new('GeometryNodeDistributePointsOnFaces')
+        dist.inputs['Density'].default_value = density
+        dist.inputs['Seed'].default_value = seed
+        l.new(ground_info.outputs['Geometry'], dist.inputs['Mesh'])
+        sep = n.new('ShaderNodeSeparateXYZ')
+        l.new(n.new('GeometryNodeInputPosition').outputs[0], sep.inputs[0])
+        uv = n.new('ShaderNodeCombineXYZ')
+        l.new(math_node('ADD', math_node('DIVIDE', sep.outputs['X'], W), 0.5), uv.inputs['X'])
+        l.new(math_node('ADD', math_node('DIVIDE', sep.outputs['Y'], D), 0.5), uv.inputs['Y'])
+        tex = n.new('GeometryNodeImageTexture')
+        tex.interpolation = 'Closest'
+        tex.inputs['Image'].default_value = IMAGES['meadow']
+        l.new(uv.outputs[0], tex.inputs['Vector'])
+        split = n.new('FunctionNodeSeparateColor')
+        l.new(tex.outputs['Color'], split.inputs['Color'])
+        cull = n.new('GeometryNodeDeleteGeometry')
+        l.new(dist.outputs['Points'], cull.inputs['Geometry'])
+        l.new(math_node('LESS_THAN', split.outputs[channel], 0.5), cull.inputs['Selection'])
+        lifted = n.new('GeometryNodeSetPosition')
+        l.new(cull.outputs['Geometry'], lifted.inputs['Geometry'])
+        find_socket(lifted.inputs, 'Offset').default_value = (0.0, 0.0, lift)
+        turn = n.new('ShaderNodeCombineXYZ')
+        l.new(random_float(0.0, 2 * math.pi, seed + 1), turn.inputs['Z'])
+        inst = n.new('GeometryNodeInstanceOnPoints')
+        l.new(lifted.outputs['Geometry'], inst.inputs['Points'])
+        l.new(instance, inst.inputs['Instance'])
+        l.new(turn.outputs[0], inst.inputs['Rotation'])
+        l.new(random_float(scale[0], scale[1], seed + 2), inst.inputs['Scale'])
+        result = inst.outputs['Instances']
+        if tone_name:
+            store = n.new('GeometryNodeStoreNamedAttribute')
+            store.data_type = 'FLOAT'
+            store.domain = 'INSTANCE'
+            l.new(result, store.inputs['Geometry'])
+            store.inputs['Name'].default_value = tone_name
+            l.new(random_float(0.0, 1.0, seed + 3), find_socket(store.inputs, 'Value', 'VALUE'))
+            result = store.outputs['Geometry']
+        l.new(result, join.inputs['Geometry'])
+
+    scatter(11.0, 31, 'Red', source_info.outputs['Geometry'], (0.7, 1.45), 0.0, 'tone')
+    petal = n.new('GeometryNodeMeshCircle')
+    petal.fill_type = 'NGON'
+    petal.inputs['Vertices'].default_value = 6
+    petal.inputs['Radius'].default_value = 0.09
+    squash = n.new('GeometryNodeTransform')
+    find_socket(squash.inputs, 'Scale').default_value = (1.0, 0.62, 1.0)
+    l.new(petal.outputs['Mesh'], squash.inputs['Geometry'])
+    paint = n.new('GeometryNodeSetMaterial')
+    paint.inputs['Material'].default_value = PETAL_MATERIAL
+    l.new(squash.outputs['Geometry'], paint.inputs['Geometry'])
+    scatter(26.0, 47, 'Green', paint.outputs['Geometry'], (0.8, 1.3), 0.012)
+    out = n.new('NodeGroupOutput')
+    l.new(join.outputs[0], out.inputs['Geometry'])
+
+    obj = bpy.data.objects.new('Meadow', bpy.data.meshes.new('Meadow'))
+    coll.objects.link(obj)
+    obj.modifiers.new('Meadow', 'NODES').node_group = ng
+    if hasattr(obj, 'visible_shadow'):
+        obj.visible_shadow = False
+    return obj
+
+
+def build_compositor(scene, strength):
+    """Bloom on what glows: the threshold sits above the brightest day colours, so it
+    mostly blooms the lamps, windows and lights at night."""
+    if hasattr(scene, 'compositing_node_group'):  # Blender 5: compositing is a node group
+        ng = bpy.data.node_groups.new('Harukaze glow', 'CompositorNodeTree')
+        ng.interface.new_socket('Image', in_out='OUTPUT', socket_type='NodeSocketColor')
+        n, l = ng.nodes, ng.links
+        layers = n.new('CompositorNodeRLayers')
+        layers.scene = scene
+        glare = n.new('CompositorNodeGlare')
+        glare.inputs['Type'].default_value = 'Bloom'
+        glare.inputs['Quality'].default_value = 'High'
+        glare.inputs['Threshold'].default_value = 1.0
+        glare.inputs['Strength'].default_value = strength
+        glare.inputs['Size'].default_value = 0.6
+        out = n.new('NodeGroupOutput')
+        l.new(layers.outputs['Image'], glare.inputs['Image'])
+        l.new(glare.outputs['Image'], out.inputs[0])
+        scene.compositing_node_group = ng
+    else:  # Blender 4.x
+        scene.use_nodes = True
+        tree = scene.node_tree
+        tree.nodes.clear()
+        layers = tree.nodes.new('CompositorNodeRLayers')
+        glare = tree.nodes.new('CompositorNodeGlare')
+        glare.glare_type = 'BLOOM'
+        glare.quality = 'HIGH'
+        glare.threshold = 1.0
+        glare.size = 8
+        glare.mix = strength - 1.0
+        comp = tree.nodes.new('CompositorNodeComposite')
+        tree.links.new(layers.outputs['Image'], glare.inputs['Image'])
+        tree.links.new(glare.outputs['Image'], comp.inputs['Image'])
 
 
 # --------------------------------------------------------------------------- timetable
@@ -2174,6 +2407,12 @@ def build_camera(coll):
     cam = bpy.data.objects.new('Camera', cam_data)
     coll.objects.link(cam)
     cam.parent = rig
+    # Ultra: a shallow focus on the orbit centre blurs the near and far edges of the
+    # block, the tilt-shift look that makes a diorama read as a miniature
+    cam_data.dof.use_dof = Q['dof']
+    cam_data.dof.focus_object = rig
+    cam_data.dof.aperture_fstop = max(Q['fstop'], 0.01)
+    cam_data.dof.aperture_blades = 6
     view = Vector(to_blender((0.46, 0.53, 0.71))).normalized()
     cam.location = view * 98
     track = cam.constraints.new('TRACK_TO')
@@ -2195,11 +2434,13 @@ def build_camera(coll):
 # --------------------------------------------------------------------------- assemble
 
 
-def build(scene, night=0.0):
-    global SCENE, FONT, PETAL_MATERIAL, XF, BATCH
+def build(scene, night=0.0, quality='classic'):
+    global SCENE, FONT, PETAL_MATERIAL, XF, BATCH, Q
     SCENE = scene
+    Q = QUALITY[quality]
     BATCH, XF = {}, Matrix.Identity(4)
     scene['night'] = float(night)
+    scene['quality'] = quality
     try:
         scene.id_properties_ui('night').update(min=0.0, max=1.0, soft_min=0.0, soft_max=1.0, description='0 = day, 1 = night')
     except Exception:
@@ -2284,6 +2525,8 @@ def build(scene, night=0.0):
             o.visible_shadow = False
     build_stars(sky)
     build_petals(blossoms, sky)
+    if Q['detail']:
+        build_meadow(sky, next(o for o in static if o.name == 'grassTop'))
 
     lights = collection('Lights and camera', root)
     build_world()
@@ -2295,21 +2538,33 @@ def build(scene, night=0.0):
     scene.frame_start, scene.frame_end = 1, FRAMES
     scene.render.fps = FPS
     scene.frame_set(HERO_FRAME)
-    configure_render(scene)
+    configure_render(scene, quality)
+    build_compositor(scene, Q['bloom'])
     notes = bpy.data.texts.new('Harukaze README')
     notes.write(__doc__)
 
 
-def configure_render(scene, samples=32):
+def configure_render(scene, quality='classic', samples=None):
+    q = QUALITY[quality]
     engines = [e.identifier for e in bpy.types.RenderSettings.bl_rna.properties['engine'].enum_items]
     scene.render.engine = next(e for e in ('BLENDER_EEVEE_NEXT', 'BLENDER_EEVEE') if e in engines)
-    scene.eevee.taa_render_samples = samples
-    if hasattr(scene.eevee, 'use_shadows'):
-        scene.eevee.use_shadows = True
-    scene.render.resolution_x, scene.render.resolution_y = 1920, 1080
+    ee = scene.eevee
+    ee.taa_render_samples = samples or q['samples']
+    ee.taa_samples = 16
+    if hasattr(ee, 'use_shadows'):
+        ee.use_shadows = True
+    if hasattr(ee, 'shadow_ray_count'):
+        ee.shadow_ray_count = q['shadow_rays']
+        ee.shadow_step_count = q['shadow_steps']
+    scene.render.resolution_x, scene.render.resolution_y = q['resolution']
+    scene.render.resolution_percentage = 100
+    scene.render.use_motion_blur = q['motion_blur']
+    scene.render.motion_blur_shutter = 0.5
     scene.view_settings.view_transform = 'Standard'
     scene.view_settings.look = 'None'
     scene.render.film_transparent = False
+    scene.render.image_settings.file_format = 'PNG'
+    scene.render.image_settings.color_mode = 'RGB'
 
 
 def make_scene():
@@ -2336,32 +2591,70 @@ def show_in_viewport():
                     space.region_3d.view_perspective = 'CAMERA'
 
 
+def render_frames(scene, folder, first, last):
+    """Render frames first..last as PNGs, skipping any already on disk, so a long
+    render can be stopped and picked up again."""
+    os.makedirs(folder, exist_ok=True)
+    for f in range(first, last + 1):
+        path = os.path.join(folder, f'frame_{f:04d}.png')
+        if os.path.exists(path) and os.path.getsize(path) > 0:
+            continue
+        scene.frame_set(f)
+        scene.render.filepath = path
+        bpy.ops.render.render(write_still=True)
+        print(f'Harukaze: frame {f}/{last}', flush=True)
+
+
+def encode_video(folder, out_path):
+    """Encode the PNG frames to H.264 with ffmpeg (system ffmpeg, or the one bundled
+    with Blender's Python modules if present)."""
+    import shutil
+    import subprocess
+    ffmpeg = shutil.which('ffmpeg')
+    if not ffmpeg:
+        print('Harukaze: ffmpeg not found; frames are in', folder)
+        return False
+    subprocess.run([ffmpeg, '-y', '-loglevel', 'error', '-framerate', str(FPS), '-i', os.path.join(folder, 'frame_%04d.png'),
+                    '-c:v', 'libx264', '-preset', 'slow', '-crf', '16', '-pix_fmt', 'yuv420p', '-movflags', '+faststart',
+                    out_path], check=True)
+    return True
+
+
 def main():
     argv = sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else []
     ap = argparse.ArgumentParser(prog='harukaze_station.py', description='Build the Harukaze Station diorama in Blender.')
+    ap.add_argument('--quality', choices=sorted(QUALITY), default='classic', help='classic, or ultra for the most detailed build')
     ap.add_argument('--night', action='store_true', help='start at night')
     ap.add_argument('--frame', type=int, default=HERO_FRAME, help=f'frame to render (1-{FRAMES}); {HERO_FRAME} has the train at the platform')
     ap.add_argument('--render', metavar='PNG', help='render one frame to this file')
-    ap.add_argument('--render-anim', metavar='DIR', help='render the 32 s loop as PNG frames into this folder')
+    ap.add_argument('--video', metavar='MP4', help='render the 32 s loop and encode it as an H.264 video')
+    ap.add_argument('--frames', metavar='A-B', help=f'with --video, render only frames A to B (default 1-{FRAMES})')
     ap.add_argument('--save', metavar='BLEND', help='save the scene as a .blend file')
-    ap.add_argument('--resolution', default='1920x1080', help='WIDTHxHEIGHT')
-    ap.add_argument('--samples', type=int, default=32, help='EEVEE render samples')
+    ap.add_argument('--resolution', metavar='WxH', help='override the tier resolution, e.g. 1920x1080')
+    ap.add_argument('--samples', type=int, help='override the tier sample count')
     args = ap.parse_args(argv)
 
     scene = make_scene()
-    build(scene, 1.0 if args.night else 0.0)
-    configure_render(scene, args.samples)
-    w, h = (int(v) for v in args.resolution.lower().split('x'))
-    scene.render.resolution_x, scene.render.resolution_y = w, h
+    build(scene, 1.0 if args.night else 0.0, args.quality)
+    configure_render(scene, args.quality, args.samples)
+    if args.resolution:
+        w, h = (int(v) for v in args.resolution.lower().split('x'))
+        scene.render.resolution_x, scene.render.resolution_y = w, h
     scene.frame_set(args.frame)
     if args.save:
         bpy.ops.wm.save_as_mainfile(filepath=os.path.abspath(args.save), compress=True)
     if args.render:
         scene.render.filepath = os.path.abspath(args.render)
         bpy.ops.render.render(write_still=True)
-    if args.render_anim:
-        scene.render.filepath = os.path.join(os.path.abspath(args.render_anim), 'harukaze_')
-        bpy.ops.render.render(animation=True)
+    if args.video:
+        if not args.samples:
+            scene.eevee.taa_render_samples = QUALITY[args.quality]['video_samples']
+        out = os.path.abspath(args.video)
+        folder = os.path.splitext(out)[0] + '_frames'
+        first, last = (int(v) for v in (args.frames or f'1-{FRAMES}').split('-'))
+        render_frames(scene, folder, first, last)
+        if all(os.path.exists(os.path.join(folder, f'frame_{f:04d}.png')) for f in range(1, FRAMES + 1)):
+            encode_video(folder, out)
     show_in_viewport()
 
 
