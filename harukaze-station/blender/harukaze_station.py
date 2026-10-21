@@ -81,7 +81,7 @@ PATCH = dict(x0=-8.6, x1=2.6, z0=12.3, z1=18.6)
 HILLS = [dict(s=s, cx=s * (W / 2 - 2.5), cz=TRACK_Z + s * 0.5, rx=12.5, ry=8.6, rz=10.5) for s in (-1, 1)]
 
 CHERRIES = [
-    (-19.5, 5.0, 1.15), (-10.5, 4.7, 1.25), (-1.8, 5.3, 1.05), (6.6, 4.9, 1.15),
+    (-19.5, 5.0, 1.15), (-10.5, 4.7, 1.25), (-1.8, 7.0, 1.05), (6.6, 6.9, 1.15),
     (-19.2, -12.6, 1.1), (2.8, -11.9, 1.0), (7.6, -16.8, 1.15),
     (20.6, 12.4, 0.95), (-29.2, 11.2, 0.9),
     (-27.6, 4.6, 0.85), (28.2, -6.4, 0.85),
@@ -246,12 +246,12 @@ def ball(r, x=0.0, y=0.0, z=0.0, detail=1, smooth=True):
     return Geo(verts, faces, smooth).translate(x, y, z)
 
 
-def puff(r, x, y, z, sy=1.0, detail=1):
+def puff(r, x, y, z, sy=1.0, detail=1, jitter=None):
     """A lumpy blob: an icosphere nudged in and out, with smooth shading."""
     verts, faces = icosphere(r, detail)
     out = []
     for p in verts:
-        k = 1 + rand(-0.07, 0.07)
+        k = 1 + (jitter or rand)(-0.07, 0.07)
         out.append((p.x * k, p.y * k * sy, p.z * k))
     return Geo(out, faces, True).translate(x, y, z)
 
@@ -438,9 +438,24 @@ def drive(fcurve, expression, extra=()):
     drv.expression = expression
 
 
+# Toon bands, measured against the key light: a sunlit top reads about 1.15 by day and
+# moonlight about 0.105 at night. Light is divided by the key, quantised into five tinted
+# bands and scaled to the time of day; only lamplight reaches the hot band.
+KEY_DAY, KEY_NIGHT = 1.15, 0.105
+LEVEL_NIGHT = 0.34
+TOON_BANDS = [  # (light / key, band colour)
+    (0.0, (0.42, 0.43, 0.58)),   # core shadow, cool
+    (0.15, (0.60, 0.61, 0.75)),  # cast shadow
+    (0.47, (0.84, 0.84, 0.90)),  # turned away from the sun
+    (0.85, (1.0, 1.0, 1.0)),     # lit
+    (1.65, (2.2, 1.95, 1.6)),    # lamplight pools at night
+]
+
+
 def node_group_toon():
-    """Quantise the light falling on a white diffuse surface into flat bands, keep its
-    colour, and tint the base colour with it. Lamps and moonlight stay coloured."""
+    """Quantise the light falling on a white diffuse surface into flat, tinted bands
+    relative to the key light, keep the light's own colour (warm lamps, blue moonlight)
+    and tint the base colour with it."""
     ng = bpy.data.node_groups.get('Toon')
     if ng:
         return ng
@@ -451,6 +466,32 @@ def node_group_toon():
     ng.interface.new_socket('Shader', in_out='OUTPUT', socket_type='NodeSocketShader')
     n, l = ng.nodes, ng.links
     gin, gout = n.new('NodeGroupInput'), n.new('NodeGroupOutput')
+
+    def value(name, expression):
+        v = n.new('ShaderNodeValue')
+        v.name = name
+        drive(v.outputs[0].driver_add('default_value'), expression)
+        return v.outputs[0]
+
+    def math(op, a, b):
+        m = n.new('ShaderNodeMath')
+        m.operation = op
+        for i, x in enumerate((a, b)):
+            if isinstance(x, (int, float)):
+                m.inputs[i].default_value = x
+            else:
+                l.new(x, m.inputs[i])
+        return m.outputs[0]
+
+    def vec(op, a, b, scale=False):
+        m = n.new('ShaderNodeVectorMath')
+        m.operation = op
+        l.new(a, m.inputs[0])
+        l.new(b, find_socket(m.inputs, 'Scale') if scale else m.inputs[1])
+        return m.outputs[0]
+
+    key = value('key', f'{KEY_DAY} + ({KEY_NIGHT - KEY_DAY}) * n')
+    level = value('level', f'1 + ({LEVEL_NIGHT - 1}) * n')
     diffuse = n.new('ShaderNodeBsdfDiffuse')
     diffuse.inputs['Color'].default_value = (1, 1, 1, 1)
     to_rgb = n.new('ShaderNodeShaderToRGB')
@@ -460,39 +501,19 @@ def node_group_toon():
     ramp = n.new('ShaderNodeValToRGB')
     cr = ramp.color_ramp
     cr.interpolation = 'CONSTANT'
-    bands = [(0.0, 0.02), (0.025, 0.055), (0.07, 0.12), (0.16, 0.26), (0.36, 0.56), (0.62, 0.8), (0.86, 1.0)]
-    while len(cr.elements) < len(bands):
+    while len(cr.elements) < len(TOON_BANDS):
         cr.elements.new(0.5)
-    for el, (pos, val) in zip(cr.elements, bands):
-        el.position = pos
-        el.color = (val, val, val, 1)
-    l.new(bw.outputs[0], ramp.inputs[0])
-    floor = n.new('ShaderNodeMath')
-    floor.operation = 'MAXIMUM'
-    floor.inputs[1].default_value = 0.0005
-    l.new(bw.outputs[0], floor.inputs[0])
-    ratio = n.new('ShaderNodeMath')
-    ratio.operation = 'DIVIDE'
-    l.new(ramp.outputs['Color'], ratio.inputs[0])
-    l.new(floor.outputs[0], ratio.inputs[1])
-    light = n.new('ShaderNodeVectorMath')
-    light.operation = 'SCALE'
-    l.new(to_rgb.outputs['Color'], light.inputs[0])
-    l.new(ratio.outputs[0], find_socket(light.inputs, 'Scale'))
-    tint = n.new('ShaderNodeVectorMath')
-    tint.operation = 'MULTIPLY'
-    l.new(gin.outputs['Color'], tint.inputs[0])
-    l.new(light.outputs[0], tint.inputs[1])
-    glow = n.new('ShaderNodeVectorMath')
-    glow.operation = 'SCALE'
-    l.new(gin.outputs['Glow'], glow.inputs[0])
-    l.new(gin.outputs['Glow Strength'], find_socket(glow.inputs, 'Scale'))
-    total = n.new('ShaderNodeVectorMath')
-    total.operation = 'ADD'
-    l.new(tint.outputs[0], total.inputs[0])
-    l.new(glow.outputs[0], total.inputs[1])
+    for el, (pos, col) in zip(cr.elements, TOON_BANDS):
+        el.position = pos * 0.5  # the ramp spans 0..2 x key
+        el.color = col + (1,)
+    l.new(math('MULTIPLY', math('DIVIDE', bw.outputs[0], key), 0.5), ramp.inputs[0])
+    # the light's colour with its brightness taken out, then the band, then the hour
+    chroma = vec('SCALE', to_rgb.outputs['Color'], math('DIVIDE', 1.0, math('MAXIMUM', bw.outputs[0], 0.0005)), True)
+    light = vec('SCALE', vec('MULTIPLY', chroma, ramp.outputs['Color']), level, True)
+    tint = vec('MULTIPLY', gin.outputs['Color'], light)
+    glow = vec('SCALE', gin.outputs['Glow'], gin.outputs['Glow Strength'], True)
     emit = n.new('ShaderNodeEmission')
-    l.new(total.outputs[0], emit.inputs['Color'])
+    l.new(vec('ADD', tint, glow), emit.inputs['Color'])
     l.new(emit.outputs[0], gout.inputs['Shader'])
     return ng
 
@@ -664,10 +685,11 @@ SPEC = {
     'stone': ('#aaa5b8', 0.05, {}),
     'stoneLight': ('#c3bfcd', 0.04, {}),
     'stoneDark': ('#7e7a93', 0.06, {}),
-    'hill': ('#71c35a', 0.07, {}),
+    'hill': ('#71c35a', 0.07, dict(night_shift=('#3f6f78', 0.3))),
     'ballast': ('#a49c92', 0.03, {}),
     'sleeper': ('#d3cdc1', 0.015, {}),
-    'rail': ('#7c8290', 0.012, {}),
+    'rail': ('#8a6a58', 0.012, {}),
+    'railHead': ('#d7dce2', 0, {}),
     'whiteLine': ('#f8f5ee', 0, {}),
     'concrete': ('#e4ded2', 0.05, {}),
     'concreteDark': ('#bfb7a8', 0.05, {}),
@@ -697,10 +719,10 @@ SPEC = {
     'blossom1': ('#ffb3c8', 0.06, {}),
     'blossom2': ('#ff97b6', 0.06, {}),
     'blossom3': ('#ffd4e0', 0.06, {}),
-    'leaf': ('#62b74d', 0.05, {}),
-    'leafDark': ('#3f9548', 0.05, {}),
-    'leafLight': ('#96d46b', 0.04, {}),
-    'cedar': ('#2f8156', 0.05, {}),
+    'leaf': ('#62b74d', 0.05, dict(night_shift=('#3f6f78', 0.3))),
+    'leafDark': ('#3f9548', 0.05, dict(night_shift=('#3f6f78', 0.3))),
+    'leafLight': ('#96d46b', 0.04, dict(night_shift=('#3f6f78', 0.3))),
+    'cedar': ('#2f8156', 0.05, dict(night_shift=('#3f6f78', 0.3))),
     'pole': ('#cbc5b9', 0.03, {}),
     'wire': ('#2a2733', 0, dict(double_sided=True)),
     'stripe': ('#ffcd1c', 0.025, dict(stripes=True)),
@@ -722,7 +744,21 @@ SPEC = {
     'clockFace': ('#fffdf7', 0, dict(glow=('#fffdf7', 0.45))),
     'clockHand': ('#2b2a33', 0, {}),
     'clockPin': ('#e8426b', 0, {}),
-    'cloud': ('#ffffff', 0.06, dict(night_tint='#727cb4')),
+    'cloud': ('#ffffff', 0.06, dict(night_tint='#6d7393')),
+    'paddyWater': ('#93c8dc', 0, dict(glow=('#3a4f7a', 0.25))),
+    'nanohana': ('#ffd83a', 0.03, {}),
+    'nanohanaLight': ('#fff07a', 0.025, {}),
+    'shu': ('#e0533a', 0.035, {}),
+    'signWhite': ('#f4f2ec', 0.02, {}),
+    'mirrorPole': ('#f08b2b', 0.025, {}),
+    'mirrorGlass': ('#cfe3ef', 0, dict(glow=('#cfe3ef', 0.25))),
+    'icPad': ('#2f7fe0', 0.01, dict(glow=('#5fb0ff', 0.9))),
+    'gutter': ('#d6d0c4', 0.012, {}),
+    'arrowLit': ('#3b3842', 0, dict(blink='R')),
+    'arrowDim': ('#3b3842', 0, {}),
+    'timetable': ('#ffffff', 0, dict(image='timetable', glow=('#ffffff', 0.25))),
+    'posterSakura': ('#ffffff', 0, dict(image='posterSakura', glow=('#ffffff', 0.25))),
+    'posterSea': ('#ffffff', 0, dict(image='posterSea', glow=('#ffffff', 0.25))),
     # the train
     'tWhite': ('#f7f8fb', 0.04, dict(clip=True)),
     'tPink': ('#ff77a4', 0, dict(clip=True)),
@@ -769,6 +805,10 @@ def material(key):
             add_blink(m, toon, opt['blink'])
         if opt.get('night_tint'):
             add_night_tint(m, toon, color, opt['night_tint'])
+        if opt.get('night_shift'):
+            target, amount = opt['night_shift']
+            mixed = tuple(a + (b - a) * amount for a, b in zip(hex_srgb(color), hex_srgb(target)))
+            add_night_tint(m, toon, color, '#' + ''.join(f'{round(c * 255):02x}' for c in mixed))
     MATERIALS[key] = m
     return m
 
@@ -804,12 +844,13 @@ def add_stripes(m, toon):
 
 
 def add_blink(m, toon, which):
-    """The crossing lamp lens: a keyed 0/1 value lights it red."""
+    """Crossing lamps (A, B, alternating red) and the arrow (R, steady amber): a keyed 0/1
+    value lights them."""
     n, l = m.node_tree.nodes, m.node_tree.links
     val = n.new('ShaderNodeValue')
     val.name = 'blink'
     val.outputs[0].default_value = 0.0
-    toon.inputs['Glow'].default_value = lin('#ff2a2a')
+    toon.inputs['Glow'].default_value = lin('#ffc65a' if which == 'R' else '#ff2a2a')
     mul = n.new('ShaderNodeMath')
     mul.operation = 'MULTIPLY'
     mul.inputs[1].default_value = 1.4
@@ -830,7 +871,7 @@ def add_night_tint(m, toon, day, night):
     l.new(find_socket(mix.outputs, 'Result', 'RGBA'), toon.inputs['Color'])
 
 
-BLINKERS = {'A': [], 'B': []}
+BLINKERS = {'A': [], 'B': [], 'R': []}
 IMAGES = {}
 
 # --------------------------------------------------------------------------- painted textures
@@ -937,6 +978,18 @@ def paint_grass(px=24):
     n = 1600
     stamp(img, np_rng.integers(0, h, n), np_rng.integers(0, w, n), petals[np_rng.integers(0, 5, n)], 2, 3)
 
+    # ground under the new details, from its own seed so the rest of the painting is unchanged
+    drs = np.random.default_rng(0xDE7A11)
+    for x0, x1, z0, z1 in PADDIES:
+        img[Z(z0):Z(z1), X(x0):X(x1)] = hex_np('#7d5a3c')
+    for x0, x1, z0, z1, n in ((-21.2, 11.9, 2.2, 3.8, 9000), (-21.6, -14.6, -5.4, -3.95, 2000)):
+        sel = (slice(Z(z0), Z(z1)), slice(X(x0), X(x1)))
+        img[sel] = img[sel] * 0.8 + hex_np('#6fae4a') * 0.2
+        rr, cc = Z(drs.uniform(z0, z1, n)), X(drs.uniform(x0, x1, n))
+        stamp(img, rr, cc, np.stack([hex_np(c) for c in ('#ffe14a', '#ffd21c', '#fff3a0')])[drs.integers(0, 3, n)])
+    x0, x1, z0, z1 = SHRINE
+    img[Z(z0):Z(z1), X(x0):X(x1)] = img[Z(z0):Z(z1), X(x0):X(x1)] * 0.3 + hex_np('#d8c9a8') * 0.7
+
     # the Ultra meadow mask: red where grass tufts may grow (painted green, outside roads,
     # buildings and the hills), green where 3D petals lie under the trees
     zs = (np.arange(h)[:, None] + 0.5) / px - D / 2
@@ -944,7 +997,7 @@ def paint_grass(px=24):
     grows = (img[..., 1] > img[..., 0] * 1.12) & (img[..., 1] > img[..., 2] * 1.35)
     blocked = [(ROAD_X0 - 0.25, ROAD_X1 + 0.25, -D / 2, D / 2),
                (PLAT['x0'] - 0.1, PLAT['x1'] + 2.3, PLAT['z0'] - 1.8, PLAT['z1'] + 0.1),
-               (-12.4, -3.6, -16.7, -9.9)]
+               (-12.4, -3.6, -16.7, -9.9)] + [(x0 - 0.2, x1 + 0.2, z0 - 0.2, z1 + 0.2) for x0, x1, z0, z1 in PADDIES] + [SHED, SHRINE]
     for hs in HOUSES:
         turned = abs(math.sin(hs.get('ry', 0.0))) > 0.5
         hx = (hs['d'] if turned else hs['w']) / 2 + 0.45
@@ -1123,7 +1176,9 @@ def build_portal(s):
     for side in (-1, 1):
         add('concreteDark', box(1.25, 6.9, 0.55, s * (PORTAL + 0.5), 0, TRACK_Z + side * 4.5))
     add('concreteDark', box(1.18, 0.7, 0.8, s * (PORTAL + 0.52), 5.55, TRACK_Z))
-    add('concreteDark', box(1.16, 0.55, 2.6, s * (PORTAL + 0.52), 6.2, TRACK_Z))
+    add('stoneDark', box(1.16, 0.55, 2.6, s * (PORTAL + 0.52), 6.2, TRACK_Z))
+    SIGNS.append(('桜台隧道' if s < 0 else '山彦隧道', 0.3, Vector((s * (PORTAL - 0.075), 6.475, TRACK_Z)),
+                  '+x' if s < 0 else '-x', 'textCream', dict(spacing=1.15)))
     add('tunnelDark', box(0.5, 6.3, 5.4, s * (CLIP_X + 0.25), 0, TRACK_Z))
 
 
@@ -1141,7 +1196,7 @@ def build_track():
     for s in (-1, 1):
         z = TRACK_Z + s * 0.55
         add('rail', box(CLIP_X * 2, 0.13, 0.1, 0, 0.47, z))
-        add('whiteLine', box(CLIP_X * 2, 0.03, 0.12, 0, RAIL_Y - 0.03, z))
+        add('railHead', box(CLIP_X * 2, 0.03, 0.12, 0, RAIL_Y - 0.03, z))
 
 
 def road_y(z):
@@ -1313,15 +1368,35 @@ def build_shelter():
         add('clockPin', cyl(0.025, 0.025, 0.012, 0, 0, 0, 10).rotate_x(math.pi / 2).translate(cx, cy, zf + face * 0.016))
 
 
-def gable(roof, wall_key, w, d, y, pitch=0.5, over=0.45, thick=0.16):
+def kawara(width, length, thick=0.12, amp=0.035, period=0.26):
+    """A slab of rolled clay tiles: a sine-wave section across the roof, run down the slope
+    (along z, centred), like the corrugated shelter roof."""
+    n = max(8, round(width / period * 6))
+    top = [(-width / 2 + width * i / n, amp * math.sin(2 * math.pi * (width * i / n) / period)) for i in range(n + 1)]
+    bottom = [(x, y - thick) for x, y in reversed(top)]
+    return prism(top + bottom, length).translate(0, thick / 2, -length / 2)
+
+
+def gable(roof, wall_key, w, d, y, pitch=0.5, over=0.45, thick=0.16, tiles=False):
     half = d / 2 + over
     rise = (d / 2) * math.tan(pitch)
     slab = half / math.cos(pitch)
     for s in (-1, 1):
-        g = box(w + over * 2, thick, slab, 0, -thick / 2, 0).rotate_x(s * pitch)
+        g = kawara(w + over * 2, slab) if tiles else box(w + over * 2, thick, slab, 0, -thick / 2, 0)
+        g.rotate_x(s * pitch)
         add(roof, g.translate(0, y + rise - (half / 2) * math.tan(pitch) + thick / 2, s * half / 2))
     add(wall_key, prism([(-d / 2, 0), (d / 2, 0), (0, rise)], w).rotate_y(math.pi / 2).translate(-w / 2, y, 0))
-    add(roof, box(w + over * 2 + 0.1, 0.16, 0.3, 0, y + rise + thick * 0.4, 0))
+    ridge_y = y + rise + thick * 0.4
+    if tiles:
+        # stacked ridge tiles with a round cap, and an oni-gawara block at each end
+        span = w + over * 2 + 0.1
+        add(roof, box(span, 0.1, 0.42, 0, ridge_y - 0.02, 0))
+        add(roof, box(span - 0.05, 0.1, 0.3, 0, ridge_y + 0.08, 0))
+        add(roof, cyl(0.1, 0.1, span, 0, -span / 2, 0, 10).rotate_z(math.pi / 2).translate(0, ridge_y + 0.2, 0))
+        for sx in (-1, 1):
+            add(roof, box(0.16, 0.52, 0.52, sx * span / 2, ridge_y - 0.1, 0))
+    else:
+        add(roof, box(w + over * 2 + 0.1, 0.16, 0.3, 0, ridge_y, 0))
     return rise
 
 
@@ -1399,19 +1474,40 @@ def house(o):
     with at(o['x'], 0, o['z'], o.get('ry', 0.0)):
         add('concreteDark', box(w + 0.2, 0.3, d + 0.2))
         add(wall, box(w, h, d, 0, 0.3, 0))
-        gable(roof, wall, w, d, h + 0.3, rand(0.45, 0.6), 0.45)
+        gable(roof, wall, w, d, h + 0.3, rand(0.45, 0.6), 0.45, tiles=True)
         dx = -w * 0.22
+        floors = o.get('floors', 1)
         add('earthDark', box(0.95, 1.9, 0.08, dx, 0.3, -d / 2 - 0.03))
         add(roof, box(1.5, 0.1, 0.7, dx, 2.45, -d / 2 - 0.3))
-        for f in range(o.get('floors', 1)):
+        for f in range(floors):
             wy = 0.3 + 1.45 + f * 2.05
             if f > 0:
                 window_on('-z', dx, wy, d / 2, 0.9, 0.75, pick_window())
             window_on('-z', w * 0.24, wy, d / 2, 1.2, 0.8, pick_window())
-            window_on('+z', -w * 0.2, wy, d / 2, 1.3, 0.8, pick_window())
-            window_on('+z', w * 0.25, wy, d / 2, 0.8, 0.8, pick_window())
+            # one-storey houses open onto an engawa instead (the draws keep the scene's seed order)
+            for along, ww in ((-w * 0.2, 1.3), (w * 0.25, 0.8)):
+                glass = pick_window()
+                if floors > 1 or f > 0:
+                    window_on('+z', along, wy, d / 2, ww, 0.8, glass)
             window_on('-x', 0, wy, w / 2, 0.9, 0.75, pick_window())
             window_on('+x', 0, wy, w / 2, 0.9, 0.75, pick_window())
+        if floors > 1:
+            # a 下屋 skirt roof between the storeys on both long sides
+            for s in (-1, 1):
+                skirt = kawara(w + 0.5, 0.85, 0.1).rotate_x(s * 0.42)
+                add(roof, skirt.translate(0, 3.05 - 0.85 * math.sin(0.42) / 2, s * (d / 2 + 0.85 * math.cos(0.42) / 2)))
+        else:
+            # engawa: a raised timber veranda with floor-length sliding glass and a stepping stone
+            ew = w * 0.72
+            add('wood', box(ew, 0.09, 0.9, -w * 0.05, 0.55, d / 2 + 0.45))
+            for px in (-ew / 2 + 0.1, -0.15, ew / 2 - 0.25):
+                add('wood', box(0.1, 0.55, 0.1, -w * 0.05 + px, 0.0, d / 2 + 0.85))
+            add('stoneLight', box(0.62, 0.22, 0.42, -w * 0.05, 0.0, d / 2 + 1.2))
+            for i in range(4):
+                add('window', box(ew / 4 - 0.06, 1.85, 0.05, -w * 0.05 - ew / 2 + ew / 8 + i * ew / 4, 0.66, d / 2 + 0.03))
+            add('frame', box(0.35, 1.9, 0.12, -w * 0.05 + ew / 2 + 0.2, 0.62, d / 2 + 0.07))
+            eave = kawara(ew + 0.6, 1.1, 0.1).rotate_x(0.35)
+            add(roof, eave.translate(-w * 0.05, h + 0.12 - 1.1 * math.sin(0.35) / 2, d / 2 + 1.1 * math.cos(0.35) / 2))
         add('fence', box(0.7, 0.5, 0.3, w * 0.3, 0.3, d / 2 + 0.17))
         add('earthDark', cyl(0.2, 0.15, 0.3, dx + 0.85, 0, -d / 2 - 0.4))
         add('leaf', puff(0.3, dx + 0.85, 0.5, -d / 2 - 0.4))
@@ -1517,6 +1613,289 @@ def build_nature():
         add('stoneLight', rock(r).scale(1, 0.6, 1).translate(x, r * 0.25, z))
 
 
+# --------------------------------------------------------------------------- the details of a rural halt
+# Everything in this section draws from its own seed, so none of it moves the rest of the scene.
+
+drng = mulberry32(0xDE7A11)
+
+
+def drand(a=0.0, b=1.0):
+    return a + (b - a) * drng()
+
+
+PADDIES = [(3.6, 7.3, -15.4, -10.2), (7.5, 11.2, -15.4, -10.2)]
+SHED = (-16.2, -12.4, -19.6, -17.8)
+SHRINE = (-23.2, -19.9, -10.9, -7.1)
+
+
+def build_paddies():
+    """Two flooded rice paddies behind the platform, with earth levees; the second has
+    its first rows of seedlings in."""
+    for i, (x0, x1, z0, z1) in enumerate(PADDIES):
+        cx, cz = (x0 + x1) / 2, (z0 + z1) / 2
+        add('paddyWater', plane_up(x1 - x0 - 0.3, z1 - z0 - 0.3, cx, 0.07, cz))
+        add('earthDark', box(x1 - x0 - 0.3, 0.06, z1 - z0 - 0.3, cx, 0.0, cz))
+        for (w, d, x, z) in ((x1 - x0, 0.3, cx, z0 + 0.15), (x1 - x0, 0.3, cx, z1 - 0.15),
+                             (0.3, z1 - z0 - 0.6, x0 + 0.15, cz), (0.3, z1 - z0 - 0.6, x1 - 0.15, cz)):
+            add('hill', box(w, 0.16, d, x, 0, z))
+        if i == 1:
+            z = z0 + 0.6
+            while z < z1 - 0.5:
+                x = x0 + 0.55
+                while x < x1 - 0.45:
+                    add('leafLight', cone(0.05, 0.22, 4).translate(x + drand(-0.03, 0.03), 0.17, z))
+                    x += 0.32
+                z += 0.42
+
+
+def nanohana_clump(x, z, s):
+    add('leaf', puff(0.24 * s, x, 0.22 * s, z, 0.8, 1, drand))
+    for _ in range(3):
+        key = 'nanohana' if drng() < 0.6 else 'nanohanaLight'
+        add(key, ball(drand(0.12, 0.2) * s, x + drand(-0.18, 0.18) * s, drand(0.5, 0.8) * s, z + drand(-0.18, 0.18) * s, 0))
+
+
+def build_nanohana():
+    """菜の花 along the line: rape blossom in staggered rows south of the track and beyond
+    the boundary fence to the west."""
+    step = 0.32 if Q['detail'] else 0.45
+    masts = (-20.5, -11, -1.5, 8.5)
+    for row, z in enumerate((2.45, 3.0, 3.55)):
+        x = -21.0 + (step / 2 if row % 2 else 0)
+        while x < 11.6:
+            if not any(abs(x - m) < 0.55 for m in masts) or z > 2.8:
+                nanohana_clump(x + drand(-0.08, 0.08), z + drand(-0.08, 0.08), drand(0.8, 1.15))
+            x += step
+    for z in (-5.1, -4.6, -4.15):
+        x = -21.3
+        while x < -14.9:
+            nanohana_clump(x + drand(-0.08, 0.08), z + drand(-0.06, 0.06), drand(0.8, 1.1))
+            x += step
+
+
+def torii(x, z, ry, s=1.0):
+    with at(x, 0, z, ry):
+        for sx in (-0.75, 0.75):
+            add('shu', cyl(0.09 * s, 0.11 * s, 2.5 * s, sx * s, 0, 0, 10))
+            add('black', cyl(0.15 * s, 0.15 * s, 0.18 * s, sx * s, 0, 0, 10))
+        add('shu', box(2.0 * s, 0.13 * s, 0.13 * s, 0, 1.95 * s, 0))
+        add('shu', box(0.12 * s, 0.34 * s, 0.1 * s, 0, 2.08 * s, 0))
+        add('shu', box(2.2 * s, 0.14 * s, 0.2 * s, 0, 2.45 * s, 0))
+        for sx in (-1, 1):
+            add('black', beam((0, 2.66 * s, 0), (sx * 1.38 * s, 2.8 * s, 0), 0.14 * s, 0.26 * s))
+
+
+def stone_lantern(x, z):
+    with at(x, 0, z, 0):
+        add('stoneLight', cyl(0.2, 0.24, 0.15))
+        add('stoneLight', cyl(0.08, 0.09, 0.55, 0, 0.15, 0, 8))
+        add('stoneLight', box(0.32, 0.08, 0.32, 0, 0.7, 0))
+        add('stoneLight', box(0.26, 0.24, 0.26, 0, 0.78, 0))
+        add('lampLight', box(0.14, 0.12, 0.27, 0, 0.84, 0))
+        add('stoneLight', cyl(0.0, 0.28, 0.2, 0, 1.02, 0, 4).rotate_y(math.pi / 4).translate(0, 0, 0))
+        add('stoneLight', ball(0.05, 0, 1.25, 0, 0))
+
+
+def jizo(x, z, ry):
+    with at(x, 0, z, ry):
+        add('stoneLight', cyl(0.13, 0.16, 0.42, 0, 0.05, 0, 10))
+        add('stoneLight', ball(0.12, 0, 0.58, 0, 1))
+        add('shu', cyl(0.15, 0.19, 0.14, 0, 0.3, 0, 10))
+        add('stoneLight', box(0.4, 0.06, 0.34))
+
+
+def build_shrine():
+    """A little hillside shrine at the foot of the west hill: torii, hokora and two stone
+    lanterns; and a pair of jizo by the road, red bibs on."""
+    torii(-20.9, -9.0, math.pi / 2)
+    with at(-22.55, 0, -9.0, -math.pi / 2):
+        add('stoneLight', box(1.0, 0.45, 0.9))
+        add('wood', box(0.7, 0.65, 0.6, 0, 0.45, 0))
+        add('earthDark', box(0.3, 0.45, 0.02, 0, 0.5, -0.31))
+        gable('roofGrey', 'wood', 0.7, 0.6, 1.1, 0.6, 0.18, 0.08)
+    for z in (-10.1, -7.9):
+        stone_lantern(-21.6, z)
+    with at(12.48, 0, 7.1, 0):
+        for px in (-0.3, 0.3):
+            add('wood', box(0.06, 0.95, 0.06, px, 0, -0.2))
+        add('roofGrey', box(0.8, 0.06, 0.55, 0, 0.95, -0.05))
+    for x in (12.33, 12.63):
+        jizo(x, 7.1, math.pi / 2)
+
+
+def stop_sign(x, z, ry):
+    """止まれ: the red inverted triangle with a white rim, on the driver's left."""
+    face = '+z' if ry == 0 else '-z'
+    with at(x, 0, z, ry):
+        add('catMast', cyl(0.035, 0.04, 2.25, 0, 0, 0, 8))
+        tri = lambda r: [(-r, 0.0), (r, 0.0), (0.0, -1.732 * r)]
+        add('signWhite', prism(tri(0.46), 0.03).translate(0, 2.3, 0.04))
+        add('vendRed', prism(tri(0.38), 0.03).translate(0, 2.25, 0.055))
+        SIGNS.append(('止まれ', 0.12, to_world(0, 2.08, 0.09), face, 'textWhite', {}))
+        SIGNS.append(('STOP', 0.045, to_world(0, 1.93, 0.09), face, 'textWhite', {}))
+
+
+def crossing_warning(x, z, ry):
+    """踏切あり: a yellow diamond with a little electric car."""
+    with at(x, 0, z, ry):
+        add('catMast', cyl(0.035, 0.04, 2.45, 0, 0, 0, 8))
+        add('black', box(0.62, 0.62, 0.02, 0, -0.31, 0).rotate_z(math.pi / 4).translate(0, 2.45, 0.04))
+        add('binYellow', box(0.54, 0.54, 0.02, 0, -0.27, 0).rotate_z(math.pi / 4).translate(0, 2.45, 0.052))
+        add('black', box(0.3, 0.11, 0.01, 0, 2.38, 0.066))
+        for wx in (-0.09, 0.09):
+            add('black', box(0.05, 0.05, 0.01, wx, 2.33, 0.066))
+        add('black', prism([(-0.06, 0.0), (0.06, 0.0), (0.0, 0.07)], 0.01).translate(0, 2.49, 0.061))
+
+
+def curve_mirror(x, z, ry):
+    with at(x, 0, z, ry):
+        add('mirrorPole', cyl(0.045, 0.05, 3.0, 0, 0, 0, 8))
+        add('mirrorPole', cyl(0.42, 0.42, 0.06, 0, -0.03, 0, 20).rotate_x(math.pi / 2).translate(0, 3.0, 0.08))
+        add('mirrorGlass', disc(0.37).translate(0, 3.0, 0.115))
+        add('mirrorPole', box(0.7, 0.04, 0.16, 0, 3.42, 0.14))
+
+
+def bus_stop(x, z):
+    with at(x, 0, z, 0):
+        add('concreteDark', cyl(0.3, 0.32, 0.2))
+        add('catMast', cyl(0.04, 0.04, 2.2, 0, 0.2, 0, 8))
+        add('vendRed', cyl(0.3, 0.3, 0.05, 0, -0.025, 0, 20).rotate_x(math.pi / 2).translate(0, 2.25, 0))
+        add('signWhite', cyl(0.22, 0.22, 0.07, 0, -0.035, 0, 20).rotate_x(math.pi / 2).translate(0, 2.25, 0))
+        add('signWhite', box(0.36, 0.5, 0.04, 0, 1.05, 0.05))
+        for face, zz in (('+z', 0.04), ('-z', -0.04)):
+            SIGNS.append(('春風駅前', 0.06, to_world(0, 2.25, zz), face, 'textDark', {}))
+
+
+def build_road_furniture():
+    """Lidded 側溝 gutters on both verges, stop and level-crossing signs on each approach,
+    curve mirrors at the two junctions and a bus stop."""
+    for gx, segments in ((ROAD_X0 - 0.22, [(-20.0, TRACK_Z - 3.8), (TRACK_Z + 4.4, 20.0)]),
+                         (ROAD_X1 + 0.22, [(-20.0, TRACK_Z - 4.5), (TRACK_Z + 3.8, 20.0)])):
+        for z0, z1 in segments:
+            add('concreteDark', box(0.4, 0.04, z1 - z0, gx, 0, (z0 + z1) / 2))
+            z = z0
+            while z < z1 - 0.3:
+                add('gutter', box(0.38, 0.05, 0.48, gx, 0.02, z + 0.25))
+                z += 0.5
+    stop_sign(ROAD_X0 - 0.7, 4.6, 0.0)
+    stop_sign(ROAD_X1 + 0.7, -7.0, math.pi)
+    crossing_warning(ROAD_X0 - 0.7, 12.4, 0.0)
+    crossing_warning(ROAD_X1 + 0.7, -14.0, math.pi)
+    curve_mirror(ROAD_X1 + 0.75, 9.0, -math.pi / 2)
+    curve_mirror(ROAD_X1 + 0.75, -18.1, -math.pi / 2)
+    bus_stop(ROAD_X1 + 0.9, -11.0)
+
+
+def build_pole_dressing():
+    """Transformers, service drops to three houses with meter boxes, guy wires with yellow
+    guards and tiger-striped sleeves on the poles by the road."""
+    for x, z in ((2.6, 10.6), (-16.2, 10.6)):
+        add('catMast', cyl(0.26, 0.26, 0.75, x, 5.75, z + 0.38, 12))
+        add('metalDark', cyl(0.28, 0.27, 0.06, x, 6.5, z + 0.38, 12))
+        add('metalDark', box(0.1, 0.5, 0.2, x, 5.9, z + 0.14))
+        for off in (-0.12, 0.0, 0.12):
+            add('wire', tube([(x + off, 6.56, z + 0.38), (x + off * 3, 6.85, z + 0.15), (x + off * 6, 7.12, z)], 0.012, 4))
+    drops = [((-25.6, 10.6), (-23.8, 2.85, 12.45)), ((-16.2, 10.6), (-15.0, 4.55, 12.95)), ((2.6, 10.6), (6.4, 2.85, 12.75))]
+    for (px, pz), (ex, ey, ez) in drops:
+        for off in (-0.06, 0.06):
+            add('wire', sag_wire((px + off, 5.6, pz), (ex + off, ey, ez), 0.18, 0.014))
+        add('fence', box(0.22, 0.32, 0.1, ex, 1.25, ez - 0.02))
+        add('fence', cyl(0.03, 0.03, 0.1, ex, ey - 0.05, ez - 0.05, 6))
+    for (px, pz), (ax, az) in (((-25.6, 10.6), (-28.4, 10.6)), ((11.9, -17.8), (11.9, -19.7))):
+        top, anchor = Vector((px, 6.8, pz)), Vector((ax, 0.0, az))
+        add('wire', tube([top, anchor], 0.018, 4))
+        add('binYellow', beam(anchor, anchor + (top - anchor).normalized() * 1.8, 0.09))
+        add('concreteDark', box(0.3, 0.12, 0.3, ax, 0, az))
+    for z in (-17.8, -9.2, 10.6):
+        add('stripe', cyl(0.185, 0.19, 1.8, 11.9, 0, z, 10))
+
+
+def build_platform_kit():
+    """The kit of an unmanned halt: an IC card reader at the foot of the steps, the
+    one-man driver's mirror, the stop marker, a timetable and posters in the shelter."""
+    h = PLAT['h']
+    with at(-9.05, 0, -9.72, 0):
+        add('fence', box(0.3, 1.0, 0.24))
+        add('metalDark', box(0.32, 0.06, 0.3, 0, -0.03, 0).rotate_x(0.35).translate(0, 1.03, 0))
+        add('icPad', box(0.17, 0.02, 0.14, 0, -0.01, 0).rotate_x(0.35).translate(0, 1.07, 0.02))
+    with at(9.55, h, -3.85, -1.22):
+        add('catMast', cyl(0.04, 0.05, 2.5, 0, 0, 0, 8))
+        add('shelterRoof', box(0.98, 0.68, 0.05, 0, 1.8, 0.04))
+        add('mirrorGlass', box(0.88, 0.58, 0.02, 0, 1.85, 0.075))
+    with at(7.75, h, -2.95, 0):
+        add('catMast', cyl(0.03, 0.03, 1.1, 0, 0, 0, 6))
+        add('signWhite', box(0.04, 0.42, 0.34, 0, 1.0, 0))
+        SIGNS.append(('2', 0.24, to_world(-0.025, 1.21, 0), '-x', 'textDark', {}))
+    back = PLAT['z0'] + 0.37
+    add('timetable', plane_front(0.62, 0.92).translate(2.9, h + 1.42, back))
+    for x, key in ((0.9, 'posterSakura'), (4.9, 'posterSea'), (6.55, 'posterSakura')):
+        add(key, plane_front(0.5, 0.72).translate(x, h + 1.55, back))
+
+
+def bicycle(x, z, ry, key):
+    """A mamachari: step-through frame, basket, rear rack."""
+    with at(x, 0, z, ry):
+        for wx in (-0.52, 0.42):
+            ring = [(wx + 0.33 * math.cos(a), 0.34 + 0.33 * math.sin(a), 0.0) for a in [i / 14 * 2 * math.pi for i in range(15)]]
+            add('black', tube(ring, 0.024, 4))
+            add('catMast', cyl(0.04, 0.04, 0.12, 0, -0.06, 0, 6).rotate_x(math.pi / 2).translate(wx, 0.34, 0))
+        for a, b in (((0.36, 0.92), (0.0, 0.36)), ((0.0, 0.36), (-0.14, 0.86)), ((0.0, 0.36), (-0.52, 0.34)),
+                     ((-0.14, 0.82), (-0.52, 0.34)), ((0.36, 0.92), (0.42, 0.34))):
+            add(key, beam((a[0], a[1], 0), (b[0], b[1], 0), 0.035))
+        add('catMast', box(0.04, 0.04, 0.56, 0.34, 1.0, 0))
+        add('black', box(0.24, 0.06, 0.13, -0.15, 0.88, 0))
+        add('fence', box(0.3, 0.22, 0.34, 0.56, 0.8, 0))
+        add('catMast', box(0.34, 0.03, 0.26, -0.45, 0.7, 0))
+
+
+def build_bikes():
+    x0, x1, z0, z1 = SHED
+    for px in (x0, x1):
+        for pz in (z0, z1):
+            add('metalDark', cyl(0.05, 0.05, 2.2, px, 0, pz, 8))
+    add('shelterRoof', kawara(x1 - x0 + 0.4, z1 - z0 + 0.5, 0.04, 0.03, 0.22).rotate_x(0.12).translate((x0 + x1) / 2, 2.25, (z0 + z1) / 2))
+    add('metalDark', box(x1 - x0 - 0.4, 0.05, 0.05, (x0 + x1) / 2, 0.3, z0 + 0.25))
+    colours = ['vendRed', 'binBlue', 'fence', 'catMast', 'binGreen', 'binYellow']
+    for i in range(6):
+        bicycle(x0 + 0.55 + i * 0.6, (z0 + z1) / 2 + drand(-0.08, 0.08), math.pi / 2 + drand(-0.05, 0.05), colours[i])
+    bicycle(-10.3, -16.9, 0.25, 'fence')
+
+
+def paint_sign(name, kind):
+    """Small painted faces for the shelter: a timetable and two travel posters."""
+    rs = np.random.default_rng(0x51695)
+    w, h = 64, 96
+    img = np.empty((h, w, 3), np.float32)
+    if kind == 'timetable':
+        img[:] = hex_np('#fbfaf6')
+        img[0:12] = hex_np('#1f6fb5')
+        for r in range(18):
+            y = 15 + r * 4
+            img[y:y + 3, 3:9] = hex_np('#d9433b')
+            for k in range(int(rs.integers(1, 5))):
+                xx = 13 + k * 11 + int(rs.integers(0, 5))
+                img[y:y + 3, xx:xx + 6] = hex_np('#2b2a33')
+    elif kind == 'sakura':
+        img[:] = hex_np('#fde8ef')
+        for _ in range(40):
+            cy, cx, r = rs.integers(0, h), rs.integers(0, w), rs.integers(3, 9)
+            yy, xx = np.ogrid[:h, :w]
+            img[(yy - cy) ** 2 + (xx - cx) ** 2 < r * r] = hex_np(['#ffb3c8', '#ff97b6', '#ffd4e0'][int(rs.integers(0, 3))])
+        img[70:84] = hex_np('#ffffff')
+        img[74:80, 10:54] = hex_np('#e0457d')
+    else:
+        for y in range(h):
+            img[y] = hex_np('#8ed2f5') * (1 - y / h) + hex_np('#2f7fe0') * (y / h)
+        yy, xx = np.ogrid[:h, :w]
+        img[(yy - 22) ** 2 + (xx - 44) ** 2 < 64] = hex_np('#ffd84a')
+        for k in range(5):
+            y0 = 50 + k * 8
+            for x in range(w):
+                yv = int(y0 + 2 * math.sin(x / 5 + k))
+                img[yv:yv + 2, x] = 1.0
+    return to_image(name, img)
+
+
 # --------------------------------------------------------------------------- poles, wires, catenary, lamps
 
 
@@ -1571,12 +1950,17 @@ def build_catenary():
     mz, arm_y = TRACK_Z + 2.85, 5.55
     for x in masts:
         add('concreteDark', box(0.6, 0.35, 0.6, x, 0, mz))
-        add('catMast', box(0.24, 6.0, 0.24, x, 0.3, mz))
+        add('concrete', cyl(0.12, 0.17, 6.4, x, 0.3, mz, 10))
+        add('catMast', box(0.06, 0.06, 0.5, x, 6.3, mz + 0.25))
+        add('fence', cyl(0.05, 0.06, 0.16, x, 6.36, mz + 0.48, 6))
         add('catMast', beam((x, arm_y, mz), (x, arm_y, TRACK_Z - 0.6), 0.08))
         add('catMast', beam((x, 4.75, mz), (x, arm_y - 0.02, TRACK_Z - 0.2), 0.07))
         add('catMast', beam((x, CONTACT_Y + 0.02, TRACK_Z - 0.4), (x, arm_y - 0.05, TRACK_Z - 0.4), 0.05))
         add('fence', cyl(0.07, 0.07, 0.3, 0, -0.15, 0, 7).rotate_x(math.pi / 2).translate(x, arm_y, mz - 0.3))
     add('wire', box(CLIP_X * 2, 0.04, 0.04, 0, CONTACT_Y, TRACK_Z))
+    for a, b in zip(masts, masts[1:]):
+        add('wire', sag_wire((a, 6.52, mz + 0.48), (b, 6.52, mz + 0.48), 0.3, 0.03))  # feeder
+        add('wire', sag_wire((a, 6.7, mz), (b, 6.7, mz), 0.22, 0.02))                # earth wire
     stops = [-CLIP_X] + masts + [CLIP_X]
     for a, b in zip(stops, stops[1:]):
         sag = 0.42 * (b - a) / 10
@@ -1612,6 +1996,19 @@ def crossing_pole(x, z, ry):
         for s in (-1, 1):
             add('stripe', box(1.55, 0.24, 0.05, 0, -0.12, 0).rotate_z(s * 0.58).translate(0, 3.5, 0.12))
         add('black', box(1.2, 0.12, 0.12, 0, 2.82, 0))
+        # 方向指示器: the arrow points the way the train will come (it always runs east)
+        add('black', box(0.7, 0.26, 0.16, 0, 2.23, 0))
+        east = 1 if ry == 0 else -1
+        for face in (-1, 1):
+            z = face * 0.085
+            for lit, key in ((1, 'arrowLit'), (-1, 'arrowDim')):
+                d = lit * east
+                head = prism([(0.0, -0.08), (0.12 * d, 0.0), (0.0, 0.08)], 0.02).translate(0, 0, -0.01)
+                add(key, head.translate(d * 0.04, 2.36, z + face * 0.002))
+                add(key, box(0.12, 0.05, 0.02, lit * east * -0.02, 2.335, z + face * 0.002))
+        # 非常ボタン, the emergency button box
+        add('binYellow', box(0.18, 0.26, 0.1, 0, 1.12, 0.12))
+        add('vendRed', cyl(0.045, 0.045, 0.03, 0, -0.015, 0, 10).rotate_x(math.pi / 2).translate(0, 1.27, 0.18))
         for face in (-1, 1):
             for side in (-1, 1):
                 lx = side * 0.47
@@ -1664,6 +2061,9 @@ def car(lamp, platform_side, car_ry):
     front('tDest', 0.95, 0.24, 2.98, 0, 0.03, 0.05)
     front('tPink', 2.48, 0.3, 1.62, 0, 0.05, 0.01)
     front('tPinkDark', 2.48, 0.07, 1.4, 0, 0.05, 0.01)
+    for z in (-0.52, 0.52):
+        add('tBlack', beam((xf(1.98) + 0.07, 1.98, z - 0.3), (xf(2.6) + 0.07, 2.6, z + 0.05), 0.03))
+    front('tGrey', 0.5, 0.15, 3.2, -0.62, 0.02, 0.03)  # ワンマン plate
     for z in (-0.8, 0.8):
         front('tHead' if lamp == 'head' else 'tLampOff', 0.34, 0.16, 1.12, z, 0.06, 0.03)
     for z in (-0.47, 0.47):
@@ -1678,6 +2078,7 @@ def car(lamp, platform_side, car_ry):
         for a, b in ((-L / 2 + 0.45, -3.15), (-1.55, 1.55), (3.15, L / 2 - 1.25)):
             add('tGlass', box(b - a, 0.9, 0.035, (a + b) / 2, 1.97, side * (hw + 0.015)))
         add('tGlass', box(0.5, 0.8, 0.035, L / 2 - 0.82, 2.02, side * (hw + 0.015)))
+        add('tDest', box(0.62, 0.18, 0.02, -0.4, 2.62, side * (hw + 0.02)))
         for dx in (-2.35, 2.35):
             add('tDoorway', box(1.32, 2.2, 0.02, dx, 0.6, side * (hw + 0.006)))
             for leaf in (-1, 1):
@@ -1787,7 +2188,7 @@ def text_object(body, height, pos, facing, mat_key, opt, coll):
     curve.align_x = opt.get('align', 'CENTER')
     curve.align_y = 'CENTER'
     curve.space_character = opt.get('spacing', 1.0)
-    curve.offset = 0.02
+    curve.offset = 0.0 if any('\u3400' <= ch <= '\u9fff' for ch in body) else 0.012
     obj = bpy.data.objects.new('sign_' + body.strip()[:6], curve)
     coll.objects.link(obj)
     obj.location = to_blender(pos)
@@ -1795,6 +2196,10 @@ def text_object(body, height, pos, facing, mat_key, opt, coll):
         obj.rotation_euler = (math.pi / 2, 0, 0)
     elif facing == '-z':
         obj.rotation_euler = (math.pi / 2, 0, math.pi)
+    elif facing == '+x':
+        obj.rotation_euler = (math.pi / 2, 0, math.pi / 2)
+    elif facing == '-x':
+        obj.rotation_euler = (math.pi / 2, 0, -math.pi / 2)
     elif facing == 'up':
         obj.rotation_euler = (0, 0, opt.get('yaw', 0.0))
     obj['height'] = height
@@ -1956,6 +2361,7 @@ def build_petals(blossoms, coll):
 
 
 PETAL_MATERIAL = None
+SHOTS = []
 
 
 def tuft_source(coll):
@@ -2223,7 +2629,10 @@ def animate(train, doors, arms, beam_owner):
         for f in range(1, FRAMES + 1):
             t = (f - 1) / FPS
             ringing, _ = crossing_state(t)
-            on = 1.0 if ringing and int(t * 2) % 2 == (0 if which == 'A' else 1) else 0.0
+            if which == 'R':
+                on = 1.0 if ringing else 0.0
+            else:
+                on = 1.0 if ringing and int(t * 2) % 2 == (0 if which == 'A' else 1) else 0.0
             if on != prev:
                 for node in nodes:
                     node.outputs[0].default_value = on
@@ -2274,6 +2683,40 @@ def build_world():
     l.new(sep.outputs['Y'], night_sky.inputs[0])
     backdrop = mix(day_sky.outputs['Color'], night_sky.outputs['Color'], night.outputs[0])
 
+    # stars: a voronoi field over every view direction, so they sit at infinity and turn
+    # with the orbit (the camera looks down, so they surround the floating block); night
+    # only, fading towards the bottom of the frame
+    def math(op, a, b=None, c=None):
+        m = n.new('ShaderNodeMath')
+        m.operation = op
+        for i, x in enumerate((a, b, c)):
+            if x is None:
+                continue
+            if isinstance(x, (int, float)):
+                m.inputs[i].default_value = x
+            else:
+                l.new(x, m.inputs[i])
+        return m.outputs[0]
+
+    cells = n.new('ShaderNodeTexVoronoi')
+    cells.voronoi_dimensions = '3D'
+    cells.feature = 'F1'
+    cells.inputs['Scale'].default_value = 150.0
+    l.new(coords.outputs['Generated'], cells.inputs['Vector'])
+    pick = n.new('ShaderNodeTexWhiteNoise')
+    pick.noise_dimensions = '3D'
+    l.new(cells.outputs['Position'], pick.inputs['Vector'])
+    core = math('LESS_THAN', cells.outputs['Distance'], 0.075)
+    lit = math('GREATER_THAN', pick.outputs['Value'], 0.88)
+    shine = math('MULTIPLY_ADD', pick.outputs['Value'], 5.0, -3.9)  # 0.5 .. 1.1 across the lit cells
+    fade = math('MINIMUM', math('MAXIMUM', math('MULTIPLY_ADD', sep.outputs['Y'], 1.8, -0.35), 0.0), 1.0)
+    star = math('MULTIPLY', math('MULTIPLY', math('MULTIPLY', core, lit), shine), math('MULTIPLY', fade, night.outputs[0]))
+    twinkle = n.new('ShaderNodeVectorMath')
+    twinkle.operation = 'ADD'
+    l.new(backdrop, twinkle.inputs[0])
+    l.new(math('MULTIPLY', star, 2.2), twinkle.inputs[1])
+    backdrop = twinkle.outputs[0]
+
     # the light: a hemisphere, sky above and meadow below
     dirsep = n.new('ShaderNodeSeparateXYZ')
     l.new(coords.outputs['Generated'], dirsep.inputs[0])
@@ -2295,24 +2738,40 @@ def build_world():
 
 def build_lights(coll, train):
     sun_data = bpy.data.lights.new('Sun', 'SUN')
-    sun_data.angle = math.radians(3.5)
+    sun_data.angle = math.radians(1.5)
     sun = bpy.data.objects.new('Sun', sun_data)
     coll.objects.link(sun)
-    sun.rotation_euler = Vector(to_blender((-26, 46, 30))).to_track_quat('Z', 'Y').to_euler()
+    # from the south-west, about 37 degrees up: long enough shadows to read under the trees
+    sun.rotation_euler = Vector(to_blender((-30, 30, 26))).to_track_quat('Z', 'Y').to_euler()
     drive(sun_data.driver_add('energy'), '3.4 - 2.9 * n')
     for i, (day, night) in enumerate(zip((1.0, 0.95, 0.88), (0.6, 0.7, 1.0))):
         drive(sun_data.driver_add('color', i), f'{day} + ({night - day}) * n')
 
-    for i, (pos, k) in enumerate(LAMPS):
-        data = bpy.data.lights.new(f'Lamp {i + 1}', 'POINT')
-        data.color = (1.0, 0.78, 0.5)
-        data.shadow_soft_size = 0.25
+    def point(name, pos, color, expression, radius=0.25, shadow=True, cutoff=None):
+        data = bpy.data.lights.new(name, 'POINT')
+        data.color = color
+        data.shadow_soft_size = radius
+        data.use_shadow = shadow
         if hasattr(data, 'use_soft_falloff'):
             data.use_soft_falloff = True
-        drive(data.driver_add('energy'), f'{180 * k} * n')
-        obj = bpy.data.objects.new(f'Lamp {i + 1}', data)
+        if cutoff and hasattr(data, 'use_custom_distance'):
+            data.use_custom_distance = True
+            data.cutoff_distance = cutoff
+        drive(data.driver_add('energy'), expression)
+        obj = bpy.data.objects.new(name, data)
         coll.objects.link(obj)
-        obj.location = to_blender(pos - Vector((0, 0.25, 0)))
+        obj.location = to_blender(pos)
+        return obj
+
+    # warm sodium-ish pools under the platform, plaza and street lamps
+    for i, (pos, k) in enumerate(LAMPS):
+        point(f'Lamp {i + 1}', pos - Vector((0, 0.25, 0)), (1.0, 0.66, 0.36), f'{200 * k} * n')
+    # yozakura: every cherry lit from just under its crown, so the blossom glows at night
+    for i, (x, z, s) in enumerate(CHERRIES):
+        y = hill_height(x, z) - 0.15 + 2.1 * s + 0.35
+        point(f'Yozakura {i + 1}', Vector((x, y, z)), (1.0, 0.8, 0.88), f'{75 * s} * n', 0.6, False, 3.6 * s)
+    # lamplight spilling out of the station's windows onto the plaza and platform
+    point('Station windows', Vector((-8.0, 1.8, -12.5)), (1.0, 0.75, 0.45), '60 * n', 1.5, False, 7.5)
 
     head = bpy.data.lights.new('Headlight', 'SPOT')
     head.spot_size = math.radians(70)
@@ -2360,50 +2819,67 @@ def build_glows(coll, train):
             obj.visible_shadow = False
 
 
-def build_stars(coll):
-    m = new_material('stars')
-    n, l = m.node_tree.nodes, m.node_tree.links
-    out = n.new('ShaderNodeOutputMaterial')
-    emit = n.new('ShaderNodeEmission')
-    emit.inputs['Color'].default_value = (0.9, 0.93, 1.0, 1)
-    emit.inputs['Strength'].default_value = 4.0
-    transparent = n.new('ShaderNodeBsdfTransparent')
-    night = n.new('ShaderNodeGroup')
-    night.node_tree = node_group_night()
-    mix = n.new('ShaderNodeMixShader')
-    l.new(night.outputs[0], mix.inputs[0])
-    l.new(transparent.outputs[0], mix.inputs[1])
-    l.new(emit.outputs[0], mix.inputs[2])
-    l.new(mix.outputs[0], out.inputs['Surface'])
-    verts, faces = icosphere(1.0, 0)
-    part = Part()
-    for _ in range(700):
-        a = rand(0, 2 * math.pi)
-        y = rand(0.04, 1.0)
-        rr = math.sqrt(1 - y * y)
-        centre = Vector((math.cos(a) * rr * 600, y * 600 - 40, math.sin(a) * rr * 600))
-        size = rand(0.5, 1.4)
-        base = len(part.v)
-        part.v.extend(centre + p * size for p in verts)
-        part.f.extend(tuple(base + i for i in f) for f in faces)
-    mesh = bpy.data.meshes.new('Stars')
-    mesh.from_pydata([to_blender(v) for v in part.v], [], part.f)
-    mesh.materials.append(m)
-    obj = bpy.data.objects.new('Stars', mesh)
-    coll.objects.link(obj)
-    if hasattr(obj, 'visible_shadow'):
-        obj.visible_shadow = False
+ORBIT_TARGET = (-1.0, -1.2, -1.0)        # web frame; the block's visual centre
+ORBIT_VIEW = (0.46, 0.53, 0.71)           # from the target towards the camera, ~32 deg up
+ORBIT_EASE = 0.45                         # radians of lead/lag around the hero view
+FOV_Y = math.radians(30)
+
+
+def orbit_yaw(f):
+    """One eased turn per loop: 55% speed through the hero view (frame HERO_FRAME, yaw 0),
+    145% through the stretch with no train. Seamless: yaw(f + FRAMES) = yaw(f) + 2 pi."""
+    u = (f - HERO_FRAME) / FRAMES
+    return 2 * math.pi * u - ORBIT_EASE * math.sin(2 * math.pi * u)
+
+
+def fit_distances(aspect=16 / 9, margin=(0.92, 0.88)):
+    """For every frame of the orbit, the camera distance that keeps the whole block (slab,
+    hills, trees and poles) inside the frame, then smoothed into a slow dolly that never
+    comes closer than the fit."""
+    pts = [Vector(to_blender((x, y, z))) for x in (-32.25, 32.25) for z in (-20.25, 20.25) for y in (0.0, -6.4)]
+    pts += [Vector(to_blender(p)) for p in ((-29.8, 10.5, 3.8), (29.8, 10.5, 3.8), (-29.6, 10.0, -9.2), (29.6, 10.0, -9.2),
+                                            (11.9, 7.6, -17.8), (11.9, 7.6, 10.6), (-25.6, 7.6, 10.6), (25.4, 7.0, 15.2))]
+    target = Vector(to_blender(ORBIT_TARGET))
+    view = Vector(to_blender(ORBIT_VIEW)).normalized()
+    ty = math.tan(FOV_Y / 2)
+    tx = ty * aspect
+    up_world = Vector((0, 0, 1))
+
+    def fits(d, direction):
+        cam = target + direction * d
+        fwd = (target - cam).normalized()
+        right = fwd.cross(up_world).normalized()
+        up = right.cross(fwd)
+        for p in pts:
+            v = p - cam
+            depth = v.dot(fwd)
+            if depth <= 0.1 or abs(v.dot(right)) / (depth * tx) > margin[0] or abs(v.dot(up)) / (depth * ty) > margin[1]:
+                return False
+        return True
+
+    fit = []
+    for f in range(1, FRAMES + 1):
+        direction = Matrix.Rotation(orbit_yaw(f), 3, 'Z') @ view
+        lo, hi = 30.0, 400.0
+        for _ in range(22):
+            mid = (lo + hi) / 2
+            lo, hi = (lo, mid) if fits(mid, direction) else (mid, hi)
+        fit.append(hi)
+    # widen each frame's need over +-2 s, then average over +-2 s: smooth, and never too close
+    half = 2 * FPS
+    need = [max(fit[(i + k) % FRAMES] for k in range(-half, half + 1)) for i in range(FRAMES)]
+    return [sum(need[(i + k) % FRAMES] for k in range(-half, half + 1)) / (2 * half + 1) for i in range(FRAMES)]
 
 
 def build_camera(coll):
     rig = bpy.data.objects.new('Orbit', None)
     coll.objects.link(rig)
-    rig.location = to_blender((-1, 0.5, -1))
+    rig.location = to_blender(ORBIT_TARGET)
     cam_data = bpy.data.cameras.new('Camera')
     cam_data.sensor_fit = 'VERTICAL'
-    cam_data.angle_y = math.radians(30)
+    cam_data.angle_y = FOV_Y
     cam_data.clip_start = 0.5
-    cam_data.clip_end = 2000
+    cam_data.clip_end = 3000
     cam = bpy.data.objects.new('Camera', cam_data)
     coll.objects.link(cam)
     cam.parent = rig
@@ -2413,22 +2889,79 @@ def build_camera(coll):
     cam_data.dof.focus_object = rig
     cam_data.dof.aperture_fstop = max(Q['fstop'], 0.01)
     cam_data.dof.aperture_blades = 6
-    view = Vector(to_blender((0.46, 0.53, 0.71))).normalized()
-    cam.location = view * 98
+    view = Vector(to_blender(ORBIT_VIEW)).normalized()
+    distances = fit_distances()
+    SCENE['orbit_distance'] = distances[HERO_FRAME - 1]
+    cam.location = view * distances[HERO_FRAME - 1]
     track = cam.constraints.new('TRACK_TO')
     track.target = rig
     track.track_axis = 'TRACK_NEGATIVE_Z'
     track.up_axis = 'UP_Y'
     SCENE.camera = cam
-    # one turn per loop, timed so the hero view (the web version's) lands on HERO_FRAME,
-    # when the train stands at the platform
-    start = -2 * math.pi * (HERO_FRAME - 1) / FRAMES
-    rig.rotation_euler.z = start
-    rig.keyframe_insert('rotation_euler', index=2, frame=1)
-    rig.rotation_euler.z = start + 2 * math.pi
-    rig.keyframe_insert('rotation_euler', index=2, frame=FRAMES + 1)
+    for f in range(1, FRAMES + 2):
+        rig.rotation_euler.z = orbit_yaw(f)
+        rig.keyframe_insert('rotation_euler', index=2, frame=f)
+        cam.location = view * distances[(f - 1) % FRAMES]
+        cam.keyframe_insert('location', frame=f)
     set_interpolation(rig, 'LINEAR')
+    set_interpolation(cam, 'LINEAR')
     return rig
+
+
+# Authored stills: (name, eye, target in the web frame, frame, night, vertical fov,
+# f-stop for Ultra's depth of field, or 'ortho' for the map)
+SHOT_LIST = [
+    ('hero', None, None, HERO_FRAME, 0.0, None, None),
+    ('hero_night', None, None, 430, 1.0, None, None),
+    ('platform', (9.2, PLAT['h'] + 1.55, -5.7), (-6.0, PLAT['h'] + 1.3, -4.2), 300, 0.0, 40, 1.4),
+    ('fumikiri', (16.9, 1.15, 9.8), (15.6, 2.1, -1.0), 486, 0.0, 36, 1.8),
+    ('tunnel', (-27.5, 12.5, 8.0), (-19.5, 2.2, -1.0), 64, 0.0, 38, 2.8),
+    ('meadow', (-12.0, 4.0, 14.0), (-2.0, 1.5, 6.0), HERO_FRAME, 0.0, 34, 1.2),
+    ('platform_night', (-12.6, PLAT['h'] + 2.2, -9.4), (2.0, PLAT['h'] + 1.0, -3.2), 300, 1.0, 40, 1.6),
+    ('map', (0.0, 140.0, 0.0), (0.0, 0.0, 0.0), HERO_FRAME, 0.0, 'ortho', None),
+]
+
+
+def build_shots(coll):
+    """Cameras for the authored stills, kept off the timeline so the loop's orbit camera
+    stays in charge of the animation."""
+    shots = []
+    for name, eye, target, frame, night, fov, fstop in SHOT_LIST:
+        if eye is None:
+            shots.append((name, SCENE.camera, frame, night))
+            continue
+        data = bpy.data.cameras.new(f'Shot {name}')
+        data.clip_start, data.clip_end = 0.1, 3000
+        cam = bpy.data.objects.new(f'Shot {name}', data)
+        coll.objects.link(cam)
+        e, t = Vector(to_blender(eye)), Vector(to_blender(target))
+        cam.location = e
+        if fov == 'ortho':
+            data.type = 'ORTHO'
+            data.ortho_scale = 74
+            cam.rotation_euler = (0, 0, 0)
+        else:
+            data.sensor_fit = 'VERTICAL'
+            data.angle_y = math.radians(fov)
+            cam.rotation_euler = (t - e).to_track_quat('-Z', 'Y').to_euler()
+            data.dof.use_dof = Q['dof'] and fstop is not None
+            data.dof.focus_distance = (t - e).length
+            data.dof.aperture_fstop = fstop or 2.8
+        shots.append((name, cam, frame, night))
+    return shots
+
+
+def render_shots(scene, shots, folder):
+    os.makedirs(folder, exist_ok=True)
+    keep = scene.camera, scene['night']
+    for name, cam, frame, night in shots:
+        scene.camera = cam
+        scene['night'] = night
+        scene.frame_set(frame)
+        scene.render.filepath = os.path.join(folder, f'{name}.png')
+        bpy.ops.render.render(write_still=True)
+        print(f'Harukaze: shot {name}', flush=True)
+    scene.camera, scene['night'] = keep
 
 
 # --------------------------------------------------------------------------- assemble
@@ -2448,6 +2981,9 @@ def build(scene, night=0.0, quality='classic'):
     FONT = find_cjk_font()
     IMAGES['grass'] = paint_grass()
     IMAGES['road'] = paint_road()
+    IMAGES['timetable'] = paint_sign('harukaze_timetable', 'timetable')
+    IMAGES['posterSakura'] = paint_sign('harukaze_poster_sakura', 'sakura')
+    IMAGES['posterSea'] = paint_sign('harukaze_poster_sea', 'sea')
     IMAGES['vend1'] = paint_vending('harukaze_vend_red', '#e2474b', '#c2313a', ['#3b8be0', '#ffb43c', '#f05a5a', '#5fc46f', '#8a5cd6', '#f7f2e8', '#2fb3c4'])
     IMAGES['vend2'] = paint_vending('harukaze_vend_blue', '#3b7fd4', '#2d63ad', ['#d94a64', '#78c850', '#f7d35a', '#e8eef5', '#4b4b58', '#ff8f5a', '#8fd3f5'])
     PETAL_MATERIAL = toon_material('petal', '#ffc1d3', double_sided=True)
@@ -2464,6 +3000,13 @@ def build(scene, night=0.0, quality='classic'):
     build_nature()
     build_poles()
     build_catenary()
+    build_paddies()
+    build_nanohana()
+    build_shrine()
+    build_road_furniture()
+    build_pole_dressing()
+    build_platform_kit()
+    build_bikes()
     street_lamp(12.7, -6.6, math.pi / 2)
     street_lamp(-11.4, 10.9, math.pi)
     crossing_pole(ROAD_X0 - 0.55, TRACK_Z + 3.95, 0.0)
@@ -2516,14 +3059,19 @@ def build(scene, night=0.0, quality='classic'):
 
     sky = collection('Sky and petals', root)
     with batch_scope() as cb:
-        for a, r, y, s in ((0.3, 62, -9, 1.3), (1.5, 66, -12, 1.0), (2.6, 60, -8, 1.2), (3.6, 92, 24, 1.1), (4.4, 64, -11, 1.1), (5.5, 70, -10, 0.9), (0.9, 96, 28, 0.9)):
+        # a bank of flattened clouds ringing the block below its base, so it reads as
+        # floating from every side of the orbit, and three big ones far off for depth
+        crng = mulberry32(0xC10D5)
+        rings = [(i / 12 * 2 * math.pi + (crng() - 0.5) * 0.35, 48 + crng() * 12, -11 - crng() * 4, 0.9 + crng() * 0.5, 7) for i in range(12)]
+        rings += [(a, 175, -24, 3.2, 8) for a in (0.7, 2.9, 4.8)]
+        for a, r, y, s, count in rings:
             cx, cz = math.cos(a) * r, math.sin(a) * r
-            for _ in range(6):
-                add('cloud', puff(rand(1.6, 2.8) * s, cx + rand(-4, 4) * s, y + rand(-0.6, 1.0) * s, cz + rand(-2.5, 2.5) * s, 0.72))
+            for _ in range(count):
+                k = 1.6 + crng() * 1.4
+                add('cloud', puff(k * s, cx + (crng() - 0.5) * 9 * s, y + (crng() - 0.3) * 1.2 * s, cz + (crng() - 0.5) * 5 * s, 0.5))
     for o in bake(cb.batch, sky):
         if hasattr(o, 'visible_shadow'):
             o.visible_shadow = False
-    build_stars(sky)
     build_petals(blossoms, sky)
     if Q['detail']:
         build_meadow(sky, next(o for o in static if o.name == 'grassTop'))
@@ -2533,6 +3081,7 @@ def build(scene, night=0.0, quality='classic'):
     build_lights(lights, train)
     build_glows(lights, train)
     build_camera(lights)
+    SHOTS[:] = build_shots(collection('Shots', root))
     animate(train, doors, arms, train)
 
     scene.frame_start, scene.frame_end = 1, FRAMES
@@ -2629,6 +3178,7 @@ def main():
     ap.add_argument('--render', metavar='PNG', help='render one frame to this file')
     ap.add_argument('--video', metavar='MP4', help='render the 32 s loop and encode it as an H.264 video')
     ap.add_argument('--frames', metavar='A-B', help=f'with --video, render only frames A to B (default 1-{FRAMES})')
+    ap.add_argument('--shots', metavar='DIR', help='render the authored stills (hero, platform, crossing, tunnel, night...) into DIR')
     ap.add_argument('--save', metavar='BLEND', help='save the scene as a .blend file')
     ap.add_argument('--resolution', metavar='WxH', help='override the tier resolution, e.g. 1920x1080')
     ap.add_argument('--samples', type=int, help='override the tier sample count')
@@ -2646,6 +3196,8 @@ def main():
     if args.render:
         scene.render.filepath = os.path.abspath(args.render)
         bpy.ops.render.render(write_still=True)
+    if args.shots:
+        render_shots(scene, SHOTS, os.path.abspath(args.shots))
     if args.video:
         if not args.samples:
             scene.eevee.taa_render_samples = QUALITY[args.quality]['video_samples']
