@@ -100,8 +100,9 @@ Nothing has to be run to see it. These are built and rendered already:
 
 | file | what it is |
 | ---- | ---------- |
-| [`build/harukaze_station_classic.blend`](blender/build/) | the Classic scene, images and font packed in |
-| [`build/harukaze_station_ultra.blend`](blender/build/) | the Ultra scene |
+| [`build/harukaze_station_classic.blend`](blender/build/) | the Classic scene, images and font packed in (Blender 5.x) |
+| [`build/harukaze_station_ultra.blend`](blender/build/) | the Ultra scene (Blender 5.x) |
+| [`build/blender-4.2/`](blender/build/blender-4.2/) | both scenes saved from Blender 4.2, for 4.2 to 4.5 |
 | [`renders/classic/`](blender/renders/classic/) | eight stills at 1920×1080 |
 | [`renders/ultra/`](blender/renders/ultra/) | the same eight stills at 3840×2160 (JPEG, 24 samples) |
 | [`renders/harukaze_station_loop.mp4`](blender/renders/) | the full 32-second loop at 1920×1080, 24 fps (Classic) |
@@ -144,7 +145,8 @@ be stopped and resumed, or split across runs with `--frames`. Once every frame e
 encodes them with `ffmpeg` (H.264, BT.709). Videos render at 1920×1080 in both tiers
 unless `--resolution` says otherwise. `--samples` and `--resolution` only affect that run;
 a `.blend` saved in the same run keeps the tier's own settings. Building takes 10 to 30 seconds and the saved `.blend`
-packs its images and font, so it opens anywhere.
+packs its images and font, so it needs nothing else. A `.blend` opens in the Blender
+version that saved it and newer ones: files saved from 5.x need Blender 5.0 or newer.
 
 ### What's in it
 
