@@ -106,7 +106,7 @@ HERO_FRAME = 300  # 12.5 s in: the train stands at the platform with its doors o
 # geometric detail (bevels, rounder crowns, a meadow of grass tufts and fallen petals,
 # more petals in the air), a tilt-shift depth of field, motion blur and more samples.
 QUALITY = {
-    'classic': dict(resolution=(1920, 1080), samples=16, video_samples=8, petals=460, detail=False,
+    'classic': dict(resolution=(1920, 1080), samples=16, video_samples=4, petals=460, detail=False,
                     dof=False, fstop=0.0, motion_blur=False, bloom=0.55, shadow_rays=1, shadow_steps=6),
     'ultra': dict(resolution=(3840, 2160), samples=64, video_samples=16, petals=1100, detail=True,
                   dof=True, fstop=0.12, motion_blur=True, bloom=0.8, shadow_rays=2, shadow_steps=8),
@@ -2961,10 +2961,24 @@ def build_shots(coll):
     return shots
 
 
+def png_complete(path):
+    """True if the PNG at path was written to the end (a killed render can leave it
+    empty or cut off)."""
+    try:
+        with open(path, 'rb') as fh:
+            fh.seek(-12, os.SEEK_END)
+            return fh.read(12)[4:8] == b'IEND'
+    except OSError:
+        return False
+
+
 def render_shots(scene, shots, folder):
+    """Render the stills into folder, keeping any already finished there."""
     os.makedirs(folder, exist_ok=True)
     keep = scene.camera, scene['night']
     for name, cam, frame, night in shots:
+        if png_complete(os.path.join(folder, f'{name}.png')):
+            continue
         scene.camera = cam
         scene['night'] = night
         scene.frame_set(frame)
@@ -3151,17 +3165,31 @@ def show_in_viewport():
 
 
 def render_frames(scene, folder, first, last):
-    """Render frames first..last as PNGs, skipping any already on disk, so a long
-    render can be stopped and picked up again."""
+    """Render frames first..last as one animation job into folder/frame_####.png. Frames
+    already on disk are kept, so a long render can be stopped and picked up again;
+    empty or cut-off files from a killed run are cleared first."""
     os.makedirs(folder, exist_ok=True)
-    for f in range(first, last + 1):
-        path = os.path.join(folder, f'frame_{f:04d}.png')
-        if os.path.exists(path) and os.path.getsize(path) > 0:
-            continue
-        scene.frame_set(f)
-        scene.render.filepath = path
-        bpy.ops.render.render(write_still=True)
-        print(f'Harukaze: frame {f}/{last}', flush=True)
+    for name in os.listdir(folder):
+        path = os.path.join(folder, name)
+        if name.endswith('.png') and not png_complete(path):
+            os.remove(path)
+    r = scene.render
+    keep = scene.frame_start, scene.frame_end, r.filepath, r.use_overwrite, r.use_placeholder
+
+    def report(sc, *_):
+        print(f'Harukaze: frame {sc.frame_current}/{last}', flush=True)
+
+    scene.frame_start, scene.frame_end = first, last
+    r.filepath = os.path.join(folder, 'frame_')
+    r.use_file_extension = True
+    r.use_overwrite = False
+    r.use_placeholder = True
+    bpy.app.handlers.render_write.append(report)
+    try:
+        bpy.ops.render.render(animation=True)
+    finally:
+        bpy.app.handlers.render_write.remove(report)
+        scene.frame_start, scene.frame_end, r.filepath, r.use_overwrite, r.use_placeholder = keep
 
 
 def encode_video(folder, out_path):
@@ -3173,8 +3201,10 @@ def encode_video(folder, out_path):
         print('Harukaze: ffmpeg not found; frames are in', folder)
         return False
     subprocess.run([ffmpeg, '-y', '-loglevel', 'error', '-framerate', str(FPS), '-i', os.path.join(folder, 'frame_%04d.png'),
-                    '-c:v', 'libx264', '-preset', 'slow', '-crf', '16', '-pix_fmt', 'yuv420p', '-movflags', '+faststart',
-                    out_path], check=True)
+                    '-vf', 'scale=out_color_matrix=bt709:out_range=tv:flags=lanczos+accurate_rnd+full_chroma_int,format=yuv420p',
+                    '-c:v', 'libx264', '-preset', 'slow', '-tune', 'animation', '-crf', '15', '-g', str(FPS * 2),
+                    '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv',
+                    '-movflags', '+faststart', out_path], check=True)
     return True
 
 
@@ -3213,11 +3243,13 @@ def main():
     if args.video:
         if not args.samples:
             scene.eevee.taa_render_samples = QUALITY[args.quality]['video_samples']
+        if not args.resolution:
+            scene.render.resolution_x, scene.render.resolution_y = 1920, 1080    # 4K video would take days
         out = os.path.abspath(args.video)
         folder = os.path.splitext(out)[0] + '_frames'
         first, last = (int(v) for v in (args.frames or f'1-{FRAMES}').split('-'))
         render_frames(scene, folder, first, last)
-        if all(os.path.exists(os.path.join(folder, f'frame_{f:04d}.png')) for f in range(1, FRAMES + 1)):
+        if all(png_complete(os.path.join(folder, f'frame_{f:04d}.png')) for f in range(1, FRAMES + 1)):
             encode_video(folder, out)
     show_in_viewport()
 

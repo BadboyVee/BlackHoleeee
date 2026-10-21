@@ -101,8 +101,8 @@ Nothing has to be run to see it. These are built and rendered already:
 | [`build/harukaze_station_classic.blend`](blender/build/) | the Classic scene, images and font packed in |
 | [`build/harukaze_station_ultra.blend`](blender/build/) | the Ultra scene |
 | [`renders/classic/`](blender/renders/classic/) | eight stills at 1920×1080 |
-| [`renders/ultra/`](blender/renders/ultra/) | the same eight stills at 3840×2160 |
-| [`renders/harukaze_station_loop.mp4`](blender/renders/) | the full 32-second loop at 1920×1080, 24 fps |
+| [`renders/ultra/`](blender/renders/ultra/) | the same eight stills at 3840×2160 (JPEG, 24 samples) |
+| [`renders/harukaze_station_loop.mp4`](blender/renders/) | the full 32-second loop at 1920×1080, 24 fps (Classic) |
 
 The stills are `hero` and `hero_night` (the whole block), `platform`, `fumikiri` (the
 level crossing, arms down), `tunnel` (the train leaving the west portal beside the shrine),
@@ -113,7 +113,7 @@ level crossing, arms down), `tunnel` (the train leaving the west portal beside t
 | | Classic | Ultra |
 | - | ------- | ----- |
 | resolution | 1920×1080 | 3840×2160 |
-| samples, still / video | 16 / 8 | 64 / 16 |
+| samples, still / video | 16 / 4 | 64 / 16 |
 | petals | 460 | 1,100 |
 | edges | flat low-poly | bevelled buildings and subdivided crowns, bushes and clouds |
 | grass | painted | painted, plus a geometry-nodes meadow of grass tufts |
@@ -137,7 +137,9 @@ Options: `--quality classic|ultra`, `--frame N` (1–768; the default, 300, has 
 the platform), `--night`, `--resolution 1920x1080` and `--samples 32`. `--video` writes
 each frame as a PNG next to the video and skips frames already there, so a long render can
 be stopped and resumed, or split across runs with `--frames`. Once every frame exists it
-encodes them with `ffmpeg` (H.264). Building takes 10 to 30 seconds and the saved `.blend`
+encodes them with `ffmpeg` (H.264, BT.709). Videos render at 1920×1080 in both tiers
+unless `--resolution` says otherwise. `--samples` and `--resolution` only affect that run;
+a `.blend` saved in the same run keeps the tier's own settings. Building takes 10 to 30 seconds and the saved `.blend`
 packs its images and font, so it opens anywhere.
 
 ### What's in it
