@@ -30,6 +30,15 @@ turn from dawn to night. Synthesised music and sound, ships, gulls and fireworks
 
 **▶ [Play it](https://badboyvee.github.io/BlackHoleeee/seven-wonders/)** · [source](seven-wonders/)
 
+### 🌸 [Harukaze Station](harukaze-station/)
+
+A low-poly diorama of a rural Japanese railway station in spring, floating in a pastel sky.
+A two-car local leaves one tunnel, calls at the platform and rings the level crossing on its
+way into the other, while cherry petals drift on the wind. Toon shading with ink outlines,
+a night mode with lit windows and lamps, and every mesh and texture made in code.
+
+**▶ [Open it](https://badboyvee.github.io/BlackHoleeee/harukaze-station/)** · [source & prompt](harukaze-station/)
+
 ### 🚗 [BMW M5 CS](bmw-m5-cs/)
 
 A procedural BMW M5 CS model rendered in a studio lighting setup.
