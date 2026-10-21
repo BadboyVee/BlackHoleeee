@@ -61,8 +61,9 @@ The status line under the title says where the train is and when the next one is
 - **Few draw calls**: parts are collected per material while the scene is built,
   transformed into world space and merged. About 1,600 primitives go in; the scenery bakes
   down to 59 meshes, and the two-car train to 15 plus the eight door leaves that slide.
-- **Same scene every time**: all placement, jitter and painting comes from one seeded
-  random generator (mulberry32), drawn in a fixed order.
+- **Same scene every time**: the scenery's placement, jitter and painting come from one
+  seeded random generator (mulberry32), drawn in a fixed order. The petals and Ultra's
+  grass tufts have their own seeds, so they don't shift it.
 - **The timetable** is a pure function of a 32 s cycle time. That drives the train
   position, doors, crossing lamps, barrier arms and the status line, which is how the Train
   button can jump or queue the next run.
@@ -76,7 +77,8 @@ The status line under the title says where the train is and when the next one is
   tilt-shift blur for the miniature look and a light vignette. It also sharpens the shadow
   map to 4096², plants about 11,000 instanced grass tufts on the open grass and fills the
   air with 1,100 petals. Ultra is the default on larger screens and Classic on phones;
-  `?quality=classic` or `?quality=ultra` picks one, and the choice is remembered. If Ultra
+  `?quality=classic` or `?quality=ultra` picks one for that visit, and a choice made with
+  the button or `Q` is remembered. If Ultra
   can't hold its frame rate it steps down to Classic, unless you picked it yourself.
 - **Reduced motion**: with `prefers-reduced-motion`, the auto-orbit starts off, petals
   drift at a third of the speed, clouds stay still and day/night switches instantly.
@@ -106,7 +108,8 @@ Nothing has to be run to see it. These are built and rendered already:
 
 The stills are `hero` and `hero_night` (the whole block), `platform`, `fumikiri` (the
 level crossing, arms down), `tunnel` (the train leaving the west portal beside the shrine),
-`meadow` (under a cherry by the nanohana), `platform_night` and `map` (straight down).
+`paddies` (the flooded rice paddies between two cherries, the crossing and east portal
+behind), `platform_night` and `map` (straight down).
 
 ### Classic and Ultra
 
@@ -135,7 +138,8 @@ blender -b --python harukaze_station.py -- --video loop.mp4 --frames 1-200 # in 
 
 Options: `--quality classic|ultra`, `--frame N` (1–768; the default, 300, has the train at
 the platform), `--night`, `--resolution 1920x1080` and `--samples 32`. `--video` writes
-each frame as a PNG next to the video and skips frames already there, so a long render can
+each frame as a PNG into a `<name>_frames/` folder next to the video and skips frames
+already there, so a long render can
 be stopped and resumed, or split across runs with `--frames`. Once every frame exists it
 encodes them with `ffmpeg` (H.264, BT.709). Videos render at 1920×1080 in both tiers
 unless `--resolution` says otherwise. `--samples` and `--resolution` only affect that run;
@@ -152,13 +156,13 @@ packs its images and font, so it opens anywhere.
   - banks of nanohana (rapeseed) along the line
   - a small shrine at the foot of the west hill: a vermilion torii, a hokora and two
     stone lanterns, with a pair of jizō in red bibs by the road
-  - a bicycle shelter with seven bikes
-  - road furniture: a stop sign, a warning sign, a curve mirror, a bus stop and covered
-    gutters
+  - a bicycle shelter with six bikes, and a seventh parked nearby
+  - road furniture: stop signs and level-crossing warnings on both approaches, two curve
+    mirrors, a bus stop and covered gutters
   - a crossing with an emergency button and a lit direction arrow
   - tunnel plaques (桜台隧道, 山彦隧道)
-  - on the platform: an IC card reader, a mirror, a stop-position marker, a timetable and two
-    posters
+  - an IC card reader at the foot of the steps; on the platform a driver's mirror, a
+    stop-position marker, a timetable and three posters
   - houses with kawara tile roofs and engawa verandas
   - a train with wipers and destination boards
 - **Toon look in EEVEE**: one node group turns the light on a white diffuse surface into

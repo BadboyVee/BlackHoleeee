@@ -22,6 +22,7 @@ import argparse
 import math
 import os
 import sys
+import time
 
 import bpy  # first: as a pip module, bpy is what puts bmesh and mathutils on the path
 import bmesh
@@ -2972,18 +2973,52 @@ def png_complete(path):
         return False
 
 
+STALE = 600   # seconds: an unfinished file older than this was left by a run that died
+
+
+def render_settings(scene):
+    r = scene.render
+    return f"{scene.get('quality')} {r.resolution_x}x{r.resolution_y} {scene.eevee.taa_render_samples} samples"
+
+
+def read_stamps(folder):
+    """The settings each file in folder was rendered with, from render_settings.txt."""
+    stamps = {}
+    try:
+        with open(os.path.join(folder, 'render_settings.txt')) as fh:
+            for line in fh:
+                name, _, value = line.rstrip('\n').partition('\t')
+                stamps[name] = value
+    except OSError:
+        pass
+    return stamps
+
+
+def write_stamps(folder, stamps):
+    with open(os.path.join(folder, 'render_settings.txt'), 'w') as fh:
+        fh.writelines(f'{name}\t{value}\n' for name, value in sorted(stamps.items()))
+
+
 def render_shots(scene, shots, folder):
-    """Render the stills into folder, keeping any already finished there."""
+    """Render the stills into folder. A still already there is kept only if it was made
+    with the same settings and camera, so a stopped run resumes and a changed shot
+    renders again."""
     os.makedirs(folder, exist_ok=True)
     keep = scene.camera, scene['night']
+    stamps = read_stamps(folder)
     for name, cam, frame, night in shots:
-        if png_complete(os.path.join(folder, f'{name}.png')):
+        shot = next((s for s in SHOT_LIST if s[0] == name), None)
+        stamp = f'{render_settings(scene)} {shot!r}'
+        if png_complete(os.path.join(folder, f'{name}.png')) and stamps.get(name) == stamp:
+            print(f'Harukaze: kept {name}.png', flush=True)
             continue
         scene.camera = cam
         scene['night'] = night
         scene.frame_set(frame)
         scene.render.filepath = os.path.join(folder, f'{name}.png')
         bpy.ops.render.render(write_still=True)
+        stamps[name] = stamp
+        write_stamps(folder, stamps)
         print(f'Harukaze: shot {name}', flush=True)
     scene.camera, scene['night'] = keep
 
@@ -3164,14 +3199,28 @@ def show_in_viewport():
                     space.region_3d.view_perspective = 'CAMERA'
 
 
+def frame_path(folder, f):
+    return os.path.join(folder, f'frame_{f:04d}.png')
+
+
 def render_frames(scene, folder, first, last):
-    """Render frames first..last as one animation job into folder/frame_####.png. Frames
-    already on disk are kept, so a long render can be stopped and picked up again;
-    empty or cut-off files from a killed run are cleared first."""
+    """Render frames first..last as one animation job into folder/frame_####.png.
+    Finished frames made with the same settings are kept, so a long render can be
+    stopped and picked up again, and several workers can share the folder: each claims
+    a frame with an empty placeholder before rendering it. Unfinished files are cleared
+    once they are older than STALE, since the run that left them has died."""
     os.makedirs(folder, exist_ok=True)
+    stamps = read_stamps(folder)
+    settings = render_settings(scene)
+    fresh = stamps.get('frames', settings) != settings
+    if fresh:
+        print(f'Harukaze: frames in {folder} were made with {stamps["frames"]}; rendering them again', flush=True)
+    if fresh or 'frames' not in stamps:
+        write_stamps(folder, {**stamps, 'frames': settings})
+    now = time.time()
     for name in os.listdir(folder):
         path = os.path.join(folder, name)
-        if name.endswith('.png') and not png_complete(path):
+        if name.endswith('.png') and not png_complete(path) and now - os.path.getmtime(path) > STALE:
             os.remove(path)
     r = scene.render
     keep = scene.frame_start, scene.frame_end, r.filepath, r.use_overwrite, r.use_placeholder
@@ -3182,11 +3231,20 @@ def render_frames(scene, folder, first, last):
     scene.frame_start, scene.frame_end = first, last
     r.filepath = os.path.join(folder, 'frame_')
     r.use_file_extension = True
-    r.use_overwrite = False
+    r.use_overwrite = fresh
     r.use_placeholder = True
     bpy.app.handlers.render_write.append(report)
     try:
         bpy.ops.render.render(animation=True)
+        # sweep up frames whose placeholder was left by a worker that has since died
+        for f in range(first, last + 1):
+            path = frame_path(folder, f)
+            if png_complete(path) or (os.path.exists(path) and time.time() - os.path.getmtime(path) < STALE):
+                continue
+            scene.frame_set(f)
+            r.filepath = path
+            bpy.ops.render.render(write_still=True)
+            print(f'Harukaze: frame {f}/{last}', flush=True)
     finally:
         bpy.app.handlers.render_write.remove(report)
         scene.frame_start, scene.frame_end, r.filepath, r.use_overwrite, r.use_placeholder = keep
@@ -3200,11 +3258,23 @@ def encode_video(folder, out_path):
     if not ffmpeg:
         print('Harukaze: ffmpeg not found; frames are in', folder)
         return False
-    subprocess.run([ffmpeg, '-y', '-loglevel', 'error', '-framerate', str(FPS), '-i', os.path.join(folder, 'frame_%04d.png'),
-                    '-vf', 'scale=out_color_matrix=bt709:out_range=tv:flags=lanczos+accurate_rnd+full_chroma_int,format=yuv420p',
-                    '-c:v', 'libx264', '-preset', 'slow', '-tune', 'animation', '-crf', '15', '-g', str(FPS * 2),
-                    '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv',
-                    '-movflags', '+faststart', out_path], check=True)
+    lock = out_path + '.lock'
+    try:
+        os.close(os.open(lock, os.O_CREAT | os.O_EXCL))
+    except FileExistsError:
+        print(f'Harukaze: another worker is encoding {out_path} (delete {lock} if none is)', flush=True)
+        return False
+    tmp = f'{out_path}.{os.getpid()}.mp4'
+    try:
+        subprocess.run([ffmpeg, '-y', '-loglevel', 'error', '-framerate', str(FPS), '-i', os.path.join(folder, 'frame_%04d.png'),
+                        '-vf', 'scale=out_color_matrix=bt709:out_range=tv:flags=lanczos+accurate_rnd+full_chroma_int,format=yuv420p',
+                        '-c:v', 'libx264', '-preset', 'slow', '-tune', 'animation', '-crf', '15', '-g', str(FPS * 2),
+                        '-colorspace', 'bt709', '-color_primaries', 'bt709', '-color_trc', 'bt709', '-color_range', 'tv',
+                        '-movflags', '+faststart', tmp], check=True)
+        os.replace(tmp, out_path)
+    finally:
+        os.remove(lock)
+    print(f'Harukaze: encoded {out_path}', flush=True)
     return True
 
 
@@ -3249,8 +3319,12 @@ def main():
         folder = os.path.splitext(out)[0] + '_frames'
         first, last = (int(v) for v in (args.frames or f'1-{FRAMES}').split('-'))
         render_frames(scene, folder, first, last)
-        if all(png_complete(os.path.join(folder, f'frame_{f:04d}.png')) for f in range(1, FRAMES + 1)):
+        missing = [f for f in range(1, FRAMES + 1) if not png_complete(frame_path(folder, f))]
+        if not missing:
             encode_video(folder, out)
+        else:
+            print(f'Harukaze: {len(missing)} frames are not rendered yet (from frame {missing[0]}); another '
+                  'worker may still be on them. Run the same command again to finish and encode.', flush=True)
     show_in_viewport()
 
 
