@@ -48,6 +48,7 @@ vending machines are painted on canvases at load.
 | Day / Night (`N`)      | switch the time of day                   |
 | Orbit (`O`)            | turn the slow auto-orbit on or off       |
 | Train (`T`)            | call the next train now, or right after the current one |
+| Classic / Ultra (`Q`)  | switch the render quality                |
 
 The status line under the title says where the train is and when the next one is due.
 
@@ -70,6 +71,13 @@ The status line under the title says where the train is and when the next one is
 - **Phones**: the camera fits the block to the screen's aspect and lifts it above the
   interface. Phones render at a capped pixel ratio, and the resolution drops once if the
   frame rate stays low.
+- **Classic and Ultra**: Classic is the scene as designed. Ultra draws it through an
+  `EffectComposer`: 4× MSAA in a half-float target, a soft bloom that grows at night, a
+  tilt-shift blur for the miniature look and a light vignette. It also sharpens the shadow
+  map to 4096², plants about 11,000 instanced grass tufts on the open grass and fills the
+  air with 1,100 petals. Ultra is the default on larger screens and Classic on phones;
+  `?quality=classic` or `?quality=ultra` picks one, and the choice is remembered. If Ultra
+  can't hold its frame rate it steps down to Classic, unless you picked it yourself.
 - **Reduced motion**: with `prefers-reduced-motion`, the auto-orbit starts off, petals
   drift at a third of the speed, clouds stay still and day/night switches instantly.
 
@@ -78,44 +86,100 @@ Add `?debug` to the URL to expose `window.__station` (jump the timetable, read d
 ## Blender version
 
 ![Harukaze Station rendered in Blender, by day](blender/preview-day.jpg)
-![The same diorama at night, the train at the platform and the crossing ringing](blender/preview-night.jpg)
+![The same diorama at night, the train leaving and the crossing ringing](blender/preview-night.jpg)
 
 [`blender/harukaze_station.py`](blender/harukaze_station.py) builds the same diorama in
-Blender, from code alone like the web version. It needs Blender 4.2 LTS or newer and was
-tested on 4.2 and 5.2.
+Blender, from code alone like the web version, and adds a good deal the web version leaves
+out. It needs Blender 4.2 LTS or newer and was tested on 4.2 and 5.2.
+
+### Ready to open
+
+Nothing has to be run to see it. These are built and rendered already:
+
+| file | what it is |
+| ---- | ---------- |
+| [`build/harukaze_station_classic.blend`](blender/build/) | the Classic scene, images and font packed in |
+| [`build/harukaze_station_ultra.blend`](blender/build/) | the Ultra scene |
+| [`renders/classic/`](blender/renders/classic/) | eight stills at 1920×1080 |
+| [`renders/ultra/`](blender/renders/ultra/) | the same eight stills at 3840×2160 |
+| [`renders/harukaze_station_loop.mp4`](blender/renders/) | the full 32-second loop at 1920×1080, 24 fps |
+
+The stills are `hero` and `hero_night` (the whole block), `platform`, `fumikiri` (the
+level crossing, arms down), `tunnel` (the train leaving the west portal beside the shrine),
+`meadow` (under a cherry by the nanohana), `platform_night` and `map` (straight down).
+
+### Classic and Ultra
+
+| | Classic | Ultra |
+| - | ------- | ----- |
+| resolution | 1920×1080 | 3840×2160 |
+| samples, still / video | 16 / 8 | 64 / 16 |
+| petals | 460 | 1,100 |
+| edges | flat low-poly | bevelled buildings and subdivided crowns, bushes and clouds |
+| grass | painted | painted, plus a geometry-nodes meadow of grass tufts |
+| camera | sharp | depth of field and motion blur |
+| bloom, soft shadows | lighter | stronger, with more shadow rays |
+
+### Build and render it yourself
 
 ```sh
-blender --python harukaze_station.py                    # build it, then look around
-blender -b --python harukaze_station.py -- --save harukaze_station.blend
+blender --python harukaze_station.py                               # build it and look around
+blender -b --python harukaze_station.py -- --save station.blend    # save the Classic scene
+blender -b --python harukaze_station.py -- --quality ultra --save station_ultra.blend
 blender -b --python harukaze_station.py -- --render day.png
-blender -b --python harukaze_station.py -- --render night.png --night --frame 340
-blender -b --python harukaze_station.py -- --render-anim frames/
+blender -b --python harukaze_station.py -- --render night.png --night --frame 430
+blender -b --python harukaze_station.py -- --shots stills/                 # the eight stills
+blender -b --python harukaze_station.py -- --video loop.mp4                # the 32 s loop
+blender -b --python harukaze_station.py -- --video loop.mp4 --frames 1-200 # in parts
 ```
 
-Options: `--frame N` (1–768; the default, 300, has the train at the platform), `--night`,
-`--resolution 1920x1080` and `--samples 32`. Building takes about ten seconds and the saved
-`.blend` (about 14 MB) packs its images and font, so it opens anywhere.
+Options: `--quality classic|ultra`, `--frame N` (1–768; the default, 300, has the train at
+the platform), `--night`, `--resolution 1920x1080` and `--samples 32`. `--video` writes
+each frame as a PNG next to the video and skips frames already there, so a long render can
+be stopped and resumed, or split across runs with `--frames`. Once every frame exists it
+encodes them with `ffmpeg` (H.264). Building takes 10 to 30 seconds and the saved `.blend`
+packs its images and font, so it opens anywhere.
 
-- **The same scene**: the layout, timetable and seeded random generator are ported from
-  `index.html`, so the block, station, crossing, village and trees match the web version.
+### What's in it
+
+- **The same scene, and more**: the layout, timetable and seeded random generator are
+  ported from `index.html`, so the block, station, crossing, village and trees match the
+  web version. On top of that, from a second seeded generator so the shared layout
+  doesn't move:
+  - two flooded rice paddies with levees, one planted with seedlings
+  - banks of nanohana (rapeseed) along the line
+  - a small shrine at the foot of the west hill: a vermilion torii, a hokora and two
+    stone lanterns, with a pair of jizō in red bibs by the road
+  - a bicycle shelter with seven bikes
+  - road furniture: a stop sign, a warning sign, a curve mirror, a bus stop and covered
+    gutters
+  - a crossing with an emergency button and a lit direction arrow
+  - tunnel plaques (桜台隧道, 山彦隧道)
+  - on the platform: an IC card reader, a mirror, a stop-position marker, a timetable and two
+    posters
+  - houses with kawara tile roofs and engawa verandas
+  - a train with wipers and destination boards
 - **Toon look in EEVEE**: one node group turns the light on a white diffuse surface into
   flat bands with Shader to RGB and a constant colour ramp, but keeps its colour, so
   moonlight stays blue and lamplight warm. Ink outlines are inverted hulls (a Solidify
   modifier with flipped normals and a back-face-culled ink material), the same trick
   `OutlineEffect` uses. Every merged mesh sets its own line width.
-- **Painted textures**: the grass, with its fallen petals, and the road and vending-machine
-  fronts are painted into images with numpy and packed into the file. The signs, the name
-  board and 止まれ are text objects in Blender's bundled Noto Sans CJK, scaled to a
-  measured glyph height.
+- **Painted textures**: the grass, with its fallen petals, mud under the paddies and gravel
+  at the shrine, the road, the vending-machine fronts, the timetable and the posters are
+  painted into images with numpy and packed into the file. The signs, the name board and
+  止まれ are text objects in Blender's bundled Noto Sans CJK, scaled to a measured glyph
+  height.
 - **The tunnels**: every train material goes transparent outside the two tunnel mouths,
   which does the job of the web version's clipping planes.
-- **One seamless 32 s loop** (768 frames at 24 fps): the train, doors, barrier arms and
-  alternating crossing lamps are keyed frame by frame from the timetable. Each of about 460
-  geometry-nodes petals falls from a blossom crown on a period that divides 32 s. The
-  camera makes one full turn per loop.
+- **One seamless 32 s loop** (768 frames at 24 fps): the train, doors, barrier arms,
+  alternating crossing lamps and direction arrow are keyed frame by frame from the
+  timetable. Each geometry-nodes petal falls from a blossom crown on a period that divides
+  32 s. The camera makes one full turn per loop, easing past the station. It dollies in
+  and out to keep the block filling the frame.
 - **Day to night**: drag the `night` custom property (Scene properties > Custom
-  Properties) from 0 to 1. Drivers fade the sky, sun, ambient light, lamps, lit windows,
-  glows, stars and the train's headlight.
+  Properties) from 0 to 1. Drivers fade the sky, sun and ambient light. They bring up a
+  starfield and light the lamps, windows, glows and the train's headlight. Uplights turn the
+  cherries into yozakura, and the greens shift toward blue.
 
 ## The prompt
 

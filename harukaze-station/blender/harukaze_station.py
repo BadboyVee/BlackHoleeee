@@ -2909,14 +2909,15 @@ def build_camera(coll):
 
 
 # Authored stills: (name, eye, target in the web frame, frame, night, vertical fov,
-# f-stop for Ultra's depth of field, or 'ortho' for the map)
+# f-stop for Ultra's depth of field, or 'ortho' for the map). With no eye the still is
+# taken from the orbit camera at that frame, dollied in by the factor in the fov slot.
 SHOT_LIST = [
-    ('hero', None, None, HERO_FRAME, 0.0, None, None),
-    ('hero_night', None, None, 430, 1.0, None, None),
+    ('hero', None, None, HERO_FRAME, 0.0, 0.84, None),
+    ('hero_night', None, None, 430, 1.0, 0.84, None),
     ('platform', (9.2, PLAT['h'] + 1.55, -5.7), (-6.0, PLAT['h'] + 1.3, -4.2), 300, 0.0, 40, 1.4),
     ('fumikiri', (16.9, 1.15, 9.8), (15.6, 2.1, -1.0), 486, 0.0, 36, 1.8),
-    ('tunnel', (-27.5, 12.5, 8.0), (-19.5, 2.2, -1.0), 64, 0.0, 38, 2.8),
-    ('meadow', (-12.0, 4.0, 14.0), (-2.0, 1.5, 6.0), HERO_FRAME, 0.0, 34, 1.2),
+    ('tunnel', (-11.5, 5.6, -10.5), (-21.5, 2.6, -2.0), 64, 0.0, 36, 2.8),
+    ('paddies', (-2.5, 3.6, -19.2), (8.0, 1.2, -9.0), HERO_FRAME, 0.0, 40, 2.0),
     ('platform_night', (-12.6, PLAT['h'] + 2.2, -9.4), (2.0, PLAT['h'] + 1.0, -3.2), 300, 1.0, 40, 1.6),
     ('map', (0.0, 140.0, 0.0), (0.0, 0.0, 0.0), HERO_FRAME, 0.0, 'ortho', None),
 ]
@@ -2928,7 +2929,16 @@ def build_shots(coll):
     shots = []
     for name, eye, target, frame, night, fov, fstop in SHOT_LIST:
         if eye is None:
-            shots.append((name, SCENE.camera, frame, night))
+            SCENE.frame_set(frame)
+            orbit = SCENE.camera
+            cam = bpy.data.objects.new(f'Shot {name}', orbit.data.copy())
+            coll.objects.link(cam)
+            t = Vector(to_blender(ORBIT_TARGET))
+            loc, rot, _ = orbit.matrix_world.decompose()
+            cam.location = t + (loc - t) * fov
+            cam.rotation_euler = rot.to_euler()
+            cam.data.shift_y = -0.04      # the block sits below the orbit target on screen
+            shots.append((name, cam, frame, night))
             continue
         data = bpy.data.cameras.new(f'Shot {name}')
         data.clip_start, data.clip_end = 0.1, 3000
@@ -3155,8 +3165,7 @@ def render_frames(scene, folder, first, last):
 
 
 def encode_video(folder, out_path):
-    """Encode the PNG frames to H.264 with ffmpeg (system ffmpeg, or the one bundled
-    with Blender's Python modules if present)."""
+    """Encode the PNG frames to H.264 with the ffmpeg found on the PATH."""
     import shutil
     import subprocess
     ffmpeg = shutil.which('ffmpeg')
@@ -3178,7 +3187,7 @@ def main():
     ap.add_argument('--render', metavar='PNG', help='render one frame to this file')
     ap.add_argument('--video', metavar='MP4', help='render the 32 s loop and encode it as an H.264 video')
     ap.add_argument('--frames', metavar='A-B', help=f'with --video, render only frames A to B (default 1-{FRAMES})')
-    ap.add_argument('--shots', metavar='DIR', help='render the authored stills (hero, platform, crossing, tunnel, night...) into DIR')
+    ap.add_argument('--shots', metavar='DIR', help='render the authored stills (hero, platform, crossing, tunnel, paddies, night...) into DIR')
     ap.add_argument('--save', metavar='BLEND', help='save the scene as a .blend file')
     ap.add_argument('--resolution', metavar='WxH', help='override the tier resolution, e.g. 1920x1080')
     ap.add_argument('--samples', type=int, help='override the tier sample count')
@@ -3186,13 +3195,16 @@ def main():
 
     scene = make_scene()
     build(scene, 1.0 if args.night else 0.0, args.quality)
-    configure_render(scene, args.quality, args.samples)
+    configure_render(scene, args.quality)
+    scene.frame_set(args.frame)
+    if args.save:
+        # saved with the tier's own settings; --samples and --resolution only steer this run
+        bpy.ops.wm.save_as_mainfile(filepath=os.path.abspath(args.save), compress=True)
+    if args.samples:
+        scene.eevee.taa_render_samples = args.samples
     if args.resolution:
         w, h = (int(v) for v in args.resolution.lower().split('x'))
         scene.render.resolution_x, scene.render.resolution_y = w, h
-    scene.frame_set(args.frame)
-    if args.save:
-        bpy.ops.wm.save_as_mainfile(filepath=os.path.abspath(args.save), compress=True)
     if args.render:
         scene.render.filepath = os.path.abspath(args.render)
         bpy.ops.render.render(write_still=True)
