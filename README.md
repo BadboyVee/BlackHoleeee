@@ -35,9 +35,10 @@ turn from dawn to night. Synthesised music and sound, ships, gulls and fireworks
 A low-poly diorama of a rural Japanese railway station in spring, floating in a pastel sky.
 A two-car local leaves one tunnel, calls at the platform and rings the level crossing on its
 way into the other, while cherry petals drift on the wind. Toon shading with ink outlines,
-a night mode with lit windows and lamps, and every mesh and texture made in code.
+a night mode with lit windows and lamps, and every mesh and texture made in code. A Python
+script rebuilds the same diorama in Blender, animated as a seamless 32-second loop.
 
-**▶ [Open it](https://badboyvee.github.io/BlackHoleeee/harukaze-station/)** · [source & prompt](harukaze-station/)
+**▶ [Open it](https://badboyvee.github.io/BlackHoleeee/harukaze-station/)** · [source & prompt](harukaze-station/) · [Blender version](harukaze-station/blender/)
 
 ### 🚗 [BMW M5 CS](bmw-m5-cs/)
 

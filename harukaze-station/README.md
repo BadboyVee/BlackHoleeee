@@ -75,6 +75,48 @@ The status line under the title says where the train is and when the next one is
 
 Add `?debug` to the URL to expose `window.__station` (jump the timetable, read draw calls).
 
+## Blender version
+
+![Harukaze Station rendered in Blender, by day](blender/preview-day.jpg)
+![The same diorama at night, the train at the platform and the crossing ringing](blender/preview-night.jpg)
+
+[`blender/harukaze_station.py`](blender/harukaze_station.py) builds the same diorama in
+Blender, from code alone like the web version. It needs Blender 4.2 LTS or newer and was
+tested on 4.2 and 5.2.
+
+```sh
+blender --python harukaze_station.py                    # build it, then look around
+blender -b --python harukaze_station.py -- --save harukaze_station.blend
+blender -b --python harukaze_station.py -- --render day.png
+blender -b --python harukaze_station.py -- --render night.png --night --frame 340
+blender -b --python harukaze_station.py -- --render-anim frames/
+```
+
+Options: `--frame N` (1–768; the default, 300, has the train at the platform), `--night`,
+`--resolution 1920x1080` and `--samples 32`. Building takes about ten seconds and the saved
+`.blend` (about 14 MB) packs its images and font, so it opens anywhere.
+
+- **The same scene**: the layout, timetable and seeded random generator are ported from
+  `index.html`, so the block, station, crossing, village and trees match the web version.
+- **Toon look in EEVEE**: one node group turns the light on a white diffuse surface into
+  flat bands with Shader to RGB and a constant colour ramp, but keeps its colour, so
+  moonlight stays blue and lamplight warm. Ink outlines are inverted hulls (a Solidify
+  modifier with flipped normals and a back-face-culled ink material), the same trick
+  `OutlineEffect` uses. Every merged mesh sets its own line width.
+- **Painted textures**: the grass, with its fallen petals, and the road and vending-machine
+  fronts are painted into images with numpy and packed into the file. The signs, the name
+  board and 止まれ are text objects in Blender's bundled Noto Sans CJK, scaled to a
+  measured glyph height.
+- **The tunnels**: every train material goes transparent outside the two tunnel mouths,
+  which does the job of the web version's clipping planes.
+- **One seamless 32 s loop** (768 frames at 24 fps): the train, doors, barrier arms and
+  alternating crossing lamps are keyed frame by frame from the timetable. Each of about 460
+  geometry-nodes petals falls from a blossom crown on a period that divides 32 s. The
+  camera makes one full turn per loop.
+- **Day to night**: drag the `night` custom property (Scene properties > Custom
+  Properties) from 0 to 1. Drivers fade the sky, sun, ambient light, lamps, lit windows,
+  glows, stars and the train's headlight.
+
 ## The prompt
 
 ```
