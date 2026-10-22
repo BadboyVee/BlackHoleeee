@@ -1,4 +1,4 @@
-import type { ApplicationRow, CreatorProfile, InviteRow, PayoutDetails } from "./queries";
+import type { ApplicationRow, CreatorProfile, InviteRow, PayoutDetails, SignupRow } from "./queries";
 
 /*
  * Sample onboarding data, shown until Supabase is connected so every screen
@@ -151,6 +151,12 @@ export const demoApplications: ApplicationRow[] = [
     referrer: null,
     reviewer: { displayName: "You" },
   },
+];
+
+/** People who made an account and never sent the form. */
+export const demoSignups: SignupRow[] = [
+  { id: "demo-u-tobi", email: "tobi@example.com", displayName: "Tobi Adeyemi", createdAt: "2026-11-03T16:40:00Z" },
+  { id: "demo-u-sara", email: "sara@example.com", displayName: "Sara Lind", createdAt: "2026-11-02T10:05:00Z" },
 ];
 
 export const demoInvites: InviteRow[] = [

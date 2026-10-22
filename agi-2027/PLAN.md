@@ -438,7 +438,9 @@ What's in it:
 - **Privacy** and **Terms** in plain words, written from what the site does today.
 - **Search and link previews:** a title and description on every page, a link-preview image for
   the home page, Book a campaign and Open campaigns, canonical links, `sitemap.xml` and
-  `robots.txt`.
+  `robots.txt`. Since 22 Oct 2026 every page except Book a campaign shares one preview: the
+  Poussin painting from the Renaissance look with the AGI 2027 wordmark and nothing else
+  (`src/app/opengraph-image.jpg`, under 300 KB so WhatsApp shows it).
 - **Safe to go live:** on the live site, `/admin`, `/dashboard` and `/styleguide` send visitors
   home until sign in exists (M3), and "Built in Milestone N" notes are hidden. Preview links
   still show everything. Apply, Sign in and password reset offer an email link meanwhile.
@@ -570,7 +572,9 @@ What's in it:
   links to their X and other profiles, their three posts, who referred them, and a private team
   note. Pick Approve or Reject, then one button sends the decision and the email, so a stray
   tap can't decide anything. If two people decide at once, the second is told who got there
-  first.
+  first. A Not applied tab (22 Oct 2026) lists everyone who made an account but never sent the
+  form, newest first, with their email and a Remind button that opens a ready email with the
+  apply link in your mail app.
 - **Invite links** in the admin (`/admin/invites`, admin only): a label only you see, an
   optional use limit and an expiry (never, a day, a week, 30 or 90 days). Copy a link, see how
   many have used it, and switch it off. Anyone who signs up through a link and taps Accept is

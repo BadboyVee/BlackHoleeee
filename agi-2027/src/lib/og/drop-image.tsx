@@ -5,6 +5,8 @@ import { ogFonts } from "./fonts";
 /*
  * Link preview images in the Drop look: a juicy red field, one giant Anton
  * word, the thing we sell standing in front of it, and the AGI 2027 wordmark.
+ * Only /book uses it now; the site's default preview is the painting in
+ * src/app/opengraph-image.jpg.
  * Satori draws these, so the colors are written out here (it can't read CSS
  * variables) and every box is flex. Text stays plain ASCII: a missing glyph
  * would make next/og fetch a font from the network.
@@ -163,74 +165,6 @@ export function dropImage({ word, kicker, line, cta, children }: DropImageOption
 }
 
 /* ---------------------------------------------------------- foregrounds */
-
-/** A launch post, standing in front of the word like the phone in the Drop hero. */
-export function OgLaunchPost() {
-  const bar = (width: number) => (
-    <div style={{ display: "flex", width, height: 14, borderRadius: 999, backgroundColor: LINE }} />
-  );
-  return (
-    <div
-      style={{
-        position: "absolute",
-        left: 430,
-        top: 128,
-        width: 340,
-        display: "flex",
-        flexDirection: "column",
-        gap: 16,
-        padding: 26,
-        borderRadius: 36,
-        backgroundColor: PAPER,
-        color: INK,
-        boxShadow: "0 40px 80px rgba(70,0,0,0.45)",
-        transform: "rotate(-5deg)",
-      }}
-    >
-      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-        <div
-          style={{
-            display: "flex",
-            width: 52,
-            height: 52,
-            borderRadius: 999,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: RED,
-          }}
-        >
-          <Spark size={26} color="white" />
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {bar(150)}
-          {bar(96)}
-        </div>
-      </div>
-      {/* The opening words of a real launch post, Kled V3 (src/lib/showcase-posts.ts). */}
-      <div style={{ display: "flex", fontSize: 24, lineHeight: 1.3 }}>This is Kled V3.</div>
-      <div
-        style={{
-          display: "flex",
-          height: 128,
-          borderRadius: 22,
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundImage: "linear-gradient(135deg, #1e6bff 0%, #5b2ee8 100%)",
-        }}
-      >
-        <Spark size={64} color="white" />
-      </div>
-      <div style={{ display: "flex", gap: 22, alignItems: "center" }}>
-        {[54, 44, 64].map((width, index) => (
-          <div key={index} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <div style={{ display: "flex", width: 18, height: 18, borderRadius: 999, border: `3px solid ${MUTED}` }} />
-            {bar(width)}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 /** The Book a campaign form, in short. */
 export function OgBookingForm() {
