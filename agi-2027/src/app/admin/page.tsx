@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, ArrowUpRight } from "lucide-react";
@@ -18,6 +19,7 @@ import {
 } from "@/components/admin/demo-insights";
 import { MoneyList } from "@/components/admin/money-figure";
 import { ActivityChart } from "@/components/admin/overview/activity-chart";
+import { LiveOverview, LiveOverviewSkeleton } from "@/components/admin/overview/live-overview";
 import { Panel } from "@/components/admin/panel";
 import { LocalWhen } from "@/components/admin/time-text";
 import { StatusBadge } from "@/components/status-badge";
@@ -25,6 +27,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { clientById, demoCampaigns, type DemoCampaign } from "@/lib/campaigns/demo";
 import type { ClaimStatus } from "@/lib/statuses";
+import { showSampleData } from "@/lib/sample-data";
 import { formatCountdown } from "@/lib/time";
 import { cn } from "@/lib/utils";
 
@@ -125,7 +128,24 @@ function ReviewRow({ item }: { item: ReviewItem }) {
   );
 }
 
+/**
+ * Preview links show the sample overview, set on Nebula's launch day. The
+ * live site shows only real numbers: applications and sign ups, read with the
+ * staff member's session, so they stream in.
+ */
 export default function AdminOverviewPage() {
+  if (showSampleData()) return <SampleOverview />;
+  return (
+    <>
+      <AdminPageHeader title="Overview" description="Your creators and applications at a glance." />
+      <Suspense fallback={<LiveOverviewSkeleton />}>
+        <LiveOverview />
+      </Suspense>
+    </>
+  );
+}
+
+function SampleOverview() {
   const queue = reviewQueue();
   const live = campaignsByStatus("live");
   const full = campaignsByStatus("full");

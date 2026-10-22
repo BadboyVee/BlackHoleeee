@@ -9,6 +9,8 @@ import { Lock, Plus } from "lucide-react";
 import { Logo } from "@/components/brand/logo";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { showSampleData } from "@/lib/sample-data";
+
 import { adminNavGroups, isActiveAdminPath, type AdminNavItem } from "./admin-nav";
 import { springMove } from "./motion";
 
@@ -125,8 +127,9 @@ export function AdminNav(props: { layoutKey: string; onNavigate?: () => void }) 
   );
 }
 
-/** A quiet reminder that nothing here is saved yet. */
+/** A quiet reminder that nothing here is saved yet. Preview links only. */
 export function PreviewNote({ className }: { className?: string }) {
+  if (!showSampleData()) return null;
   return (
     <div className={cn("flex items-start gap-2.5 px-2 py-1.5", className)}>
       <span aria-hidden className="mt-[7px] size-1.5 shrink-0 rounded-full bg-(--tone-amber)" />
@@ -148,20 +151,27 @@ export function AdminSidebar() {
           Admin
         </span>
       </div>
-      <div className="px-3 pt-1 pb-4">
-        <Button asChild className="w-full">
-          <Link href="/admin/campaigns/new">
-            <Plus aria-hidden />
-            New campaign
-          </Link>
-        </Button>
-      </div>
+      {/* The builder only saves on preview links for now, so the live site doesn't offer it. */}
+      {showSampleData() ? (
+        <div className="px-3 pt-1 pb-4">
+          <Button asChild className="w-full">
+            <Link href="/admin/campaigns/new">
+              <Plus aria-hidden />
+              New campaign
+            </Link>
+          </Button>
+        </div>
+      ) : (
+        <div className="pb-2" />
+      )}
       <nav aria-label="Admin sections" className="min-h-0 flex-1 overflow-y-auto px-3 pb-4">
         <AdminNav layoutKey="sidebar" />
       </nav>
-      <div className="border-t px-3 py-3">
-        <PreviewNote />
-      </div>
+      {showSampleData() ? (
+        <div className="border-t px-3 py-3">
+          <PreviewNote />
+        </div>
+      ) : null}
     </aside>
   );
 }

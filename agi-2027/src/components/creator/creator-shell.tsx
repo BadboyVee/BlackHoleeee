@@ -1,5 +1,6 @@
 import { SkipLink } from "@/components/layout/skip-link";
-import { buildCreatorDemo } from "@/lib/campaigns/demo-creator";
+import { buildCreatorWorld } from "@/lib/campaigns/demo-creator";
+import { showSampleData } from "@/lib/sample-data";
 
 import { CreatorDemoProvider } from "./creator-data";
 import { CreatorMotion, CreatorRail, CreatorTabBar } from "./creator-nav";
@@ -11,10 +12,11 @@ import { CreatorTopBar } from "./creator-top-bar";
  * one centered column on desktop, big tap targets and springy motion.
  *
  * The demo data is trimmed to what a creator may see here, on the server, and
- * handed to the client once.
+ * handed to the client once. The live site hands over an empty world instead:
+ * no sample campaigns, claims or earnings.
  */
 function CreatorShell({ children }: { children: React.ReactNode }) {
-  const demo = buildCreatorDemo();
+  const demo = buildCreatorWorld(showSampleData());
 
   return (
     <CreatorDemoProvider value={demo}>
