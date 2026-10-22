@@ -2906,7 +2906,64 @@ def build_camera(coll):
         cam.keyframe_insert('location', frame=f)
     set_interpolation(rig, 'LINEAR')
     set_interpolation(cam, 'LINEAR')
-    return rig
+    return distances
+
+
+ZOOM_CLOSE = 26.0                          # camera distance at the closest, metres
+ZOOM_VIEW = (0.46, 0.66, 0.71)             # steeper when close, ~38 deg up, to see over the cherries
+ZOOM_IN = (1.5, 8.5)                       # seconds: wide -> close as the train comes in
+ZOOM_OUT = (20.5, 27.0)                    # close -> wide once it has cleared the crossing
+
+
+def zoom_amount(t):
+    def ease(a, b):
+        u = min(max((t - a) / (b - a), 0.0), 1.0)
+        return u * u * (3 - 2 * u)
+    return ease(*ZOOM_IN) * (1 - ease(*ZOOM_OUT))
+
+
+def build_zoom_camera(coll, distances):
+    """A second camera on the same eased orbit that swoops in on the train: wide at the
+    start, close by the time it reaches the platform, following it out over the crossing,
+    and wide again before the loop ends. Outside the zoom it is the orbit camera exactly,
+    so this loop is seamless too."""
+    rig = bpy.data.objects.new('Zoom', None)
+    coll.objects.link(rig)
+    cam_data = bpy.data.cameras.new('Zoom camera')
+    cam_data.sensor_fit = 'VERTICAL'
+    cam_data.angle_y = FOV_Y
+    cam_data.clip_start = 0.5
+    cam_data.clip_end = 3000
+    cam_data.dof.use_dof = Q['dof']
+    cam_data.dof.focus_object = rig
+    cam_data.dof.aperture_fstop = max(Q['fstop'], 0.01) * 4
+    cam_data.dof.aperture_blades = 6
+    cam = bpy.data.objects.new('Zoom camera', cam_data)
+    coll.objects.link(cam)
+    cam.parent = rig
+    track = cam.constraints.new('TRACK_TO')
+    track.target = rig
+    track.track_axis = 'TRACK_NEGATIVE_Z'
+    track.up_axis = 'UP_Y'
+    # what to look at: the train, held inside the stretch between the portals, smoothed over 1 s
+    raw = [min(max(train_x((f - 1) / FPS), -14.0), 15.0) for f in range(1, FRAMES + 1)]
+    half = FPS
+    focus_x = [sum(raw[(i + k) % FRAMES] for k in range(-half, half + 1)) / (2 * half + 1) for i in range(FRAMES)]
+    wide_target = Vector(to_blender(ORBIT_TARGET))
+    wide_view = Vector(to_blender(ORBIT_VIEW)).normalized()
+    close_view = Vector(to_blender(ZOOM_VIEW)).normalized()
+    for f in range(1, FRAMES + 2):
+        i = (f - 1) % FRAMES
+        z = zoom_amount(i / FPS)
+        rig.location = wide_target.lerp(Vector(to_blender((focus_x[i], 1.6, -1.8))), z)
+        rig.rotation_euler.z = orbit_yaw(f)
+        rig.keyframe_insert('location', frame=f)
+        rig.keyframe_insert('rotation_euler', index=2, frame=f)
+        cam.location = wide_view.lerp(close_view, z).normalized() * (distances[i] ** (1 - z) * ZOOM_CLOSE ** z)
+        cam.keyframe_insert('location', frame=f)
+    set_interpolation(rig, 'LINEAR')
+    set_interpolation(cam, 'LINEAR')
+    return cam
 
 
 # Authored stills: (name, eye, target in the web frame, frame, night, vertical fov,
@@ -3139,7 +3196,7 @@ def build(scene, night=0.0, quality='classic'):
     build_world()
     build_lights(lights, train)
     build_glows(lights, train)
-    build_camera(lights)
+    build_zoom_camera(lights, build_camera(lights))
     SHOTS[:] = build_shots(collection('Shots', root))
     animate(train, doors, arms, train)
 
@@ -3211,7 +3268,7 @@ def render_frames(scene, folder, first, last):
     once they are older than STALE, since the run that left them has died."""
     os.makedirs(folder, exist_ok=True)
     stamps = read_stamps(folder)
-    settings = render_settings(scene)
+    settings = f'{render_settings(scene)} {scene.camera.name}'
     fresh = stamps.get('frames', settings) != settings
     if fresh:
         print(f'Harukaze: frames in {folder} were made with {stamps["frames"]}; rendering them again', flush=True)
@@ -3291,6 +3348,8 @@ def main():
     ap.add_argument('--save', metavar='BLEND', help='save the scene as a .blend file')
     ap.add_argument('--resolution', metavar='WxH', help='override the tier resolution, e.g. 1920x1080')
     ap.add_argument('--samples', type=int, help='override the tier sample count')
+    ap.add_argument('--camera', choices=('orbit', 'zoom'), default='orbit',
+                    help='for --render and --video: the slow orbit, or the camera that swoops in on the train')
     args = ap.parse_args(argv)
 
     scene = make_scene()
@@ -3305,6 +3364,8 @@ def main():
     if args.resolution:
         w, h = (int(v) for v in args.resolution.lower().split('x'))
         scene.render.resolution_x, scene.render.resolution_y = w, h
+    if args.camera == 'zoom':
+        scene.camera = bpy.data.objects['Zoom camera']
     if args.render:
         scene.render.filepath = os.path.abspath(args.render)
         bpy.ops.render.render(write_still=True)
