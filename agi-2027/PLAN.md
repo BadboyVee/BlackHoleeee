@@ -28,6 +28,16 @@ updated at the end of every milestone.
 - **Database changes are code:** SQL migrations in `supabase/migrations/`, never clicks in the
   dashboard. GitHub Actions applies them to dev on every branch push (repository secret
   `DEV_DATABASE_URL`); at launch a second job applies them to production from `main`.
+- **Live database** (22 Oct 2026): the Supabase project `agi2027-dev` (US East, next to
+  Netlify's servers) has every table, rule and function from the six migrations, checked object
+  by object against them, and its migration history lists all six. The live site reaches it
+  through `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` and
+  `NEXT_PUBLIC_SITE_URL`, set on Netlify for production only, so preview links keep showing
+  sample data and never write to it. Real applications land here until the production project
+  exists. Still to do: `SUPABASE_SECRET_KEY` on Netlify (you paste it; it turns on the booking
+  form, emails and the sign in rate limits), an email sender so confirmation emails reach
+  creators (until then "Confirm email" stays off in Supabase), and the `DEV_DATABASE_URL`
+  GitHub secret so later migrations apply themselves.
 - **Checks on every push:** GitHub Actions runs lint, typecheck, unit tests, database tests
   against a real Postgres, and a production build (`.github/workflows/agi-2027.yml`).
 - **This build environment** can't reach Supabase, Resend, Telegram or X, and doesn't need to:
@@ -243,8 +253,8 @@ How I read the rules:
 | -- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------- | ----------- |
 | 1  | Setup              | Preview link on your phone: light/dark toggle, the design system page (colors, type, buttons, badges, cards, forms, skeletons), empty public, portal and admin layouts | Supabase (dev), Vercel, one GitHub secret                       | Done, merged 11 Oct 2026 |
 | 2  | Public website     | Full home page with the 3D hero, the open campaigns board from demo data, Book a campaign saving to the database and emailing you                 | Resend (its test sender works until your domain is verified)   | Done, merged 13 Oct 2026 |
-| 3  | Accounts           | Google and email sign up, email verification, password reset, log out, routing by role, private pages sending you to login and back, your admin account | Google Cloud OAuth                                              | Built 13 Oct 2026, in review |
-| 4  | Creator onboarding | Apply and watch the status screen; approve or reject; invite links that skip the queue; referral links; profile and payout details with the confirmation email | —                                                               | Built 16 Oct 2026 |
+| 3  | Accounts           | Google and email sign up, email verification, password reset, log out, routing by role, private pages sending you to login and back, your admin account | Google Cloud OAuth                                              | Done, merged 18 Oct 2026     |
+| 4  | Creator onboarding | Apply and watch the status screen; approve or reject; invite links that skip the queue; referral links; profile and payout details with the confirmation email | —                                                               | Done, merged 18 Oct 2026 |
 | 5  | Campaigns          | Create, schedule, drop, duplicate, edit, pause and close; creators see only the campaigns meant for them, with local time and UTC                 | —                                                               | Not started |
 | 6  | The loop           | Claim (instant and apply), drop a claim, drafts and changes, proof with free checks and the embedded post, review queue with bulk approve, expiry; changes show live on both sides | —                                                               | Not started |
 | 7  | Earnings, payouts  | Earnings appear on approval; mark one or many paid with a reference; bonuses and deductions; totals per currency; CSV export                       | —                                                               | Not started |
