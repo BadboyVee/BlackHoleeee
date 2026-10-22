@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 /** The day this text last changed. Update it with every change. */
-const UPDATED = "2026-10-15";
+const UPDATED = "2026-10-22";
 
 /** Whoever hosts this deployment, baked in at build (see src/lib/deploy.ts). */
 const HOSTS: Record<string, string> = { netlify: "Netlify", vercel: "Vercel" };
@@ -23,7 +23,8 @@ const HOSTS: Record<string, string> = { netlify: "Netlify", vercel: "Vercel" };
  * days old on each call), look and theme choices in local storage, X posts
  * shown as local images, creator applications, invite and referral links,
  * creator profiles with a photo in a public storage bucket, and payout
- * details (creator and admin only, every change logged and emailed).
+ * details (creator and admin only, every change logged and emailed), and a
+ * reminder our team may send by hand to people who signed up but never applied.
  * Campaign work and payments come in later milestones; add them here before
  * they launch.
  */
@@ -95,6 +96,7 @@ function sections(): LegalSection[] {
               "To keep a record of each request, so our team can follow up.",
               "To run your account: signing you in, and emailing you links to confirm your address or reset your password.",
               "To review your creator application, email you our answer, and if you're approved, offer you campaigns and pay you.",
+              "If you make an account but don't send your application, someone on our team may email you from their own email to remind you.",
               "To email you whenever your payout details change, so nobody can change them without you knowing.",
               "To protect the site, its forms and your account from spam and abuse.",
             ]}

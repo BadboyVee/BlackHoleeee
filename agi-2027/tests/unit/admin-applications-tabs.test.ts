@@ -65,7 +65,9 @@ describe("admin application tabs", () => {
     expect(url.searchParams.get("subject")).toBe("Finish your AGI 2027 application");
     const body = url.searchParams.get("body") ?? "";
     expect(body.startsWith("Hi Tobi Adeyemi,")).toBe(true);
-    expect(body).toContain("https://agi2027.netlify.app/apply");
+    expect(body).toContain("\r\nhttps://agi2027.netlify.app/apply\r\n");
+    expect(body).toContain("If it wasn't you, you can ignore this email.");
+    expect(body.replaceAll("\r\n", "")).not.toMatch(/[\r\n]/);
     expect(body).not.toMatch(/[\u2013\u2014]/);
   });
 

@@ -85,7 +85,9 @@ export function rowsForTab(
 
 /**
  * A mailto link that reminds someone to send their application. Empty when
- * there's no email to write to.
+ * there's no email to write to. "Confirm email" is off for now, so the text
+ * allows for someone else having typed this address. Lines end in CRLF, as
+ * mailto bodies must (RFC 6068).
  */
 export function reminderHref(signup: Pick<SignupRow, "email" | "displayName">, applyUrl: string): string {
   if (!signup.email) return "";
@@ -93,9 +95,11 @@ export function reminderHref(signup: Pick<SignupRow, "email" | "displayName">, a
   const body = [
     `Hi${name ? ` ${name}` : ""},`,
     "",
-    "You made an account on AGI 2027 but haven't sent your application yet. It takes a couple of minutes:",
+    "This email was used to make an account on AGI 2027, but the creator application hasn't been sent yet. If that was you, finish it here:",
     applyUrl,
-  ].join("\n");
+    "",
+    "If it wasn't you, you can ignore this email.",
+  ].join("\r\n");
   const query = `subject=${encodeURIComponent("Finish your AGI 2027 application")}&body=${encodeURIComponent(body)}`;
   // Keep the @ readable: some mail apps don't decode %40 in the address.
   return `mailto:${encodeURIComponent(signup.email).replaceAll("%40", "@")}?${query}`;

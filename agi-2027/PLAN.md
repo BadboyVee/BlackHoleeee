@@ -438,7 +438,9 @@ What's in it:
 - **Privacy** and **Terms** in plain words, written from what the site does today.
 - **Search and link previews:** a title and description on every page, a link-preview image for
   the home page, Book a campaign and Open campaigns, canonical links, `sitemap.xml` and
-  `robots.txt`.
+  `robots.txt`. Since 22 Oct 2026 every page except Book a campaign shares one preview: the
+  Poussin painting from the Renaissance look with the AGI 2027 wordmark and nothing else
+  (`src/app/opengraph-image.jpg`, under 300 KB so WhatsApp shows it).
 - **Safe to go live:** on the live site, `/admin`, `/dashboard` and `/styleguide` send visitors
   home until sign in exists (M3), and "Built in Milestone N" notes are hidden. Preview links
   still show everything. Apply, Sign in and password reset offer an email link meanwhile.
