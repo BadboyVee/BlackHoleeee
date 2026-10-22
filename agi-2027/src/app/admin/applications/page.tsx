@@ -7,8 +7,9 @@ import { ApplicationsSkeleton } from "@/components/admin/applications/applicatio
 import { applicationTabFrom } from "@/components/admin/applications/tabs";
 import { NoteBanner } from "@/components/auth/parts";
 import { firstParam } from "@/lib/auth/search-params";
-import { demoApplications } from "@/lib/creators/demo";
-import { listApplications } from "@/lib/creators/queries";
+import { demoApplications, demoSignups } from "@/lib/creators/demo";
+import { listApplications, listSignupsWithoutApplication } from "@/lib/creators/queries";
+import { siteConfig } from "@/lib/site";
 import { getSupabaseEnv } from "@/lib/supabase/env";
 
 export const metadata: Metadata = { title: "Applications" };
@@ -30,6 +31,7 @@ export default function ApplicationsPage({ searchParams }: PageProps<"/admin/app
 
 async function Applications({ searchParams }: Pick<PageProps<"/admin/applications">, "searchParams">) {
   const initialTab = applicationTabFrom(firstParam(await searchParams, "status"));
+  const applyUrl = new URL("/apply", siteConfig.url).toString();
 
   // A preview link without Supabase: sample applications, and nothing is saved.
   if (!getSupabaseEnv()) {
@@ -38,12 +40,12 @@ async function Applications({ searchParams }: Pick<PageProps<"/admin/application
         <NoteBanner
           note={{ tone: "info", text: "Sample applications. Accounts aren't connected yet, so nothing you decide here is saved or sent." }}
         />
-        <ApplicationList rows={demoApplications} initialTab={initialTab} />
+        <ApplicationList rows={demoApplications} signups={demoSignups} applyUrl={applyUrl} initialTab={initialTab} />
       </div>
     );
   }
 
   // Null means nobody is signed in: the proxy sends them to sign in, so this is only a fallback.
-  const rows = (await listApplications()) ?? [];
-  return <ApplicationList rows={rows} initialTab={initialTab} />;
+  const [rows, signups] = await Promise.all([listApplications(), listSignupsWithoutApplication()]);
+  return <ApplicationList rows={rows ?? []} signups={signups ?? []} applyUrl={applyUrl} initialTab={initialTab} />;
 }

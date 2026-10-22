@@ -66,6 +66,14 @@ export type ApplicationRow = {
   reviewer: { displayName: string } | null;
 };
 
+/** Someone who made an account but hasn't sent the application form. */
+export type SignupRow = {
+  id: string;
+  email: string | null;
+  displayName: string;
+  createdAt: string;
+};
+
 export type InviteRow = {
   id: string;
   code: string;
@@ -274,6 +282,38 @@ export async function listApplications(): Promise<ApplicationRow[] | null> {
     });
   } catch (error) {
     logFailure("applications", error);
+    return [];
+  }
+}
+
+/**
+ * Active applicants with no application yet, newest first: they signed up but
+ * never sent the form. Staff only (RLS). The application is embedded rather
+ * than filtered by the database, so this reads the same way as listApplications.
+ */
+export async function listSignupsWithoutApplication(): Promise<SignupRow[] | null> {
+  try {
+    const current = await session();
+    if (!current) return null;
+    const { data, error } = await current.supabase
+      .from("profiles")
+      .select("id, email, display_name, created_at, application:applications!applications_applicant_fkey (id)")
+      .eq("role", "applicant")
+      .eq("status", "active")
+      .order("created_at", { ascending: false })
+      .limit(500);
+    if (error) {
+      console.error(`[creators] listing sign ups failed: ${error.code ?? "no code"}`);
+      return [];
+    }
+    return (data ?? []).flatMap((row) => {
+      // One application per person, so this is an object or null (an array on older PostgREST).
+      const application = Array.isArray(row.application) ? row.application[0] : row.application;
+      if (application) return [];
+      return [{ id: row.id, email: row.email, displayName: row.display_name, createdAt: row.created_at }];
+    });
+  } catch (error) {
+    logFailure("sign ups", error);
     return [];
   }
 }
