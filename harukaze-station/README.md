@@ -106,6 +106,7 @@ Nothing has to be run to see it. These are built and rendered already:
 | [`renders/classic/`](blender/renders/classic/) | eight stills at 1920×1080 |
 | [`renders/ultra/`](blender/renders/ultra/) | the same eight stills at 3840×2160 (JPEG, 24 samples) |
 | [`renders/harukaze_station_loop.mp4`](blender/renders/) | the full 32-second loop at 1920×1080, 24 fps (Classic) |
+| [`renders/harukaze_station_zoom.mp4`](blender/renders/) | the same loop with the zoom camera: it swoops in on the train and back out |
 
 The stills are `hero` and `hero_night` (the whole block), `platform`, `fumikiri` (the
 level crossing, arms down), `tunnel` (the train leaving the west portal beside the shrine),
@@ -135,9 +136,10 @@ blender -b --python harukaze_station.py -- --render night.png --night --frame 43
 blender -b --python harukaze_station.py -- --shots stills/                 # the eight stills
 blender -b --python harukaze_station.py -- --video loop.mp4                # the 32 s loop
 blender -b --python harukaze_station.py -- --video loop.mp4 --frames 1-200 # in parts
+blender -b --python harukaze_station.py -- --video zoom.mp4 --camera zoom  # the zoom loop
 ```
 
-Options: `--quality classic|ultra`, `--frame N` (1–768; the default, 300, has the train at
+Options: `--quality classic|ultra`, `--camera orbit|zoom`, `--frame N` (1–768; the default, 300, has the train at
 the platform), `--night`, `--resolution 1920x1080` and `--samples 32`. `--video` writes
 each frame as a PNG into a `<name>_frames/` folder next to the video and skips frames
 already there, so a long render can
@@ -183,7 +185,11 @@ version that saved it and newer ones: files saved from 5.x need Blender 5.0 or n
   alternating crossing lamps and direction arrow are keyed frame by frame from the
   timetable. Each geometry-nodes petal falls from a blossom crown on a period that divides
   32 s. The camera makes one full turn per loop, easing past the station. It dollies in
-  and out to keep the block filling the frame.
+  and out to keep the block filling the frame. A second camera, `Zoom camera`, rides the
+  same orbit but swoops down as the train leaves the tunnel, looks steeply over the
+  cherries while it stands at the platform, follows it out over the crossing and climbs
+  back to the wide view. Outside the zoom it matches the orbit camera exactly, so its
+  loop is seamless too. Make it the active camera to use it in Blender.
 - **Day to night**: drag the `night` custom property (Scene properties > Custom
   Properties) from 0 to 1. Drivers fade the sky, sun and ambient light. They bring up a
   starfield and light the lamps, windows, glows and the train's headlight. Uplights turn the
