@@ -472,3 +472,34 @@ export function buildCreatorDemo(creator: DemoCreator = demoMe): CreatorDemo {
     claims: [...current, ...past],
   };
 }
+
+/**
+ * The creator's world on the live site: no campaigns and no claims until real
+ * ones exist (Milestones 5 and 6). Names come from the signed-in account; the
+ * blank "me" is only a fallback.
+ */
+export function emptyCreatorWorld(): CreatorDemo {
+  return {
+    me: { id: "", name: "Creator", firstName: "there", handle: "", initials: "", tier: "" },
+    campaigns: [],
+    claims: [],
+  };
+}
+
+/** The sample world on preview links, the empty one otherwise. Pass showSampleData(). */
+export function buildCreatorWorld(showSamples: boolean): CreatorDemo {
+  return showSamples ? buildCreatorDemo() : emptyCreatorWorld();
+}
+
+/**
+ * Campaign pages to prerender. Cache Components needs at least one id, so the
+ * live site gets a placeholder that renders Not found.
+ */
+export function creatorCampaignParams(showSamples: boolean): { id: string }[] {
+  return showSamples ? creatorCampaignIds().map((id) => ({ id })) : [{ id: "none" }];
+}
+
+/** A campaign the creator may open: the samples on preview links, none on the live site yet. */
+export function creatorCampaignFor(id: string, showSamples: boolean): DemoCampaign | undefined {
+  return showSamples ? creatorCampaignById(id) : undefined;
+}

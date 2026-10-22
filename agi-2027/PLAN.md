@@ -287,7 +287,9 @@ and claims in every status.
   X, and a number that couldn't be read is left out. They live in `src/lib/showcase-posts.ts`
   until the content editor (M9) takes over. The numbers are a snapshot and say so on the page.
   You confirmed on 17 Oct 2026 that these were AGI 2027 campaigns, so the hero no longer labels
-  them "Example".
+  them "Example". On 22 Oct 2026 you added a sixth, micro1's Medical Index post (21 Oct 2026,
+  112K views on 22 Oct). Each post now carries the day its numbers were read, and the page says
+  "Numbers as X showed them, 12 to 22 Oct 2026".
 - **Other homepage content:** the stats and brand names are real since 17 Oct 2026, worked out
   from your creators and launch posts. The FAQ is still placeholder. The editor arrives in M9.
 - **Admin only:** payouts, team, settings and invite links, plus suspending or removing creators.
@@ -444,6 +446,14 @@ What's in it:
 - **Safe to go live:** on the live site, `/admin`, `/dashboard` and `/styleguide` send visitors
   home until sign in exists (M3), and "Built in Milestone N" notes are hidden. Preview links
   still show everything. Apply, Sign in and password reset offer an email link meanwhile.
+- **No sample data on the live site** (22 Oct 2026, your request): `showSampleData()` in
+  `src/lib/sample-data.ts` is off on the live site and wherever Supabase is connected. There, the
+  admin Overview shows real numbers only (applications waiting, approved creators, sign ups that
+  haven't applied, the oldest waiting applications) and an empty Campaigns panel; Campaigns says
+  there are none yet; New campaign says the builder is coming; campaign pages are Not found;
+  search, the menu badges, the bell's dot and the "Preview with demo data" note are gone; and the
+  creator portal shows empty states with no sample campaigns, claims, earnings or notifications.
+  Preview links keep every sample screen.
 - **Netlify or Vercel:** see Working setup. On Netlify the rate limit reads the visitor's IP
   from the header Netlify itself sets, so nobody can fake a new address per request.
 - **Tests:** 294 unit tests and 74 database tests, including every database rule above.
@@ -621,7 +631,7 @@ What's in it:
 - **Real creators, stats and brands** (you asked, 17 Oct 2026): a grid of your 14 creators now
   sits before For creators, in your order, each linking to their X, with a line asking anyone
   missing to email us. The stats are worked out from real data: 128.6K followers between
-  the creators, 6.1M+ views on your clients' launch posts, 4 brands worked with and 14 creators on the roster. The
+  the creators, 6.1M+ views on your clients' launch posts (6.2M+ since micro1's Medical Index post on 22 Oct), 4 brands worked with and 14 creators on the roster. The
   brand strip shows only Kled AI, micro1, Maincode and Hedwig, and no launch post says "Example".
 - **Your answers** (18 Oct 2026): no ® next to the name in the Agent look, the share picture
   quotes Kled's V3 post, the funding slide says "Your big news", and the terms say the posts

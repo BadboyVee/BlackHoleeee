@@ -4,21 +4,23 @@ import { notFound } from "next/navigation";
 
 import { CampaignDetail } from "@/components/admin/campaign-detail/campaign-detail";
 import { CampaignDetailSkeleton } from "@/components/admin/campaign-detail/detail-skeleton";
-import { campaignById, demoCampaigns } from "@/lib/campaigns/demo";
+import { adminCampaign, adminCampaignParams } from "@/components/admin/campaigns/visible";
+import { showSampleData } from "@/lib/sample-data";
 
 type Props = { params: Promise<{ id: string }> };
 
 export function generateStaticParams() {
-  return demoCampaigns.map((campaign) => ({ id: campaign.id }));
+  return adminCampaignParams(showSampleData());
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  return { title: campaignById(id)?.title ?? "Campaign" };
+  return { title: adminCampaign(id, showSampleData())?.title ?? "Campaign" };
 }
 
 // The URL is read inside Suspense, so navigating here shows the frame at once.
-// Every demo campaign is prerendered, so the skeleton only shows for unknown ids.
+// Every sample campaign is prerendered on preview links, so the skeleton only
+// shows for unknown ids. The live site has no campaigns yet: every id is Not found.
 export default function CampaignPage({ params }: Props) {
   return (
     <Suspense fallback={<CampaignDetailSkeleton />}>
@@ -29,7 +31,7 @@ export default function CampaignPage({ params }: Props) {
 
 async function CampaignFromParams({ params }: Props) {
   const { id } = await params;
-  const campaign = campaignById(id);
+  const campaign = adminCampaign(id, showSampleData());
   if (!campaign) notFound();
   return <CampaignDetail campaignId={campaign.id} />;
 }

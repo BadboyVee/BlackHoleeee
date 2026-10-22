@@ -17,7 +17,7 @@ import {
   parseXCount,
   showcaseBrands,
   showcasePosts,
-  STATS_AS_OF,
+  statsDates,
   totalViews,
   type ShowcasePost,
 } from "@/lib/showcase-posts";
@@ -68,19 +68,20 @@ describe("totalViews and showcaseBrands", () => {
     expect(showcaseBrands([post("micro1"), post("Kled AI"), post("micro1")])).toEqual(["micro1", "Kled AI"]);
   });
 
-  it("names the brand on every real post: Ali Ansari posts for micro1", () => {
+  it("names the brand on every real post: Ali Ansari posts for micro1, and so does micro1", () => {
     expect(showcasePosts.map((item) => [item.author.handle, item.brand])).toEqual([
       ["useKled", "Kled AI"],
       ["aliansarinik", "micro1"],
       ["MaincodeAU", "Maincode"],
       ["aliansarinik", "micro1"],
       ["hedwigdotco", "Hedwig"],
+      ["micro1_ai", "micro1"],
     ]);
     expect(showcaseBrands(showcasePosts)).toEqual(["Kled AI", "micro1", "Maincode", "Hedwig"]);
   });
 
-  it("adds up the real posts' views: 3.7M, 171K, 1.8M and 456K, one post unknown", () => {
-    expect(totalViews(showcasePosts)).toEqual({ views: 6_127_000, partial: true });
+  it("adds up the real posts' views: 3.7M, 171K, 1.8M, 456K and 112K, one post unknown", () => {
+    expect(totalViews(showcasePosts)).toEqual({ views: 6_239_000, partial: true });
   });
 });
 
@@ -107,7 +108,7 @@ describe("stats", () => {
   it("come from the data, not typed in", () => {
     expect(stats.map(({ label, value, format, suffix }) => ({ label, value, format, suffix }))).toEqual([
       { label: "Combined followers on X", value: combinedFollowers(creatorRoster), format: "compact", suffix: undefined },
-      { label: "Views on our clients' launch posts", value: 6_127_000, format: "compact", suffix: "+" },
+      { label: "Views on our clients' launch posts", value: 6_239_000, format: "compact", suffix: "+" },
       { label: "Brands we've worked with", value: 4, format: "plain", suffix: undefined },
       { label: "Creators on our roster", value: creatorRoster.length, format: "plain", suffix: undefined },
     ]);
@@ -116,8 +117,8 @@ describe("stats", () => {
   });
 
   it("say which day the numbers from X are from", () => {
-    expect(stats[0].asOf).toBe("2026-10-17");
-    expect(stats[1].asOf).toBe(STATS_AS_OF);
+    expect(stats[0].asOf).toEqual({ from: "2026-10-17", to: "2026-10-17" });
+    expect(stats[1].asOf).toEqual(statsDates(showcasePosts));
   });
 
   it("never claim a monthly rate or views on the creators' own posts", () => {
@@ -127,7 +128,7 @@ describe("stats", () => {
   it("render the real numbers, rounded down, with the dates", () => {
     const text = textOf(renderToStaticMarkup(createElement(StatsSection)));
     expect(text).toContain("128.6K Combined followers on X From X, 17 Oct 2026");
-    expect(text).toContain("6.1M+ Views on our clients' launch posts From X, 12 Oct 2026");
+    expect(text).toContain("6.2M+ Views on our clients' launch posts From X, 12 to 22 Oct 2026");
     expect(text).toContain("4 Brands we've worked with");
     expect(text).toContain("14 Creators on our roster");
     for (const made_up of ["12.4M", "85M", "140", "15 Creators", "every month"]) expect(text).not.toContain(made_up);

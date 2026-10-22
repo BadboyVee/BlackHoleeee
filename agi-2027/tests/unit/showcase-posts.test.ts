@@ -12,7 +12,7 @@ import {
   showcasePosts,
   splitPostText,
   statNumber,
-  STATS_AS_OF,
+  statsDates,
 } from "@/lib/showcase-posts";
 
 const PUBLIC = join(__dirname, "../../public");
@@ -33,9 +33,9 @@ function webpSize(path: string) {
 }
 
 describe("showcase posts", () => {
-  it("has the five posts the owner sent, each once", () => {
-    expect(showcasePosts).toHaveLength(5);
-    expect(new Set(showcasePosts.map((post) => post.id)).size).toBe(5);
+  it("has the six posts the owner sent, each once", () => {
+    expect(showcasePosts).toHaveLength(6);
+    expect(new Set(showcasePosts.map((post) => post.id)).size).toBe(6);
   });
 
   it.each(showcasePosts.map((post) => [post.author.name, post] as const))(
@@ -51,7 +51,7 @@ describe("showcase posts", () => {
     (_, post) => {
       const fromId = postIdTime(post.id);
       expect(Math.abs(fromId.getTime() - new Date(post.postedAt).getTime())).toBeLessThan(1000);
-      expect(fromId.getTime()).toBeLessThan(new Date(`${STATS_AS_OF}T23:59:59Z`).getTime());
+      expect(fromId.getTime()).toBeLessThan(new Date(`${post.statsAsOf}T23:59:59Z`).getTime());
     },
   );
 
@@ -68,6 +68,23 @@ describe("showcase posts", () => {
     for (const post of showcasePosts) {
       for (const value of Object.values(post.stats)) expect(value).toMatch(/^\d{1,3}(\.\d)?[KM]?$/);
     }
+  });
+
+  it("dates each post's numbers to its own screenshot, never before the post", () => {
+    expect(statsDates(showcasePosts)).toEqual({ from: "2026-10-12", to: "2026-10-22" });
+    expect(statsDates([getShowcasePost("2105311618284527767")])).toEqual({ from: "2026-10-12", to: "2026-10-12" });
+    for (const post of showcasePosts) expect(post.statsAsOf >= post.postedAt.slice(0, 10)).toBe(true);
+  });
+
+  it("keeps micro1's Medical Index post as the owner sent it", () => {
+    const post = getShowcasePost("2112985194529767489");
+    expect(post.author).toMatchObject({ name: "micro1", handle: "micro1_ai", avatarShape: "square", badge: "gold" });
+    expect(post.brand).toBe("micro1");
+    expect(post.text.startsWith("Today we’re announcing the micro1 Medical Index")).toBe(true);
+    expect(post.text.endsWith("Full reports linked in the comments below!")).toBe(true);
+    expect(post.text.split("\n\n")).toHaveLength(7);
+    expect(post.stats).toEqual({ views: "112K", replies: "33", reposts: "46", likes: "229", bookmarks: "56" });
+    expect(post.statsAsOf).toBe("2026-10-22");
   });
 
   it("finds a post by ID and refuses an unknown one", () => {
@@ -132,6 +149,7 @@ describe("statNumber and byViews", () => {
       "1.8M",
       "456K",
       "171K",
+      "112K",
       "none",
     ]);
   });

@@ -1,7 +1,7 @@
 import { RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { CountUp } from "@/components/ui/count-up";
 import { stats } from "@/lib/marketing-content";
-import { formatUtcDate } from "@/lib/time";
+import { formatUtcDateSpan } from "@/lib/time";
 import { EchoSays } from "./shared";
 
 /**
@@ -34,7 +34,7 @@ function StatsSection() {
               </p>
               {stat.asOf ? (
                 <p className="mt-1 text-xs text-subtle-foreground agent:text-white drop:text-white">
-                  From X, {formatUtcDate(stat.asOf)}
+                  From X, {formatUtcDateSpan(stat.asOf.from, stat.asOf.to)}
                 </p>
               ) : null}
             </RevealItem>

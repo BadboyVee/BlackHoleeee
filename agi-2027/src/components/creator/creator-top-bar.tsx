@@ -23,6 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { Account } from "@/lib/auth/account-display";
 import { isStaff } from "@/lib/auth/routes";
 import type { CreatorMe } from "@/lib/campaigns/demo-creator";
+import { showSampleData } from "@/lib/sample-data";
 import { cn } from "@/lib/utils";
 
 import { resetDemoClaims } from "./claim-store";
@@ -32,8 +33,9 @@ import { useHydrated } from "./hooks";
 import { NotificationDot, useNotifications } from "./notifications";
 import { pressed, springArrive } from "./motion";
 
-/** Small, honest note that everything here is sample data. */
+/** Small, honest note that everything here is sample data. Preview links only. */
 export function DemoNote({ className }: { className?: string }) {
+  if (!showSampleData()) return null;
   return (
     <span
       data-tone="amber"
@@ -51,7 +53,7 @@ type Person = { name: string; firstName: string; initials: string; detail: strin
 function personFrom(account: Account | null, me: CreatorMe): Person {
   return account
     ? { name: account.name, firstName: account.firstName, initials: account.initials, detail: account.email }
-    : { name: me.name, firstName: me.firstName, initials: me.initials, detail: `${me.handle} · ${me.tier}` };
+    : { name: me.name, firstName: me.firstName, initials: me.initials, detail: [me.handle, me.tier].filter(Boolean).join(" · ") };
 }
 
 function AvatarMenu({ person, account }: { person: Person; account: Account | null }) {
@@ -98,15 +100,17 @@ function AvatarMenu({ person, account }: { person: Person; account: Account | nu
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onSelect={() => {
-            resetDemoClaims();
-            toast.success("Demo reset", { description: "Claims are back to how the demo started." });
-          }}
-        >
-          <RotateCcw />
-          Reset the demo
-        </DropdownMenuItem>
+        {showSampleData() ? (
+          <DropdownMenuItem
+            onSelect={() => {
+              resetDemoClaims();
+              toast.success("Demo reset", { description: "Claims are back to how the demo started." });
+            }}
+          >
+            <RotateCcw />
+            Reset the demo
+          </DropdownMenuItem>
+        ) : null}
         {account ? (
           <SignOutMenuItem />
         ) : (

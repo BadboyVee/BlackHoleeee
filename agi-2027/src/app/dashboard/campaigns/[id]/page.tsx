@@ -4,18 +4,19 @@ import { notFound } from "next/navigation";
 
 import { CampaignDetail } from "@/components/creator/detail/campaign-detail";
 import { DetailSkeleton } from "@/components/creator/detail/skeleton";
-import { creatorCampaignById, creatorCampaignIds } from "@/lib/campaigns/demo-creator";
+import { creatorCampaignFor, creatorCampaignParams } from "@/lib/campaigns/demo-creator";
+import { showSampleData } from "@/lib/sample-data";
 
 type Params = Promise<{ id: string }>;
 
-/** Every campaign the demo creator can open is built ahead of time. */
+/** Every campaign the demo creator can open is built ahead of time. The live site has none yet. */
 export function generateStaticParams() {
-  return creatorCampaignIds().map((id) => ({ id }));
+  return creatorCampaignParams(showSampleData());
 }
 
 export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
   const { id } = await params;
-  const campaign = creatorCampaignById(id);
+  const campaign = creatorCampaignFor(id, showSampleData());
   return { title: campaign ? campaign.title : "Campaign not found" };
 }
 
@@ -31,6 +32,6 @@ export default function CreatorCampaignPage({ params }: { params: Params }) {
 async function CampaignForId({ params }: { params: Params }) {
   const { id } = await params;
   // Unknown campaigns, drafts, scheduled drops and campaigns for other creators all look the same: not found.
-  if (!creatorCampaignById(id)) notFound();
+  if (!creatorCampaignFor(id, showSampleData())) notFound();
   return <CampaignDetail campaignId={id} />;
 }

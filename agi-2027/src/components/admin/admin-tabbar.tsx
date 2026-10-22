@@ -10,6 +10,8 @@ import { LookPicker } from "@/components/theme/look-picker";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
+import { showSampleData } from "@/lib/sample-data";
+
 import { adminTabs, isActiveAdminPath, isBuilderPath } from "./admin-nav";
 import { NavGroups, PreviewNote } from "./admin-sidebar";
 import { springArrive, springMove } from "./motion";
@@ -68,7 +70,8 @@ function TabBar({ pathname }: { pathname: string | null }) {
   return (
     <>
       <AnimatePresence>
-        {!hidden && !onCampaignPage ? (
+        {/* New campaign only saves on preview links for now, so the live site doesn't offer it. */}
+        {showSampleData() && !hidden && !onCampaignPage ? (
           <motion.div
             key="fab"
             initial={{ opacity: 0, scale: 0.85, y: 8 }}
@@ -131,7 +134,7 @@ function ActiveTabBar() {
   return <TabBar pathname={pathname} />;
 }
 
-/** Phones: four tabs plus More, and a floating New campaign button. */
+/** Phones: four tabs plus More, and on preview links a floating New campaign button. */
 export function AdminTabBar() {
   return (
     <Suspense fallback={<TabBar pathname={null} />}>

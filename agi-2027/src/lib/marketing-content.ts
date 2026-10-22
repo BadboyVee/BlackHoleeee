@@ -1,5 +1,5 @@
 import { combinedFollowers, creatorRoster, ROSTER_AS_OF } from "@/lib/creator-roster";
-import { showcaseBrands, showcasePosts, STATS_AS_OF, totalViews } from "@/lib/showcase-posts";
+import { showcaseBrands, showcasePosts, statsDates, totalViews } from "@/lib/showcase-posts";
 
 /**
  * Home page copy. Stats, logos, featured posts and the FAQ move into the
@@ -18,8 +18,8 @@ export type Stat = {
   /** compact: 128.6K, rounded down. plain: 14. */
   format: "compact" | "plain";
   suffix?: string;
-  /** The day the number comes from ("YYYY-MM-DD"), shown small under the label. */
-  asOf?: string | null;
+  /** The days the number comes from ("YYYY-MM-DD"), shown small under the label. One day: from and to match. */
+  asOf?: { from: string; to: string } | null;
 };
 
 const views = totalViews(showcasePosts);
@@ -29,7 +29,7 @@ export const stats: Stat[] = [
     label: "Combined followers on X",
     value: combinedFollowers(creatorRoster),
     format: "compact",
-    asOf: ROSTER_AS_OF,
+    asOf: ROSTER_AS_OF ? { from: ROSTER_AS_OF, to: ROSTER_AS_OF } : null,
   },
   {
     // Views on the clients' own launch posts, as X showed them. When a post's
@@ -38,7 +38,7 @@ export const stats: Stat[] = [
     value: views.views,
     format: "compact",
     suffix: views.partial ? "+" : undefined,
-    asOf: STATS_AS_OF,
+    asOf: statsDates(showcasePosts),
   },
   // The clients in the brand strip and the launch posts. Not "brands launched":
   // micro1's posts were a data commitment and a benchmark, not a brand launch.

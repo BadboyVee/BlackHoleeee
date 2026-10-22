@@ -1,17 +1,28 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BookOpen, Plus } from "lucide-react";
+import { BookOpen, Megaphone, Plus } from "lucide-react";
 
 import { AdminPageHeader } from "@/components/admin/admin-page-header";
 import { CampaignList, CampaignListFromUrl } from "@/components/admin/campaigns/campaign-list";
 import { campaignsByStatus, reviewCount } from "@/components/admin/demo-insights";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
 import { demoCampaigns } from "@/lib/campaigns/demo";
+import { showSampleData } from "@/lib/sample-data";
 
 export const metadata: Metadata = { title: "Campaigns" };
 
 export default function AdminCampaignsPage() {
+  // The live site has no campaigns yet; the samples are for preview links only.
+  if (!showSampleData()) {
+    return (
+      <>
+        <AdminPageHeader title="Campaigns" description="Every campaign you run, live and past." />
+        <EmptyState icon={Megaphone} title="No campaigns yet" description="Campaigns you run will show here." />
+      </>
+    );
+  }
   const live = campaignsByStatus("live").length;
   return (
     <>

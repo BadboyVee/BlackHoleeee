@@ -10,6 +10,8 @@ import { UserMenu } from "@/components/layout/user-menu";
 import { LookPicker } from "@/components/theme/look-picker";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { Button } from "@/components/ui/button";
+import { showSampleData } from "@/lib/sample-data";
+
 import { crumbsFor } from "./admin-nav";
 import { useCommandPalette } from "./command-palette";
 import { Kbd, useIsApple } from "./kbd";
@@ -113,9 +115,15 @@ export function AdminTopBar() {
         <div className="flex shrink-0 items-center gap-1">
           <SearchTrigger />
           <Button asChild variant="ghost" size="icon-sm" className="relative text-muted-foreground hover:text-foreground">
-            <Link href="/admin/notifications" aria-label="Notifications, new items waiting">
+            {/* The dot stands for sample notifications, so it shows on preview links only. */}
+            <Link
+              href="/admin/notifications"
+              aria-label={showSampleData() ? "Notifications, new items waiting" : "Notifications"}
+            >
               <Bell />
-              <span aria-hidden className="absolute top-2 right-2 size-1.5 rounded-full bg-brand ring-2 ring-background" />
+              {showSampleData() ? (
+                <span aria-hidden className="absolute top-2 right-2 size-1.5 rounded-full bg-brand ring-2 ring-background" />
+              ) : null}
             </Link>
           </Button>
           <ThemeToggle />

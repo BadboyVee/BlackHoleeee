@@ -102,9 +102,12 @@ export function useClaims(): readonly CreatorClaim[] {
   );
   const now = useNow(60_000);
   return useMemo(() => {
-    if (now === null) return stored;
     const timing = new Map(campaigns.map((campaign) => [campaign.id, campaign.timing]));
-    return stored.map((claim) => {
+    // Saved claims on campaigns this creator can't see are left out. On the live
+    // site that is all of them: claims saved while it still showed samples.
+    const known = stored.filter((claim) => timing.has(claim.campaignId));
+    if (now === null) return known;
+    return known.map((claim) => {
       const t = timing.get(claim.campaignId);
       return t ? applyDeadlines(claim, t, now) : claim;
     });

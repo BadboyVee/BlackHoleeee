@@ -7,6 +7,7 @@ import { ArrowRight, CornerDownLeft, Copy, Moon, Plus, Search } from "lucide-rea
 
 import { StatusBadge } from "@/components/status-badge";
 import { clientById, demoCampaigns } from "@/lib/campaigns/demo";
+import { showSampleData } from "@/lib/sample-data";
 import { applyTheme, currentTheme, storeTheme } from "@/lib/theme";
 import { cn } from "@/lib/utils";
 import { adminNavGroups, type AdminNavItem } from "./admin-nav";
@@ -31,8 +32,13 @@ export function useCommandPalette() {
   return useContext(CommandContext);
 }
 
-function buildItems(): CommandItem[] {
-  const actions: CommandItem[] = [
+/**
+ * Everything search can reach. Sample campaigns, and the builder actions that
+ * only save on preview links, are left out when showSamples is false (the
+ * live site).
+ */
+export function buildItems(showSamples: boolean): CommandItem[] {
+  const sampleActions: CommandItem[] = [
     {
       id: "action-new",
       group: "Actions",
@@ -53,6 +59,9 @@ function buildItems(): CommandItem[] {
       icon: Copy,
       run: (router) => router.push("/admin/campaigns/new?from=cmp-nebula-2"),
     },
+  ];
+  const actions: CommandItem[] = [
+    ...(showSamples ? sampleActions : []),
     {
       id: "action-theme",
       group: "Actions",
@@ -79,7 +88,7 @@ function buildItems(): CommandItem[] {
       run: (router: ReturnType<typeof useRouter>) => router.push(item.href),
     })),
   );
-  const campaigns: CommandItem[] = demoCampaigns.map((campaign) => {
+  const campaigns: CommandItem[] = (showSamples ? demoCampaigns : []).map((campaign) => {
     const client = clientById(campaign.clientId);
     return {
       id: `campaign-${campaign.id}`,
@@ -95,7 +104,7 @@ function buildItems(): CommandItem[] {
   return [...actions, ...pages, ...campaigns];
 }
 
-const COMMAND_ITEMS = buildItems();
+const COMMAND_ITEMS = buildItems(showSampleData());
 
 function matches(item: CommandItem, query: string) {
   const haystack = `${item.label} ${item.hint ?? ""} ${item.keywords}`.toLowerCase();

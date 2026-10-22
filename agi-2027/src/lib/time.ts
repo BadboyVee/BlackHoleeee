@@ -84,6 +84,20 @@ export function formatUtcDate(date: Date | string): string {
   return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]} ${d.getUTCFullYear()}`;
 }
 
+/**
+ * Two calendar dates in UTC, as briefly as they read clearly: "22 Oct 2026",
+ * "12 to 22 Oct 2026", "30 Sep to 22 Oct 2026" or "30 Dec 2026 to 2 Jan 2027".
+ */
+export function formatUtcDateSpan(from: Date | string, to: Date | string): string {
+  const a = new Date(from);
+  const b = new Date(to);
+  const end = formatUtcDate(b);
+  if (a.getUTCFullYear() !== b.getUTCFullYear()) return `${formatUtcDate(a)} to ${end}`;
+  if (a.getUTCMonth() !== b.getUTCMonth()) return `${a.getUTCDate()} ${MONTHS[a.getUTCMonth()]} to ${end}`;
+  if (a.getUTCDate() !== b.getUTCDate()) return `${a.getUTCDate()} to ${end}`;
+  return end;
+}
+
 const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 /** "Wed 30 Sep", the weekday and date in UTC, built without Intl like `formatUtcDate`. */
