@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { formatCountdown, formatDateTime, formatRange, formatTime, formatUtcDate, formatUtcDay, formatUtcTime } from "@/lib/time";
+import {
+  formatCountdown,
+  formatDateTime,
+  formatRange,
+  formatTime,
+  formatUtcDate,
+  formatUtcDateSpan,
+  formatUtcDay,
+  formatUtcTime,
+} from "@/lib/time";
 
 describe("formatCountdown", () => {
   it("shows days and hours when more than a day is left", () => {
@@ -90,5 +99,14 @@ describe("formatUtcDay", () => {
     expect(formatUtcDay("2026-10-03T23:30:00-05:00")).toBe("Sun 4 Oct");
     // 00:30 in Paris on 1 Jan 2027 is still 31 Dec 2026 in UTC.
     expect(formatUtcDay("2027-01-01T00:30:00+01:00")).toBe("Thu 31 Dec");
+  });
+});
+
+describe("formatUtcDateSpan", () => {
+  it("says one day once, and shares the month and year when it can", () => {
+    expect(formatUtcDateSpan("2026-10-22", "2026-10-22")).toBe("22 Oct 2026");
+    expect(formatUtcDateSpan("2026-10-12", "2026-10-22")).toBe("12 to 22 Oct 2026");
+    expect(formatUtcDateSpan("2026-09-30", "2026-10-22")).toBe("30 Sep to 22 Oct 2026");
+    expect(formatUtcDateSpan("2026-12-30", "2027-01-02")).toBe("30 Dec 2026 to 2 Jan 2027");
   });
 });

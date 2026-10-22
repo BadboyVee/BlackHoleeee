@@ -3,8 +3,8 @@ import { ArrowUpRight, Eye, Heart, MessageCircle, Repeat2 } from "lucide-react";
 
 import { XLogo } from "@/components/brand/social-icons";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
-import { byViews, mediaAspect, showcasePosts, STATS_AS_OF, type ShowcasePost } from "@/lib/showcase-posts";
-import { formatUtcDate } from "@/lib/time";
+import { byViews, mediaAspect, showcasePosts, statsDates, type ShowcasePost } from "@/lib/showcase-posts";
+import { formatUtcDate, formatUtcDateSpan } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { PostAvatar, PostText, VerifiedBadge } from "../x-post";
 import { EchoSays, SectionShell, SectionTitle } from "./shared";
@@ -130,6 +130,7 @@ function PostCard({ post, index }: { post: ShowcasePost; index: number }) {
 /** Real launch posts on X, most viewed first, each with the numbers X showed. */
 function ProofSection() {
   const posts = byViews(showcasePosts);
+  const dates = statsDates(posts);
   return (
     <SectionShell id="proof" label="Proof">
       <EchoSays>These are real launch posts. Open any of them on X.</EchoSays>
@@ -166,7 +167,7 @@ function ProofSection() {
             ))}
           </RevealGroup>
           <p className="mt-2 text-xs text-subtle-foreground">
-            Numbers as X showed them on {formatUtcDate(STATS_AS_OF)}.
+            Numbers as X showed them, {formatUtcDateSpan(dates.from, dates.to)}.
           </p>
         </div>
       </div>

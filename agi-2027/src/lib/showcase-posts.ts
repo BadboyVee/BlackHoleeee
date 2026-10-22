@@ -1,7 +1,8 @@
 /**
- * Real launch posts on X, sent by the owner on 12 Oct 2026. The text is copied
- * word for word from the owner's screenshots, the numbers are exactly what X
- * showed that day, and the pictures are cropped from the same screenshots.
+ * Real launch posts on X, sent by the owner on 12 Oct 2026 (micro1's Medical
+ * Index on 22 Oct 2026). The text is copied word for word from the owner's
+ * screenshots, the numbers are exactly what X showed on the day in each post's
+ * statsAsOf, and the pictures are cropped from the same screenshots.
  * Each one links to the live post. A number that couldn't be read is left out,
  * never guessed. `postedAt` is decoded from the post's ID (X post IDs carry
  * their creation time), and a unit test keeps the two in step.
@@ -41,12 +42,14 @@ export type ShowcasePost = {
     /** The site a link preview comes from. */
     from?: string;
   };
-  /** As X shows them ("3.7M", "3K"), on the day in STATS_AS_OF. */
+  /** As X shows them ("3.7M", "3K"), on the day in statsAsOf. */
   stats: { views?: string; replies?: string; reposts?: string; likes?: string; bookmarks?: string };
+  /** The day the owner's screenshot was taken ("YYYY-MM-DD"), which the numbers come from. */
+  statsAsOf: string;
 };
 
-/** The day the owner's screenshots were taken, which the numbers come from. */
-export const STATS_AS_OF = "2026-10-12";
+/** The day the owner sent the first posts' screenshots. */
+const FIRST_SCREENSHOTS = "2026-10-12";
 
 export const showcasePosts: ShowcasePost[] = [
   {
@@ -64,6 +67,7 @@ export const showcasePosts: ShowcasePost[] = [
       alt: "Still from Kled’s V3 video: a person walks into a lamp-lit living room set, captioned “Kled 3.0, Human demonstration collection”.",
     },
     stats: { views: "3.7M", replies: "178", reposts: "167", likes: "3K", bookmarks: "387" },
+    statsAsOf: FIRST_SCREENSHOTS,
   },
   {
     id: "2108613100413096046",
@@ -81,6 +85,7 @@ export const showcasePosts: ShowcasePost[] = [
       from: "micro1.ai",
     },
     stats: { views: "171K", replies: "86", reposts: "118", likes: "769" },
+    statsAsOf: FIRST_SCREENSHOTS,
   },
   {
     id: "2105230308132225289",
@@ -98,6 +103,7 @@ export const showcasePosts: ShowcasePost[] = [
       focus: "50% 0%",
     },
     stats: { views: "1.8M", replies: "315", reposts: "258", likes: "2.7K", bookmarks: "121" },
+    statsAsOf: FIRST_SCREENSHOTS,
   },
   {
     id: "2107497652871155953",
@@ -115,6 +121,7 @@ export const showcasePosts: ShowcasePost[] = [
     },
     // The counts on this one were cut off in the screenshot, so none are shown.
     stats: {},
+    statsAsOf: FIRST_SCREENSHOTS,
   },
   {
     id: "2106449214536605976",
@@ -132,8 +139,32 @@ export const showcasePosts: ShowcasePost[] = [
       alt: "Still from Hedwig’s video: Gmail, Sheets, Docs, Calendar, Meet and Notion icons circling the words “lived in one place”.",
     },
     stats: { views: "456K", replies: "318", reposts: "321", likes: "1.3K", bookmarks: "999" },
+    statsAsOf: FIRST_SCREENSHOTS,
+  },
+  {
+    id: "2112985194529767489",
+    url: "https://x.com/micro1_ai/status/2112985194529767489",
+    brand: "micro1",
+    author: { name: "micro1", handle: "micro1_ai", avatar: "/posts/avatar-micro1.webp", avatarShape: "square", badge: "gold" },
+    text: "Today we’re announcing the micro1 Medical Index: a suite of medical benchmarks built and graded by working doctors, biostatisticians, regulatory experts, and psychiatrists.\n\nIt brings all of our medical research into one place, with a combined score across models and a living leaderboard that grows as we publish new benchmarks. We’re starting with three, each built around a fundamental question:\n\n- RealmPathology Benchmark: can a model reason over a real pathology report, staying exact on what it says, within its diagnostic limits, and without escalating beyond what the evidence supports?\n\n- PharmaBench: can a model work through the regulatory and clinical documentation behind an FDA drug program with the precision a clinical development team would expect?\n\n- WellnessBench: when a young person brings a sensitive health question, can a model stay safe without shutting the conversation down, and hold that line under pushback?\n\nTogether, these three benchmarks cover a meaningful range of medical work, from diagnostic reasoning to pharmaceutical research and patient safety. While they don't yet capture the full scope of the entire medical industry, they establish a strong starting point that will become more comprehensive as we expand the index.\n\nHuge shoutout to every expert who built and graded these tasks. Full reports linked in the comments below!",
+    postedAt: "2026-10-21T19:11:42Z",
+    media: {
+      kind: "video",
+      src: "/posts/media-micro1-medical.webp",
+      width: 800,
+      height: 449,
+      alt: "Still from micro1’s Medical Index video: a question about a pathology report, “Atypical cells present. Cannot exclude carcinoma. Is this cancer?”, with the file Oct7_Pathology_Report.pdf attached.",
+    },
+    stats: { views: "112K", replies: "33", reposts: "46", likes: "229", bookmarks: "56" },
+    statsAsOf: "2026-10-22",
   },
 ];
+
+/** The first and last days the posts' numbers come from ("YYYY-MM-DD"). */
+export function statsDates(posts: readonly ShowcasePost[]): { from: string; to: string } {
+  const days = posts.map((post) => post.statsAsOf).sort();
+  return { from: days[0] ?? "", to: days.at(-1) ?? "" };
+}
 
 export function getShowcasePost(id: string): ShowcasePost {
   const post = showcasePosts.find((item) => item.id === id);

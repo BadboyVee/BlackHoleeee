@@ -14,7 +14,7 @@ import {
 import { ArrowLeft, ArrowRight, ArrowUpRight, Bookmark, Heart, MessageCircle, Repeat2, Share2 } from "lucide-react";
 
 import { useLook } from "@/components/theme/look-picker";
-import { getShowcasePost, mediaAspect, STATS_AS_OF, type ShowcasePost } from "@/lib/showcase-posts";
+import { getShowcasePost, mediaAspect, type ShowcasePost } from "@/lib/showcase-posts";
 import { formatUtcDate } from "@/lib/time";
 import { cn } from "@/lib/utils";
 import { PostAvatar, PostText, VerifiedBadge } from "../x-post";
@@ -252,7 +252,7 @@ function DropHero() {
               </motion.span>
               <ArrowUpRight aria-hidden className="size-3.5" />
             </a>
-            {Object.keys(post.stats).length > 0 ? <span>Numbers as of {formatUtcDate(STATS_AS_OF)}</span> : null}
+            {Object.keys(post.stats).length > 0 ? <span>Numbers as of {formatUtcDate(post.statsAsOf)}</span> : null}
           </p>
           <div className="mt-4 flex flex-wrap gap-2">
             <Link
