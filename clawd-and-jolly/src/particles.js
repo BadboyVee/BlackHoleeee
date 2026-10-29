@@ -10,11 +10,11 @@ function fluffTexture() {
   grd.addColorStop(0, 'rgba(255,250,240,1)'); grd.addColorStop(1, 'rgba(255,250,240,0)');
   g.fillStyle = grd; g.beginPath(); g.arc(0, 0, 14, 0, Math.PI * 2); g.fill();
   const R = rng(5);
-  for (let i = 0; i < 46; i++) {
-    const a = (i / 46) * Math.PI * 2 + R() * 0.1, l = 34 + R() * 26;
+  for (let i = 0; i < 30; i++) {
+    const a = (i / 30) * Math.PI * 2 + R() * 0.2, l = 24 + R() * 30;
     const lg = g.createLinearGradient(0, 0, Math.cos(a) * l, Math.sin(a) * l);
-    lg.addColorStop(0, 'rgba(255,248,235,0.9)'); lg.addColorStop(1, 'rgba(255,248,235,0)');
-    g.strokeStyle = lg; g.lineWidth = 1.6;
+    lg.addColorStop(0, 'rgba(255,248,235,0.45)'); lg.addColorStop(1, 'rgba(255,248,235,0)');
+    g.strokeStyle = lg; g.lineWidth = 2.2;
     g.beginPath(); g.moveTo(0, 0); g.lineTo(Math.cos(a) * l, Math.sin(a) * l); g.stroke();
   }
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
@@ -26,7 +26,7 @@ export class Motes {
     this.group = new THREE.Group();
     const R = rng(77);
     this.fluff = [];
-    for (let i = 0; i < count; i++) { const dir = new THREE.Vector3(R() - 0.5, R() * 1.1 - 0.35, R() - 0.5).normalize(); this.fluff.push({ ph: R() * 6.28, r0: 1.5 + R() * 6, born: 43.4 + R() * 5.0, sp: 0.7 + R() * 0.9, rise: 2.0 + R() * 3.5, size: 0.22 + R() * 0.3, wob: R() * 6.28, bx: R() - 0.5, bz: R() - 0.5, by: R(), dir, bs: 4 + R() * 7 }); }
+    for (let i = 0; i < count; i++) { const dir = new THREE.Vector3(R() - 0.5, R() * 1.1 - 0.35, R() - 0.5).normalize(); this.fluff.push({ ph: R() * 6.28, r0: 1.5 + R() * 6, born: 43.4 + R() * 5.0, sp: 0.7 + R() * 0.9, rise: 2.0 + R() * 3.5, size: 0.14 + R() * 0.2, wob: R() * 6.28, bx: R() - 0.5, bz: R() - 0.5, by: R(), dir, bs: 2 + R() * 4.5 }); }
     const pos = new Float32Array(count * 3), size = new Float32Array(count), alpha = new Float32Array(count);
     const g = new THREE.BufferGeometry();
     g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
@@ -80,6 +80,8 @@ export class Motes {
           p.z += Math.cos(td * 0.7 + f.wob) * 0.6;
         }
         a = clamp01(age / 0.6) * (0.55 + 0.45 * Math.sin(age * 3 + f.ph)) * (0.9 + dawn * 0.5);
+        a *= Math.exp(-Math.max(0, p.distanceTo(centre) - height * 0.6) / 6);
+        if (t > climax && i % 4 !== 0) a *= Math.exp(-(t - climax) * 2.2);
       }
       pos[i * 3] = p.x; pos[i * 3 + 1] = p.y; pos[i * 3 + 2] = p.z;
       size[i] = f.size; alpha[i] = a;

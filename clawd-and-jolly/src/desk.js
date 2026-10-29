@@ -110,11 +110,11 @@ function skyMaterial() {
         // sky
         vec3 nightZ = vec3(0.003, 0.006, 0.018), nightH = vec3(0.018, 0.026, 0.055);
         vec3 night = mix(nightH, nightZ, smoothstep(0.0, 0.5, h));
-        float st = pow(hash13(floor(d * 650.0)), 300.0) * 5.0 * smoothstep(0.08, 0.35, h);
+        float st = pow(hash13(floor(d * 650.0)), 2500.0) * (3.0 + 5.0 * hash13(floor(d * 650.0) + 7.0)) * smoothstep(0.08, 0.35, h);
         night += vec3(0.85, 0.9, 1.0) * st * (0.75 + 0.25 * sin(uTime * 2.7 + hash13(floor(d * 650.0)) * 40.0));
         vec3 moonDir = normalize(vec3(0.42, 0.34, -1.0));
         float md = dot(d, moonDir);
-        night += vec3(0.95, 0.96, 1.0) * smoothstep(0.99972, 0.99982, md) * 6.0 * pow(1.0 - uDawn, 4.0);
+        night += vec3(0.95, 0.96, 1.0) * smoothstep(0.99972, 0.99982, md) * 6.0 * pow(max(1.0 - uDawn * 12.0, 0.0), 2.0);
         night += vec3(0.10, 0.14, 0.26) * pow(max(md, 0.0), 200.0) * 1.5 + vec3(0.03, 0.04, 0.08) * pow(max(md, 0.0), 12.0);
         float sd = max(dot(d, uSun), 0.0);
         vec3 dawnZ = vec3(0.10, 0.22, 0.62), dawnM = vec3(0.95, 0.50, 0.42), dawnH = vec3(1.0, 0.42, 0.12);

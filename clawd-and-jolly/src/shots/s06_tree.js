@@ -7,7 +7,7 @@ import { BEATS } from '../story.js';
 
 export const SETUPS = {
   a: { t0: 37.4, t1: 41.2, focal: 50 },
-  b: { t0: 41.2, t1: 50.4, focal: 32 },
+  b: { t0: 41.2, t1: 50.4, focal: 32, quality: 0.6, mossStrands: 90000 },
 };
 
 export default async function (engine, opts = {}) {
@@ -25,10 +25,10 @@ export default async function (engine, opts = {}) {
         // follow the gift up and down
         const g = story.giftAt(clawd, t);
         const tg = mid.clone().add(new THREE.Vector3(0, 1.0, 0));
-        if (g) tg.lerp(g.pos, 0.45 * smoothstep(37.6, 38.0, t));
+        if (g) tg.lerp(g.pos, 0.12 * smoothstep(37.6, 38.3, t));
         camera.lookAt(tg);
-        lens.fstop = 3.5;
-        lens.focus = camera.position.distanceTo(g ? g.pos : mid);
+        lens.fstop = 4.5;
+        lens.focus = camera.position.distanceTo(mid);
       } else {
         if (!rail) {
           const s = SEED;
@@ -44,7 +44,7 @@ export default async function (engine, opts = {}) {
         lens.focus = camera.position.distanceTo(SEED.clone().add(new THREE.Vector3(0, Math.min(tree.height * 0.5, (t - 41.2) * 1.2), 0)));
         look.exposure = 2.3 - 0.3 * smoothstep(47, 50, t);
       }
-      handheld(camera, t, 0.0025, 0.8);
+      handheld(camera, t, which === 'a' ? 0.0012 : 0.0025, 0.8);
     },
   });
 }

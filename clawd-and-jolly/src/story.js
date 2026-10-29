@@ -12,7 +12,7 @@ const V = (x, y, z) => new THREE.Vector3(x, y, z);
 const win = (t, a, b, c, d) => smoothstep(a, b, t) * (1 - smoothstep(c, d, t));
 
 export const BEATS = {
-  wake: 32.9, startle: 33.15, burst: 33.25, wave: 34.7, waveBack: 35.6, boop: 37.2,
+  wake: 32.9, startle: 33.15, burst: 33.66, wave: 34.7, waveBack: 35.6, boop: 37.2,
   gift: 37.6, place: 39.5, puff: 39.9, grow: 41.0, bloom: 45.4, climax: 50.4, turn: 50.8, lean: 53.6, happy: 54.3,
 };
 

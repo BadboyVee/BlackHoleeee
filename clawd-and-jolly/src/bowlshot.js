@@ -13,10 +13,10 @@ import { smoothstep } from './anim.js';
 
 export function dawnAt(t) { return smoothstep(BEATS.climax - 0.2, BEATS.climax + 3.5, t) * 0.9; }
 
-export async function makeBowlShot(engine, opts, { t0, t1, focal = 50, camera: camFn, look: lookOver = {}, samples = 16, withTree = true }) {
-  const { scene, parts } = buildDesk(engine.renderer, opts);
+export async function makeBowlShot(engine, opts, { t0, t1, focal = 50, camera: camFn, look: lookOver = {}, samples = 16, withTree = true, quality = 1, mossStrands = 150000 }) {
+  const { scene, parts } = buildDesk(engine.renderer, { mossStrands, ...opts });
   const clawd = new Clawd();
-  const jolly = new Jolly({ quality: opts.quality ?? 1 });
+  const jolly = new Jolly({ quality: opts.quality ?? quality });
   scene.add(clawd.group, jolly.group);
   const story = makeStory(parts);
   let tree = null, motes = null;
@@ -55,6 +55,7 @@ export async function makeBowlShot(engine, opts, { t0, t1, focal = 50, camera: c
       const dawn = dawnAt(t);
       const sunElev = 0.08 + 0.17 * smoothstep(BEATS.climax, BEATS.climax + 3.2, t);
       parts.stdUpdate(t, ctx, { dawn, lamp: 16000, sunElev });
+      parts.lights.screenLight.castShadow = false;
       parts.lights.moon.intensity = 4.5 * (1 - dawn);
       parts.lights.glowA.intensity = 420 * (1 - dawn); parts.lights.glowB.intensity = 320 * (1 - dawn);
       const bf = parts.lights.bowlFill;

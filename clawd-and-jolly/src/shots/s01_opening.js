@@ -94,7 +94,7 @@ export default async function (engine, opts = {}) {
     { t: 0.0, pos: off(cur, -1.6, -0.7, 2.6), target: tgt(cur, -0.25, 0), fstop: 16, ease: 'linear' },
     { t: 4.6, pos: off(cur, -0.4, -0.35, 2.4), target: tgt(cur, 0.3, 0.06), fstop: 16, ease: 'in' },
     { t: 7.5, pos: off(sprC, -2.6, -2.4, 7.0), target: tgt(sprC, 0.3, 0), fstop: 11 },
-    { t: 9.4, pos: off(sprC, 3.5, -4.5, 10.5), target: tgt(sprC, 1.0, -1.5), fstop: 8 },
+    { t: 9.4, pos: off(sprC, 3.0, 2.2, 9.0), target: tgt(sprC, 0.9, 0.6), fstop: 8 },
     { t: 11.6, pos: [-15.5, 8.5, 12.5], target: [-7.0, 9.0, -6.5], fstop: 5.6 },
     { t: 14.2, pos: [-12.5, 9.6, 9.8], target: HOVER.clone().add(new THREE.Vector3(0, 0.5, 0)).toArray(), fstop: 4 },
     { t: 16.6, pos: [-10.8, 8.2, 8.4], target: HOVER.clone().add(new THREE.Vector3(0, 0.2, 0)).toArray(), fstop: 4 },

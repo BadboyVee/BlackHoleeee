@@ -4,7 +4,7 @@ import * as THREE from 'three';
 import { makeBowlShot } from '../bowlshot.js';
 import { handheld, smoothstep, Rail } from '../anim.js';
 
-export const SETUPS = { a: { t0: 50.4, t1: 53.0, focal: 24 }, b: { t0: 53.0, t1: 56.0, focal: 28 } };
+export const SETUPS = { a: { t0: 50.4, t1: 53.0, focal: 24, quality: 0.6, mossStrands: 90000 }, b: { t0: 53.0, t1: 56.0, focal: 28 } };
 
 export default async function (engine, opts = {}) {
   const which = opts.setup || 'a';
