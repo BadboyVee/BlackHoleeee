@@ -5,6 +5,16 @@ any of them — every project is an `index.html` you can open directly.
 
 ## Projects
 
+### 🎬 [Clawd & Jolly](clawd-and-jolly/)
+
+A one-minute 3D short with no text: Clawd, the Claude Code mascot, climbs out of a terminal as
+voxels, hops across a backlit keyboard and meets Jolly, Meta Muse's plush mascot, in a moss bowl;
+together they grow a voxel tree with fur blossoms as the sun comes up. Rendered offline with
+three.js (motion blur, depth of field and soft shadows from per-frame sub-frame accumulation),
+strand fur, and a sound mix built only from real recordings.
+
+**▶ [Watch it](clawd-and-jolly/clawd-and-jolly.mp4)** · [source](clawd-and-jolly/)
+
 ### 🌊 [Saltwind Cove](ocean/)
 
 A WebGPU ocean you can walk, swim, sail and dive in. It has FFT waves, breakers that curl and

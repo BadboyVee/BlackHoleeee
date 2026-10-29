@@ -1,0 +1,79 @@
+[
+  {
+    "shot": "s01",
+    "t0": 0.0,
+    "t1": 17.4,
+    "note": "cursor macro, voxels pop out of the screen, Clawd assembles",
+    "spp": 24
+  },
+  {
+    "shot": "s03",
+    "t0": 17.4,
+    "t1": 25.0,
+    "note": "lands on the keyboard, hops across glowing keys, jumps off",
+    "spp": 20
+  },
+  {
+    "shot": "s04",
+    "t0": 25.0,
+    "t1": 31.0,
+    "note": "scuttles across the desk into the moss bowl, finds Jolly asleep",
+    "spp": 16
+  },
+  {
+    "shot": "s05a",
+    "t0": 31.0,
+    "t1": 33.6,
+    "note": "Jolly wakes and jumps",
+    "spp": 16
+  },
+  {
+    "shot": "s05b",
+    "t0": 33.6,
+    "t1": 35.4,
+    "note": "Clawd bursts apart, pulls himself together, waves",
+    "spp": 16
+  },
+  {
+    "shot": "s05c",
+    "t0": 35.4,
+    "t1": 37.4,
+    "note": "Jolly waves back, hops over, boop",
+    "spp": 16
+  },
+  {
+    "shot": "s06a",
+    "t0": 37.4,
+    "t1": 41.2,
+    "note": "Clawd plants a voxel from his own head, Jolly blows fluff on it",
+    "spp": 16
+  },
+  {
+    "shot": "s06b",
+    "t0": 41.2,
+    "t1": 50.4,
+    "note": "the voxel tree grows and blooms",
+    "spp": 16
+  },
+  {
+    "shot": "s07a",
+    "t0": 50.4,
+    "t1": 53.0,
+    "note": "blossoms burst, sunrise floods in",
+    "spp": 16
+  },
+  {
+    "shot": "s07b",
+    "t0": 53.0,
+    "t1": 56.0,
+    "note": "silhouettes at sunrise, Jolly leans on Clawd",
+    "spp": 16
+  },
+  {
+    "shot": "s08",
+    "t0": 56.0,
+    "t1": 60.0,
+    "note": "both of them as sprites in the welcome box, fade out",
+    "spp": 24
+  }
+]

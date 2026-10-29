@@ -1,0 +1,15 @@
+export const SHOTS = {
+  studio: (e, o) => import('./studio.js').then((m) => m.default(e, o)),
+  deskwide: (e, o) => import('./deskwide.js').then((m) => m.default(e, o)),
+  s01: (e, o) => import('./s01_opening.js').then((m) => m.default(e, o)),
+  s03: (e, o) => import('./s03_keys.js').then((m) => m.default(e, o)),
+  s04: (e, o) => import('./s04_desk.js').then((m) => m.default(e, o)),
+  s05a: (e, o) => import('./s05_meet.js').then((m) => m.default(e, { ...o, setup: 'a' })),
+  s05b: (e, o) => import('./s05_meet.js').then((m) => m.default(e, { ...o, setup: 'b' })),
+  s05c: (e, o) => import('./s05_meet.js').then((m) => m.default(e, { ...o, setup: 'c' })),
+  s06a: (e, o) => import('./s06_tree.js').then((m) => m.default(e, { ...o, setup: 'a' })),
+  s06b: (e, o) => import('./s06_tree.js').then((m) => m.default(e, { ...o, setup: 'b' })),
+  s07a: (e, o) => import('./s07_dawn.js').then((m) => m.default(e, { ...o, setup: 'a' })),
+  s07b: (e, o) => import('./s07_dawn.js').then((m) => m.default(e, { ...o, setup: 'b' })),
+  s08: (e, o) => import('./s08_outro.js').then((m) => m.default(e, o)),
+};
