@@ -70,6 +70,7 @@ const GOLD = '#c9a24a', GOLD_HI = '#f1d58b', CRIMSON = '#8e1b24', CRIMSON_HI = '
 
 /* ---------- assets ---------- */
 const IMG = {};
+const VOICE = {};   // spoken lines (assets/voice), decoded in init()
 const SRC = {
   bear: 'assets/cut/crowned-bear.png', fish: 'assets/cut/blind-fish.png', bucket: 'assets/cut/bucket-hat.png',
   pixel: 'assets/cut/pixel-shades.png', rays: 'assets/cut/pixel-rays.png',
@@ -1195,8 +1196,8 @@ const SHOTS = [
   { a: 13.55, b: 14.4, f: shotCloseUp },
 ];
 const SUBS = [
-  { a: 11.32, b: 12.42, jp: '誰だ、あの男は？', en: 'Who is that man?' },
-  { a: 12.52, b: 13.98, jp: 'なんという威圧感だ……', en: 'What an overwhelming presence…' },
+  { a: 11.28, b: 12.66, jp: '誰だ、あの男は？', en: 'Who is that man?' },
+  { a: 12.72, b: 14.36, jp: 'なんという威圧感だ……', en: 'What an overwhelming presence…' },
 ];
 let BUF;
 
@@ -1358,6 +1359,15 @@ function buildScore(ac, t0, out) {
   taiko(11.25, .45); koto(11.3, N.A3, .1); taiko(12.45, .45); koto(12.5, N.Bb3, .1);
   riser(12.9, 13.55, .16); taiko(13.55, 1); boom(13.55, .7);
   riser(13.95, 14.4, .2); taiko(14.4, 1.1, .7); boom(14.4, .9);
+  // dialogue — the music ducks under it
+  master.gain.setValueAtTime(.62, T(11.1)); master.gain.linearRampToValueAtTime(.38, T(11.28));
+  master.gain.setValueAtTime(.38, T(14.3)); master.gain.linearRampToValueAtTime(.62, T(14.38));
+  for (const [k, at, wet, gain] of [['who', 11.3, .22, 1.0], ['presence', 12.75, .35, .8]]) {
+    if (!VOICE[k]) continue;
+    const src = ac.createBufferSource(), vg = ac.createGain(), vw = ac.createGain();
+    src.buffer = VOICE[k]; vg.gain.value = gain; vw.gain.value = wet;
+    src.connect(vg); vg.connect(comp); vg.connect(vw); vw.connect(verb); src.start(T(at));
+  }
   // hooves, sharing the picture's gait clock
   const offs = [0, .25, .5, .75];
   let prev = gaitPhase(5.0);
@@ -1395,6 +1405,10 @@ async function init() {
     document.fonts.load('600 34px "Cormorant Garamond"', 'THE UNKNOWN GENERAL'),
   ]).catch(() => {});
   BUF = mk(W, H);
+  try {
+    const dc = new OfflineAudioContext(1, 1, 48000);
+    await Promise.all(['who', 'presence'].map(async k => { const r = await fetch(`assets/voice/${k}.wav`); VOICE[k] = await dc.decodeAudioData(await r.arrayBuffer()); }));
+  } catch (e) { console.warn('voices unavailable', e); }
   L.mtnFar = paintRidge(3, 2800, 520, 120, 150, .0023, '#4a1b28', '#5a2630', 'rgba(255,170,120,.4)', 0);
   L.mtnMid = paintRidge(4, 2800, 520, 150, 120, .0035, '#2a0f19', '#38161f', 'rgba(255,150,110,.28)', 10);
   L.mtnNear = paintRidge(5, 2900, 520, 120, 90, .005, '#170a10', '#120a0d', 'rgba(255,140,100,.2)', 22);
