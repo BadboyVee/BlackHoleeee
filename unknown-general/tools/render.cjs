@@ -144,6 +144,8 @@ const [mode, ...rest] = process.argv.slice(2);
 const fpsArg = rest.indexOf('--fps');
 const fps = fpsArg >= 0 ? parseFloat(rest.splice(fpsArg, 2)[1]) : 30;
 (mode === 'stills' ? stills(rest[0], rest.slice(1).map(Number))
+  : mode === 'audio' ? (async () => { const { srv, browser, page } = await open();
+      fs.writeFileSync(path.resolve(rest[0]), Buffer.from(await page.evaluate(() => window.TRAILER.audio(48000)), 'base64')); await browser.close(); srv.close(); console.log('wrote', rest[0]); })()
   : mode === 'sprites' ? sprites(path.resolve(rest[0]))
   : mode === 'compose' ? compose(path.resolve(rest[0]), path.resolve(rest[1]), fps)
   : mode === 'video' ? video(path.resolve(rest[0] || path.join(ROOT, 'the-unknown-general.mp4')), fps)

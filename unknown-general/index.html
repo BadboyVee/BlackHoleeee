@@ -1356,17 +1356,17 @@ function buildScore(ac, t0, out) {
   // scene 3 — who is he?
   drone(10.0, 14.42, [73.4, 103.8, 146.8], .06, 400, 2600);
   taiko(10.02, .9); boom(10.02, .5); snort(10.95);
-  taiko(11.25, .45); koto(11.3, N.A3, .1); taiko(12.45, .45); koto(12.5, N.Bb3, .1);
-  riser(12.9, 13.55, .16); taiko(13.55, 1); boom(13.55, .7);
-  riser(13.95, 14.4, .2); taiko(14.4, 1.1, .7); boom(14.4, .9);
+  taiko(11.22, .3); taiko(12.45, .25);
+  riser(13.1, 13.55, .08); taiko(13.55, .7); boom(13.55, .5);
+  riser(13.95, 14.4, .2); taiko(14.4, .95, .7); boom(14.4, .75);
   // dialogue — the music ducks under it
-  master.gain.setValueAtTime(.62, T(11.1)); master.gain.linearRampToValueAtTime(.38, T(11.28));
-  master.gain.setValueAtTime(.38, T(14.3)); master.gain.linearRampToValueAtTime(.62, T(14.38));
-  for (const [k, at, wet, gain] of [['who', 11.3, .22, 1.0], ['presence', 12.75, .35, .8]]) {
+  master.gain.setValueAtTime(.62, T(11.1)); master.gain.linearRampToValueAtTime(.07, T(11.27));
+  master.gain.setValueAtTime(.07, T(14.3)); master.gain.linearRampToValueAtTime(.62, T(14.38));
+  for (const [k, at, wet, gain] of [['who', 11.3, .08, .95], ['presence', 12.75, .14, .9]]) {
     if (!VOICE[k]) continue;
     const src = ac.createBufferSource(), vg = ac.createGain(), vw = ac.createGain();
     src.buffer = VOICE[k]; vg.gain.value = gain; vw.gain.value = wet;
-    src.connect(vg); vg.connect(comp); vg.connect(vw); vw.connect(verb); src.start(T(at));
+    src.connect(vg); vg.connect(out); vg.connect(vw); vw.connect(verb); src.start(T(at));
   }
   // hooves, sharing the picture's gait clock
   const offs = [0, .25, .5, .75];
