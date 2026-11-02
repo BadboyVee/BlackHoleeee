@@ -3,7 +3,7 @@
 A 15-second feudal-Japan NFT crossover trailer. Four generals meet in a castle courtyard at dusk.
 Then a stranger with green eyes rides in through the gate, and none of them knows who he is.
 
-**▶ [Watch the MP4](the-unknown-general.mp4)** · [play it live](https://badboyvee.github.io/BlackHoleeee/unknown-general/)
+**▶ [Watch the canvas version](the-unknown-general.mp4)** · **▶ [Watch the Blender version](the-unknown-general-blender.mp4)** · [play it live](https://badboyvee.github.io/BlackHoleeee/unknown-general/)
 
 | Time | Scene | What happens |
 | --- | --- | --- |
@@ -41,3 +41,21 @@ node tools/render.cjs stills out 3.4 11.8   # grab frames
 
 Rendering uses Playwright's Chromium and ffmpeg. Fonts are Shippori Mincho B1 and Cormorant Garamond,
 loaded from Google Fonts.
+
+## Blender version
+
+`the-unknown-general-blender.mp4` tells the same story with the same score, but it is built as a real 3D
+scene in Blender 5.2. It has a modelled keep and courtyard, a gate whose doors swing open, waving banners,
+lanterns, sakura, mountains, volumetric fog and falling petals. The NFT characters stand in the scene as
+lit cut-out cards that cast real shadows. The close-up places the NFT's eyes and katana inside a 3D hood
+lit by their own green light.
+
+```sh
+node tools/render.cjs sprites /tmp/ug-sprites            # cards + rider walk cycle from the canvas version
+python tools/blender/build.py --sprites /tmp/ug-sprites --out /tmp/ug-shots --samples 3 --pct 83
+node tools/render.cjs compose /tmp/ug-shots the-unknown-general-blender.mp4
+```
+
+`build.py` needs the `bpy` module (`pip install bpy`). It was rendered with EEVEE on software OpenGL
+at 1600×900 and upscaled to 1080p during compositing. Compositing adds the cross-fades, bloom,
+subtitles, title and score.
