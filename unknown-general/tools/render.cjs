@@ -126,8 +126,8 @@ async function compose(shotsDir, out, fps) {
   const ff = spawn('ffmpeg', ['-y', '-loglevel', 'error', '-f', 'image2pipe', '-vcodec', 'mjpeg', '-framerate', String(fps), '-i', '-',
     '-i', wav, '-c:v', 'libx264', '-preset', 'slow', '-crf', '16', '-pix_fmt', 'yuv420p', '-profile:v', 'high',
     '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', '-shortest', out], { stdio: ['pipe', 'inherit', 'inherit'] });
-  const n = Math.round(dur * fps);
-  for (let i = 0; i < n; i++) {
+  const n = Math.round(dur * fps), from = +(process.env.FROM || 0), to = Math.min(n, +(process.env.TO || n));
+  for (let i = from; i < to; i++) {
     const t = i / fps, live = shots.filter(s => i >= s.f0 && i <= s.f1);
     const layers = live.map((s, k) => ({ url: `http://127.0.0.1:${port}/__shots/${s.name}/${String(i).padStart(4, '0')}.png`,
       alpha: k === 0 ? 1 : (() => { const a = Math.min(1, Math.max(0, (i - s.f0) / Math.max(1, live[k - 1].f1 - s.f0))); return a < .5 ? 4 * a * a * a : 1 - Math.pow(-2 * a + 2, 3) / 2; })() }));

@@ -1426,7 +1426,7 @@ window.TRAILER = {
     for (const { url, alpha } of layers) { const i = new Image(); i.src = url; await i.decode(); g.globalAlpha = alpha; g.drawImage(i, 0, 0, W, H); }
     // bloom: the bright parts, blurred and screened back over the frame
     BUF.getContext('2d').drawImage(cv, 0, 0);
-    g.globalAlpha = .55; g.globalCompositeOperation = 'screen'; g.filter = 'brightness(.9) contrast(2.6) blur(22px)'; g.drawImage(BUF, 0, 0);
+    g.globalAlpha = .4; g.globalCompositeOperation = 'screen'; g.filter = 'brightness(.85) contrast(2.8) blur(22px)'; g.drawImage(BUF, 0, 0);
     g.globalAlpha = .3; g.filter = 'contrast(2) blur(60px)'; g.drawImage(BUF, 0, 0);
     g.filter = 'none'; g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
     post(g, t, { grain: .06 }); return cv.toDataURL('image/jpeg', q);
