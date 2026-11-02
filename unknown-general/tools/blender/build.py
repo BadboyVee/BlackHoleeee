@@ -28,6 +28,7 @@ ap.add_argument('--save', default=None, help='also save the .blend here')
 ap.add_argument('--rt', type=int, default=0, help='EEVEE raytracing on/off')
 ap.add_argument('--vtile', default='8')
 ap.add_argument('--nofog', action='store_true')
+ap.add_argument('--lite', type=int, default=1)
 A = ap.parse_args(sys.argv[sys.argv.index('--') + 1:] if '--' in sys.argv else sys.argv[1:])
 SP = os.path.abspath(A.sprites)
 META = json.load(open(os.path.join(SP, 'meta.json')))
@@ -329,7 +330,7 @@ def lantern(x, y, s=1.):
     box(f'lp{x}{y}', .7 * s, .7 * s, .18 * s, (x, y, 1.27 * s), M['stoneLamp'], coll=c)
     box(f'lf{x}{y}', .32 * s, .32 * s, .36 * s, (x, y, 1.55 * s), M['flame'], coll=c)
     frustum(f'lr{x}{y}', 1.0 * s, 1.0 * s, .1, .1, .45 * s, (x, y, 1.74 * s), M['stoneLamp'], c, lift=.08 * s)
-    li = bpy.data.lights.new(f'll{x}{y}', 'POINT'); li.energy = 160 * s; li.color = (1, .58, .25); li.shadow_soft_size = .3
+    li = bpy.data.lights.new(f'll{x}{y}', 'POINT'); li.energy = 160 * s; li.color = (1, .58, .25); li.shadow_soft_size = .3; li.use_shadow = not A.lite
     lo = bpy.data.objects.new(f'll{x}{y}', li); lo.location = (x, y, 1.55 * s); c.objects.link(lo)
 for x, y in ((-6.5, 2.5), (6.5, 2.5), (-5, -12), (5, -12), (-5, -22), (5, -22), (-9, 12), (9, 12)): lantern(x, y)
 
@@ -385,7 +386,7 @@ def tree(x, y, s, seed):
     for tp in tips:
         for _ in range(7):
             c = tp + Vector((rr.uniform(-.8, .8), rr.uniform(-.8, .8), rr.uniform(-.35, .45))) * s
-            bmesh.ops.create_icosphere(bm, subdivisions=3, radius=rr.uniform(.28, .55) * s, matrix=Matrix.Translation(c))
+            bmesh.ops.create_icosphere(bm, subdivisions=2 if A.lite else 3, radius=rr.uniform(.28, .55) * s, matrix=Matrix.Translation(c))
     cn = obj_from_bm(f'canopy{seed}', bm, M['blossom'], YARD); cn.location = (x, y, 0)
     d = cn.modifiers.new('disp', 'DISPLACE'); tx = bpy.data.textures.new(f'cl{seed}', 'CLOUDS'); tx.noise_scale = .12; tx.noise_depth = 3; d.texture = tx; d.strength = .22
 for i, (x, y) in enumerate(((-13, -3), (13, -3), (-18, 10), (18, 10), (-12, -18), (12, -18), (22, -10), (-22, -10))):
@@ -574,7 +575,7 @@ GENV = {'warm': 1, 'green': 0, 'sil': 0}
 def show(*names):
     vis = set(names)
     for c in bpy.data.collections:
-        c.hide_render = c.name not in vis and c.name not in ('env',)
+        c.hide_render = (c.name not in vis and c.name not in ('env',)) or (A.nofog and c.name == 'fog')
 def pose_doors(open_):
     for piv, s in doors: piv.rotation_euler.z = s * open_ * 1.35
 def set_rider_frame(f, show_=True):
