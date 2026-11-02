@@ -31,7 +31,7 @@ the background around it.
 `index.html` draws every frame on a canvas as a pure function of time. The castle, gate, banners,
 sakura, mist, horse (with an IK walk cycle) and rider are all procedural. The score is synthesised with
 Web Audio: taiko, koto, shakuhachi, wind, a creaking gate, and hoofbeats driven by the same gait clock
-as the picture. Japanese dialogue appears as subtitles. It isn't voiced.
+as the picture. The two Japanese lines are voiced (`assets/voice/`). They were generated offline with the Kokoro neural voice from hand-written phonemes and checked with a Japanese speech recogniser. The music ducks under them, and English subtitles appear alongside.
 
 ```sh
 python3 -I tools/cutouts.py            # re-cut the characters (needs Pillow + NumPy)
