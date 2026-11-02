@@ -5,6 +5,14 @@ any of them — every project is an `index.html` you can open directly.
 
 ## Projects
 
+### ⚔️ [The Unknown General](unknown-general/)
+
+A 15-second feudal-Japan NFT crossover trailer. Four generals gather at a black castle at dusk, then a
+green-eyed stranger rides through the gate. It is drawn live on canvas, with a synthesised taiko and
+hoofbeat score, and also rendered to MP4.
+
+**▶ [Watch it](unknown-general/the-unknown-general.mp4)** · [play live](https://badboyvee.github.io/BlackHoleeee/unknown-general/) · [source](unknown-general/)
+
 ### 🌊 [Saltwind Cove](ocean/)
 
 A WebGPU ocean you can walk, swim, sail and dive in. It has FFT waves, breakers that curl and
