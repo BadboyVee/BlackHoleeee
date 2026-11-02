@@ -1212,13 +1212,18 @@ function draw(t) {
     bg.fillStyle = '#000'; bg.fillRect(0, 0, W, H); s.f(bg, t); bg.setTransform(1, 0, 0, 1, 0, 0);
     g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = eio(a); g.drawImage(BUF, 0, 0); g.globalAlpha = 1;
   });
+  post(g, t);
+}
+
+/* fades, vignette, grain, letterbox, subtitles and title — shared by both versions */
+function post(g, t, o = {}) {
   g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.globalCompositeOperation = 'source-over'; g.filter = 'none';
   // fades: in from black, dip at the scene-3 boundary, out to black
   const fade = Math.max(1 - sstep(0, .9, t), bump(t, 9.78, 10.22) * 1.0, t >= 14.4 ? 1 : 0);
   if (fade > 0) { g.fillStyle = `rgba(0,0,0,${fade})`; g.fillRect(0, 0, W, H); }
   // vignette and grain
-  g.drawImage(L.vignette, 0, 0);
-  g.globalCompositeOperation = 'overlay'; g.globalAlpha = .1; g.drawImage(L.grain[Math.floor(t * 30) % L.grain.length], 0, 0, W, H);
+  if (o.vignette !== false) g.drawImage(L.vignette, 0, 0);
+  g.globalCompositeOperation = 'overlay'; g.globalAlpha = o.grain ?? .1; g.drawImage(L.grain[Math.floor(t * 30) % L.grain.length], 0, 0, W, H);
   g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
   // letterbox
   g.fillStyle = '#000'; g.fillRect(0, 0, W, 64); g.fillRect(0, H - 64, W, 64);
@@ -1413,6 +1418,46 @@ const ready = init();
 window.TRAILER = {
   ready, DUR, draw,
   frame(t, q = .93) { draw(t); return cv.toDataURL('image/jpeg', q); },
+  post,
+  // ---- for the Blender version: composite rendered shots, then the shared overlay
+  async compose(t, layers, q = .95) {
+    const g = ctx; g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1; g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
+    g.imageSmoothingEnabled = true; g.imageSmoothingQuality = 'high';
+    for (const { url, alpha } of layers) { const i = new Image(); i.src = url; await i.decode(); g.globalAlpha = alpha; g.drawImage(i, 0, 0, W, H); }
+    // bloom: the bright parts, blurred and screened back over the frame
+    BUF.getContext('2d').drawImage(cv, 0, 0);
+    g.globalAlpha = .55; g.globalCompositeOperation = 'screen'; g.filter = 'brightness(.9) contrast(2.6) blur(22px)'; g.drawImage(BUF, 0, 0);
+    g.globalAlpha = .3; g.filter = 'contrast(2) blur(60px)'; g.drawImage(BUF, 0, 0);
+    g.filter = 'none'; g.globalCompositeOperation = 'source-over'; g.globalAlpha = 1;
+    post(g, t, { grain: .06 }); return cv.toDataURL('image/jpeg', q);
+  },
+  // ---- sprites exported as transparent PNGs for the 3D scene
+  sprite: {
+    figure(name, v, part) {
+      const F = FIG[name], top = 130, c = mk(F.cw, F.ch + top), g = c.getContext('2d');
+      g.translate(F.ox, F.oy + top);
+      if (v === 'sil') { drawFlag(g, F, 0, true); g.drawImage(F.var.sil.sil, -F.ox, -F.oy); g.globalCompositeOperation = 'lighter'; g.drawImage(F.var.sil.rim, -F.ox, -F.oy); }
+      else if (part === 'back') { drawFlag(g, F, 0, false); g.drawImage(F.var[v].back, -F.ox, -F.oy); }
+      else g.drawImage(F.var[v].front, -F.ox, -F.oy);
+      return { url: c.toDataURL('image/png'), w: c.width, h: c.height, feetX: F.ox, feetY: F.oy + top, pivotY: F.oy + top - F.lowerH };
+    },
+    rider(t, o = {}) {
+      const S = 1.5, c = mk(760 * S, 800 * S), g = c.getContext('2d');
+      g.translate(330 * S, 780 * S); g.scale(S, S);
+      drawRider(g, { t, phase: gaitPhase(t), amp: gaitAmp(t), rim: o.rim || '#ff9c66', toss: o.toss || 0, eye: o.eye ?? 1 });
+      return { url: c.toDataURL('image/png'), w: c.width, h: c.height, feetX: 330 * S, feetY: 780 * S, unit: S };
+    },
+    riderFront(t, eyeA) {
+      const S = 1.2, c = mk(560 * S, 820 * S), g = c.getContext('2d');
+      g.translate(280 * S, 790 * S); g.scale(S, S); drawRiderFront(g, gaitPhase(t), eyeA, t);
+      return { url: c.toDataURL('image/png'), w: c.width, h: c.height, feetX: 280 * S, feetY: 790 * S, unit: S };
+    },
+    banner(color, plain) {
+      const c = mk(256, 1024), g = c.getContext('2d'); g.scale(256 / 70, 1024 / 280);
+      nobori(g, 0, 0, 64, 280, 0, 0, { amp: 0, below: 0, color, plain });
+      return { url: c.toDataURL('image/png'), w: 256, h: 1024 };
+    },
+  },
   async audio(sr = 48000) { const oc = new OfflineAudioContext(2, Math.ceil(sr * DUR), sr); buildScore(oc, 0, oc.destination); return wavBase64(await oc.startRendering()); },
 };
 
