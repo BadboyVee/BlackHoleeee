@@ -36,6 +36,14 @@ A procedural BMW M5 CS model rendered in a studio lighting setup.
 
 **▶ [View it](https://badboyvee.github.io/BlackHoleeee/bmw-m5-cs/)** · [source](bmw-m5-cs/)
 
+### 🏫 [Brightstar Primary School](school-website/)
+
+A plain HTML and CSS school website for a class assignment: a menu with Home and Primary 1 to 5,
+and on each class page the teacher, pupils, a short write-up about the class, and its subjects.
+The images are placeholders, ready to be swapped for Canva designs.
+
+**▶ [Open it](https://badboyvee.github.io/BlackHoleeee/school-website/)** · [source](school-website/)
+
 ## Hosting
 
 `netlify.toml` publishes `bmw-m5-cs/` as the Netlify site root. GitHub Pages serves the whole
