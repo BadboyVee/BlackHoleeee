@@ -5,6 +5,14 @@ any of them — every project is an `index.html` you can open directly.
 
 ## Projects
 
+### 🎏 [Koi Pond](koi-pond/)
+
+A living koi pond with a waterfall, lily pads, maples and fourteen koi of different varieties.
+The water has refraction, reflections and GPU ripples. Press "Feed the koi" and the fish race
+to the surface to gulp the pellets.
+
+**▶ [Open it](https://badboyvee.github.io/BlackHoleeee/koi-pond/)** · [source](koi-pond/)
+
 ### 🌊 [Saltwind Cove](ocean/)
 
 A WebGPU ocean you can walk, swim, sail and dive in. It has FFT waves, breakers that curl and
