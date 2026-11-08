@@ -1,0 +1,177 @@
+/* Brightstar Primary School - shared stylesheet */
+:root {
+  --navy: #1e3a8a;
+  --gold: #fbbf24;
+  --text: #1f2937;
+  --muted: #6b7280;
+  --bg: #f8fafc;
+  --card: #ffffff;
+  --c1: #e8892b;
+  --c2: #2f9e54;
+  --c3: #2b6cb0;
+  --c4: #7b4bb7;
+  --c5: #c53a4a;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+  line-height: 1.6;
+}
+
+/* ---------- Header & menu ---------- */
+.site-header {
+  background: var(--navy);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding: 10px 24px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: #fff;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 1.2rem;
+  line-height: 1.1;
+}
+.brand small { color: var(--gold); font-weight: 400; font-size: 0.85rem; }
+.logo { width: 56px; height: 56px; }
+
+nav ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  gap: 4px;
+}
+nav a {
+  display: block;
+  color: #fff;
+  text-decoration: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+nav a:hover { background: rgba(255, 255, 255, 0.15); }
+nav a.active { background: var(--gold); color: var(--navy); }
+
+.menu-toggle, .menu-button { display: none; }
+
+/* ---------- Page sections ---------- */
+.hero, .page-title {
+  text-align: center;
+  color: #fff;
+  padding: 48px 16px;
+}
+.hero { background: linear-gradient(135deg, var(--navy), #3b5bdb); }
+.hero-logo { width: 160px; height: 160px; }
+.hero h1, .page-title h1 { margin: 12px 0 4px; font-size: 2.2rem; }
+.hero p, .page-title p { margin: 0; font-size: 1.1rem; opacity: 0.9; }
+
+.page-title.c1 { background: var(--c1); }
+.page-title.c2 { background: var(--c2); }
+.page-title.c3 { background: var(--c3); }
+.page-title.c4 { background: var(--c4); }
+.page-title.c5 { background: var(--c5); }
+
+.content {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+.content h2 {
+  color: var(--navy);
+  border-bottom: 3px solid var(--gold);
+  display: inline-block;
+  margin-top: 36px;
+}
+
+.subjects { padding-left: 20px; }
+.subjects li { margin-bottom: 8px; }
+
+/* ---------- Images: every photo is the SAME size and shape ---------- */
+.photo {
+  width: 100%;
+  aspect-ratio: 1 / 1;   /* square */
+  object-fit: cover;     /* crops any image to fill the square evenly */
+  border-radius: 12px;
+  display: block;
+}
+
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 180px);
+  gap: 20px;
+  justify-content: start;
+}
+.card {
+  margin: 0;
+  background: var(--card);
+  border-radius: 14px;
+  padding: 10px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+.card figcaption { margin-top: 8px; font-weight: 600; }
+.card small { color: var(--muted); font-weight: 400; }
+
+/* ---------- Home: class links ---------- */
+.class-links {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 20px;
+}
+.class-link {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 10px 10px 14px;
+  text-decoration: none;
+  color: var(--text);
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border-top: 6px solid;
+  transition: transform 0.15s;
+}
+.class-link:hover { transform: translateY(-4px); }
+.class-link strong { display: block; margin-top: 8px; font-size: 1.1rem; }
+.class-link span { color: var(--muted); font-size: 0.9rem; }
+.class-link.c1 { border-color: var(--c1); }
+.class-link.c2 { border-color: var(--c2); }
+.class-link.c3 { border-color: var(--c3); }
+.class-link.c4 { border-color: var(--c4); }
+.class-link.c5 { border-color: var(--c5); }
+
+/* ---------- Footer ---------- */
+.site-footer {
+  background: var(--navy);
+  color: #fff;
+  text-align: center;
+  padding: 16px;
+}
+.site-footer p { margin: 0; }
+
+/* ---------- Phones ---------- */
+@media (max-width: 800px) {
+  .menu-button {
+    display: block;
+    color: #fff;
+    font-size: 1.8rem;
+    cursor: pointer;
+  }
+  nav { width: 100%; display: none; }
+  .menu-toggle:checked ~ nav { display: block; }
+  nav ul { flex-direction: column; padding: 8px 0; }
+  .gallery, .class-links { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+  .hero h1, .page-title h1 { font-size: 1.7rem; }
+}
