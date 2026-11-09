@@ -9,10 +9,10 @@ any of them — every project is an `index.html` you can open directly.
 
 A creative frontend developer portfolio built around a real-time, ray-marched black hole that
 bends light as you scroll. 3D laptop, physics "gravity orbs", Lenis smooth scrolling, parallax and
-GSAP motion throughout. Vite + React + TypeScript + React Three Fiber; needs a build step
-(see its README to run or deploy it).
+GSAP motion throughout. Vite + React + TypeScript + React Three Fiber, also packed into a single
+`portfolio.html` you can open straight from disk.
 
-**[source & docs](portfolio/)**
+**▶ [Open it](https://badboyvee.github.io/BlackHoleeee/portfolio/portfolio.html)** (one-file version) · [source & docs](portfolio/)
 
 ### 🌊 [Saltwind Cove](ocean/)
 

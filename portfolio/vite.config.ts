@@ -1,6 +1,7 @@
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { defineConfig, type Plugin } from 'vite'
+import { viteSingleFile } from 'vite-plugin-singlefile'
 import { site } from './src/content/site.ts'
 
 /** Fills the %SITE_*% placeholders in index.html from src/content/site.ts. */
@@ -22,7 +23,15 @@ function siteMeta(): Plugin {
 }
 
 // https://vite.dev/config/
-export default defineConfig({
+// `npm run build:single` (mode "single") packs the whole site, fonts included,
+// into one self-contained HTML file that opens straight from disk.
+export default defineConfig(({ mode }) => mode === 'single'
+  ? {
+      base: './',
+      plugins: [siteMeta(), react(), tailwindcss(), viteSingleFile()],
+      build: { target: 'es2022', outDir: 'dist-single', chunkSizeWarningLimit: 4000 },
+    }
+  : {
   // Relative asset URLs, so the built site works from any folder:
   // a Netlify root, a GitHub Pages sub-path, or a plain static server.
   base: './',
@@ -44,4 +53,4 @@ export default defineConfig({
       },
     },
   },
-})
+  })

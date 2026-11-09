@@ -39,6 +39,13 @@ All text lives in **`src/content/site.ts`**: name, role, projects, toolkit,
 process, experience, email and social links. The page title and preview tags
 are filled from the same file at build time.
 
+## One-file version
+
+**[`portfolio.html`](portfolio.html)** is the whole site in a single file (about 2 MB):
+code, styles and fonts are all inside. Download it and double-click to open, with no
+install, server or internet connection needed. Rebuild it after editing with
+`npm run build:single`.
+
 ## Run it
 
 ```bash
