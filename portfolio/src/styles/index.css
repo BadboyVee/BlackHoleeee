@@ -409,7 +409,7 @@ html.is-ready .chrome {
   display: flex;
   flex-direction: column;
   margin: auto 0 clamp(1.5rem, 4vh, 3rem);
-  font-size: clamp(3.1rem, 11.3vw, 13.5rem);
+  font-size: clamp(2rem, 10.6vw, 13.5rem);
   mix-blend-mode: difference;
   color: #fff;
 }
