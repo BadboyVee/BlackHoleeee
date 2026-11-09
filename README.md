@@ -1,9 +1,18 @@
 # BlackHoleeee
 
-A sandbox of single-file, browser-native 3D experiments built with Three.js. No build step in
-any of them — every project is an `index.html` you can open directly.
+A sandbox of browser-native 3D experiments built with Three.js. Most have no build step: the
+project is an `index.html` you can open directly.
 
 ## Projects
+
+### 🕳️ [Event Horizon](portfolio/)
+
+A frontend developer portfolio built around a real-time, ray-traced black hole. Scrolling flies
+the camera through one continuous 3D scene, with Lenis smooth scrolling, GSAP scroll animation,
+parallax and code-built 3D models. Unlike the others this one has a build step (React,
+TypeScript, Vite, React Three Fiber).
+
+**[source & how to run](portfolio/)**
 
 ### 🌊 [Saltwind Cove](ocean/)
 
