@@ -787,7 +787,7 @@ function buildGarden() {
     const d = bambooDensity(x, z);
     if (d <= 0) continue;
     if (Math.hypot(x - 40, z - 36) < 9 || Math.hypot(x - 59, z - 49) < 9 || Math.hypot(x - 90, z - 41) < 10 || Math.hypot(x - 30, z + 72) < 13 || Math.hypot(x - 4, z + 92) < 12) continue;
-    if (hash3(x, 99, z) < 0.2 * d) bambooStalk(x, z);
+    if (hash3(x, 99, z) < 0.13 * d) bambooStalk(x, z);
   }
 
   // Trimmed shrubs, rocks and lanterns around the plateau.
@@ -906,8 +906,9 @@ class GeomBuilder {
   }
 }
 
-function meshGrid(grid, scale, origin, sky, capacity) {
+function meshGrid(grid, scale, origin, sky, capacity, xr, zr) {
   const { data, WX, WY, WZ, OX, OY, OZ } = grid;
+  const x0 = xr ? xr[0] : -OX, x1 = xr ? xr[1] : WX - OX, z0 = zr ? zr[0] : -OZ, z1 = zr ? zr[1] : WZ - OZ;
   const occ = (x, y, z) => { const q = grid.get(x, y, z); return q !== 0 && PAL[q - 1].group !== GROUP_WATER ? 1 : 0; };
   const builders = [new GeomBuilder(capacity), new GeomBuilder(Math.max(1024, capacity >> 5))];
   const c = [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]];
@@ -915,7 +916,7 @@ function meshGrid(grid, scale, origin, sky, capacity) {
   const rgb = [0, 0, 0];
   const SIGN = [[-1, -1], [1, -1], [1, 1], [-1, 1]];
   let voxels = 0;
-  for (let x = -OX; x < WX - OX; x++) for (let z = -OZ; z < WZ - OZ; z++) {
+  for (let x = x0; x < x1; x++) for (let z = z0; z < z1; z++) {
     const col = ((x + OX) * WZ + (z + OZ)) * WY;
     for (let y = -OY; y < WY - OY; y++) {
       const m = data[col + y + OY];
@@ -1099,19 +1100,21 @@ const farMat = voxelMaterial({ envMapIntensity: 0.7 });
 function buildScene() {
   const t0 = performance.now();
   buildGarden();
-  const main = meshGrid(G, 1, [0, 0, 0], true, 600000);
-  const solid = new THREE.Mesh(main.solid.geometry(), solidMat);
-  solid.castShadow = true; solid.receiveShadow = true;
-  scene.add(solid);
-  const water = new THREE.Mesh(main.water.geometry(), waterMat);
-  water.receiveShadow = true;
-  scene.add(water);
-
-  for (const far of [buildHills(), buildMountains()]) {
-    const g = meshGrid(far.grid, far.scale, far.origin, false, 40000);
-    const mesh = new THREE.Mesh(g.solid.geometry(), farMat);
-    scene.add(mesh);
-  }
+  // Meshed in column chunks so three.js can frustum-cull whatever is off screen.
+  let voxels = 0, faces = 0;
+  const addChunks = (grid, scale, origin, sky, mat, waterToo, cx, cz, cap) => {
+    for (let x = -grid.OX; x < grid.WX - grid.OX; x += cx) for (let z = -grid.OZ; z < grid.WZ - grid.OZ; z += cz) {
+      const part = meshGrid(grid, scale, origin, sky, cap, [x, Math.min(x + cx, grid.WX - grid.OX)], [z, Math.min(z + cz, grid.WZ - grid.OZ)]);
+      voxels += part.voxels; faces += part.solid.f + part.water.f;
+      if (part.solid.f) { const m = new THREE.Mesh(part.solid.geometry(), mat); m.castShadow = m.receiveShadow = sky; scene.add(m); }
+      if (waterToo && part.water.f) { const w = new THREE.Mesh(part.water.geometry(), waterMat); w.receiveShadow = true; scene.add(w); }
+    }
+  };
+  addChunks(G, 1, [0, 0, 0], true, solidMat, true, 46, 48, 60000);
+  const hills = buildHills();
+  addChunks(hills.grid, hills.scale, hills.origin, false, farMat, false, 50, 35, 12000);
+  const mountains = buildMountains();
+  addChunks(mountains.grid, mountains.scale, mountains.origin, false, farMat, false, 300, 50, 20000);
 
   // A few distant birds, each a shallow V of cubes.
   const birdGeo = new THREE.BoxGeometry(0.8, 0.8, 0.8);
@@ -1125,8 +1128,7 @@ function buildScene() {
     scene.add(grp);
   }
 
-  const faces = main.solid.f + main.water.f;
-  const stats = { voxels: main.voxels, faces, triangles: faces * 2, ms: Math.round(performance.now() - t0) };
+  const stats = { voxels, faces, triangles: faces * 2, ms: Math.round(performance.now() - t0) };
   window.__voxelStats = stats;
   return stats;
 }
@@ -1147,6 +1149,19 @@ if (STILL) {
   camera.position.fromArray(VIEW.position);
   camera.lookAt(...VIEW.target);
   renderer.render(scene, camera);
+  renderer.shadowMap.autoUpdate = false;   // static scene: reuse the shadow map for every later frame
+  // Camera sweep for frame-by-frame video capture: t in [0, 1] orbits from the
+  // left of the composed view to its right while easing down toward it.
+  window.__renderFrame = (t) => {
+    const target = new THREE.Vector3(...VIEW.target);
+    const ease = t * t * (3 - 2 * t);
+    const az = THREE.MathUtils.degToRad(38 - 34 * ease);
+    const radius = 206 - 14 * Math.sin(Math.PI * t);
+    const height = 70 - 18 * ease;
+    camera.position.set(target.x + Math.sin(az) * radius, target.y + height, target.z + Math.cos(az) * radius);
+    camera.lookAt(target);
+    renderer.render(scene, camera);
+  };
   window.__renderDone = true;
   console.log('voxel-pagoda still rendered', JSON.stringify(stats));
 } else {
