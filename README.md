@@ -5,6 +5,14 @@ any of them — every project is an `index.html` you can open directly.
 
 ## Projects
 
+### 🏯 [Voxel Pagoda](voxel-pagoda/)
+
+A five-story Japanese pagoda in a cherry-blossom garden, every object carved from unit cubes:
+vermilion pillars, curved teal roofs, bamboo groves, autumn trees on a stepped foreground, a pond
+with a red bridge, baked ambient occlusion and soft sun shadows. Includes a 4K still.
+
+**▶ [View it](https://badboyvee.github.io/BlackHoleeee/voxel-pagoda/)** · [source](voxel-pagoda/)
+
 ### 🌊 [Saltwind Cove](ocean/)
 
 A WebGPU ocean you can walk, swim, sail and dive in. It has FFT waves, breakers that curl and
