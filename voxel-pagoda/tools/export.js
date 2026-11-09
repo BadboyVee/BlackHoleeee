@@ -8,11 +8,15 @@
  *   "VXP1"  int32 nx, ny, nz, npal
  *   float32 eye[3], target[3], fov, sun[3]
  *   npal x { uint8 r, g, b, kind; float32 vary }
- *   nx*ny*nz bytes, index = x + nx * (z + nz * y)   (see encode() in scene.js)
+ *   nx*ny*nz bytes, index = x + nx * (z + nz * y)   (see encode() in index.html)
  */
 const fs = require('fs');
 const path = require('path');
-const scene = require(path.join(__dirname, '..', 'scene.js'))();
+// The generator lives in index.html, in the <script id="scene-source"> block.
+const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+const m = html.match(/<script id="scene-source">([\s\S]*?)<\/script>/);
+if (!m) throw new Error('scene-source block not found in index.html');
+const scene = new Function(m[1] + '\nreturn voxelPagodaScene;')()();
 
 const out = process.argv[2] || 'scene.bin';
 const t0 = Date.now();

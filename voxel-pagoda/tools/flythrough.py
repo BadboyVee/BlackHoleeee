@@ -17,7 +17,7 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from tonemap import pbr_neutral, to_srgb  # noqa: E402
 
-PX, PZ, G = 280, 254, 28          # pagoda centre and garden level (see scene.js)
+PX, PZ, G = 280, 254, 28          # pagoda centre and garden level (see index.html)
 DIST, HEIGHT = 494, 210
 AZ0, AZ1 = 21.0, 49.0             # degrees off the pagoda's front face
 FPS = 24
