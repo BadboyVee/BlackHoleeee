@@ -53,7 +53,6 @@
   <button id="bHero" type="button">Hero view</button>
   <button id="bOrbit" type="button" aria-pressed="false">Orbit</button>
   <button id="bSave" type="button">Save image</button>
-  <a href="flythrough.mp4">Video</a>
 </div>
 
 <script id="scene-source">
@@ -1078,7 +1077,7 @@ function voxelPagodaScene() {
   function fail(msg) {
     loading.hidden = false;
     loading.classList.add('error');
-    loadText.innerHTML = msg + ' The finished render is in <a style="color:#ffd0e0" href="render-4k.jpg">render-4k.jpg</a> and <a style="color:#ffd0e0" href="flythrough.mp4">the video</a> shows it in motion.';
+    loadText.innerHTML = msg + ' The finished render is in <a style="color:#ffd0e0" href="render-4k.jpg">render-4k.jpg</a>.';
   }
 
   const scene = voxelPagodaScene();
