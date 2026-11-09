@@ -30,6 +30,13 @@ turn from dawn to night. Synthesised music and sound, ships, gulls and fireworks
 
 **▶ [Play it](https://badboyvee.github.io/BlackHoleeee/seven-wonders/)** · [source](seven-wonders/)
 
+### 🏯 [Voxel Pagoda](voxel-pagoda/)
+
+A five-story Japanese pagoda in a cherry-blossom garden, generated voxel by voxel and
+path-traced to a 4K still with its own small renderer.
+
+**▶ [See it](voxel-pagoda/render-4k.jpg)** · [source](voxel-pagoda/)
+
 ### 🚗 [BMW M5 CS](bmw-m5-cs/)
 
 A procedural BMW M5 CS model rendered in a studio lighting setup.
