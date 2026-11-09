@@ -1,0 +1,13 @@
+# Netlify settings for the portfolio (this folder). In Netlify, make a new site
+# from this repo and set its base directory to portfolio.
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

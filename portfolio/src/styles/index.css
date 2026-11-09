@@ -1,0 +1,242 @@
+@import 'tailwindcss';
+@import 'lenis/dist/lenis.css';
+
+/* ------------------------------------------------------------------ */
+/* Design tokens                                                       */
+/* ------------------------------------------------------------------ */
+@theme {
+  --color-void: #050507;
+  --color-night: #0c0c11;
+  --color-ash: #16161d;
+  --color-paper: #f1ece3;
+  --color-bone: #e7e0d4;
+  --color-mute: #8f8b98;
+  --color-ember: #ff5b1f;
+  --color-flare: #ffb070;
+  --color-line: rgb(241 236 227 / 0.14);
+
+  --font-display: 'Archivo Variable', 'Archivo', ui-sans-serif, system-ui, sans-serif;
+  --font-serif: 'Instrument Serif', ui-serif, Georgia, serif;
+  --font-mono: 'JetBrains Mono Variable', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-quart: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-back: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --breakpoint-xs: 30rem;
+}
+
+/* ------------------------------------------------------------------ */
+/* Base                                                                */
+/* ------------------------------------------------------------------ */
+@layer base {
+  html {
+    /* The page colour lives on <html>, never <body>: the two WebGL layers sit at
+       negative z-index and a painted body background would cover them. */
+    background: var(--color-void);
+    color: var(--color-paper);
+    color-scheme: dark;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    font-family: var(--font-display);
+    background: transparent;
+    overflow-x: clip;
+    min-height: 100svh;
+  }
+
+  ::selection {
+    background: var(--color-ember);
+    color: var(--color-void);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-ember);
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
+
+  a,
+  button {
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  button {
+    cursor: pointer;
+  }
+
+  img,
+  canvas {
+    display: block;
+  }
+}
+
+/* Native cursor is replaced by the custom one on fine pointers. */
+@media (pointer: fine) {
+  html.has-cursor,
+  html.has-cursor * {
+    cursor: none !important;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Layers                                                              */
+/* ------------------------------------------------------------------ */
+@layer components {
+  /* Both canvases are fixed to the large viewport so mobile toolbars
+     showing and hiding never resize (and re-allocate) the WebGL buffers. */
+  .gl-layer {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100lvh;
+    pointer-events: none;
+  }
+
+  .gl-layer > div {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .container-x {
+    padding-inline: clamp(1.25rem, 4vw, 3.5rem);
+  }
+
+  .label {
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    line-height: 1.4;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .serif-accent {
+    font-family: var(--font-serif);
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    text-transform: none;
+  }
+
+  .hairline {
+    height: 1px;
+    background: var(--color-line);
+  }
+
+  /* Split text helpers (GSAP SplitText output). */
+  .split-line {
+    padding-bottom: 0.08em;
+    margin-bottom: -0.08em;
+  }
+
+  .stroke-text {
+    color: transparent;
+    -webkit-text-stroke: 1.5px currentColor;
+  }
+
+  /* Rolling link: two copies of the label, the second slides in on hover. */
+  .roll {
+    position: relative;
+    display: inline-flex;
+    overflow: hidden;
+    vertical-align: top;
+  }
+
+  .roll__row {
+    display: inline-flex;
+    white-space: pre;
+  }
+
+  .roll__row--clone {
+    position: absolute;
+    inset: 0;
+  }
+
+  .roll__char {
+    display: inline-block;
+    transition: transform 0.6s var(--ease-expo);
+    transition-delay: calc(var(--i) * 18ms);
+  }
+
+  .roll__row--clone .roll__char {
+    transform: translateY(105%);
+  }
+
+  .roll-host:hover .roll__row:not(.roll__row--clone) .roll__char,
+  .roll-host:focus-visible .roll__row:not(.roll__row--clone) .roll__char {
+    transform: translateY(-105%);
+  }
+
+  .roll-host:hover .roll__row--clone .roll__char,
+  .roll-host:focus-visible .roll__row--clone .roll__char {
+    transform: translateY(0);
+  }
+
+  /* Animated underline. */
+  .underline-anim {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1px;
+    background-position: 100% 100%;
+    background-repeat: no-repeat;
+    transition: background-size 0.6s var(--ease-expo);
+  }
+
+  .underline-anim:hover,
+  .underline-anim:focus-visible {
+    background-size: 100% 1px;
+    background-position: 0% 100%;
+  }
+
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    border-radius: 999px;
+    border: 1px solid var(--color-line);
+    padding: 0.55rem 1rem;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Film grain                                                          */
+/* ------------------------------------------------------------------ */
+@keyframes grain {
+  0% { transform: translate3d(0, 0, 0); }
+  20% { transform: translate3d(-6%, 4%, 0); }
+  40% { transform: translate3d(4%, -8%, 0); }
+  60% { transform: translate3d(-8%, -2%, 0); }
+  80% { transform: translate3d(6%, 8%, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes pulse-dot {
+  0%, 100% { box-shadow: 0 0 0 0 rgb(255 91 31 / 0.55); }
+  60% { box-shadow: 0 0 0 7px rgb(255 91 31 / 0); }
+}
+
+@keyframes scroll-hint {
+  0% { transform: scaleY(0); transform-origin: top; }
+  45% { transform: scaleY(1); transform-origin: top; }
+  55% { transform: scaleY(1); transform-origin: bottom; }
+  100% { transform: scaleY(0); transform-origin: bottom; }
+}
+
+@keyframes spin-slow {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

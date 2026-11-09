@@ -5,6 +5,15 @@ any of them — every project is an `index.html` you can open directly.
 
 ## Projects
 
+### 🕳️ [Event Horizon](portfolio/)
+
+A creative frontend developer portfolio built around a real-time, ray-marched black hole that
+bends light as you scroll. 3D laptop, physics "gravity orbs", Lenis smooth scrolling, parallax and
+GSAP motion throughout. Vite + React + TypeScript + React Three Fiber; needs a build step
+(see its README to run or deploy it).
+
+**[source & docs](portfolio/)**
+
 ### 🌊 [Saltwind Cove](ocean/)
 
 A WebGPU ocean you can walk, swim, sail and dive in. It has FFT waves, breakers that curl and
