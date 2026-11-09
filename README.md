@@ -33,9 +33,10 @@ turn from dawn to night. Synthesised music and sound, ships, gulls and fireworks
 ### 🏯 [Voxel Pagoda](voxel-pagoda/)
 
 A five-story Japanese pagoda in a cherry-blossom garden, generated voxel by voxel and
-path-traced to a 4K still with its own small renderer.
+path-traced live in the browser. Drag to orbit and watch the light settle. Also rendered as
+a 4K still and a short orbit video.
 
-**▶ [See it](voxel-pagoda/render-4k.jpg)** · [source](voxel-pagoda/)
+**▶ [Open it](https://badboyvee.github.io/BlackHoleeee/voxel-pagoda/)** · [video](voxel-pagoda/flythrough.mp4) · [4K still](voxel-pagoda/render-4k.jpg) · [source](voxel-pagoda/)
 
 ### 🚗 [BMW M5 CS](bmw-m5-cs/)
 

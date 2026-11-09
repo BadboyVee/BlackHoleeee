@@ -239,7 +239,7 @@ static v3 radiance(v3 o, v3 d, uint32_t *rs, Aov *aov) {
 }
 
 /* ------------------------------------------------------------------ driver */
-static int W = 960, H = 540, SPP = 16, PASS = 4, THREADS = 0, WANT_AOV = 0;
+static int W = 960, H = 540, SPP = 16, PASS = 4, THREADS = 0, WANT_AOV = 0, SEED = 0;
 static float *ACC, *AOVB;
 static v3 CR, CU, CF;
 static float TANH;
@@ -252,7 +252,7 @@ static void *worker(void *arg) {
         int y = atomic_fetch_add(&next_row, 1);
         if (y >= H) break;
         for (int x = 0; x < W; x++) {
-            uint32_t rs = hash3i(x, y, pass_index * 7919 + 13) | 1u;
+            uint32_t rs = hash3i(x, y, pass_index * 7919 + 13 + SEED * 104729) | 1u;
             v3 sum = {0, 0, 0};
             Aov as = {{0, 0, 0}, {0, 0, 0}, 0};
             for (int s = 0; s < pass_spp; s++) {
@@ -310,7 +310,7 @@ int main(int argc, char **argv) {
         else if (!strcmp(k, "w")) W = atoi(v); else if (!strcmp(k, "h")) H = atoi(v);
         else if (!strcmp(k, "spp")) SPP = atoi(v); else if (!strcmp(k, "pass")) PASS = atoi(v);
         else if (!strcmp(k, "threads")) THREADS = atoi(v); else if (!strcmp(k, "bounces")) MAXB = atoi(v);
-        else if (!strcmp(k, "aov")) WANT_AOV = atoi(v);
+        else if (!strcmp(k, "aov")) WANT_AOV = atoi(v); else if (!strcmp(k, "seed")) SEED = atoi(v);
         else if (!strcmp(k, "eye")) has_eye = parse3(v, &eye_o); else if (!strcmp(k, "target")) has_tgt = parse3(v, &tgt_o);
         else if (!strcmp(k, "sun")) has_sun = parse3(v, &sun_o); else if (!strcmp(k, "fov")) fov_o = atof(v);
         else if (!strcmp(k, "sunr")) SUN_RADIUS = atof(v); else if (!strcmp(k, "sune")) parse3(v, &SUN_E);

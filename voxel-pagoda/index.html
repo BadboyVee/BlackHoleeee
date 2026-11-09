@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Voxel Pagoda</title>
+<meta name="description" content="A five-story Japanese pagoda in a cherry-blossom garden: fourteen million voxels, path-traced live in your browser.">
+<style>
+  :root { --ink: #fff; --panel: rgba(16, 24, 40, .52); --line: rgba(255, 255, 255, .22); }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: #6f9fe0; overflow: hidden; }
+  body { font: 14px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+  #poster, canvas { position: fixed; inset: 0; width: 100%; height: 100%; }
+  #poster { object-fit: cover; }
+  canvas { display: block; touch-action: none; cursor: grab; opacity: 0; transition: opacity .8s ease; }
+  canvas.live { opacity: 1; }
+  canvas.drag { cursor: grabbing; }
+  .panel { position: fixed; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+  #title { left: 16px; top: 16px; padding: 9px 13px; max-width: min(250px, calc(100vw - 32px)); }
+  #title h1 { margin: 0; font-size: 17px; font-weight: 650; letter-spacing: .01em; }
+  #title p { margin: 2px 0 0; opacity: .82; font-size: 12.5px; max-height: 120px; overflow: hidden; transition: max-height .6s ease, opacity .6s ease, margin .6s ease; }
+  #title.quiet p { max-height: 0; opacity: 0; margin: 0; }
+  #bar { left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%); padding: 6px; display: flex; gap: 6px; align-items: center; max-width: calc(100vw - 20px); }
+  #bar button, #bar a { appearance: none; border: 0; border-radius: 8px; padding: 8px 12px; font: inherit; font-weight: 550; color: var(--ink); background: rgba(255, 255, 255, .12); cursor: pointer; text-decoration: none; white-space: nowrap; }
+  #bar button:hover, #bar a:hover { background: rgba(255, 255, 255, .24); }
+  #bar button[aria-pressed="true"] { background: #e2401f; }
+  #bar button:focus-visible, #bar a:focus-visible { outline: 2px solid #fff; outline-offset: 1px; }
+  #stat { padding: 0 8px 0 4px; font-variant-numeric: tabular-nums; opacity: .85; font-size: 12.5px; white-space: nowrap; }
+  #loading { left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 16px 20px; width: min(320px, calc(100vw - 40px)); text-align: center; }
+  #loading .track { height: 6px; margin-top: 10px; border-radius: 3px; background: rgba(255, 255, 255, .2); overflow: hidden; }
+  #loading .fill { height: 100%; width: 0; background: #ff9bbd; border-radius: 3px; transition: width .2s; }
+  #loading.error .track { display: none; }
+  [hidden] { display: none !important; }
+  @media (max-width: 560px) { #stat { display: none; } #bar button, #bar a { padding: 8px 10px; } }
+</style>
+</head>
+<body>
+<img id="poster" src="render-4k.jpg" alt="A voxel-art five-story pagoda among cherry blossoms, bamboo and orange maples">
+<canvas id="view" aria-label="Interactive voxel pagoda. Drag to orbit, scroll or pinch to zoom."></canvas>
+
+<div id="title" class="panel">
+  <h1>Voxel Pagoda</h1>
+  <p>Fourteen million cubes, lit live. Drag to orbit, scroll or pinch to zoom, then hold still and the light settles.</p>
+</div>
+
+<div id="loading" class="panel" role="status">
+  <div id="loadText">Planting the garden…</div>
+  <div class="track"><div class="fill" id="loadFill"></div></div>
+</div>
+
+<div id="bar" class="panel" hidden>
+  <span id="stat"></span>
+  <button id="bHero" type="button">Hero view</button>
+  <button id="bOrbit" type="button" aria-pressed="false">Orbit</button>
+  <button id="bSave" type="button">Save image</button>
+  <a href="flythrough.mp4">Video</a>
+</div>
+
+<script src="scene.js"></script>
+<script>
+(function () {
+  'use strict';
+  const $ = (id) => document.getElementById(id);
+  const canvas = $('view'), loading = $('loading'), loadText = $('loadText'), loadFill = $('loadFill');
+
+  function fail(msg) {
+    loading.hidden = false;
+    loading.classList.add('error');
+    loadText.innerHTML = msg + ' The picture behind this is the finished render, and <a style="color:#ffd0e0" href="flythrough.mp4">the video</a> shows it in motion.';
+  }
+
+  const scene = voxelPagodaScene();
+  const NX = scene.NX, NY = scene.NY, NZ = scene.NZ;
+
+  const gl = canvas.getContext('webgl2', { antialias: false, alpha: false, powerPreference: 'high-performance' });
+  if (!gl) { fail('This browser has no WebGL2, so the live view cannot run.'); return; }
+  if (!gl.getExtension('EXT_color_buffer_float')) { fail('This device cannot render to float textures, so the live view cannot run.'); return; }
+
+  // ------------------------------------------------------------- shaders
+  const VERT = `#version 300 es
+  void main() { vec2 p = vec2((gl_VertexID << 1) & 2, gl_VertexID & 2); gl_Position = vec4(p * 2.0 - 1.0, 0.0, 1.0); }`;
+
+  // GLSL port of tools/pathtracer.c. Keep the two in step.
+  const TRACE = `#version 300 es
+  precision highp float; precision highp int; precision highp usampler3D; precision highp sampler2D;
+  uniform usampler3D uVox;      // x, z, y. Air: leap distance 0..31. Solid: 31 + material id.
+  uniform sampler2D uPal;       // row 0: linear rgb + kind, row 1: per-voxel tint range
+  uniform sampler2D uPrev;
+  uniform vec3 uEye, uRight, uUp, uFwd, uSun;
+  uniform vec2 uRes;
+  uniform float uTan, uFogStart;
+  uniform int uFrame, uSpp, uBounces;
+  out vec4 outColor;
+
+  const ivec3 N = ivec3(${NX}, ${NY}, ${NZ});
+  const float SUN_RADIUS = 0.035, FOG_DENSITY = 0.00042, BEVEL = 0.10, BEVEL_W = 0.085, LEAF_T = 0.28, ALBEDO = 0.92;
+  const vec3 SUN_E = vec3(3.30, 3.05, 2.60);
+
+  uint rs;
+  uint pcg() { uint x = rs; rs = x * 747796405u + 2891336453u; uint w = ((x >> ((x >> 28u) + 4u)) ^ x) * 277803737u; return (w >> 22u) ^ w; }
+  float rnd() { return float(pcg() >> 8u) * (1.0 / 16777216.0); }
+  uint hash3(ivec3 v) {
+    uint h = uint(v.x) * 0x27d4eb2du ^ uint(v.y) * 0x165667b1u ^ uint(v.z) * 0x9e3779b1u;
+    h ^= h >> 15u; h *= 0x85ebca6bu; h ^= h >> 13u; h *= 0xc2b2ae35u; h ^= h >> 16u; return h;
+  }
+
+  struct Hit { float t; int ax; vec3 n; ivec3 v; int mat; };
+
+  bool trace(vec3 o, vec3 d, bool skipFirst, out Hit h) {
+    h.t = 0.0; h.ax = -1; h.n = vec3(0.0); h.v = ivec3(0); h.mat = 0;
+    d = mix(d, vec3(1e-7), lessThan(abs(d), vec3(1e-7)));
+    vec3 inv = 1.0 / d, pos = step(0.0, d);
+    ivec3 st = ivec3(pos) * 2 - 1;
+    vec3 ta = -o * inv, tb = (vec3(N) - o) * inv, tmn = min(ta, tb), tmx = max(ta, tb);
+    float t0 = 0.0; int ax = -1;
+    if (tmn.x > t0) { t0 = tmn.x; ax = 0; }
+    if (tmn.y > t0) { t0 = tmn.y; ax = 1; }
+    if (tmn.z > t0) { t0 = tmn.z; ax = 2; }
+    float t1 = min(tmx.x, min(tmx.y, tmx.z));
+    if (t0 >= t1) return false;
+    float t = t0;
+    ivec3 v = clamp(ivec3(floor(o + d * t)), ivec3(0), N - 1);
+    if (ax == 0) v.x = st.x > 0 ? 0 : N.x - 1; else if (ax == 1) v.y = st.y > 0 ? 0 : N.y - 1; else if (ax == 2) v.z = st.z > 0 ? 0 : N.z - 1;
+    for (int it = 0; it < 256; it++) {
+      int val = int(texelFetch(uVox, ivec3(v.x, v.z, v.y), 0).r);
+      int k = val;
+      if (val >= 32) {
+        if (!(skipFirst && it == 0)) {
+          h.t = t; h.ax = ax; h.v = v; h.mat = val - 31;
+          if (ax == 0) h.n.x = -float(st.x); else if (ax == 1) h.n.y = -float(st.y); else if (ax == 2) h.n.z = -float(st.z);
+          return true;
+        }
+        k = 0;
+      }
+      // leap to the far side of the empty (2k+1)^3 box around this voxel
+      vec3 tt = (vec3(v) + mix(vec3(float(-k)), vec3(float(k + 1)), pos) - o) * inv;
+      if (tt.x < tt.y) { if (tt.x < tt.z) { ax = 0; t = tt.x; } else { ax = 2; t = tt.z; } }
+      else { if (tt.y < tt.z) { ax = 1; t = tt.y; } else { ax = 2; t = tt.z; } }
+      if (t >= t1) return false;
+      ivec3 q = v;
+      if (k > 0) q = clamp(ivec3(floor(o + d * t)), v - k, v + k);
+      if (ax == 0) q.x = v.x + (k + 1) * st.x; else if (ax == 1) q.y = v.y + (k + 1) * st.y; else q.z = v.z + (k + 1) * st.z;
+      v = q;
+      if (any(lessThan(v, ivec3(0))) || any(greaterThanEqual(v, N))) return false;
+    }
+    return false;
+  }
+
+  vec3 skyView(vec3 d) { return mix(vec3(0.60, 0.79, 1.00), vec3(0.115, 0.33, 0.86), smoothstep(-0.30, 0.06, d.y)); }
+  vec3 skyLight(vec3 d) {
+    vec3 c = mix(vec3(0.74, 0.86, 1.00), vec3(0.30, 0.52, 1.00), smoothstep(-0.12, 0.75, d.y));
+    float sd = dot(d, uSun);
+    if (sd > 0.0) { float g = sd * sd; g *= g; g *= g; g *= g; c += vec3(1.0, 0.86, 0.62) * (0.35 * g); }
+    if (d.y < 0.0) c = mix(c, vec3(0.52, 0.60, 0.52), clamp(-d.y * 3.0, 0.0, 1.0));
+    return c;
+  }
+  void basis(vec3 n, out vec3 t, out vec3 b) {
+    float s = n.z >= 0.0 ? 1.0 : -1.0, a = -1.0 / (s + n.z), c = n.x * n.y * a;
+    t = vec3(1.0 + s * n.x * n.x * a, s * c, -s * n.x); b = vec3(c, s + n.y * n.y * a, -n.y);
+  }
+  vec3 cosineDir(vec3 n) {
+    float u1 = rnd(), u2 = rnd(), r = sqrt(u1), ph = 6.2831853 * u2; vec3 t, b; basis(n, t, b);
+    return normalize(t * (r * cos(ph)) + b * (r * sin(ph)) + n * sqrt(1.0 - u1));
+  }
+  vec3 sunDir() {
+    float u1 = rnd(), u2 = rnd(), r = SUN_RADIUS * sqrt(u1), ph = 6.2831853 * u2; vec3 t, b; basis(uSun, t, b);
+    return normalize(uSun + t * (r * cos(ph)) + b * (r * sin(ph)));
+  }
+
+  vec3 radiance(vec3 o, vec3 d) {
+    vec3 L = vec3(0.0), T = vec3(1.0);
+    float fog = 0.0; bool skip = false, spec = true;
+    for (int b = 0; b < uBounces; b++) {
+      Hit h;
+      if (!trace(o, d, skip, h)) { L += T * (spec ? skyView(d) : skyLight(d)); break; }
+      skip = false;
+      if (h.ax < 0) break;
+      vec3 n = h.n, p = o + d * h.t;
+      // pin the hit to its face so the next ray starts on the right side of it
+      if (h.ax == 0) p.x = float(h.v.x) + max(n.x, 0.0); else if (h.ax == 1) p.y = float(h.v.y) + max(n.y, 0.0); else p.z = float(h.v.z) + max(n.z, 0.0);
+      vec4 m = texelFetch(uPal, ivec2(h.mat, 0), 0);
+      float vary = texelFetch(uPal, ivec2(h.mat, 1), 0).r;
+      int kind = int(m.a + 0.5);
+      // per-voxel tint and a faint groove at the edge of every face, so each cube reads
+      float f = 1.0 + vary * (float(hash3(h.v) & 0xffffu) / 32767.5 - 1.0);
+      vec3 pc = p - vec3(h.v);
+      vec2 ab = h.ax == 0 ? pc.yz : h.ax == 1 ? pc.zx : pc.xy;
+      float e = min(min(ab.x, 1.0 - ab.x), min(ab.y, 1.0 - ab.y));
+      f *= 1.0 - BEVEL * (1.0 - smoothstep(0.0, BEVEL_W, e));
+      vec3 alb = m.rgb * (f * ALBEDO);
+      if (b == 0) fog = 1.0 - exp(-max(0.0, h.t - uFogStart) * FOG_DENSITY);
+      if (kind == 3) { L += T * m.rgb * 3.5; break; }
+      if (kind == 1) {
+        float c = max(0.0, -dot(d, n)), fr = 0.04 + 0.96 * pow(1.0 - c, 5.0);
+        if (rnd() < fr + 0.10) {
+          d = normalize(reflect(d, n) + vec3(rnd() - 0.5, 0.0, rnd() - 0.5) * 0.03);
+          o = p + n * 1e-3; spec = true; T *= vec3(0.92, 0.96, 0.98); continue;
+        }
+      } else if (kind == 2) {
+        if (rnd() < 0.55) {
+          vec3 r = normalize(reflect(d, n) + (vec3(rnd(), rnd(), rnd()) - 0.5) * 0.55);
+          if (dot(r, n) > 0.01) { o = p + n * 1e-3; d = r; spec = false; T *= m.rgb * 1.05; continue; }
+        }
+      }
+      spec = false;
+      float tr = kind == 4 ? LEAF_T : 0.0;
+      vec3 l = sunDir(); float nl = dot(n, l); Hit sh;
+      if (nl > 0.0) { if (!trace(p + n * 1e-3, l, false, sh)) L += T * alb * SUN_E * (nl * (1.0 - tr)); }
+      else if (tr > 0.0) { if (!trace(p - n * 1e-3, l, true, sh)) L += T * alb * SUN_E * (-nl * tr); }
+      if (tr > 0.0 && rnd() < tr) { d = cosineDir(-n); o = p - n * 1e-3; skip = true; }
+      else { d = cosineDir(n); o = p + n * 1e-3; }
+      T *= alb;
+      if (b >= 2) { float q = max(T.x, max(T.y, T.z)); if (q < 1.0) { if (rnd() > q) break; T /= q; } }
+    }
+    float mx = max(L.x, max(L.y, L.z));
+    if (mx > 24.0) L *= 24.0 / mx;
+    return mix(L, vec3(0.62, 0.80, 1.00), fog);
+  }
+
+  void main() {
+    ivec2 px = ivec2(gl_FragCoord.xy);
+    rs = hash3(ivec3(px, uFrame)) | 1u;
+    vec3 sum = vec3(0.0);
+    for (int s = 0; s < uSpp; s++) {
+      float u1 = max(rnd(), 1e-6), u2 = rnd(), rr = min(0.45 * sqrt(-2.0 * log(u1)), 1.5);
+      vec2 ndc = (gl_FragCoord.xy + rr * vec2(cos(6.2831853 * u2), sin(6.2831853 * u2))) / uRes * 2.0 - 1.0;
+      sum += radiance(uEye, normalize(uFwd + uRight * (ndc.x * uTan * uRes.x / uRes.y) + uUp * (ndc.y * uTan)));
+    }
+    sum /= float(uSpp);
+    if (uFrame > 0) sum = mix(texelFetch(uPrev, px, 0).rgb, sum, 1.0 / float(uFrame + 1));
+    outColor = vec4(sum, 1.0);
+  }`;
+
+  // Exposure, Khronos PBR Neutral tone curve, sRGB. Same as tools/tonemap.py.
+  const SHOW = `#version 300 es
+  precision highp float; precision highp sampler2D;
+  uniform sampler2D uAcc;
+  out vec4 outColor;
+  vec3 neutral(vec3 c) {
+    const float start = 0.76, desat = 0.15;
+    float x = min(c.r, min(c.g, c.b));
+    c -= x < 0.08 ? x - 6.25 * x * x : 0.04;
+    float peak = max(c.r, max(c.g, c.b));
+    if (peak < start) return c;
+    float d = 1.0 - start, np = 1.0 - d * d / (peak + d - start);
+    c *= np / peak;
+    return mix(c, vec3(np), 1.0 - 1.0 / (desat * (peak - np) + 1.0));
+  }
+  void main() {
+    vec3 c = clamp(neutral(texelFetch(uAcc, ivec2(gl_FragCoord.xy), 0).rgb * 0.62), 0.0, 1.0);
+    outColor = vec4(mix(c * 12.92, 1.055 * pow(c, vec3(1.0 / 2.4)) - 0.055, step(0.0031308, c)), 1.0);
+  }`;
+
+  function program(fs) {
+    const p = gl.createProgram();
+    for (const [type, src] of [[gl.VERTEX_SHADER, VERT], [gl.FRAGMENT_SHADER, fs]]) {
+      const s = gl.createShader(type);
+      gl.shaderSource(s, src); gl.compileShader(s);
+      if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s));
+      gl.attachShader(p, s);
+    }
+    gl.linkProgram(p);
+    if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+    const u = {};
+    for (let i = 0, n = gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS); i < n; i++) { const name = gl.getActiveUniform(p, i).name; u[name] = gl.getUniformLocation(p, name); }
+    return { p, u };
+  }
+  let tracer, shower;
+  try { tracer = program(TRACE); shower = program(SHOW); }
+  catch (err) { console.error(err); fail('The renderer would not start on this graphics driver.'); return; }
+  const vao = gl.createVertexArray();
+  gl.bindVertexArray(vao);
+
+  // ------------------------------------------------------------ textures
+  const nearest = (target) => {
+    for (const k of [gl.TEXTURE_MIN_FILTER, gl.TEXTURE_MAG_FILTER]) gl.texParameteri(target, k, gl.NEAREST);
+    for (const k of [gl.TEXTURE_WRAP_S, gl.TEXTURE_WRAP_T, gl.TEXTURE_WRAP_R]) gl.texParameteri(target, k, gl.CLAMP_TO_EDGE);
+  };
+  const lin = (c) => (c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4));
+  const pal = new Float32Array(256 * 2 * 4);
+  scene.palette.forEach((m, i) => {
+    const n = parseInt(m.hex.slice(1), 16), o = (i + 1) * 4;
+    pal[o] = lin((n >> 16 & 255) / 255); pal[o + 1] = lin((n >> 8 & 255) / 255); pal[o + 2] = lin((n & 255) / 255); pal[o + 3] = m.kind;
+    pal[256 * 4 + o] = m.vary;
+  });
+  const palTex = gl.createTexture();
+  gl.bindTexture(gl.TEXTURE_2D, palTex);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA32F, 256, 2, 0, gl.RGBA, gl.FLOAT, pal);
+  nearest(gl.TEXTURE_2D);
+  const voxTex = gl.createTexture();
+
+  let W = 0, H = 0, acc = [], cur = 0, budget = 1.3e6;
+  function resize() {
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    let w = Math.max(2, Math.round(canvas.clientWidth * dpr)), h = Math.max(2, Math.round(canvas.clientHeight * dpr));
+    const k = Math.min(1, Math.sqrt(budget / (w * h)));
+    w = Math.round(w * k); h = Math.round(h * k);
+    if (w === W && h === H) return false;
+    W = w; H = h; canvas.width = W; canvas.height = H;
+    for (const a of acc) { gl.deleteTexture(a.tex); gl.deleteFramebuffer(a.fbo); }
+    acc = [0, 1].map(() => {
+      const tex = gl.createTexture();
+      gl.bindTexture(gl.TEXTURE_2D, tex);
+      gl.texStorage2D(gl.TEXTURE_2D, 1, gl.RGBA32F, W, H);
+      nearest(gl.TEXTURE_2D);
+      const fbo = gl.createFramebuffer();
+      gl.bindFramebuffer(gl.FRAMEBUFFER, fbo);
+      gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, tex, 0);
+      return { tex, fbo };
+    });
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    return true;
+  }
+
+  // -------------------------------------------------------------- camera
+  const DEG = Math.PI / 180;
+  const target = scene.view.target;
+  const hero = (() => {
+    const e = scene.view.eye, dx = e[0] - target[0], dy = e[1] - target[1], dz = e[2] - target[2];
+    const dist = Math.hypot(dx, dy, dz);
+    return { az: Math.atan2(dx, dz), el: Math.asin(dy / dist), dist };
+  })();
+  const cam = { az: hero.az, el: hero.el, dist: hero.dist };
+  const TAN = Math.tan(scene.view.fov * 0.5 * DEG);
+  let frameN = 0, dirty = true, orbit = false, ready = false, lost = false;
+  const MAX_SAMPLES = 800;
+  const touch = () => { dirty = true; };
+
+  const pointers = new Map();
+  let pinch = 0;
+  canvas.addEventListener('pointerdown', (e) => { canvas.setPointerCapture(e.pointerId); pointers.set(e.pointerId, [e.clientX, e.clientY]); canvas.classList.add('drag'); pinch = 0; setOrbit(false); });
+  canvas.addEventListener('pointermove', (e) => {
+    const p = pointers.get(e.pointerId);
+    if (!p) return;
+    const dx = e.clientX - p[0], dy = e.clientY - p[1];
+    p[0] = e.clientX; p[1] = e.clientY;
+    if (pointers.size === 1) {
+      cam.az -= dx * 0.005;
+      cam.el = Math.min(80 * DEG, Math.max(2 * DEG, cam.el + dy * 0.004));
+    } else if (pointers.size === 2) {
+      const [a, b] = [...pointers.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]);
+      if (pinch) cam.dist = Math.min(1100, Math.max(170, cam.dist * pinch / d));
+      pinch = d;
+    }
+    touch();
+  });
+  const up = (e) => { pointers.delete(e.pointerId); pinch = 0; if (!pointers.size) canvas.classList.remove('drag'); };
+  canvas.addEventListener('pointerup', up);
+  canvas.addEventListener('pointercancel', up);
+  canvas.addEventListener('wheel', (e) => { e.preventDefault(); cam.dist = Math.min(1100, Math.max(170, cam.dist * Math.exp(e.deltaY * 0.0012))); setOrbit(false); touch(); }, { passive: false });
+  window.addEventListener('keydown', (e) => {
+    const k = e.key;
+    if (k === 'ArrowLeft') cam.az -= 0.06; else if (k === 'ArrowRight') cam.az += 0.06;
+    else if (k === 'ArrowUp') cam.el = Math.min(80 * DEG, cam.el + 0.04); else if (k === 'ArrowDown') cam.el = Math.max(2 * DEG, cam.el - 0.04);
+    else if (k === '+' || k === '=') cam.dist = Math.max(170, cam.dist * 0.92); else if (k === '-') cam.dist = Math.min(1100, cam.dist * 1.08);
+    else return;
+    setOrbit(false); touch();
+  });
+
+  const bOrbit = $('bOrbit'), stat = $('stat');
+  function setOrbit(on) { orbit = on; bOrbit.setAttribute('aria-pressed', String(on)); if (on) orbitT0 = performance.now() - Math.asin(Math.max(-1, Math.min(1, (cam.az - hero.az) / (14 * DEG)))) / 0.00022; }
+  let orbitT0 = 0;
+  bOrbit.onclick = () => { if (!orbit) { cam.el = hero.el; cam.dist = hero.dist; } setOrbit(!orbit); touch(); };
+  $('bHero').onclick = () => { setOrbit(false); cam.az = hero.az; cam.el = hero.el; cam.dist = hero.dist; touch(); };
+  $('bSave').onclick = () => {
+    show();
+    canvas.toBlob((blob) => { const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'voxel-pagoda.png'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }, 'image/png');
+  };
+  canvas.addEventListener('webglcontextlost', (e) => { e.preventDefault(); lost = true; canvas.classList.remove('live'); fail('The graphics context was lost (the scene needs about 70 MB of video memory).'); });
+
+  // -------------------------------------------------------------- render
+  function sample(spp, bounces) {
+    const ce = Math.cos(cam.el), se = Math.sin(cam.el);
+    const eye = [target[0] + Math.sin(cam.az) * ce * cam.dist, target[1] + se * cam.dist, target[2] + Math.cos(cam.az) * ce * cam.dist];
+    const f = [target[0] - eye[0], target[1] - eye[1], target[2] - eye[2]].map((v) => v / cam.dist);
+    const rl = Math.hypot(f[2], f[0]), r = [-f[2] / rl, 0, f[0] / rl];
+    const u = [r[1] * f[2] - r[2] * f[1], r[2] * f[0] - r[0] * f[2], r[0] * f[1] - r[1] * f[0]];
+    gl.useProgram(tracer.p);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, acc[1 - cur].fbo);
+    gl.viewport(0, 0, W, H);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_3D, voxTex);
+    gl.activeTexture(gl.TEXTURE1); gl.bindTexture(gl.TEXTURE_2D, palTex);
+    gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, acc[cur].tex);
+    const U = tracer.u;
+    gl.uniform1i(U.uVox, 0); gl.uniform1i(U.uPal, 1); gl.uniform1i(U.uPrev, 2);
+    gl.uniform3fv(U.uEye, eye); gl.uniform3fv(U.uFwd, f); gl.uniform3fv(U.uRight, r); gl.uniform3fv(U.uUp, u); gl.uniform3fv(U.uSun, scene.sun);
+    gl.uniform2f(U.uRes, W, H); gl.uniform1f(U.uTan, TAN); gl.uniform1f(U.uFogStart, cam.dist - 210);
+    gl.uniform1i(U.uFrame, frameN); gl.uniform1i(U.uSpp, spp); gl.uniform1i(U.uBounces, bounces);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+    cur = 1 - cur; frameN++;
+  }
+  function show() {
+    gl.useProgram(shower.p);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+    gl.viewport(0, 0, W, H);
+    gl.activeTexture(gl.TEXTURE0); gl.bindTexture(gl.TEXTURE_2D, acc[cur].tex);
+    gl.uniform1i(shower.u.uAcc, 0);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+  }
+
+  let last = 0, slow = 0, revealed = false;
+  function tick(now) {
+    requestAnimationFrame(tick);
+    if (!ready || lost) return;
+    const dt = now - last; last = now;
+    if (resize()) dirty = true;
+    if (orbit) { cam.az = hero.az + 14 * DEG * Math.sin((now - orbitT0) * 0.00022); dirty = true; }
+    if (dirty) { frameN = 0; dirty = false; }
+    if (frameN >= MAX_SAMPLES) return;
+    // If the GPU cannot keep up, trade resolution for speed.
+    if (dt > 120 && dt < 2000) { if (++slow > 6 && budget > 2.6e5) { budget *= 0.6; slow = 0; return; } } else if (dt < 60) slow = 0;
+    sample(1, orbit || pointers.size ? 3 : 4);
+    show();
+    if (!revealed && frameN >= 2) { revealed = true; canvas.classList.add('live'); loading.hidden = true; $('bar').hidden = false; setTimeout(() => $('title').classList.add('quiet'), 7000); }
+    stat.textContent = frameN >= MAX_SAMPLES ? 'settled' : frameN + ' samples';
+  }
+
+  // --------------------------------------------- build the garden off-thread
+  function start(vox) {
+    gl.pixelStorei(gl.UNPACK_ALIGNMENT, 1);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_3D, voxTex);
+    gl.texImage3D(gl.TEXTURE_3D, 0, gl.R8UI, NX, NZ, NY, 0, gl.RED_INTEGER, gl.UNSIGNED_BYTE, vox);
+    nearest(gl.TEXTURE_3D);
+    if (gl.getError() !== gl.NO_ERROR) { fail('This device does not have enough video memory for the scene.'); return; }
+    loadText.textContent = 'Letting in the light…';
+    ready = true;
+  }
+  const labels = { terrain: 'Raising the terraces…', pagoda: 'Building the pagoda…', trees: 'Planting cherry trees…', bamboo: 'Growing bamboo…', garden: 'Tending the garden…', done: 'Tending the garden…', 'lighting grid': 'Measuring the open air…' };
+  const progress = (stage, f) => { loadText.textContent = labels[stage] || 'Planting the garden…'; loadFill.style.width = Math.round(f * 100) + '%'; };
+  try {
+    const src = voxelPagodaScene.toString() + ';onmessage=function(){var s=voxelPagodaScene(),r=function(a,f){postMessage({stage:a,f:f});};var b=s.build(r);var e=s.encode(b.vox,r);postMessage({vox:e},[e.buffer]);};';
+    const worker = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' })));
+    worker.onmessage = (e) => { if (e.data.vox) { worker.terminate(); start(e.data.vox); } else progress(e.data.stage, e.data.f); };
+    worker.onerror = (e) => { console.error(e); fail('The garden could not be built.'); };
+    worker.postMessage(0);
+  } catch (err) {
+    // No workers here (rare): build on the main thread instead.
+    setTimeout(() => { const b = scene.build(); start(scene.encode(b.vox)); }, 30);
+  }
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
