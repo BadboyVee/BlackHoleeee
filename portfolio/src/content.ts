@@ -1,6 +1,8 @@
 // Everything the site says lives in this one file.
 // Change a name, a link or a project here and the whole page follows.
 
+import saltwindCove from './assets/work/saltwind-cove.jpg'
+
 export const site = {
   /** Shown in the logo, the hero and the footer. */
   name: 'Vee',
@@ -56,7 +58,7 @@ export interface Project {
   description: string
   tags: string[]
   href: string
-  /** Optional screenshot in public/work/. Without one, a generated poster is shown. */
+  /** Optional screenshot, imported from src/assets/work/. Without one, a generated poster is shown. */
   image?: string
   /** Accent used behind the image while it loads and in the hover glow. */
   tone: string
@@ -72,7 +74,7 @@ export const projects: Project[] = [
       'An ocean you can walk, swim, sail and dive in. FFT waves, breakers that curl on a sandbar, a boat with a real Kelvin wake and a humpback whale.',
     tags: ['WebGPU', 'TSL', 'FFT water'],
     href: `${live}/ocean/`,
-    image: './work/saltwind-cove.jpg',
+    image: saltwindCove,
     tone: '#1f6f8b',
   },
   {

@@ -8,7 +8,8 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
-    "glyphs": "node scripts/make-glyphs.mjs"
+    "glyphs": "node scripts/make-glyphs.mjs",
+    "build:single": "node scripts/build-single.mjs"
   },
   "dependencies": {
     "@fontsource-variable/archivo": "^5.3.0",

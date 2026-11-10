@@ -37,13 +37,26 @@ npm run build      # type-checks, then writes the site to dist/
 npm run preview    # serves dist/ on http://localhost:4173
 ```
 
+## The single HTML file
+
+**`portfolio.html`** is the whole site in one file: scripts, styles, fonts and images are all
+inlined. Double-click it and it runs, with no server, no install and no internet connection.
+It can also be uploaded as-is to any host.
+
+It is a build of the code in `src/`, so do not edit it by hand. After changing the site,
+regenerate it:
+
+```bash
+npm run build:single   # rewrites portfolio.html
+```
+
 ## Make it yours
 
 Every word and link on the site lives in **`src/content.ts`**: name, intro, projects, skills,
 contact address. Set `email` there to turn the contact button into a mail link.
 
-- Project screenshots go in `public/work/` and are referenced by `image` on each project. A
-  project without one gets a generated poster.
+- Project screenshots go in `src/assets/work/`; import one at the top of `content.ts` and set
+  it as the project's `image`. A project without one gets a generated poster.
 - The camera path is in `src/lib/rig.ts`: one pose per section, measured from the real page.
 - Colours and fonts are tokens at the top of `src/styles/index.css`.
 - `npm run glyphs` rebuilds the 3D code symbols (edit `CHARS` in `scripts/make-glyphs.mjs`).
@@ -53,6 +66,8 @@ intro, which helps on slow machines.
 
 ## Deploy
 
-The build is static and uses relative URLs, so `dist/` works on any host and from any
-sub-folder. `netlify.toml` is ready: create a Netlify site from this repo with the base
-directory set to `portfolio`.
+The quickest route is `portfolio.html`: it is one file and works anywhere.
+
+For the regular build, `dist/` is static and uses relative URLs, so it works on any host and
+from any sub-folder. `netlify.toml` is ready: create a Netlify site from this repo with the
+base directory set to `portfolio`.

@@ -1,9 +1,38 @@
 @import 'tailwindcss';
-@import '@fontsource-variable/archivo/standard.css';
-@import '@fontsource/instrument-serif/latin-400.css';
-@import '@fontsource/instrument-serif/latin-400-italic.css';
-@import '@fontsource-variable/jetbrains-mono/wght.css';
 @import 'lenis/dist/lenis.css';
+
+/* ------------------------------------------------------------------- fonts */
+
+/* Self-hosted, Latin subset only: three families, four small files. */
+@font-face {
+  font-family: 'Archivo Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  font-stretch: 62% 125%;
+  src: url('../../node_modules/@fontsource-variable/archivo/files/archivo-latin-standard-normal.woff2') format('woff2-variations');
+}
+@font-face {
+  font-family: 'Instrument Serif';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 400;
+  src: url('../../node_modules/@fontsource/instrument-serif/files/instrument-serif-latin-400-normal.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Instrument Serif';
+  font-style: italic;
+  font-display: swap;
+  font-weight: 400;
+  src: url('../../node_modules/@fontsource/instrument-serif/files/instrument-serif-latin-400-italic.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 800;
+  src: url('../../node_modules/@fontsource-variable/jetbrains-mono/files/jetbrains-mono-latin-wght-normal.woff2') format('woff2-variations');
+}
 
 /* ------------------------------------------------------------------ tokens */
 
