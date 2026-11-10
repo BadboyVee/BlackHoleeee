@@ -8,51 +8,30 @@
  * backwards from the camera gives the lensed sky, the shadow (radius ≈ 2.6),
  * the photon ring (r = 1.5) and every lensed image of the accretion disk.
  *
- * Rays that never come close are bent analytically with the weak-field
- * deflection, so most of the screen costs almost nothing.
+ * Performance notes. Everything expensive that does not change per frame is
+ * baked once at startup: the starry sky goes into a cube map (one lookup per
+ * pixel instead of dozens of noise calls) and the gas turbulence of the disk
+ * into a small tileable noise texture. Rays that never come close are bent
+ * analytically with the weak-field deflection, and the integrator evaluates
+ * the force once per step (kick-drift-kick with the force carried over).
  */
 
-export const vertexShader = /* glsl */ `
+/* ------------------------------------------------------------------ */
+/* Sky bake: rendered once into a cube map.                            */
+/* ------------------------------------------------------------------ */
+
+export const skyVertexShader = /* glsl */ `
+  varying vec3 vDir;
   void main() {
-    gl_Position = vec4(position.xy, 0.0, 1.0);
+    vDir = position;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
   }
 `
 
-export const fragmentShader = /* glsl */ `
+export const skyFragmentShader = /* glsl */ `
   precision highp float;
-
-  uniform vec2 uResolution;
-  uniform float uTime;
-  uniform vec3 uCamPos;
-  uniform vec3 uCamRight;
-  uniform vec3 uCamUp;
-  uniform vec3 uCamFwd;
-  uniform float uTanHalfFov;
-  uniform vec2 uShift;
-  uniform float uRoll;
-  uniform float uExposure;
-  uniform float uDim;
-  uniform float uDisk;
-  uniform float uStars;
-  uniform float uDoppler;
-  uniform float uSpin;
-  uniform int uSteps;
-  uniform float uStepScale;
-  uniform int uOctaves;
-  uniform vec3 uBg;
-
-  #define R_IN 2.6
-  #define R_OUT 12.5
-  #define ESCAPE 14.5
-  #define PI 3.14159265
-
-  // ---------------------------------------------------------------- hashing
-
-  float hash12(vec2 p) {
-    vec3 p3 = fract(vec3(p.xyx) * 0.1031);
-    p3 += dot(p3, p3.yzx + 33.33);
-    return fract((p3.x + p3.y) * p3.z);
-  }
+  varying vec3 vDir;
+  uniform float uPixel;   // angular size of one cube-map texel
 
   float hash13(vec3 p3) {
     p3 = fract(p3 * 0.1031);
@@ -81,8 +60,7 @@ export const fragmentShader = /* glsl */ `
   float fbm(vec3 p) {
     float sum = 0.0;
     float amp = 0.5;
-    for (int i = 0; i < 5; i++) {
-      if (i >= uOctaves) break;
+    for (int i = 0; i < 4; i++) {
       sum += amp * noise(p);
       p = p * 2.07 + vec3(17.13, 3.71, 9.27);
       amp *= 0.5;
@@ -90,30 +68,27 @@ export const fragmentShader = /* glsl */ `
     return sum;
   }
 
-  // ---------------------------------------------------------------- sky
-
-  vec3 starLayer(vec3 dir, float scale, float density, float seed, float pixel) {
+  vec3 starLayer(vec3 dir, float scale, float density, float seed) {
     vec3 p = dir * scale;
     vec3 cell = floor(p);
     float h = hash13(cell + seed);
     if (h > density) return vec3(0.0);
     vec3 rnd = hash33(cell + seed * 1.37);
-    vec3 star = cell + 0.25 + 0.5 * rnd;
-    vec3 d = star - p;
-    d -= dir * dot(d, dir);                       // perpendicular distance to the ray
-    float radius = pixel * scale * (0.8 + 0.7 * rnd.z);
+    vec3 d = cell + 0.25 + 0.5 * rnd - p;
+    d -= dir * dot(d, dir);
+    float radius = uPixel * scale * (0.7 + 0.6 * rnd.z);
     float core = 1.0 - smoothstep(0.0, radius, length(d));
     float bright = pow(h / density, 8.0) * 2.2 + 0.07;
-    float twinkle = 0.75 + 0.25 * sin(uTime * (0.6 + 2.4 * rnd.x) + rnd.y * 40.0);
     vec3 tint = mix(vec3(0.62, 0.74, 1.0), vec3(1.0, 0.82, 0.62), rnd.y);
-    return tint * core * core * bright * twinkle;
+    return tint * core * core * bright;
   }
 
-  vec3 sky(vec3 dir, float pixel) {
+  void main() {
+    vec3 dir = normalize(vDir);
     vec3 col = vec3(0.0);
-    col += starLayer(dir, 30.0, 0.09, 1.0, pixel);
-    col += starLayer(dir, 75.0, 0.07, 7.0, pixel) * 0.75;
-    col += starLayer(dir, 160.0, 0.06, 13.0, pixel) * 0.45;
+    col += starLayer(dir, 30.0, 0.09, 1.0);
+    col += starLayer(dir, 75.0, 0.07, 7.0) * 0.75;
+    col += starLayer(dir, 160.0, 0.06, 13.0) * 0.45;
 
     // A faint galactic band with dust, tilted across the sky.
     vec3 bandNormal = normalize(vec3(0.35, 1.0, -0.42));
@@ -122,9 +97,64 @@ export const fragmentShader = /* glsl */ `
     float clouds = fbm(dir * 3.2 + vec3(0.0, 0.0, 4.0));
     float dust = fbm(dir * 7.5 + vec3(5.0));
     vec3 glow = mix(vec3(0.12, 0.06, 0.22), vec3(0.35, 0.16, 0.08), clouds);
-    col += glow * band * smoothstep(0.3, 0.9, clouds) * (1.0 - 0.8 * smoothstep(0.45, 0.7, dust)) * 0.28;
-    col += vec3(0.05, 0.03, 0.09) * smoothstep(0.4, 0.95, fbm(dir * 1.6 + 11.0)) * 0.3;
-    return col * uStars;
+    col += glow * band * smoothstep(0.3, 0.9, clouds) * (1.0 - 0.8 * smoothstep(0.45, 0.7, dust)) * 0.22;
+    col += vec3(0.05, 0.03, 0.09) * smoothstep(0.4, 0.95, fbm(dir * 1.6 + 11.0)) * 0.22;
+
+    // Stored at half scale (so bright stars survive an 8-bit target) and in
+    // square-root space, which keeps enough levels in the dark nebula to avoid banding.
+    gl_FragColor = vec4(sqrt(min(col * 0.5, vec3(1.0))), 1.0);
+  }
+`
+
+/* ------------------------------------------------------------------ */
+/* Main pass.                                                          */
+/* ------------------------------------------------------------------ */
+
+export const vertexShader = /* glsl */ `
+  void main() {
+    gl_Position = vec4(position.xy, 0.0, 1.0);
+  }
+`
+
+export const fragmentShader = /* glsl */ `
+  precision highp float;
+
+  uniform vec2 uResolution;
+  uniform float uTime;
+  uniform vec3 uCamPos;
+  uniform vec3 uCamRight;
+  uniform vec3 uCamUp;
+  uniform vec3 uCamFwd;
+  uniform float uTanHalfFov;
+  uniform vec2 uShift;
+  uniform float uRoll;
+  uniform float uExposure;
+  uniform float uDim;
+  uniform float uDisk;
+  uniform float uStars;
+  uniform float uDoppler;
+  uniform float uSpin;
+  uniform int uSteps;
+  uniform float uStepScale;
+  uniform float uSkyLod;
+  uniform vec3 uBg;
+  uniform samplerCube uSky;
+  uniform sampler2D uNoise;
+
+  #define R_IN 2.6
+  #define R_OUT 12.5
+  #define ESCAPE 14.5
+  #define TAU 6.2831853
+
+  float hash12(vec2 p) {
+    vec3 p3 = fract(vec3(p.xyx) * 0.1031);
+    p3 += dot(p3, p3.yzx + 33.33);
+    return fract((p3.x + p3.y) * p3.z);
+  }
+
+  vec3 sky(vec3 dir) {
+    vec3 s = textureLod(uSky, dir, uSkyLod).rgb;
+    return s * s * (2.0 * uStars);
   }
 
   // ---------------------------------------------------------------- disk
@@ -137,12 +167,14 @@ export const fragmentShader = /* glsl */ `
     return c;
   }
 
-  // Gas texture in co-rotating coordinates, stretched along the orbit so it reads as streaks.
+  // Gas texture in co-rotating coordinates. The noise texture tiles, so three
+  // copies wrap seamlessly around the orbit; the low angular frequency
+  // stretches the turbulence into streaks.
   float gas(float r, float phi, float t, float seed) {
     float ang = phi + t / (r * sqrt(r));          // Keplerian: omega ~ r^-1.5
-    vec2 cs = vec2(cos(ang), sin(ang));
-    float broad = fbm(vec3(cs * (1.5 + r * 0.2), r * 1.15 + seed));
-    float fine = fbm(vec3(cs * (3.5 + r * 0.5), r * 4.0 + seed * 1.7));
+    vec2 uv = vec2(ang * (3.0 / TAU), r * 0.12 + seed);
+    float broad = textureLod(uNoise, uv, 0.0).r;
+    float fine = textureLod(uNoise, uv * vec2(2.0, 3.3) + vec2(0.0, 0.37), 0.0).g;
     return broad * 0.62 + fine * 0.6;
   }
 
@@ -157,15 +189,15 @@ export const fragmentShader = /* glsl */ `
     float t1 = mod(t, PERIOD);
     float t2 = mod(t + 0.5 * PERIOD, PERIOD);
     float w = 1.0 - abs(t1 / PERIOD * 2.0 - 1.0);
-    float n = mix(gas(r, phi, t2, 31.0), gas(r, phi, t1, 0.0), w);
-    float streak = smoothstep(0.24, 0.92, n);
+    float n = mix(gas(r, phi, t2, 0.53), gas(r, phi, t1, 0.0), w);
+    float streak = smoothstep(0.3, 0.95, n);
 
     float x = (r - R_IN) / (R_OUT - R_IN);
     float profile = smoothstep(0.0, 0.04, x) * (1.0 - smoothstep(0.2, 1.0, x));
 
     // Relativistic Doppler beaming and gravitational redshift (softened for taste).
     vec3 orbit = vec3(p.z, 0.0, -p.x) / r;
-    float beta = min(0.72 / sqrt(max(r - 1.0, 0.4)), 0.75);
+    float beta = min(0.72 * inversesqrt(max(r - 1.0, 0.4)), 0.75);
     float gamma = inversesqrt(1.0 - beta * beta);
     float D = 1.0 / (gamma * (1.0 - beta * dot(orbit, -dir)));
     D = mix(1.0, D, uDoppler);
@@ -193,40 +225,40 @@ export const fragmentShader = /* glsl */ `
     return normalize(dir - normalize(peri) * bend);
   }
 
-  vec3 trace(vec3 ro, vec3 rd, float pixel) {
+  vec3 trace(vec3 ro, vec3 rd) {
     vec3 pos = ro;
     vec3 vel = rd;
-    float r = length(pos);
+    float r2 = dot(pos, pos);
+    float r = sqrt(r2);
     vec3 hv = cross(pos, vel);
     float h2 = dot(hv, hv);
 
-    // Far rays: only a gentle bend, no disk.
-    if (r > ESCAPE && h2 > (ESCAPE + 1.5) * (ESCAPE + 1.5)) {
-      return sky(bendWeak(pos, vel), pixel);
-    }
+    // Rays that pass outside the disk only get a gentle bend.
+    const float FAR_B = R_OUT + 1.2;
+    if (r > ESCAPE && h2 > FAR_B * FAR_B) return sky(bendWeak(pos, vel));
 
     vec3 col = vec3(0.0);
     float trans = 1.0;
     float minR = r;
     float haze = 0.0;
     bool captured = false;
+    vec3 acc = -1.5 * h2 * pos / (r2 * r2 * r);
 
     for (int i = 0; i < 400; i++) {
       if (i >= uSteps) break;
-      float r2 = dot(pos, pos);
-      r = sqrt(r2);
-      minR = min(minR, r);
       if (r > ESCAPE && dot(pos, vel) > 0.0) break;
 
-      float dt = clamp(uStepScale * r - 0.03, 0.025, 2.5) / length(vel);
+      float dt = clamp(uStepScale * r - 0.03, 0.025, 2.5) * inversesqrt(dot(vel, vel));
 
-      // Stormer-Verlet: kick, drift, kick.
-      vel -= 1.5 * h2 * pos / (r2 * r2 * r) * (0.5 * dt);
+      // Kick-drift-kick; the force at the new point is reused by the next step.
+      vel += acc * (0.5 * dt);
       vec3 prev = pos;
       pos += vel * dt;
-      float nr2 = dot(pos, pos);
-      float nr = sqrt(nr2);
-      vel -= 1.5 * h2 * pos / (nr2 * nr2 * nr) * (0.5 * dt);
+      r2 = dot(pos, pos);
+      r = sqrt(r2);
+      minR = min(minR, r);
+      acc = -1.5 * h2 * pos / (r2 * r2 * r);
+      vel += acc * (0.5 * dt);
 
       if (prev.y * pos.y <= 0.0) {
         vec3 hit = mix(prev, pos, prev.y / (prev.y - pos.y + 1e-7));
@@ -240,23 +272,24 @@ export const fragmentShader = /* glsl */ `
       }
 
       // Thin glowing haze around the disk plane: a cheap in-shader bloom.
-      float rho = length(pos.xz);
-      haze += exp(-abs(pos.y) * 2.2) * (1.0 - smoothstep(R_IN, R_OUT + 3.0, rho)) * smoothstep(1.2, R_IN, rho) * dt * trans;
+      float rho2 = dot(pos.xz, pos.xz);
+      haze += trans * dt * exp(-abs(pos.y) * 2.2)
+        * (1.0 - smoothstep(R_IN * R_IN, (R_OUT + 3.0) * (R_OUT + 3.0), rho2))
+        * smoothstep(1.44, R_IN * R_IN, rho2);
 
-      if (nr2 < 1.0) {
+      if (r2 < 1.0) {
         captured = true;
         break;
       }
     }
 
     // Out of steps while still deep in the well: almost always a captured photon.
-    float rEnd = length(pos);
-    if (!captured && rEnd < ESCAPE && (rEnd < 3.0 || dot(pos, vel) < 0.0)) captured = true;
+    if (!captured && r < ESCAPE && (r < 3.0 || dot(pos, vel) < 0.0)) captured = true;
 
     if (!captured) {
       vec3 dir = normalize(vel);
-      if (length(pos) > ESCAPE) dir = bendWeak(pos, dir);
-      col += trans * sky(dir, pixel);
+      if (r > ESCAPE) dir = bendWeak(pos, dir);
+      col += trans * sky(dir);
       // Photon ring: light skimming the photon sphere at r = 1.5.
       float ring = exp(-pow((minR - 1.56) * 7.0, 2.0));
       col += vec3(1.0, 0.8, 0.58) * ring * 0.55 * uDisk * trans;
@@ -280,9 +313,7 @@ export const fragmentShader = /* glsl */ `
     vec2 q = mat2(c, s, -s, c) * p - uShift;
 
     vec3 rd = normalize(uCamFwd + (q.x * uCamRight + q.y * uCamUp) * uTanHalfFov);
-    float pixel = 2.0 * uTanHalfFov / uResolution.y;
-
-    vec3 col = trace(uCamPos, rd, pixel);
+    vec3 col = trace(uCamPos, rd);
 
     col = aces(col * uExposure);
     col = pow(col, vec3(1.0 / 2.2));

@@ -10,6 +10,8 @@ export const isSmallScreen = () => query('(max-width: 767px)')
  */
 export function gpuTier(): 'low' | 'mid' | 'high' {
   if (typeof document === 'undefined') return 'mid'
+  const forced = new URLSearchParams(location.search).get('quality')
+  if (forced === 'low' || forced === 'mid' || forced === 'high') return forced
   try {
     const canvas = document.createElement('canvas')
     const gl = canvas.getContext('webgl2') ?? canvas.getContext('webgl')
@@ -19,7 +21,11 @@ export function gpuTier(): 'low' | 'mid' | 'high' {
     gl.getExtension('WEBGL_lose_context')?.loseContext()
     if (/swiftshader|llvmpipe|software|basic render/i.test(renderer)) return 'low'
     if (isSmallScreen() || isCoarsePointer()) return 'mid'
-    return 'high'
+    // Only clearly discrete or high-end GPUs get the high preset; laptop
+    // integrated graphics (Intel UHD/Iris, AMD "Radeon Graphics", base Apple
+    // M-series) and anything unrecognised get the lighter one.
+    if (/nvidia|geforce|quadro|rtx|gtx|radeon rx|radeon pro|arc a\d|apple m\d (pro|max|ultra)/i.test(renderer)) return 'high'
+    return 'mid'
   } catch {
     return 'mid'
   }

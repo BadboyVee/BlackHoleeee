@@ -171,7 +171,7 @@ export function Grain() {
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[60] overflow-hidden opacity-[0.05]">
       <div
-        className="absolute -inset-[50%]"
+        className="absolute -inset-[180px] will-change-transform"
         style={{ backgroundImage: url ? `url(${url})` : undefined, animation: 'grain 0.9s steps(6) infinite' }}
       />
     </div>
@@ -432,7 +432,7 @@ export function ScrollProgress() {
       type="button"
       onClick={() => scrollTo(0)}
       aria-label="Back to top"
-      className="fixed bottom-5 right-5 z-50 grid h-12 w-12 place-items-center rounded-full bg-void/60 text-paper opacity-0 backdrop-blur transition-[opacity,transform] duration-500 md:bottom-8 md:right-8"
+      className="fixed bottom-5 right-5 z-50 grid h-12 w-12 place-items-center rounded-full bg-void/80 text-paper opacity-0 transition-[opacity,transform] duration-500 md:bottom-8 md:right-8"
     >
       <svg viewBox="0 0 40 40" className="absolute inset-0 -rotate-90" aria-hidden="true">
         <circle cx="20" cy="20" r="18" fill="none" stroke="rgb(241 236 227 / 0.15)" strokeWidth="1.5" />

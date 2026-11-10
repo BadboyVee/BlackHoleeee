@@ -366,12 +366,9 @@ export function Process() {
       cards.forEach((card, i) => {
         const next = cards[i + 1]
         if (!next) return
-        gsap.to(card, {
-          scale: 0.9,
-          filter: 'brightness(0.55)',
-          ease: 'none',
-          scrollTrigger: { trigger: next, start: 'top bottom', end: 'top 15%', scrub: true },
-        })
+        const scrollTrigger = { trigger: next, start: 'top bottom', end: 'top 15%', scrub: true }
+        gsap.to(card, { scale: 0.9, ease: 'none', scrollTrigger })
+        gsap.to(card.querySelector('.card-shade'), { opacity: 0.5, ease: 'none', scrollTrigger })
       })
       revealChars(ref.current!.querySelector('.process-title')!)
     },
@@ -386,7 +383,8 @@ export function Process() {
       <div className="mt-14 flex flex-col gap-[8vh]">
         {site.process.map((step, i) => (
           <div key={step.title} className="sticky" style={{ top: `calc(14vh + ${i * 1.6}rem)` }}>
-            <article className={`process-card grid min-h-[56vh] origin-top gap-8 rounded-[1.75rem] p-7 md:grid-cols-12 md:p-12 ${CARD_STYLES[i % CARD_STYLES.length]}`}>
+            <article className={`process-card relative grid min-h-[56vh] origin-top gap-8 rounded-[1.75rem] p-7 will-change-transform md:grid-cols-12 md:p-12 ${CARD_STYLES[i % CARD_STYLES.length]}`}>
+              <span className="card-shade pointer-events-none absolute inset-0 rounded-[1.75rem] bg-void opacity-0" aria-hidden="true" />
               <div className="flex flex-col justify-between md:col-span-6">
                 <p className="label opacity-70">
                   Step {pad(i + 1)} — {step.tagline}
@@ -495,7 +493,7 @@ export function Contact() {
     <section ref={ref} id="contact" data-shot="contact" className="relative flex min-h-[110svh] flex-col justify-between pt-32">
       <div className="container-x">
         <SectionLabel index={6}>{site.contact.kicker}</SectionLabel>
-        <h2 className="mt-8 text-[clamp(3rem,10vw,10rem)] font-black uppercase leading-[0.86] tracking-[-0.02em] [font-stretch:112%]">
+        <h2 className="mt-8 text-[clamp(3rem,10vw,10rem)] font-black uppercase leading-[0.86] tracking-[-0.02em] [font-stretch:112%] [text-shadow:0_4px_40px_rgb(5_5_7/0.55)]">
           <span className="contact-line block">{l1}</span>
           <span className="contact-line block">{l2}</span>
           <span className="contact-line block serif-accent normal-case text-flare">{l3}</span>

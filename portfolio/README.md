@@ -24,9 +24,14 @@ scrolling the page is a slow orbit that ends with a dive toward the event horizo
   context labels, magnetic buttons, rolling-text links, hide-on-scroll header,
   full-screen mobile menu, live local clock, copy-email button, back-to-top
   progress ring, film grain.
-- **Adaptive quality**: the GPU tier sets shader steps and resolution, and frame
-  timing lowers or raises resolution while the page runs. Reduced-motion users
-  get native scrolling and no scroll animations.
+- **Performance**: the starfield and the disk turbulence are baked into textures
+  once at startup, so the per-frame shader only traces light. The black hole
+  renders at a fraction of screen resolution within a pixel budget, at most
+  60 fps even on 120/144 Hz screens, and an adaptive controller lowers the
+  resolution (then the frame rate) within about a second if frames run long.
+  Laptop integrated graphics get a lighter preset than discrete GPUs. Force a
+  preset with `?quality=low`, `?quality=mid` or `?quality=high` on the URL.
+  Reduced-motion users get native scrolling and no scroll animations.
 
 ## Tech stack
 

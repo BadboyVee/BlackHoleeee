@@ -255,6 +255,16 @@ function Laptop({ state, track }: { state: WorkState; track: RefObject<HTMLEleme
     return list
   }, [])
 
+  // All 65 keys in one draw call.
+  const keyboard = useRef<THREE.InstancedMesh>(null)
+  useEffect(() => {
+    const mesh = keyboard.current
+    if (!mesh) return
+    const m = new THREE.Matrix4()
+    keys.forEach(([x, z], i) => mesh.setMatrixAt(i, m.makeTranslation(x, 0.095, z - 0.12)))
+    mesh.instanceMatrix.needsUpdate = true
+  }, [keys])
+
   useFrame((st, dt) => {
     if (!group.current || !lid.current) return
     const p = state.progress
@@ -284,11 +294,9 @@ function Laptop({ state, track }: { state: WorkState; track: RefObject<HTMLEleme
     <group ref={group} scale={1.05}>
       {/* base */}
       <RoundedBox args={[3.2, 0.09, 2.2]} radius={0.04} smoothness={4} position={[0, 0.045, 0]} material={alu} />
-      {keys.map(([x, z], i) => (
-        <mesh key={i} position={[x, 0.095, z - 0.12]} material={keyMat}>
-          <boxGeometry args={[0.18, 0.02, 0.18]} />
-        </mesh>
-      ))}
+      <instancedMesh ref={keyboard} args={[undefined, keyMat, keys.length]}>
+        <boxGeometry args={[0.18, 0.02, 0.18]} />
+      </instancedMesh>
       <mesh position={[0, 0.092, 0.68]} rotation-x={-Math.PI / 2}>
         <planeGeometry args={[1.25, 0.68]} />
         <meshStandardMaterial color="#1b1c20" metalness={0.6} roughness={0.25} />
@@ -376,7 +384,7 @@ function Orbs({ track }: { track: RefObject<HTMLElement | null> }) {
   const labels = site.toolkit.orbs.slice(0, quality.orbCount)
   const meshes = useRef<(THREE.Mesh | null)[]>([])
   const [materials, setMaterials] = useState<THREE.MeshPhysicalMaterial[] | null>(null)
-  const geometry = useMemo(() => new THREE.SphereGeometry(1, 48, 32), [])
+  const geometry = useMemo(() => new THREE.SphereGeometry(1, 40, 24), [])
 
   const bodies = useMemo<Body[]>(
     () =>
@@ -549,8 +557,8 @@ function Sculpture({ track }: { track: RefObject<HTMLElement | null> }) {
     <Float speed={1.4} rotationIntensity={0.4} floatIntensity={0.8}>
       <group ref={group}>
         <mesh>
-          <torusKnotGeometry args={[1, 0.34, 220, 36, 2, 3]} />
-          <meshPhysicalMaterial color="#ffffff" transmission={1} thickness={1.4} roughness={0.06} ior={1.5} iridescence={1} iridescenceIOR={1.3} clearcoat={1} attenuationColor="#ffb070" attenuationDistance={2.5} />
+          <torusKnotGeometry args={[1, 0.34, 160, 28, 2, 3]} />
+          <meshPhysicalMaterial color="#f3ece4" metalness={1} roughness={0.14} iridescence={0.9} iridescenceIOR={1.6} iridescenceThicknessRange={[180, 820]} clearcoat={1} clearcoatRoughness={0.08} />
         </mesh>
         <group ref={rings}>
           <mesh rotation-x={Math.PI / 2}>
