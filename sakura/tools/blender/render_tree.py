@@ -59,7 +59,7 @@ def translucent_petals(mat):
     if colour is not None:
         nt.links.new(colour, thin.inputs['Color'])
     both = nt.nodes.new('ShaderNodeMixShader')
-    both.inputs[0].default_value = 0.4
+    both.inputs[0].default_value = 0.45
     nt.links.new(bsdf.outputs[0], both.inputs[1])
     nt.links.new(thin.outputs[0], both.inputs[2])
     surface = both.outputs[0]
@@ -73,6 +73,19 @@ def translucent_petals(mat):
     nt.links.new(surface, out.inputs['Surface'])
 
 
+def lift_bark(mat, value=1.25):
+    """Cherry bark is dark, and under the crown it is in shade: lift it as the page does, so it keeps its detail."""
+    nt = mat.node_tree
+    bsdf = next(n for n in nt.nodes if n.bl_idname == 'ShaderNodeBsdfPrincipled')
+    if not bsdf.inputs['Base Color'].links:
+        return
+    colour = bsdf.inputs['Base Color'].links[0].from_socket
+    hsv = nt.nodes.new('ShaderNodeHueSaturation')
+    hsv.inputs['Value'].default_value = value
+    nt.links.new(colour, hsv.inputs['Color'])
+    nt.links.new(hsv.outputs['Color'], bsdf.inputs['Base Color'])
+
+
 def main():
     opt = args()
     if not opt['files']:
@@ -83,6 +96,8 @@ def main():
     for mat in bpy.data.materials:
         if mat.name.startswith('Blossom') and mat.node_tree:
             translucent_petals(mat)
+        elif mat.name.startswith('Bark') and mat.node_tree:
+            lift_bark(mat)
 
     # the sun, and the sky it lights
     sun_dir = sun_direction(opt['hour'])
@@ -91,7 +106,7 @@ def main():
     elevation = math.degrees(math.asin(sun_dir.z))
     warm = max(0.0, min(1.0, (elevation - 2) / 28))
     light = bpy.data.lights.new('Sun', 'SUN')
-    light.energy = 1.2 + 3.6 * warm
+    light.energy = 4.0 + 12.0 * warm
     light.color = (1.0, 0.55 + 0.4 * warm, 0.3 + 0.62 * warm)
     light.angle = math.radians(0.6)
     lamp = bpy.data.objects.new('Sun', light)
@@ -130,7 +145,9 @@ def main():
     sc.render.engine = 'CYCLES'
     sc.cycles.device = 'CPU'
     sc.cycles.samples = opt['samples']
-    sc.cycles.transparent_max_bounces = 24
+    sc.cycles.transparent_max_bounces = 256                    # a ray may cross a great many petals' empty corners
+    sc.cycles.max_bounces = 16
+    sc.cycles.diffuse_bounces = 8
     try:
         sc.cycles.use_denoising = True
     except Exception:

@@ -566,7 +566,7 @@ function buildWood(sk, barkHeight) {
     }
     for (let i = 0; i < m - 1; i++) for (let j = 0; j < K; j++) {
       const p = v0 + i * (K + 1) + j, q = p + K + 1;
-      idx[i0++] = p; idx[i0++] = q; idx[i0++] = p + 1; idx[i0++] = p + 1; idx[i0++] = q; idx[i0++] = q + 1;
+      idx[i0++] = p; idx[i0++] = p + 1; idx[i0++] = q; idx[i0++] = p + 1; idx[i0++] = q + 1; idx[i0++] = q;      // counter-clockwise seen from outside
     }
     v0 += m * (K + 1);
   }
@@ -1717,7 +1717,7 @@ async function main() {
   function goTo(h) {                                               // glide to an hour the short way round, and stay there
     setPlaying(false);
     const d = ((h - state.hours) % 24 + 36) % 24 - 12;
-    state.tween = { from: state.hours, d, t: 0, dur: clamp(0.7 + Math.abs(d) * 0.16, 0.8, 2.6) };
+    state.tween = { from: state.hours, to: h, d, t: 0, dur: clamp(0.7 + Math.abs(d) * 0.16, 0.8, 2.6) };
   }
   $('play').addEventListener('click', () => { state.tween = null; setPlaying(!state.playing); });
   const SPEEDS = [0.5, 1, 2, 4, 8];
@@ -1797,11 +1797,11 @@ async function main() {
     root.add(quads(blossoms.geometry, 'Blossoms'), quads(carpet.geometry, 'Fallen petals'));
 
     // the knoll it stands on, the lantern and the stones
-    const gg = new THREE.PlaneGeometry(90, 90, 120, 120); gg.rotateX(-Math.PI / 2);
+    const gg = new THREE.PlaneGeometry(600, 600, 240, 240); gg.rotateX(-Math.PI / 2);
     const gp = gg.attributes.position;
     for (let i = 0; i < gp.count; i++) gp.setY(i, groundH(gp.getX(i), gp.getZ(i)));
     gg.computeVertexNormals();
-    gg.attributes.uv.array.forEach((_, i, a) => { a[i] *= 75; });
+    gg.attributes.uv.array.forEach((_, i, a) => { a[i] *= 500; });
     const lawn = new THREE.Mesh(gg, new THREE.MeshStandardMaterial({ name: 'Lawn', map: tex.grassColor, normalMap: tex.grassNormal, roughness: 0.9, metalness: 0 }));
     lawn.name = 'Ground'; root.add(lawn);
     const stone = new THREE.MeshStandardMaterial({ name: 'Stone', map: tex.stoneColor, roughness: 0.92, metalness: 0 });
@@ -1856,7 +1856,7 @@ async function main() {
       const tw = state.tween; tw.t = Math.min(1, tw.t + dt / tw.dur);
       const k = tw.t * tw.t * (3 - 2 * tw.t);
       state.hours = ((tw.from + tw.d * k) % 24 + 24) % 24;
-      if (tw.t >= 1) state.tween = null;
+      if (tw.t >= 1) { state.hours = tw.to; state.tween = null; }      // land on the hour asked for, exactly
     } else if (state.playing) {
       // the day lingers at dawn and dusk and hurries through the dead of night
       const pace = lerp(0.5, 1, smoothstep(Math.abs(elev), 8, 25)) * (elev < -14 ? 2.4 : 1);
@@ -1907,6 +1907,7 @@ async function main() {
     setTime(h) { state.tween = null; setPlaying(false); state.hours = h; },
     view(p, t) { camera.position.set(...p); controls.target.set(...t); state.orbit = false; controls.update(); lens.snap = true; },
     advance(seconds) { step(seconds); updateEnvironment(true); lens.snap = true; render(); },
+    tick(seconds) { step(seconds); },
   };
 }
 

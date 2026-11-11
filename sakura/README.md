@@ -66,9 +66,11 @@ Blender is used twice.
    script set up the sun, sky and camera and render it with Cycles:
 
    ```
-   python tools/blender/render_tree.py sakura-tree.glb render.png --hour 16.9
+   python tools/blender/render_tree.py sakura-tree.glb render.png --hour 8.2
    blender --python tools/blender/render_tree.py -- sakura-tree.glb
    ```
+
+   ![The exported tree rendered in Blender with Cycles](blender.jpg)
 
 ## Controls
 
@@ -93,6 +95,7 @@ index.html                      the page: tree, sky, lens, interface
 assets/textures.js              the Blender-made textures, as data URIs (so the page also opens from file://)
 tools/blender/build_assets.py   models and renders the textures
 tools/blender/render_tree.py    opens the exported tree in Blender and renders it
+card.jpg, blender.jpg           the page's opening view, and the exported tree rendered in Blender
 ```
 
 three.js 0.186 is loaded from jsDelivr. WebGL 2 is required.
