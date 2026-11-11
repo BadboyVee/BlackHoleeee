@@ -36,6 +36,14 @@ A procedural BMW M5 CS model rendered in a studio lighting setup.
 
 **▶ [View it](https://badboyvee.github.io/BlackHoleeee/bmw-m5-cs/)** · [source](bmw-m5-cs/)
 
+### 🏎️ [Bugatti Tourbillon](bugatti-tourbillon/)
+
+A procedural, rigged Blender model of the Bugatti Tourbillon generated entirely by Python and
+measured against the blueprint, with working doors, lights and wing, a showroom, and a 40-second
+showcase film with a synthesised soundtrack.
+
+**▶ [Watch the film](bugatti-tourbillon/video/tourbillon_showcase.mp4)** · [source](bugatti-tourbillon/)
+
 ## Hosting
 
 `netlify.toml` publishes `bmw-m5-cs/` as the Netlify site root. GitHub Pages serves the whole
