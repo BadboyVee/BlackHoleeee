@@ -154,14 +154,15 @@ def fascia():
     cr = lambda pts, per=6: util.catmull_rom(pts, per, closed=True)
     horseshoe = cr(_mirror_closed([(0, 0.225), (0.20, 0.225), (0.262, 0.25), (0.285, 0.33), (0.28, 0.42),
                                    (0.25, 0.50), (0.19, 0.548), (0.10, 0.568), (0, 0.572)]), 5)
-    intake = cr([(0.385, 0.245), (0.60, 0.238), (0.84, 0.245), (0.925, 0.31), (0.915, 0.42), (0.82, 0.468),
-                 (0.60, 0.47), (0.44, 0.455), (0.375, 0.38), (0.365, 0.30)])
+    trap = Polygon([(0.37, 0.215), (0.935, 0.215), (0.945, 0.475), (0.62, 0.45), (0.37, 0.425)])
+    trap = trap.buffer(-0.05, join_style=1).buffer(0.05, join_style=1, resolution=8)
+    intake = np.array(trap.exterior.coords)[:-1]
     head = cr([(0.47, 0.602), (0.70, 0.606), (0.90, 0.618), (0.945, 0.640), (0.925, 0.668), (0.80, 0.660),
                (0.60, 0.642), (0.485, 0.626)])
-    tail = cr(_mirror_closed([(0, 0.27), (0.55, 0.27), (0.80, 0.31), (0.875, 0.42), (0.87, 0.56),
+    tail = cr(_mirror_closed([(0, 0.10), (0.72, 0.10), (0.80, 0.16), (0.845, 0.30), (0.875, 0.42), (0.87, 0.56),
                               (0.80, 0.655), (0.55, 0.675), (0, 0.675)]), 5)
-    bar = cr(_mirror_closed([(0, 0.722), (0.45, 0.735), (0.80, 0.765), (0.93, 0.795), (0.93, 0.765),
-                             (0.80, 0.738), (0.45, 0.708), (0, 0.695)]), 4)
+    bar = cr(_mirror_closed([(0, 0.738), (0.45, 0.752), (0.80, 0.788), (0.93, 0.825), (0.93, 0.780),
+                             (0.80, 0.744), (0.45, 0.710), (0, 0.696)]), 4)
     vent = cr([(1.47, 0.085), (1.70, 0.085), (1.715, 0.15), (1.60, 0.30), (1.49, 0.39), (1.455, 0.36)])
     return dict(horseshoe=horseshoe, intake=intake, head=head, tail=tail, bar=bar, vent=vent)
 
@@ -219,12 +220,12 @@ def _cr(pts, per=10):
 def lines():
     """Shared shut lines as dense polylines (x, z) so neighbouring panels use identical edges."""
     c_up = _cr([(0.60, 1.045), (0.30, 1.095), (0.00, 1.108), (-0.30, 1.098), (-0.50, 1.070)])
-    c_arc = _cr([(-0.50, 1.070), (-0.64, 1.020), (-0.715, 0.945), (-0.70, 0.860), (-0.61, 0.770),
-                 (-0.45, 0.680), (-0.25, 0.590), (-0.05, 0.515)])
-    c_low = _cr([(-0.05, 0.515), (0.20, 0.465), (0.50, 0.435), (0.80, 0.415), (0.955, 0.405)])
-    front = _cr([(0.955, 0.405), (0.932, 0.50), (0.930, 0.62), (0.970, 0.74), (1.040, 0.82), (1.020, 0.875)])
+    c_arc = _cr([(-0.50, 1.070), (-0.64, 1.020), (-0.715, 0.930), (-0.71, 0.830), (-0.64, 0.700),
+                 (-0.55, 0.600), (-0.38, 0.500), (-0.13, 0.410)])
+    c_low = _cr([(-0.13, 0.410), (0.20, 0.355), (0.55, 0.315), (0.955, 0.290)])
+    front = _cr([(0.955, 0.290), (0.936, 0.40), (0.930, 0.62), (0.970, 0.74), (1.040, 0.82), (1.020, 0.875)])
     pillar = _cr([(1.020, 0.875), (0.85, 0.957), (0.70, 1.022), (0.60, 1.045)])
-    rear_cut = _cr([(-0.50, 1.070), (-0.36, 0.86), (-0.20, 0.60), (-0.05, 0.515)])
+    rear_cut = _cr([(-0.50, 1.070), (-0.36, 0.86), (-0.22, 0.62), (-0.13, 0.410)])
     return dict(c_up=c_up, c_arc=c_arc, c_low=c_low, front=front, pillar=pillar, rear_cut=rear_cut)
 
 
@@ -240,7 +241,7 @@ def regions():
     # everything forward of the door front cut
     fwd = np.concatenate([L['front'], [(1.02, 1.6), (3.2, 1.6), (3.2, -0.3), (0.955, -0.3)]])
     # sill: below the lower branch, between the wheel arches
-    sill = np.concatenate([[(-0.93, 0.44), (-0.50, 0.47)], L['c_low'], [(0.955, -0.3), (-0.93, -0.3)]])
+    sill = np.concatenate([[(-0.93, 0.36), (-0.50, 0.385)], L['c_low'], [(0.955, -0.3), (-0.93, -0.3)]])
     # side glass (inside the door, set in from its edges)
     glass = np.array([(0.955, 0.70), (0.955, 0.870), (0.82, 0.935), (0.68, 0.998), (0.56, 1.045), (0.30, 1.078),
                       (0.00, 1.092), (-0.28, 1.082), (-0.43, 1.050), (-0.40, 0.97), (-0.335, 0.86), (-0.30, 0.70)])
@@ -353,6 +354,12 @@ def build(collection=None, keep_work=False):
         door_frame = _piece(can, PREFIX + "Door_%s_Frame" % sn, keep=(d_in,), drop=(gl_out, rf_out))
         island = _piece(can, PREFIX + "Island_%s" % sn, keep=(c_in,), drop=(d_out,))
 
+        # dark duct floor: the recessed inner surface carries on behind the C-line under the rear fender
+        duct_box = side("duct_box", np.array([(-1.06, 0.26), (-0.47, 0.26), (-0.47, 0.79), (-1.06, 0.79)]), s, 0.0, y_in=0.60)
+        duct = _piece(hull_in, PREFIX + "IntakeDuct_%s" % sn, keep=(duct_box,), drop=(c_out,))
+        util.set_material(duct, "void_black"); util.shade_smooth(duct); util.link(duct, col_body)
+        out["duct_" + sn] = duct
+        util.delete(duct_box)
         # everything else loses this side's C region and door
         _bool(hull, c_out, 'DIFFERENCE')
         _bool(can, d_out, 'DIFFERENCE')
@@ -421,7 +428,7 @@ def build(collection=None, keep_work=False):
     for s_, sn in ((+1, "L"), (-1, "R")):
         o_in = F['intake'] if s_ > 0 else _flip_y(F['intake'])
         patch, cup = _opening(front, "Intake_" + sn, o_in, 'YZ', 1.80, 2.7, hull_tag, col_body)
-        patch.name = PREFIX + "IntakeGrille_" + sn; patch.location.x -= 0.03
+        patch.name = PREFIX + "IntakeGrille_" + sn; patch.location.x -= 0.085
         patch.data.materials.clear(); patch.data.materials.append(grille_material('YZ')); util.link(patch, col_body)
         o_hd = F['head'] if s_ > 0 else _flip_y(F['head'])
         patch, cup = _opening(front, "Headlight_" + sn, o_hd, 'YZ', 1.80, 2.7, hull_tag, col_body,
@@ -443,9 +450,7 @@ def build(collection=None, keep_work=False):
     patch.modifiers[-1].offset = 1.0
     out["tail_bar"] = patch
     patch, cup = _opening(hull, "Tail", F['tail'], 'YZ', -2.7, -1.93, hull_tag, col_body)
-    patch.name = PREFIX + "TailGrille"; patch.location.x += 0.05
-    patch.data.materials.clear(); patch.data.materials.append(grille_material('YZ')); util.link(patch, col_body)
-    out["tail_grille"] = patch
+    util.delete(patch)
     sills = []
     for s, sn in ((+1, "L"), (-1, "R")):
         s_in = side("s_in", R['sill'], s, -g, y_in=0.45)

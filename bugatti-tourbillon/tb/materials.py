@@ -160,7 +160,7 @@ def paint_light(mat):
 @register
 def paint_dark(mat):
     """Deep navy metallic with clearcoat (roof, rear body)."""
-    _paint(mat, spec.COLOURS['paint_dark'], metallic=0.75, rough=0.34)
+    _paint(mat, spec.COLOURS['paint_dark'], metallic=0.40, rough=0.34)
 
 
 @register
@@ -187,7 +187,7 @@ def _carbon(mat, gloss=True, tint=(0.010, 0.011, 0.013), scale=380.0):
     warp = n.math('SINE', n.math('MULTIPLY', fx, 3.14159))
     weft = n.math('SINE', n.math('MULTIPLY', fyy, 3.14159))
     h = n.mix_val(tow, warp, weft)
-    col = n.mix_rgb(tow, tuple(c * 0.55 for c in tint), tuple(c * 1.9 for c in tint))
+    col = n.mix_rgb(tow, tuple(c * 0.8 for c in tint), tuple(c * 1.25 for c in tint))
     n.link(col, n.bsdf.inputs['Base Color'])
     n.set(Metallic=0.35, Roughness=0.34 if gloss else 0.5,
           Coat_Weight=1.0 if gloss else 0.15, Coat_Roughness=0.03 if gloss else 0.35)
@@ -240,7 +240,7 @@ def glass_clear(mat):
 @register
 def glass_tint(mat):
     """Lightly smoked automotive glazing (windshield, side glass)."""
-    _glass(mat, (0.30, 0.36, 0.38))
+    _glass(mat, (0.050, 0.060, 0.066))
 
 
 @register
@@ -270,7 +270,7 @@ def chrome(mat):
 @register
 def alu_polished(mat):
     """Polished aluminium (C-line strip, console blade, trim)."""
-    N(mat).set(Base_Color=(0.86, 0.87, 0.88), Metallic=1.0, Roughness=0.10)
+    N(mat).set(Base_Color=(0.72, 0.73, 0.74), Metallic=1.0, Roughness=0.14)
 
 
 @register
@@ -497,19 +497,19 @@ def _emit(mat, colour, strength_on, base=(0.02, 0.02, 0.02), default_on=True):
 @register
 def emit_headlight(mat):
     """Main LED projector elements (cool white)."""
-    _emit(mat, (0.86, 0.93, 1.0), 60.0, base=(0.6, 0.6, 0.62))
+    _emit(mat, (0.86, 0.93, 1.0), 24.0, base=(0.6, 0.6, 0.62))
 
 
 @register
 def emit_drl(mat):
     """Daytime running light signature."""
-    _emit(mat, (0.90, 0.95, 1.0), 22.0, base=(0.5, 0.5, 0.5))
+    _emit(mat, (0.90, 0.95, 1.0), 9.0, base=(0.5, 0.5, 0.5))
 
 
 @register
 def emit_tail(mat):
     """Rear light bar (red)."""
-    _emit(mat, (1.0, 0.035, 0.02), 26.0, base=(0.25, 0.0, 0.0))
+    _emit(mat, (1.0, 0.030, 0.02), 6.0, base=(0.25, 0.0, 0.0))
 
 
 @register
@@ -525,7 +525,7 @@ def emit_reverse(mat):
 @register
 def emit_interior(mat):
     """Cabin ambient light strips (ice white)."""
-    _emit(mat, (0.72, 0.88, 1.0), 6.0, base=(0.3, 0.35, 0.4))
+    _emit(mat, (0.72, 0.88, 1.0), 2.0, base=(0.3, 0.35, 0.4))
 
 
 @register

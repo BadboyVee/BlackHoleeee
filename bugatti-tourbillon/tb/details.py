@@ -125,11 +125,11 @@ def build(bp):
 
     # ------------------------------------------------ cabin light
     ld = bpy.data.lights.new("LGT_Cabin", 'AREA')
-    ld.shape = 'RECTANGLE'; ld.size = 0.55; ld.size_y = 0.30; ld.energy = 14.0; ld.color = (0.80, 0.90, 1.0)
+    ld.shape = 'RECTANGLE'; ld.size = 0.55; ld.size_y = 0.30; ld.energy = 8.0; ld.color = (0.80, 0.90, 1.0)
     lo = bpy.data.objects.new("LGT_Cabin", ld)
     cl.objects.link(lo)
     lo.location = (0.12, 0.0, 1.09)
-    lo["base_energy"] = 14.0
+    lo["base_energy"] = 8.0
     out["cabin_light"] = lo
 
     # ------------------------------------------------ mirrors (ride on the doors)
@@ -182,25 +182,25 @@ def build(bp):
         return P, N
 
     fixed = [bp["rear_clam"], bp["sill_L"], bp["canopy_frame"], bp["front_clam"]]
-    P, N = project(util.resample_polyline(offset_path(low, 0.009), 150), fixed)
+    P, N = project(util.resample_polyline(offset_path(low, 0.017), 170), fixed)
     if len(P) > 4:
-        t = _ribbon("BODY_CLine_L", P, N, 0.016, 0.004, "alu_polished", cb)
+        t = _ribbon("BODY_CLine_L", P, N, 0.030, 0.0045, "alu_polished", cb)
         _mirror_obj(t, "BODY_CLine_R")
-    P, N = project(util.resample_polyline(offset_path(L['c_up'], 0.004), 60), [bp["door_L"][1]])
+    P, N = project(util.resample_polyline(offset_path(L['c_up'], 0.009), 60), [bp["door_L"][1]])
     if len(P) > 4:
-        t = _ribbon("BODY_CLineTop_L", P, N, 0.012, 0.003, "alu_polished", _col("doors"))
+        t = _ribbon("BODY_CLineTop_L", P, N, 0.022, 0.004, "alu_polished", _col("doors"))
         door_children["L"].append(t)
         door_children["R"].append(_mirror_obj(t, "BODY_CLineTop_R"))
 
     # ------------------------------------------------ tricolour on the sill behind the front wheel
     trees = _bvh([bp["sill_L"]])
     for i, mat in enumerate(("flag_blue", "flag_white", "flag_red")):
-        x = 0.66 + i * 0.034
-        h = _cast(trees, (x, 2.0, 0.315), (0, -1, 0))
+        x = 0.70 + i * 0.026
+        h = _cast(trees, (x, 2.0, 0.235), (0, -1, 0))
         if h is None:
             continue
         for s, sn in ((+1, "L"), (-1, "R")):
-            o = util.box("BODY_Flag_%s_%d" % (sn, i), (0.030, 0.004, 0.055), (x, s * (h[0].y + 0.001), 0.315),
+            o = util.box("BODY_Flag_%s_%d" % (sn, i), (0.022, 0.004, 0.042), (x, s * (h[0].y + 0.001), 0.235),
                          collection=cb, material=mat, bevel_w=0.001)
             o.rotation_euler = (0, math.radians(-28), 0)
 
@@ -212,8 +212,8 @@ def build(bp):
     sp = util.mesh_object("AERO_Splitter", v, f, collection=ca, material="carbon_gloss", smooth=False)
     util.recalc_normals(sp); util.bevel(sp, 0.004, 2, 40); util.shade_smooth(sp, 40)
     for s in (+1, -1):                                   # horizontal blade across each lower intake
-        util.box("BODY_IntakeBlade_%s" % ("L" if s > 0 else "R"), (0.10, 0.50, 0.014), (2.02, s * 0.64, 0.345),
-                 collection=cb, material="carbon_gloss", bevel_w=0.004).rotation_euler = (0, 0, s * math.radians(-24))
+        util.box("BODY_IntakeBlade_%s" % ("L" if s > 0 else "R"), (0.09, 0.54, 0.025), (2.125, s * 0.64, 0.33),
+                 collection=cb, material="paint_light", bevel_w=0.006).rotation_euler = (0, 0, s * math.radians(33))
 
     # ------------------------------------------------ horseshoe badge (plain red oval) + centre bar
     gx = _x_on(bp["horseshoe_grille"], 0.0, 0.47)
@@ -226,27 +226,31 @@ def build(bp):
     util.box("BODY_HorseshoeBar", (0.012, 0.012, 0.335), (gx + 0.012, 0, 0.397), collection=cb,
              material="plastic_gloss", bevel_w=0.003)
 
-    # ------------------------------------------------ rear: diffuser, strakes, exhaust
+    # ------------------------------------------------ rear: ramped carbon diffuser, fins, exhaust, plate
+    ramp = lambda x: float(np.interp(x, [-2.26, -2.20, -2.05, -1.90, -1.75], [0.375, 0.315, 0.210, 0.140, 0.105]))
     secs = []
-    for x, z in ((-1.78, 0.150), (-1.95, 0.175), (-2.12, 0.225), (-2.275, 0.300)):
-        secs.append([(x, -0.82, z), (x, 0.82, z), (x, 0.82, z - 0.016), (x, -0.82, z - 0.016)])
+    for x in np.linspace(-1.75, -2.245, 14):
+        hw = min(0.85, float(surface.YW(x)) - 0.045)
+        z = ramp(x)
+        secs.append([(x, -hw, z), (x, hw, z), (x, hw, z - 0.014), (x, -hw, z - 0.014)])
     v, f = util.loft(secs, closed_v=True, cap_start=True, cap_end=True)
     d = util.mesh_object("AERO_Diffuser", v, f, collection=ca, material="carbon_gloss", smooth=False)
-    util.recalc_normals(d); util.bevel(d, 0.003, 2, 40)
-    strake = [(-1.78, 0.125), (-2.285, 0.125), (-2.285, 0.335), (-2.20, 0.285), (-1.95, 0.185)]
-    for i, y in enumerate((-0.70, -0.46, -0.22, 0.22, 0.46, 0.70)):
-        v, f = util.extrude_outline(strake, 0.014, plane='XZ', offset=y - 0.007)
+    util.recalc_normals(d); util.bevel(d, 0.003, 2, 40); util.shade_smooth(d, 40)
+    for i, (y, xe) in enumerate(((-0.62, -2.10), (-0.25, -2.215), (0.25, -2.215), (0.62, -2.10))):
+        xs_ = np.linspace(-1.76, xe, 8)
+        fin = [(x, ramp(x) + 0.004) for x in xs_] + [(xe, 0.105), (-1.76, 0.085)]
+        v, f = util.extrude_outline(fin, 0.036, plane='XZ', offset=y - 0.018)
         o = util.mesh_object("AERO_Strake_%d" % i, v, f, collection=ca, material="carbon_gloss", smooth=False)
-        util.recalc_normals(o); util.bevel(o, 0.003, 2, 40)
-    util.box("BODY_TailCentre", (0.26, 0.36, 0.25), (-2.07, 0, 0.44), collection=cb, material="plastic_gloss",
-             bevel_w=0.02)
+        util.recalc_normals(o); util.bevel(o, 0.006, 2, 40); util.shade_smooth(o, 40)
+    util.box("BODY_TailPlate", (0.018, 0.44, 0.115), (-2.205, 0, 0.575), collection=cb, material="paint_dark", bevel_w=0.006)
+    util.box("BODY_TailCentre", (0.20, 0.30, 0.16), (-2.09, 0, 0.42), collection=cb, material="plastic_gloss", bevel_w=0.02)
     for s, sn in ((+1, "L"), (-1, "R")):
-        prof = util.rounded_rect(0.075, 0.17, 0.028, seg=5)
-        v, f = util.sweep(prof, [(-1.96, s * 0.40, 0.49), (-2.10, s * 0.40, 0.49), (-2.235, s * 0.40, 0.49)],
+        prof = util.rounded_rect(0.088, 0.27, 0.030, seg=6)
+        v, f = util.sweep(prof, [(-1.97, s * 0.40, 0.47), (-2.10, s * 0.40, 0.47), (-2.205, s * 0.40, 0.47)],
                           caps=False, up=(0, 0, 1))
-        e = util.mesh_object("PWR_Exhaust_" + sn, v, f, collection=cp, material="titanium")
-        util.recalc_normals(e); util.solidify(e, 0.005, offset=-1.0); util.bevel(e, 0.0015, 2, 40)
-        util.box("PWR_ExhaustCore_" + sn, (0.02, 0.16, 0.066), (-1.99, s * 0.40, 0.49), collection=cp,
+        e = util.mesh_object("PWR_Exhaust_" + sn, v, f, collection=cp, material="alu_polished")
+        util.recalc_normals(e); util.solidify(e, 0.008, offset=-1.0); util.bevel(e, 0.002, 2, 40)
+        util.box("PWR_ExhaustCore_" + sn, (0.02, 0.25, 0.07), (-2.00, s * 0.40, 0.47), collection=cp,
                  material="void_black")
 
     # ------------------------------------------------ active rear wing on a pivot

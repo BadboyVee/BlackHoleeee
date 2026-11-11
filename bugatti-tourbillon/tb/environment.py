@@ -94,11 +94,11 @@ def build(collection=None):
         return o
 
     lights = {
-        "ENV_Key": area("ENV_Key", (0.2, 0.0, 4.7), (8.5, 3.4), 760),
-        "ENV_StripL": area("ENV_StripL", (0.3, 5.6, 2.1), (9.0, 1.1), 520),
-        "ENV_StripR": area("ENV_StripR", (0.3, -5.6, 2.0), (9.0, 1.1), 190),
-        "ENV_Front": area("ENV_Front", (7.6, 0.6, 1.9), (1.2, 4.6), 170),
-        "ENV_Rear": area("ENV_Rear", (-7.6, 0.4, 2.2), (1.2, 4.6), 170),
+        "ENV_Key": area("ENV_Key", (0.2, 0.0, 4.7), (8.5, 3.4), 520),
+        "ENV_StripL": area("ENV_StripL", (0.3, 5.6, 2.1), (9.0, 1.1), 320),
+        "ENV_StripR": area("ENV_StripR", (0.3, -5.6, 2.0), (9.0, 1.1), 140),
+        "ENV_Front": area("ENV_Front", (7.6, 0.6, 1.9), (1.2, 4.6), 125),
+        "ENV_Rear": area("ENV_Rear", (-7.6, 0.4, 2.2), (1.2, 4.6), 135),
         "ENV_RimL": area("ENV_RimL", (-5.8, 5.0, 3.4), (3.0, 1.0), 300, colour=(0.75, 0.86, 1.0)),
         "ENV_RimR": area("ENV_RimR", (-5.2, -5.4, 3.2), (3.0, 1.0), 260, colour=(0.75, 0.86, 1.0)),
     }

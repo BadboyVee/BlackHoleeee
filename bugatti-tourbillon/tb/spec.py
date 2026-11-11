@@ -104,8 +104,8 @@ COLLECTIONS = dict(
 
 # launch-spec inspired two-tone
 COLOURS = dict(
-    paint_light=(0.170, 0.360, 0.470),# pale glacier blue
-    paint_dark=(0.012, 0.024, 0.050), # deep navy / blue carbon
+    paint_light=(0.105, 0.260, 0.360),# pale glacier blue
+    paint_dark=(0.006, 0.012, 0.028),  # deep navy / blue carbon
     leather_light=(0.190, 0.330, 0.420),
     leather_dark=(0.035, 0.050, 0.070),
     accent_red=(0.60, 0.02, 0.02),
