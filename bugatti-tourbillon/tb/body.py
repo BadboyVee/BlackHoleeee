@@ -467,10 +467,21 @@ def build(collection=None, keep_work=False):
         hx, hy, hz = spec.DOOR["hinge"]
         hinge = util.empty(PREFIX + "DoorHinge_" + sn, (hx, s * hy, hz), collection=col_doors, size=0.15)
         ax = np.array(spec.DOOR["hinge_axis"], float) * np.array([1, s, 1])
-        hinge["axis"] = [float(a) for a in ax / np.linalg.norm(ax)]
+        ax = ax / np.linalg.norm(ax)
+        # the hinge empty is oriented so its local Z is the hinge axis; the pivot child turns about that Z
+        from mathutils import Vector
+        hinge.rotation_euler = Vector(ax).to_track_quat('Z', 'Y').to_euler()
+        hinge["axis"] = [float(a) for a in ax]
+        bpy.context.view_layer.update()
+        pivot = util.empty(PREFIX + "DoorPivot_" + sn, (hx, s * hy, hz), collection=col_doors, size=0.1)
+        util.parent(pivot, hinge)
+        pivot.rotation_euler = (0, 0, 0)
+        pivot.matrix_parent_inverse.identity()
+        pivot.location = (0, 0, 0)
+        bpy.context.view_layer.update()
         for o in doors[sn]:
-            util.parent(o, hinge)
-        out["door_hinge_" + sn] = hinge
+            util.parent(o, pivot)
+        out["door_hinge_" + sn] = pivot
         out["door_" + sn] = doors[sn]
 
     util.delete(hull_in)

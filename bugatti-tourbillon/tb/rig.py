@@ -48,10 +48,7 @@ def build(body_parts, detail_parts=None, wheel_roots=None, interior_parts=None):
         if detail_parts:
             for o in detail_parts["door_children"][sn]:
                 util.parent(o, h)
-        ax = h["axis"]
-        h.rotation_mode = 'AXIS_ANGLE'
-        h.rotation_axis_angle = (0.0, ax[0], ax[1], ax[2])
-        _drive(h, "rotation_axis_angle", 0, ctrl, "door_" + sn, "%.5f*v" % (-s * ang))
+        _drive(h, "rotation_euler", 2, ctrl, "door_" + sn, "%.5f*v" % (-s * ang))
 
     # ---- lights: emissive materials
     for prop, names in materials.EMISSIVE_GROUPS.items():

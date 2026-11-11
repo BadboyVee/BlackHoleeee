@@ -89,7 +89,10 @@ def assembly(root):
     """Carrier empties per group, keyed from an exploded pose to home; parts hidden before take-off."""
     col = util.get_collection(spec.COLLECTIONS["rig"])
     groups = {}
+    cands = []
     for o in list(root.children):
+        cands += list(o.children) if o.name == "INT_Root" else [o]
+    for o in cands:
         if o.name == spec.CTRL:
             continue
         groups.setdefault(classify(o.name), []).append(o)
