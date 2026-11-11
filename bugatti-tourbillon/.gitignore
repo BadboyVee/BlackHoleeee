@@ -1,0 +1,8 @@
+__pycache__/
+*.blend1
+# third-party reference images stay local; only the derived numbers are tracked
+refs/*.png
+refs/derived/*.png
+refs/derived/*.npy
+renders/dev/
+renders/frames/
