@@ -68,7 +68,7 @@ MIRROR = dict(x=0.70, y=1.04, z=0.87)
 CLINE = dict(rear_x=-0.73, rear_z=0.93, top_z=1.10, low_z_mid=0.46, low_z_front=0.40)
 # door shut lines (side view): rear cut runs from the roof down/forward to the sill
 DOOR = dict(rear_top=(-0.50, 1.10), rear_bottom=(0.06, 0.20), front_x=1.02,
-            hinge=(0.98, 0.62, 0.95), hinge_axis=(0.35, 0.28, 0.90), open_angle_deg=68.0)
+            hinge=(1.02, 0.82, 1.05), hinge_axis=(-0.354, -0.612, 0.707), open_angle_deg=70.0)
 
 # ---------------------------------------------------------------- cabin envelope
 # Interior parts must stay inside this volume; the body is built around it.
@@ -104,9 +104,9 @@ COLLECTIONS = dict(
 
 # launch-spec inspired two-tone
 COLOURS = dict(
-    paint_light=(0.36, 0.56, 0.66),   # pale glacier blue
+    paint_light=(0.170, 0.360, 0.470),# pale glacier blue
     paint_dark=(0.012, 0.024, 0.050), # deep navy / blue carbon
-    leather_light=(0.30, 0.46, 0.56),
+    leather_light=(0.190, 0.330, 0.420),
     leather_dark=(0.035, 0.050, 0.070),
     accent_red=(0.60, 0.02, 0.02),
 )

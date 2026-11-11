@@ -107,15 +107,83 @@ def _offset(poly, d):
     return np.array(g.exterior.coords)[:-1]
 
 
-def _prism(name, outline, plane, a, b, grow=0.0):
-    """Closed tagged prism between coordinates a and b along the plane normal."""
+def _prism(name, outline, plane, a, b, grow=0.0, mat=None):
+    """Closed prism between coordinates a and b along the plane normal.
+    Default: tagged cutter (hidden).  With mat: a real, visible solid."""
     o2 = _offset(outline, grow) if abs(grow) > 1e-9 else np.asarray(outline, float)
     v, f = util.extrude_outline(o2, b - a, plane=plane, offset=a)
     o = util.mesh_object(name, v, f, collection=_work(), smooth=False)
     util.recalc_normals(o)
-    o.data.materials.append(_tag_mat())
-    o.hide_render = True
+    if mat is None:
+        o.data.materials.append(_tag_mat())
+        o.hide_render = True
+    else:
+        o.data.materials.append(materials.get(mat))
     return o
+
+
+def grille_material(plane='YZ'):
+    """Black woven grille: alpha-cut diamond lattice in object space (12 mm cells)."""
+    name = "TB_body_grille_" + plane
+    m = bpy.data.materials.get(name)
+    if m is not None:
+        return m
+    m = bpy.data.materials.new(name)
+    n = materials.N(m)
+    n.set(Base_Color=(0.006, 0.006, 0.007), Metallic=0.7, Roughness=0.36)
+    tc = n.new('ShaderNodeTexCoord')
+    sep = n.new('ShaderNodeSeparateXYZ')
+    n.link(tc.outputs['Object'], sep.inputs[0])
+    a, b = (sep.outputs['Y'], sep.outputs['Z']) if plane == 'YZ' else (sep.outputs['X'], sep.outputs['Y'])
+    k = math.pi / 0.012
+    u = n.math('ABSOLUTE', n.math('SINE', n.math('MULTIPLY', n.math('ADD', a, b), k)))
+    v = n.math('ABSOLUTE', n.math('SINE', n.math('MULTIPLY', n.math('SUBTRACT', a, b), k)))
+    wire = n.math('LESS_THAN', n.math('MINIMUM', u, v), 0.34)
+    n.link(wire, n.bsdf.inputs['Alpha'])
+    return m
+
+
+def _mirror_closed(right):
+    """Close a right-half loop (starts and ends on y = 0) by mirroring it."""
+    r = [tuple(p) for p in right]
+    return np.array(r + [(-y, z) for (y, z) in r[::-1]][1:-1], float)
+
+
+def fascia():
+    """Openings drawn on the front / rear / plan views."""
+    cr = lambda pts, per=6: util.catmull_rom(pts, per, closed=True)
+    horseshoe = cr(_mirror_closed([(0, 0.225), (0.20, 0.225), (0.262, 0.25), (0.285, 0.33), (0.28, 0.42),
+                                   (0.25, 0.50), (0.19, 0.548), (0.10, 0.568), (0, 0.572)]), 5)
+    intake = cr([(0.385, 0.245), (0.60, 0.238), (0.84, 0.245), (0.925, 0.31), (0.915, 0.42), (0.82, 0.468),
+                 (0.60, 0.47), (0.44, 0.455), (0.375, 0.38), (0.365, 0.30)])
+    head = cr([(0.47, 0.602), (0.70, 0.606), (0.90, 0.618), (0.945, 0.640), (0.925, 0.668), (0.80, 0.660),
+               (0.60, 0.642), (0.485, 0.626)])
+    tail = cr(_mirror_closed([(0, 0.27), (0.55, 0.27), (0.80, 0.31), (0.875, 0.42), (0.87, 0.56),
+                              (0.80, 0.655), (0.55, 0.675), (0, 0.675)]), 5)
+    bar = cr(_mirror_closed([(0, 0.722), (0.45, 0.735), (0.80, 0.765), (0.93, 0.795), (0.93, 0.765),
+                             (0.80, 0.738), (0.45, 0.708), (0, 0.695)]), 4)
+    vent = cr([(1.47, 0.085), (1.70, 0.085), (1.715, 0.15), (1.60, 0.30), (1.49, 0.39), (1.455, 0.36)])
+    return dict(horseshoe=horseshoe, intake=intake, head=head, tail=tail, bar=bar, vent=vent)
+
+
+def _flip_y(o):
+    return np.asarray(o, float) * np.array([-1, 1])
+
+
+def _opening(panel, name, outline, plane, a, b, hull_tag, col, cup_mat="void_black"):
+    """Cut `outline` out of the panel skin.  Returns (patch, cup): the removed skin piece and a
+    dark cup whose walls run from the skin back into the body."""
+    pr = _prism("o_cut", outline, plane, a, b)
+    patch = _piece(panel, PREFIX + name + "_Patch", keep=(pr,))
+    _bool(panel, pr, 'DIFFERENCE')
+    util.delete(pr)
+    cup = None
+    if cup_mat:
+        cup = _prism(PREFIX + name + "_Cup", outline, plane, a, b, grow=0.0006, mat=cup_mat)
+        _bool(cup, hull_tag, 'INTERSECT')
+        util.shade_smooth(cup, 35)
+        util.link(cup, col)
+    return patch, cup
 
 
 def _cyl(name, radius, y0, y1, centre, seg=96):
@@ -228,9 +296,9 @@ def masters():
     _bool(hull, can_cut, 'DIFFERENCE')
     _bool(hull_in, can_cut, 'DIFFERENCE')
     _bool(can, hull_cut, 'DIFFERENCE')
-    for o in (can_cut, hull_cut):
-        util.delete(o)
-    return hull, hull_in, can
+    util.delete(can_cut)
+    hull_cut.name = "M_HullSolidTag"
+    return hull, hull_in, can, hull_cut
 
 
 # ------------------------------------------------------------------ build
@@ -239,7 +307,8 @@ def build(collection=None, keep_work=False):
     col_glass = util.get_collection(spec.COLLECTIONS["glass"])
     col_doors = util.get_collection(spec.COLLECTIONS["doors"])
     out = {}
-    hull, hull_in, can = masters()
+    hull, hull_in, can, hull_tag = masters()
+    F = fascia()
 
     # ---- wheel arches
     for key, w in spec.WHEELS.items():
@@ -289,8 +358,17 @@ def build(collection=None, keep_work=False):
         _bool(can, d_out, 'DIFFERENCE')
         _bool(can, c_out, 'DIFFERENCE')
 
-        _finish(door_skin, "paint_light", collection=col_doors)
-        _finish(door_frame, "paint_dark", collection=col_doors)
+        _finish(door_skin, "paint_light", thickness=0.0, collection=col_doors)
+        door_skin.data.materials.append(materials.get("leather_light"))
+        door_skin.data.materials.append(materials.get("carbon_gloss"))
+        sm = util.solidify(door_skin, 0.042, offset=-1.0)
+        sm.material_offset = 1; sm.material_offset_rim = 2
+        door_skin.modifiers.move(len(door_skin.modifiers) - 1, 0)
+        _finish(door_frame, "paint_dark", thickness=0.0, collection=col_doors)
+        door_frame.data.materials.append(materials.get("alcantara_dark"))
+        sm = util.solidify(door_frame, 0.022, offset=-1.0)
+        sm.material_offset = 1; sm.material_offset_rim = 0
+        door_frame.modifiers.move(len(door_frame.modifiers) - 1, 0)
         _finish(side_glass, "glass_tint", 0.004, collection=col_doors, glass=True)
         _finish(roof_glass, "glass_dark", 0.004, collection=col_doors, glass=True)
         _finish(quarter, "paint_light", collection=col_body)
@@ -326,6 +404,48 @@ def build(collection=None, keep_work=False):
     fwd_out = _prism("fwd_out", R['fwd'], 'XZ', -1.5, 1.5, grow=+g)
     front = _piece(hull, PREFIX + "FrontClam", keep=(fwd_in,))
     _bool(hull, fwd_out, 'DIFFERENCE')
+
+    # ---- front fascia: horseshoe, lower intakes, headlights, hood vents
+    lamps = {}
+    ring_pr = _prism("ring", F['horseshoe'], 'YZ', 1.8, 2.7, grow=0.020)
+    ring = _piece(front, PREFIX + "HorseshoeRim", keep=(ring_pr,))
+    util.delete(ring_pr)
+    patch, cup = _opening(front, "Horseshoe", F['horseshoe'], 'YZ', 1.80, 2.7, hull_tag, col_body)
+    cutp = _prism("ringcut", F['horseshoe'], 'YZ', 1.8, 2.7)
+    _bool(ring, cutp, 'DIFFERENCE'); util.delete(cutp)
+    util.set_material(ring, "plastic_gloss"); util.shade_smooth(ring)
+    util.solidify(ring, 0.010, offset=1.0); util.bevel(ring, 0.002, 2, 40); util.link(ring, col_body)
+    patch.name = PREFIX + "HorseshoeGrille"; patch.location.x -= 0.035
+    patch.data.materials.clear(); patch.data.materials.append(grille_material('YZ')); util.link(patch, col_body)
+    out["horseshoe_grille"] = patch; out["horseshoe_rim"] = ring
+    for s_, sn in ((+1, "L"), (-1, "R")):
+        o_in = F['intake'] if s_ > 0 else _flip_y(F['intake'])
+        patch, cup = _opening(front, "Intake_" + sn, o_in, 'YZ', 1.80, 2.7, hull_tag, col_body)
+        patch.name = PREFIX + "IntakeGrille_" + sn; patch.location.x -= 0.03
+        patch.data.materials.clear(); patch.data.materials.append(grille_material('YZ')); util.link(patch, col_body)
+        o_hd = F['head'] if s_ > 0 else _flip_y(F['head'])
+        patch, cup = _opening(front, "Headlight_" + sn, o_hd, 'YZ', 1.80, 2.7, hull_tag, col_body,
+                              cup_mat="plastic_gloss")
+        patch.name = PREFIX + "HeadlightLens_" + sn
+        _finish(patch, "glass_clear", 0.003, collection=col_glass, glass=True)
+        lamps[sn] = patch
+        o_v = F['vent'] if s_ > 0 else np.asarray(F['vent']) * np.array([1, -1])
+        patch, cup = _opening(front, "HoodVent_" + sn, o_v, 'XY', 0.62, 1.0, hull_tag, col_body,
+                              cup_mat="plastic_black")
+        patch.name = PREFIX + "HoodVentGrille_" + sn; patch.location.z -= 0.022
+        patch.data.materials.clear(); patch.data.materials.append(grille_material('XY')); util.link(patch, col_body)
+    out["headlight_lens"] = lamps
+
+    # ---- tail: light bar band, big rear opening with mesh
+    patch, _c = _opening(hull, "TailBar", F['bar'], 'YZ', -2.7, -1.80, hull_tag, col_body, cup_mat=None)
+    patch.name = "LGT_TailBar"
+    _finish(patch, "emit_tail", 0.004, collection=util.get_collection(spec.COLLECTIONS["lights"]), glass=True)
+    patch.modifiers[-1].offset = 1.0
+    out["tail_bar"] = patch
+    patch, cup = _opening(hull, "Tail", F['tail'], 'YZ', -2.7, -1.93, hull_tag, col_body)
+    patch.name = PREFIX + "TailGrille"; patch.location.x += 0.05
+    patch.data.materials.clear(); patch.data.materials.append(grille_material('YZ')); util.link(patch, col_body)
+    out["tail_grille"] = patch
     sills = []
     for s, sn in ((+1, "L"), (-1, "R")):
         s_in = side("s_in", R['sill'], s, -g, y_in=0.45)
@@ -354,6 +474,7 @@ def build(collection=None, keep_work=False):
         out["door_" + sn] = doors[sn]
 
     util.delete(hull_in)
+    util.delete(hull_tag)
     if not keep_work:
         w = bpy.data.collections.get("TB__Work")
         if w is not None and len(w.objects) == 0:
