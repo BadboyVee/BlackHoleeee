@@ -5,6 +5,15 @@ any of them — every project is an `index.html` you can open directly.
 
 ## Projects
 
+### 🌸 [Sakura](sakura/)
+
+A cherry tree in full bloom, through a whole day. The tree is grown branch by branch; its blossoms,
+bark and turf are modelled as real geometry in Blender and rendered with Cycles into the textures
+the page uses. A physical sky lights it from dawn to moonlit night (run the day, or scrub the hour),
+with falling petals, a lens with depth of field, and an export of the whole tree back to Blender.
+
+**▶ [Open it](https://badboyvee.github.io/BlackHoleeee/sakura/)** · [source](sakura/)
+
 ### 🌊 [Saltwind Cove](ocean/)
 
 A WebGPU ocean you can walk, swim, sail and dive in. It has FFT waves, breakers that curl and

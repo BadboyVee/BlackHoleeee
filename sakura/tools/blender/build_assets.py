@@ -990,17 +990,20 @@ def build_bark(n=BARK_PX):
     m = min(n, 1024)
 
     # plates split by furrows: a cellular pattern, stretched along the trunk
-    f1, f2 = worley(m, 150, 5.4, 5, warp=0.018)
+    f1, f2 = worley(m, 150, 5.4, 5, warp=0.012)
     e = f2 - f1
     width = 0.010 * (0.55 + 0.9 * periodic(m, 21, beta=2.6, lo=1, hi=10))
     old = smooth(0.25, 0.75, periodic(m, 22, beta=2.8, lo=1, hi=5))          # where the bark has split deeply
-    furrow = np.clip(enlarge((1 - smooth(0.0, 1.0, e / width)) * (0.3 + 0.7 * old), n), 0, 1)
-    plate = np.clip(enlarge(smooth(0.0, 0.035, e) ** 0.7, n), 0, 1)
+    breaks = smooth(0.28, 0.6, periodic(m, 23, beta=2.2, lo=3, hi=28))            # furrows open and close along their length
+    furrow = np.clip(enlarge((1 - smooth(0.0, 1.0, e / width)) * (0.3 + 0.7 * old) * (0.4 + 0.6 * breaks), n), 0, 1)
+    plate = np.clip(enlarge(smooth(0.0, 0.03, e) ** 0.55, n), 0, 1)
     old = np.clip(enlarge(old, n), 0, 1)
 
     stri = periodic(n, 2, beta=1.5, sx=7.0, sy=1, lo=5, hi=n * 0.3)            # satin horizontal grain
     fine = periodic(n, 3, beta=1.0, lo=n * 0.05, hi=n * 0.42)
     tone = periodic(n, 9, beta=2.4, sx=1, sy=2.0, lo=1, hi=30)
+    bumps = periodic(n, 15, beta=2.0, lo=10, hi=110)                               # the plates are not smooth
+    checks = smooth(0.60, 0.72, periodic(n, 16, beta=1.6, sx=1, sy=6.0, lo=24, hi=n * 0.13)) * plate   # fine vertical checks in them
 
     # lenticels: corky horizontal dashes in loose rows around the trunk
     lent = np.zeros((n, n))
@@ -1026,7 +1029,7 @@ def build_bark(n=BARK_PX):
     gold = smooth(0.90, 0.93, periodic(n, 13, beta=2.2, lo=8, hi=90)) * (1 - furrow)
     moss = smooth(0.50, 0.74, periodic(n, 14, beta=2.9, lo=1, hi=10)) * np.clip(furrow * 1.6 + smooth(0.6, 0.2, plate) * 0.6, 0, 1) * (0.45 + 0.55 * fine) * 0.3     # the page adds moss where it grows: low on the trunk, on top of the limbs
 
-    h = 0.62 * plate - 0.95 * furrow + 0.13 * stri * plate + 0.24 * lent + 0.035 * fine + 0.14 * (tone - 0.5) + 0.05 * lichen + 0.05 * gold + 0.08 * moss
+    h = 0.62 * plate - 0.95 * furrow + 0.13 * stri * plate + 0.24 * lent + 0.035 * fine + 0.14 * (tone - 0.5) + 0.12 * (bumps - 0.5) - 0.10 * checks + 0.05 * lichen + 0.05 * gold + 0.08 * moss
     h = (h - h.min()) / (h.max() - h.min())
 
     print('bark: relief', flush=True)
@@ -1040,7 +1043,7 @@ def build_bark(n=BARK_PX):
     c = mix(c, lin('#7d5348'), sheen * 0.6)                                                        # the red satin of young bark
     c = mix(c, lin('#857e78'), smooth(0.5, 0.85, periodic(n, 10, beta=2.2, lo=2, hi=40)) * 0.45 * plate)  # silver weathering
     c = mix(c, lin('#c0a886'), lent * 0.9)
-    c = mix(c, lin('#171212'), furrow * 0.9)
+    c = mix(c, lin('#171212'), np.clip(furrow * 0.9 + checks * 0.4, 0, 1))
     c = mix(c, mix(lin('#9ea896'), lin('#c2c8b6'), fine), lichen * 0.8)
     c = mix(c, lin('#70786a'), np.clip(rim, 0, 1) * 0.5)
     c = mix(c, lin('#c7ad55'), gold * 0.7)

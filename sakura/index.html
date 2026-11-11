@@ -134,10 +134,10 @@
 <div id="dock" class="glass">
   <div class="top">
     <button id="play" aria-pressed="true" title="Run the whole day on / off (Space)"><span class="sw"></span><span class="lbl">Day cycle</span></button>
-    <div id="clock"><span id="hhmm">16:50</span><span id="phase">Golden hour</span></div>
+    <div id="clock"><span id="hhmm">07:36</span><span id="phase">Morning</span></div>
     <button id="speed" title="How fast the day passes">1×</button>
   </div>
-  <div class="track"><div class="bar"></div><input id="time" type="range" min="0" max="1439" step="1" value="1010" aria-label="Time of day" /></div>
+  <div class="track"><div class="bar"></div><input id="time" type="range" min="0" max="1439" step="1" value="456" aria-label="Time of day" /></div>
   <div class="hours"><span>00</span><span>03</span><span>06</span><span>09</span><span>12</span><span>15</span><span>18</span><span>21</span><span>24</span></div>
   <div class="chips" id="chips"></div>
 </div>
@@ -333,7 +333,7 @@ function buildSkeleton(seed) {
     { seg: 0.21, crook: 0.28, wave: 2.6, kink: 0.03, grav: [0.15, -0.22], end: 0.24, flex: 0.10, ref: 6, from: 0.16, spacing: 0.46, len: [0.52, 0.27], rad: 0.56, angle: [42, 64], twigs: 0.38, twigFrom: 0.26 },
     { seg: 0.17, crook: 0.50, wave: 1.5, kink: 0.05, grav: [0.14, -0.23], end: 0.30, flex: 0.17, ref: 2.8, from: 0.12, spacing: 0.32, len: [0.54, 0.24], rad: 0.52, angle: [45, 68], twigs: 0.27, twigFrom: 0.18 },
     { seg: 0.13, crook: 0.80, wave: 0.9, kink: 0.07, grav: [0.08, -0.30], end: 0.36, flex: 0.24, ref: 1.2, from: 0.10, spacing: 0.18, len: [0.50, 0.24], rad: 0.50, angle: [48, 75] },
-    { seg: 0.09, crook: 1.40, wave: 0.5, kink: 0.10, grav: [0.03, -0.55], end: 0.50, flex: 0.26, ref: 0.6, from: 0.14, spacing: 0.15, len: [0.44, 0.22], rad: 0.60, angle: [50, 80] },
+    { seg: 0.09, crook: 1.40, wave: 0.5, kink: 0.10, grav: [0.03, -0.55], end: 0.50, flex: 0.26, ref: 0.6, from: 0.12, spacing: 0.12, len: [0.44, 0.22], rad: 0.60, angle: [50, 80] },
     { seg: 0.07, crook: 2.00, wave: 0.25, kink: 0.14, grav: [-0.05, -0.75], end: 0.60, flex: 0.20, ref: 0.25 },
   ];
   const MINLEN = [0, 0, 1.0, 0.5, 0.28, 0.11], MAXLEN = [0, 0, 3.9, 1.8, 0.85, 0.33], MINR = [0, 0, 0.03, 0.012, 0.0055, 0.0032];
@@ -502,7 +502,7 @@ function buildWood(sk, barkHeight) {
   });
   let nv = 0, ni = 0;
   for (const t of tubes) { nv += t.pts.length * (t.K + 1); ni += (t.pts.length - 1) * t.K * 6; }
-  const pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3), uv = new Float32Array(nv * 2), col = new Float32Array(nv * 3), flx = new Float32Array(nv);
+  const pos = new Float32Array(nv * 3), nor = new Float32Array(nv * 3), uv = new Float32Array(nv * 2), col = new Float32Array(nv * 3), flx = new Float32Array(nv), age = new Float32Array(nv);
   const idx = new Uint32Array(ni);
   const T = new V3(), e1 = new V3(), e2 = new V3(), dv = new V3(), a = new V3(), b2 = new V3(), n = new V3();
   const moss = lin('#86a646'), young = new THREE.Color(1.2, 0.95, 0.9), earth = new THREE.Color(0.8, 0.76, 0.68), c = new THREE.Color();
@@ -540,6 +540,7 @@ function buildWood(sk, barkHeight) {
         pos[o * 3] = pts[i].x + dv.x * rr; pos[o * 3 + 1] = pts[i].y + dv.y * rr; pos[o * 3 + 2] = pts[i].z + dv.z * rr;
         uv[o * 2] = j / K * repU; uv[o * 2 + 1] = vAcc;
         flx[o] = tube.flex[i];
+        age[o] = br.root ? 1 : smoothstep(rad[i], 0.05, 0.26);
         // vertex colour: young wood is redder, junctions and undersides are darker, old wood carries moss
         if (br.root) c.copy(earth); else if (br.level >= 4) c.copy(young); else if (br.level === 3) c.setRGB(1.08, 0.97, 0.94); else c.setRGB(1, 1, 1);
         let shade = 1;
@@ -575,6 +576,7 @@ function buildWood(sk, barkHeight) {
   g.setAttribute('uv', new THREE.BufferAttribute(uv, 2));
   g.setAttribute('color', new THREE.BufferAttribute(col, 3));
   g.setAttribute('aFlex', new THREE.BufferAttribute(flx, 1));
+  g.setAttribute('aAge', new THREE.BufferAttribute(age, 1));
   g.setIndex(new THREE.BufferAttribute(idx, 1));
   g.computeBoundingSphere();
   return g;
@@ -670,14 +672,15 @@ function cardMaterial(tex, o) {
     vnormal: /* glsl */`
       vec3 cardN; vec3 cardP = cardPosition(cardN);
       float facing = dot(cardN, cameraPosition - cardP) < 0.0 ? -1.0 : 1.0;
-      vec3 objectNormal = normalize(cardN * facing * 0.5 + normalize(aRight) * position.x * 2.0 * uRound + aPuff * 0.5);
+      vec3 cardLit = cardN * facing * 0.5 + normalize(aRight) * position.x * 2.0 * uRound + aPuff * 0.5;
+      vec3 objectNormal = dot(cardLit, cardLit) > 1e-4 ? normalize(cardLit) : aPuff;       // never a zero vector: one bad normal becomes a black blot once blurred
       vCardUv = aCell.xy + uv * aCell.zw; vMisc = aMisc; vWorldP = cardP;
       vCardT = normalize(normalMatrix * aRight); vCardB = normalize(normalMatrix * aUp);`,
     vbegin: 'vec3 transformed = cardP;',
     fdecl: CARD_FDECL,
     fmap: /* glsl */`
-      vec3 sCol = texture2D(tColor, vCardUv, -0.5).rgb;
-      vec3 sMask = texture2D(tMask, vCardUv, -0.5).rgb;
+      vec3 sCol = texture2D(tColor, vCardUv).rgb;
+      vec3 sMask = texture2D(tMask, vCardUv, -0.3).rgb;
       {
         // coverage -> alpha to coverage; the cut drops with distance so far blossoms keep their mass
         float dist = length(vViewPosition);
@@ -700,6 +703,7 @@ function cardMaterial(tex, o) {
         vec3 vW = normalize(cameraPosition - vWorldP);
         vec3 sunLit = diffuseColor.rgb * RECIPROCAL_PI * uSunColor;
         float cs = canopyShade(vWorldP);
+        cs = mix(1.0, cs, 0.5);                 // blossom lights blossom, even under the crown
         reflectedLight.indirectDiffuse *= occ * vMisc.w * cs;
         reflectedLight.indirectSpecular *= occ * vMisc.w * cs;
         reflectedLight.directDiffuse *= mix(1.0, occ, 0.6) * mix(0.75, 1.0, vMisc.w);
@@ -736,7 +740,7 @@ function buildBlossoms(sk) {
   const out = new V3(), up = new V3(), e1 = new V3(), e2 = new V3(), cN = new V3(), right = new V3(), puff = new V3(), pos = new V3(), tmp = new V3(), mid = new V3();
   const ao = (p) => {
     const rho = Math.sqrt(((p.x - c.x) / crown.r.x) ** 2 + ((p.y - c.y) / crown.r.y) ** 2 + ((p.z - c.z) / crown.r.z) ** 2);
-    return lerp(0.5, 1.0, smoothstep(rho, 0.2, 0.92)) * lerp(0.8, 1.0, smoothstep((p.y - c.y) / crown.r.y, -0.9, 0.3));
+    return lerp(0.6, 1.0, smoothstep(rho, 0.2, 0.92)) * lerp(0.84, 1.0, smoothstep((p.y - c.y) / crown.r.y, -0.9, 0.3));
   };
   // n cards crossed around the axis upDir, hanging from `from`
   const cross = (piece, from, upDir, scale, flex, n) => {
@@ -778,15 +782,15 @@ function buildBlossoms(sk) {
       const n = Math.max(1, Math.round(b.length / 0.25));
       for (let i = 0; i < n; i++) {
         const A = sampleBranch(b, i / n), B = sampleBranch(b, Math.min(1, (i + 1.08) / n)), len = A.pos.distanceTo(B.pos), piece = pick('sleeve');
-        cross(piece, A.pos, up.subVectors(B.pos, A.pos).normalize(), clamp(len / (piece.size[1] * 0.86), 0.82, 1.28), A.fl + 0.05, 2);
+        cross(piece, A.pos, up.subVectors(B.pos, A.pos).normalize(), clamp(len / (piece.size[1] * 0.86), 0.82, 1.28), A.fl + 0.05, 3);
       }
       if (rnd() < 0.3) { const q = sampleBranch(b, 1); cross(pick('spray'), q.pos, up.copy(q.tan).add(tmp.set(N(), N(), N()).multiplyScalar(0.35)).normalize(), R(0.85, 1.15), q.fl + 0.06, 1); }
     } else {                                                     // older wood: short flowering spurs all along it
-      for (let s = b.length * 0.12 + R(0, 0.1); s < b.length; s += R(0.08, 0.16)) {
+      for (let s = b.length * 0.12 + R(0, 0.1); s < b.length; s += R(0.06, 0.12)) {
         const q = sampleBranch(b, s / b.length);
         tmp.set(N(), N(), N()); tmp.addScaledVector(q.tan, -tmp.dot(q.tan)).normalize();
         up.copy(tmp).multiplyScalar(0.9).addScaledVector(q.tan, 0.35).addScaledVector(UP, 0.2).normalize();
-        cross(pick(rnd() < 0.75 ? 'twiglet' : 'umbel'), q.pos, up, R(0.85, 1.2), q.fl + 0.04, rnd() < 0.35 ? 2 : 1);
+        cross(pick(rnd() < 0.75 ? 'twiglet' : 'umbel'), q.pos, up, R(0.9, 1.3), q.fl + 0.04, rnd() < 0.5 ? 2 : 1);
       }
       if (rnd() < 0.5) { const q = sampleBranch(b, 1); cross(pick('spray'), q.pos, up.copy(q.tan).add(tmp.set(N(), N(), N()).multiplyScalar(0.3)).normalize(), R(0.9, 1.2), q.fl + 0.06, 2); }
     }
@@ -803,7 +807,7 @@ function buildGroundPetals(crown, rnd) {
     // a carpet under the crown, drawn out downwind
     const a = R(0, TAU), r = Math.abs(N()) * spread, size = piece.size[0] * scale;
     const x = crown.c.x + Math.cos(a) * r + wind.x * (1.2 + Math.abs(N()) * 1.6), z = crown.c.z + Math.sin(a) * r + wind.z * (1.2 + Math.abs(N()) * 1.6);
-    if (x * x + z * z < 0.3) return;
+    if (x * x + z * z < 0.3 || rnd() > 0.35 + 0.9 * fbm(x * 0.9 + 3, z * 0.9 + 8, 3)) return;      // drifts and bare patches
     groundN(x, z, nrm);
     nrm.x += N() * 0.1; nrm.z += N() * 0.1; nrm.normalize();
     const yaw = R(0, TAU);
@@ -812,8 +816,8 @@ function buildGroundPetals(crown, rnd) {
     p.set(x, groundH(x, z) + lift, z).addScaledVector(az, -size * 0.5);
     cards.add(p, ax.multiplyScalar(size), t.copy(az).multiplyScalar(size), nrm, piece.rect, rnd(), 0, rnd(), 1);
   };
-  for (let i = 0; i < 7000; i++) place(PIECES.scatter[0], R(0.8, 1.3), R(0.012, 0.03), 3.6);
-  for (let i = 0; i < 24000; i++) place(PIECES.petal[Math.floor(R(0, 4))], R(1.3, 1.9), R(0.015, 0.05), 7.6);
+  for (let i = 0; i < 4200; i++) place(PIECES.scatter[0], R(0.75, 1.25), R(0.012, 0.03), 4.0);
+  for (let i = 0; i < 22000; i++) place(PIECES.petal[Math.floor(R(0, 4))], R(1.3, 1.9), R(0.015, 0.05), 7.8);
   cards.shuffle(rnd);
   return cards.geometry();
 }
@@ -947,7 +951,7 @@ function buildGrass(tex, count, patchSize, height, width, rnd, key) {
       grassP += windField(gBase, 1.0, gAng) * gy * gy * (0.25 + gh * 2.5);
       vec3 objectNormal = normalize(vec3(0.0, 0.8, 0.0) + gFwd * 0.45 + gSide * position.x * 0.6);
       vec3 gTurf = textureLod(tTurf, gXZ / 1.2, 6.0).rgb;
-      vTint = mix(gTurf * mix(0.6, 1.5, gy) * (0.85 + 0.3 * fract(aSeed.z * 5.3)), vec3(0.42, 0.37, 0.2), step(0.9, fract(aSeed.w * 3.7)) * gy * 0.8);
+      vTint = mix(gTurf * vec3(1.12, 1.18, 1.0) * mix(0.6, 1.5, gy) * (0.85 + 0.3 * fract(aSeed.z * 5.3)), vec3(0.42, 0.37, 0.2), step(0.9, fract(aSeed.w * 3.7)) * gy * 0.8);
       vWorldP = grassP;`,
     vbegin: 'vec3 transformed = grassP;',
     fdecl: 'varying vec3 vTint; varying vec3 vWorldP;',
@@ -1007,7 +1011,7 @@ function buildGround(tex) {
       turf *= mix(vec3(1.0), texture2D(tTurf, guv * 0.043 + vec2(0.71, 0.23)).rgb / turfAvg, 0.45);
       vec3 gOrm = texture2D(tTurfO, guv).rgb;
       float gBare = smoothstep(0.38, 0.62, vBare + (0.5 - gOrm.b) * 0.35);
-      diffuseColor.rgb *= mix(turf, texture2D(tSoil, guv * 1.7).rgb * vec3(0.95, 1.0, 0.86), gBare);
+      diffuseColor.rgb *= mix(turf * vec3(1.12, 1.18, 1.0), texture2D(tSoil, guv * 1.7).rgb * vec3(0.95, 1.0, 0.86), gBare);
       float gNear = 1.0 - smoothstep(5.0, 28.0, gDist);`,
     fnormal: /* glsl */`
       {
@@ -1125,10 +1129,10 @@ function buildLantern(tex) {
 // and sunset, when that model goes dark too soon, a keyed twilight with its glow and the pink anti-twilight arch; at
 // night a moon, stars and a trace of the Milky Way. Clouds are lit by the sun they drift past.
 // The same function is evaluated in JS (skyColor) to colour the haze and the light the sky gives.
-const SKY = { betaR: [0, 0, 0], betaM: [0, 0, 0], g: 0.82 };
+const SKY = { betaR: [0, 0, 0], betaM: [0, 0, 0], g: 0.86 };
 {
   const TR = [5.804542996261093e-6, 1.3562911419845635e-5, 3.0265902468824876e-5], MC = [1.8399918514433978e14, 2.7798023919660528e14, 4.0790479543861094e14];
-  const turbidity = 2.4, rayleigh = 1.25, mie = 0.005;
+  const turbidity = 2.4, rayleigh = 1.25, mie = 0.0038;
   for (let i = 0; i < 3; i++) { SKY.betaR[i] = TR[i] * rayleigh; SKY.betaM[i] = 0.434 * (0.2 * turbidity * 10e-18) * MC[i] * mie; }
 }
 // the model's sun strength, eased so the sky does not darken as fast as the sun sinks
@@ -1148,7 +1152,7 @@ vec3 preetham(vec3 d) {
   vec3 lin = pow(s * (1.0 - fex), vec3(1.5));
   lin *= mix(vec3(1.0), pow(s * fex, vec3(0.5)), clamp(pow(1.0 - uSun.y, 5.0), 0.0, 1.0));
   vec3 c = ((lin + 0.1 * fex) * 0.04 + vec3(0.0, 0.0003, 0.00075)) * 0.2;
-  return c / (1.0 + c * 0.45);
+  return c / (1.0 + c * 0.6);
 }
 vec3 twilight(vec3 d) {
   float h = max(d.y, 0.0);
@@ -1179,7 +1183,7 @@ function skyColor(dx, dy, dz, st, out) {
       const fex = Math.exp(-(SKY.betaR[i] * 8400 + SKY.betaM[i] * 1250) * inv);
       const s = st.sunE * ((SKY.betaR[i] * rP + SKY.betaM[i] * mP) / (SKY.betaR[i] + SKY.betaM[i]));
       const c = ((Math.pow(s * (1 - fex), 1.5) * lerp(1, Math.pow(s * fex, 0.5), fade) + 0.1 * fex) * 0.04 + [0, 0.0003, 0.00075][i]) * 0.2;
-      p[i] = c / (1 + c * 0.45);
+      p[i] = c / (1 + c * 0.6);
     }
     r = lerp(r, p[0], st.dayMix); g = lerp(g, p[1], st.dayMix); b = lerp(b, p[2], st.dayMix);
   }
@@ -1260,9 +1264,9 @@ function buildSky() {
         col = mix(col, ccol, cov * 0.9);
         if (uEnv < 0.5) {
           float sang = acos(clamp(ct, -1.0, 1.0));
-          col += uSunCol * uSunDisc * (smoothstep(0.0125, 0.0095, sang) * 26.0 + exp(-sang * 46.0) * 0.5) * (1.0 - cov * 0.85);
+          col += uSunCol * uSunDisc * (smoothstep(0.0125, 0.0095, sang) * 16.0 + exp(-sang * 46.0) * 0.35) * (1.0 - cov * 0.85);
         } else {
-          col = mix(vec3(dot(col, vec3(0.2126, 0.7152, 0.0722))), col, 0.5);       // skylight on a white card is less blue than the sky looks
+          col = mix(vec3(dot(col, vec3(0.2126, 0.7152, 0.0722))), col, 0.38);      // skylight on a white card is less blue than the sky looks
         }
         gl_FragColor = vec4(col, 1.0);
       }`,
@@ -1286,14 +1290,14 @@ class LensPass extends Pass {
     const depthFn = 'uniform float uNear, uFar; float linZ(float d) { return uNear * uFar / (uFar - d * (uFar - uNear)); }';
     this.focusRT = new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, depthBuffer: false });
     this.focus = new THREE.ShaderMaterial({
-      uniforms: { tDepth: { value: null }, uPoint: { value: new THREE.Vector2(0.5, 0.5) }, uNear: { value: 0.1 }, uFar: { value: 1000 }, uBlend: { value: 1 }, uSpread: { value: new THREE.Vector2(0.02, 0.03) } },
+      uniforms: { tDepth: { value: null }, uPoint: { value: new THREE.Vector2(0.5, 0.5) }, uNear: { value: 0.1 }, uFar: { value: 1000 }, uBlend: { value: 1 }, uSpread: { value: new THREE.Vector2(0.006, 0.01) } },
       vertexShader: QUAD_VS, depthTest: false, depthWrite: false, transparent: true,
       fragmentShader: /* glsl */`
         uniform sampler2D tDepth; uniform vec2 uPoint, uSpread; uniform float uBlend; ${depthFn}
         void main() {
-          float z = 1e9;                                       // the nearest thing around the middle of the frame
-          for (int y = -2; y <= 2; y++) for (int x = -2; x <= 2; x++) z = min(z, linZ(texture2D(tDepth, uPoint + vec2(float(x), float(y)) * uSpread).x));
-          gl_FragColor = vec4(min(z, 400.0), 0.0, 0.0, uBlend);
+          float inv = 0.0;                                     // what is in the middle of the frame (averaged in dioptres, so the nearer of two wins gently)
+          for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) inv += 1.0 / linZ(texture2D(tDepth, uPoint + vec2(float(x), float(y)) * uSpread).x);
+          gl_FragColor = vec4(clamp(9.0 / inv, 0.3, 400.0), 0.0, 0.0, uBlend);
         }`,
     });
     this.material = new THREE.ShaderMaterial({
@@ -1308,10 +1312,11 @@ class LensPass extends Pass {
         uniform float uCoc, uMaxCoc, uRays, uAspect; uniform int uTaps;
         varying vec2 vUv; ${depthFn}
         float coc(float z, float s) { return min(abs(1.0 - s / z) * uCoc / max(s - 0.035, 0.05), uMaxCoc); }
+        vec3 sane(vec3 c) { return any(isnan(c)) || any(isinf(c)) ? vec3(0.0) : clamp(c, 0.0, 64.0); }
         void main() {
-          float s = texture2D(tFocus, vec2(0.5)).x;
+          float s = max(texture2D(tFocus, vec2(0.5)).x, 0.3);
           float z0 = linZ(texture2D(tDepth, vUv).x), c0 = coc(z0, s);
-          vec3 col = texture2D(tDiffuse, vUv).rgb;
+          vec3 col = sane(texture2D(tDiffuse, vUv).rgb);
           float ign = fract(52.9829189 * fract(dot(gl_FragCoord.xy, vec2(0.06711056, 0.00583715))));
           if (uTaps > 0) {
             // gather: a neighbour counts if its own blur disc reaches this pixel; one behind us only as far as we are blurred ourselves
@@ -1322,7 +1327,7 @@ class LensPass extends Pass {
               vec2 p = vUv + vec2(cos(a), sin(a)) * r * uTexel;
               float zi = linZ(texture2D(tDepth, p).x), ci = coc(zi, s);
               float w = smoothstep(r - 1.0, r + 1.0, zi > z0 * 1.04 ? min(ci, c0) : ci) / max(ci * ci, 1.0);
-              col += texture2D(tDiffuse, p).rgb * w; wsum += w;
+              col += sane(texture2D(tDiffuse, p).rgb) * w; wsum += w;
             }
             col /= wsum;
           }
@@ -1331,7 +1336,7 @@ class LensPass extends Pass {
             float acc = 0.0, lum = 1.0;
             for (int i = 0; i < 22; i++) {
               vec2 q = (p - uSunUV) * vec2(uAspect, 1.0);
-              acc += step(0.99999, texture2D(tDepth, p).x) * exp(-dot(q, q) * 7.0) * lum;       // open sky near the sun, seen through the gaps
+              acc += step(0.99999, texture2D(tDepth, p).x) * exp(-dot(q, q) * 12.0) * lum;       // open sky near the sun, seen through the gaps
               lum *= 0.965; p += stride;
             }
             col += uRayColor * acc / 22.0 * uRays;
@@ -1364,7 +1369,7 @@ class GradePass extends Pass {
   constructor() {
     super();
     this.material = new THREE.ShaderMaterial({
-      uniforms: { tDiffuse: { value: null }, uTime: G.uTime, uGrain: { value: 0.022 }, uVignette: { value: 0.3 }, uContrast: { value: 1.06 }, uSaturation: { value: 1.06 } },
+      uniforms: { tDiffuse: { value: null }, uTime: G.uTime, uGrain: { value: 0.02 }, uVignette: { value: 0.28 }, uContrast: { value: 1.14 }, uSaturation: { value: 1.16 } },
       vertexShader: QUAD_VS, depthTest: false, depthWrite: false,
       fragmentShader: /* glsl */`
         uniform sampler2D tDiffuse; uniform float uTime, uGrain, uVignette, uContrast, uSaturation; varying vec2 vUv;
@@ -1399,13 +1404,14 @@ const K = {
   anti: [[-12, 0], [-6, 0.4], [-1, 0.55], [3, 0.28], [9, 0]],
   fill: [[-18, 0.6], [-8, 0.5], [-3, 0.2], [1, 0]],
   fogD: [[-18, 0.0019], [-6, 0.0026], [0, 0.0031], [6, 0.0027], [15, 0.0019], [60, 0.0016]],
-  exposure: [[-18, 1.3], [-8, 1.18], [-2, 1.02], [4, 0.96], [15, 0.9], [60, 0.86]],
-  bloom: [[-18, 0.4], [-6, 0.32], [0, 0.24], [8, 0.14], [30, 0.08]],
+  exposure: [[-18, 1.55], [-8, 1.4], [-2, 1.22], [4, 1.16], [15, 1.12], [60, 1.1]],
+  bloom: [[-18, 0.4], [-6, 0.32], [0, 0.2], [8, 0.11], [30, 0.07]],
   stars: [[-12, 1], [-5, 0]],
   cloudLit: [[-18, '#222b48'], [-6, '#4c4c74'], [-2, '#d8857a'], [1, '#ffb48a'], [6, '#ffe0c0'], [15, '#ffffff']],
   cloudShade: [[-18, '#0a0e1c'], [-6, '#252a48'], [-1, '#5a4a66'], [4, '#8a86a0'], [15, '#9fb0cc']],
   lantern: [[-3, 1], [4, 0]],
-  rays: [[-3, 0], [0.5, 0.55], [6, 0.65], [18, 0.34], [40, 0.1]],
+  skylight: [[-18, 1.0], [-9, 1.7], [-3, 1.9], [2, 1.5], [10, 1.1], [20, 1.0]],
+  rays: [[-3, 0], [0.5, 0.42], [6, 0.4], [18, 0.2], [40, 0.06]],
 };
 for (const k in K) if (typeof K[k][0][1] === 'string') K[k] = K[k].map(([e, c]) => [e, lin(c)]);
 function key(keys, e, out) {
@@ -1449,7 +1455,7 @@ async function main() {
 
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(38, innerWidth / innerHeight, 0.12, 6000);
-  const HOME = { pos: new V3(25.5, BASE_Y + 2.2, 8.8), target: new V3(0.2, BASE_Y + 4.9, 0) };
+  const HOME = { pos: new V3(21.0, BASE_Y + 1.9, 7.4), target: new V3(0.2, BASE_Y + 4.7, 0) };
   camera.position.copy(HOME.pos);
   const controls = new OrbitControls(camera, canvas);
   controls.target.copy(HOME.target);
@@ -1499,11 +1505,17 @@ async function main() {
 
   await loader.set(0.4, 'Growing the tree, branch by branch…');
   const sk = buildSkeleton(Number(params.get('seed')) || 20260411);
-  const woodHooks = { vdecl: 'attribute float aFlex; varying vec3 vWorldP;', vbegin: '#include <begin_vertex>\ntransformed += windField(position, aFlex, 0.0); vWorldP = transformed;' };
+  const woodHooks = {
+    vdecl: 'attribute float aFlex; attribute float aAge; varying vec3 vWorldP; varying float vAge;',
+    vbegin: '#include <begin_vertex>\ntransformed += windField(position, aFlex, 0.0); vWorldP = transformed; vAge = aAge;',
+    // the plates and furrows fade out on young wood, which keeps the colour and the lenticels
+    fmap: 'diffuseColor *= texture2D(map, vMapUv, (1.0 - vAge) * 2.6);',
+    fnormal: 'vec3 mapN = texture2D(normalMap, vNormalMapUv, (1.0 - vAge) * 2.0).xyz * 2.0 - 1.0; mapN.xy *= normalScale * mix(0.25, 1.0, vAge); normal = normalize(tbn * mapN);',
+  };
   const woodMat = patch(new THREE.MeshStandardMaterial({
     map: tex.barkColor, normalMap: tex.barkNormal, aoMap: tex.barkOrm, roughnessMap: tex.barkOrm,
     color: new THREE.Color(1.25, 1.2, 1.17), roughness: 1, metalness: 0, vertexColors: true, normalScale: new THREE.Vector2(1.2, 1.2),
-  }), 'wood', Object.assign({ fdecl: 'varying vec3 vWorldP;', flights: CANOPY_LIGHTS }, woodHooks));
+  }), 'wood', Object.assign({ fdecl: 'varying vec3 vWorldP; varying float vAge;', flights: CANOPY_LIGHTS }, woodHooks));
   const wood = new THREE.Mesh(buildWood(sk, heightSampler(tex.barkOrm.image)), woodMat);
   wood.castShadow = wood.receiveShadow = true;
   wood.frustumCulled = false;
@@ -1554,7 +1566,7 @@ async function main() {
   };
   const coarse = matchMedia('(pointer: coarse)').matches || Math.min(innerWidth, innerHeight) < 600;
   const state = {
-    hours: 16.85, playing: true, speed: 1, tween: null,
+    hours: 7.6, playing: true, speed: 1, tween: null,                 // the page opens on a morning, with the sun on the side you see
     quality: 'auto', level: coarse ? 'medium' : 'high', pr: 1, shadowEvery: 1,
     wind: 1, petals: true, lens: true, orbit: !matchMedia('(prefers-reduced-motion: reduce)').matches, idle: 0, frame: 0,
   };
@@ -1615,6 +1627,7 @@ async function main() {
     G.uSunColor.value.copy(col).multiplyScalar(sun.intensity);
     G.uSunAz.value.set(lightDir.x, lightDir.z).normalize();
     fill.intensity = key(K.fill, e);
+    scene.environmentIntensity = key(K.skylight, e);
 
     // the sky
     S.uSun.value.copy(sunDir); S.uMoon.value.copy(moonDir);
@@ -1639,13 +1652,14 @@ async function main() {
     G.uFogColor.value.copy(col2);
     skyColor(sx * hc, 0.06, sz * hc, skyState, col3);
     const peak = Math.max(col3.r, col3.g, col3.b, 1e-4);
-    G.uFogSun.value.copy(col3).multiplyScalar(Math.min(1, 1.5 / peak)).lerp(col2, sunI >= moonI ? 0.25 : 0.85);
+    G.uFogSun.value.copy(col3).multiplyScalar(Math.min(1, 1.0 / peak)).lerp(col2, sunI >= moonI ? 0.4 : 0.85);
     G.uFogDensity.value = key(K.fogD, e);
 
     // the light the sky and the ground give, for the few shaders that light themselves and for the sky below the horizon
-    skyColor(0, 1, 0, skyState, col2).multiplyScalar(0.4).add(skyColor(-sz * 0.8, 0.6, sx * 0.8, skyState, col3).multiplyScalar(0.3)).add(skyColor(-sx * 0.8, 0.6, -sz * 0.8, skyState, col3).multiplyScalar(0.3));
+    skyColor(0, 1, 0, skyState, col2).multiplyScalar(0.25).add(skyColor(-sz * 0.8, 0.6, sx * 0.8, skyState, col3).multiplyScalar(0.2)).add(skyColor(-sx * 0.8, 0.6, -sz * 0.8, skyState, col3).multiplyScalar(0.2))
+      .add(skyColor(sz * 0.97, 0.24, -sx * 0.97, skyState, col3).multiplyScalar(0.175)).add(skyColor(sx * 0.97, 0.24, sz * 0.97, skyState, col3).multiplyScalar(0.175));
     const lum = 0.2126 * col2.r + 0.7152 * col2.g + 0.0722 * col2.b;
-    col2.lerp(col3.setRGB(lum, lum, lum), 0.5).multiplyScalar(Math.PI);
+    col2.lerp(col3.setRGB(lum, lum, lum), 0.6).multiplyScalar(Math.PI * scene.environmentIntensity);
     col2.add(col3.copy(fill.color).multiplyScalar(fill.intensity));
     G.uHemiSky.value.copy(col2);
     col3.copy(G.uSunColor.value).multiplyScalar(lightDir.y).add(col2).multiply(groundAlbedo);
