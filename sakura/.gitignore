@@ -1,2 +1,4 @@
 tools/blender/out/
 __pycache__/
+dist/
+node_modules/

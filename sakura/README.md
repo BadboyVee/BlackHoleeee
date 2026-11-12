@@ -95,6 +95,7 @@ index.html                      the page: tree, sky, lens, interface
 assets/textures.js              the Blender-made textures, as data URIs (so the page also opens from file://)
 tools/blender/build_assets.py   models and renders the textures
 tools/blender/render_tree.py    opens the exported tree in Blender and renders it
+tools/build-single.mjs          packs the page, three.js and the textures into one html file that runs offline
 card.jpg, blender.jpg           the page's opening view, and the exported tree rendered in Blender
 ```
 

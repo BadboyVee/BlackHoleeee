@@ -1714,6 +1714,7 @@ async function main() {
     return b;
   });
   function setPlaying(on) { state.playing = on; $('play').setAttribute('aria-pressed', String(on)); }
+  setPlaying(state.playing);                                      // the switch shows the truth from the start (?pause, ?still)
   function goTo(h) {                                               // glide to an hour the short way round, and stay there
     setPlaying(false);
     const d = ((h - state.hours) % 24 + 36) % 24 - 12;
