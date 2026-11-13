@@ -48,3 +48,18 @@ for name, mood, controls, pos, tgt, lens in SHOTS:
     Image.open(png).convert("RGB").save(os.path.join(OUT, name + ".jpg"), quality=90, optimize=True)
     os.remove(png)
     print("%-14s %.0f s" % (name, time.time() - t), flush=True)
+
+# gallery in the README, between the stills markers (written only once every still exists)
+CAPTIONS = {"01_front34": "Front three-quarter", "02_rear34": "Rear three-quarter, wing raised",
+            "03_side": "Side profile", "04_doors_open": "Dihedral doors open",
+            "05_cabin": "Cabin", "06_cluster": "Skeleton instrument cluster"}
+if all(os.path.exists(os.path.join(OUT, n + ".jpg")) for n in CAPTIONS):
+    cells = ["![%s](renders/stills/%s.jpg)" % (c, n) for n, c in CAPTIONS.items()]
+    rows = ["| %s | %s |" % (cells[i], cells[i + 1]) for i in range(0, len(cells), 2)]
+    block = "<!-- stills -->\n| | |\n| --- | --- |\n" + "\n".join(rows) + "\n<!-- /stills -->"
+    readme = os.path.join(ROOT, "README.md")
+    s = open(readme).read()
+    a, b = s.find("<!-- stills -->"), s.find("<!-- /stills -->")
+    if a >= 0 and b > a:
+        open(readme, "w").write(s[:a] + block + s[b + len("<!-- /stills -->"):])
+        print("README gallery updated")

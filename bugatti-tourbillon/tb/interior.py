@@ -606,7 +606,8 @@ def _build_tub(col):
             sec = [(yo(0.16), 0.16), (yo(zt - 0.012), zt - 0.012), (yo(zt) - 0.005, zt),
                    (yo(zt) - 0.011, zt), (yo(zt - 0.012) - 0.016, zt - 0.012), (yo(0.16) - 0.016, 0.16)]
             secs.append([(x, side * yy, zz) for yy, zz in sec])
-        mb.add(util.loft(secs, closed_v=True, cap_start=True, cap_end=True), CG)
+        lv, lf = util.loft(secs, closed_v=True, cap_start=True, cap_end=True)
+        mb.add((lv, lf), [CG, CG, CG, CG, "carpet_dark", CG] * (len(secs) - 1) + [CG, CG])
     # rear bulkhead (firewall) with a raised cross beam and centre spine
     ro = [(-0.598, 0.16), (0.598, 0.16), (0.700, 0.56), (0.700, 0.80), (0.62, 0.95), (0.50, 1.02),
           (-0.50, 1.02), (-0.62, 0.95), (-0.700, 0.80), (-0.700, 0.56)]
@@ -615,7 +616,7 @@ def _build_tub(col):
     mb.add(_xf(_box(0.020, 0.10, 0.52, 0.006), _T(xb + 0.022, 0, 0.72)), CG)
     # toe board + front bulkhead (one XZ profile)
     tb = [(1.09, 0.158), (xf, 0.158), (xf, 0.62), (1.236, 0.62), (1.236, 0.372), (1.10, 0.170)]
-    mb.add(util.extrude_outline(tb, 1.04, plane='XZ', offset=0.0, both=True), CG)
+    mb.add(util.extrude_outline(tb, 1.12, plane='XZ', offset=0.0, both=True), "carpet_dark")
     # centre tunnel structure (hidden under the leather console, visible in the footwells)
     secs = []
     for x in np.linspace(xb + 0.012, xf, 37):
@@ -653,34 +654,40 @@ def _build_tub(col):
 
 
 # ====================================================================== SEATS
-# Centre-line of the upholstery surface in side view, from under the cushion nose, back
-# along the cushion, round the bite line and up the 27 deg backrest to the headrest top.
-#   x, z            centre-line point (H-point is at x -0.02, z 0.30)
-#   B               bolster height above the centre panel
-#   wo, wc          half-width over the bolsters / half-width of the centre panel
+# Carbon-shell bucket seats.  Side-view centre line of the perforated centre-panel surface,
+# from under the cushion nose, back along the cushion, round the bite line, up the 24 deg
+# backrest and over the integrated headrest.  Per station:
+#   B    bolster crown above the centre panel       wo   half-width of the leather
+#   wc   half-width of the sunk centre panel        lip  shell rim height above the panel (n)
+#   nb   depth of the shell back / bottom (n < 0 = behind the panel surface)
 _SEAT_CTRL = [
-    (0.380, 0.205, 0.000, 0.196, 0.110),   # 0  tucked under the nose
-    (0.402, 0.262, 0.010, 0.202, 0.112),   # 1  nose
-    (0.372, 0.302, 0.030, 0.208, 0.115),   # 2  front top edge
-    (0.290, 0.290, 0.052, 0.212, 0.117),   # 3
-    (0.180, 0.262, 0.075, 0.214, 0.118),   # 4
-    (0.060, 0.234, 0.098, 0.214, 0.118),   # 5
-    (-0.050, 0.214, 0.115, 0.214, 0.118),  # 6
-    (-0.122, 0.212, 0.125, 0.214, 0.118),  # 7  bite line
-    (-0.166, 0.252, 0.125, 0.214, 0.118),  # 8  corner
-    (-0.190, 0.325, 0.105, 0.213, 0.118),  # 9  lumbar
-    (-0.236, 0.440, 0.082, 0.214, 0.118),  # 10
-    (-0.290, 0.560, 0.085, 0.222, 0.120),  # 11
-    (-0.343, 0.680, 0.090, 0.228, 0.115),  # 12 shoulder wings
-    (-0.382, 0.770, 0.050, 0.200, 0.090),  # 13 neck / harness slot
-    (-0.400, 0.860, 0.028, 0.140, 0.075),  # 14 headrest
-    (-0.424, 0.950, 0.030, 0.125, 0.070),  # 15
-    (-0.448, 1.020, 0.018, 0.100, 0.055),  # 16 top
+    # x       z      B      wo     wc     lip     nb
+    (0.350, 0.205, 0.030, 0.222, 0.150, 0.026, -0.030),   # 0  under the nose
+    (0.384, 0.252, 0.044, 0.226, 0.150, 0.040, -0.050),   # 1  nose
+    (0.360, 0.300, 0.056, 0.229, 0.150, 0.050, -0.050),   # 2  front top edge
+    (0.285, 0.296, 0.062, 0.230, 0.150, 0.054, -0.048),   # 3  thigh
+    (0.180, 0.276, 0.063, 0.230, 0.150, 0.055, -0.046),   # 4
+    (0.060, 0.255, 0.062, 0.230, 0.150, 0.055, -0.044),   # 5
+    (-0.040, 0.240, 0.060, 0.230, 0.150, 0.057, -0.042),  # 6
+    (-0.105, 0.234, 0.060, 0.230, 0.150, 0.060, -0.042),  # 7  bite line
+    (-0.140, 0.268, 0.062, 0.231, 0.148, 0.066, -0.044),  # 8  corner
+    (-0.152, 0.335, 0.066, 0.233, 0.146, 0.074, -0.046),  # 9  lumbar
+    (-0.200, 0.448, 0.068, 0.236, 0.146, 0.080, -0.046),  # 10
+    (-0.252, 0.560, 0.070, 0.240, 0.146, 0.082, -0.046),  # 11
+    (-0.300, 0.668, 0.066, 0.242, 0.142, 0.082, -0.040),  # 12 shoulder wings
+    (-0.336, 0.752, 0.030, 0.165, 0.090, 0.050, -0.018),  # 13 neck / harness slot
+    (-0.364, 0.838, 0.016, 0.112, 0.082, 0.034, -0.030),  # 14 headrest
+    (-0.392, 0.926, 0.014, 0.104, 0.078, 0.030, -0.034),  # 15
+    (-0.418, 1.004, 0.010, 0.098, 0.072, 0.022, -0.036),  # 16 top of the pad
+    (-0.432, 1.030, 0.000, 0.092, 0.060, 0.006, -0.034),  # 17 shell top edge
 ]
+_SEAT_RIM = 0.004          # leather edge -> inner face of the shell wall
+_SEAT_SHELL_T = 0.008      # carbon shell thickness
 
 
 class _SeatGeom:
-    """Parametric seat surface: s = arc length along the centre line, l = lateral offset."""
+    """Parametric seat: s = arc length along the centre line, l = lateral offset,
+    n = height above the centre-panel surface (towards the occupant)."""
 
     def __init__(self, y0):
         self.y0 = y0
@@ -703,9 +710,7 @@ class _SeatGeom:
         tzs = np.convolve(np.pad(tz, pad, mode='edge'), k, mode='valid')
         nrm = np.hypot(txs, tzs)
         self.su, self.txs, self.tzs = su, txs / nrm, tzs / nrm
-        self.fB = util.Curve1D(list(zip(self.sk_tab, ctrl[:, 2])))
-        self.fwo = util.Curve1D(list(zip(self.sk_tab, ctrl[:, 3])))
-        self.fwc = util.Curve1D(list(zip(self.sk_tab, ctrl[:, 4])))
+        self.f = [util.Curve1D(list(zip(self.sk_tab, ctrl[:, c]))) for c in range(2, 7)]
 
     def sk(self, k):
         return float(np.interp(k, np.arange(len(self.sk_tab)), self.sk_tab))
@@ -715,34 +720,48 @@ class _SeatGeom:
         sc = min(max(s, 0.0), self.s_end)
         x, z = np.interp(sc, self.S, self.dense[:, 0]), np.interp(sc, self.S, self.dense[:, 1])
         tx, tz = np.interp(sc, self.su, self.txs), np.interp(sc, self.su, self.tzs)
-        if s > self.s_end:
-            x, z = x + tx * (s - self.s_end), z + tz * (s - self.s_end)
         return x, z, tz, -tx
 
     def B(self, s):
-        return float(self.fB(s))
+        return float(self.f[0](s))
 
     def wo(self, s):
-        return float(self.fwo(s))
+        return float(self.f[1](s))
 
     def wc(self, s):
-        return float(self.fwc(s))
+        return float(self.f[2](s))
+
+    def lip(self, s):
+        return float(self.f[3](s))
+
+    def nb(self, s):
+        return float(self.f[4](s))
+
+    def W(self, s):
+        return self.wo(s) + _SEAT_RIM
 
     def nA(self, s, l):
-        """Height of the upholstery surface above the centre line (bolster shape)."""
+        """Leather surface above the centre line: dished centre panel, then a bolster that
+        steps up ~15 mm at the seam, rises to its crown B and rolls over into the shell."""
         a = abs(l)
-        wc, wo = self.wc(s), self.wo(s)
-        q = min(1.0, max(0.0, (a - wc) / (0.82 * (wo - wc))))
-        return 0.006 * (min(a, wc) / wc) ** 2 + self.B(s) * q * q * (3 - 2 * q)
+        wc, wo, B = self.wc(s), self.wo(s), self.B(s)
+        if a <= wc:
+            return 0.004 * (a / wc) ** 2
+        t = min(1.0, (a - wc) / max(wo - wc, 1e-6))
+        tc = 0.55
+        if t <= tc:
+            u = t / tc
+            return 0.014 + (B - 0.014) * (1.0 - (1.0 - u) ** 2.4)
+        u = (t - tc) / (1.0 - tc)
+        return B - 0.32 * B * u * u
 
-    def n_shell(self, s, l):
-        """Inner skin of the carbon shell (behind the pads, rising to a rim at the sides)."""
-        a = abs(l)
-        wc, wo = self.wc(s), self.wo(s)
-        W = wo + 0.015
-        if a <= wo:
-            return self.nA(s, a) - (0.034 - 0.018 * _sstep(wc * 0.8, wo, a))
-        return self.nA(s, wo) - 0.016 + 0.020 * (a - wo) / (W - wo)
+    def shell_half(self, s):
+        """Half section (l >= 0) of the shell's inner face: back, rounded corner, side wall, lip."""
+        W, nb, lip = self.W(s), self.nb(s), self.lip(s)
+        D = lip - nb
+        return [(0.0, nb), (0.40 * W, nb), (0.72 * W, nb + 0.03 * D), (0.88 * W, nb + 0.09 * D),
+                (0.97 * W, nb + 0.25 * D), (W, nb + 0.50 * D), (W + 0.001, nb + 0.80 * D),
+                (W, lip - 0.004), (W - 0.007, lip)]
 
     def pt(self, s, l, n):
         x, z, nx, nz = self.frame(s)
@@ -753,17 +772,17 @@ class _SeatGeom:
         return (nx, 0.0, nz)
 
 
-def _seat_pad(mb, g, k0, k1, l0, l1, na, nb, mat, roll=0.013, drop=0.010, skirt=0.022, puff=0.005):
-    """One upholstery panel between control indices k0..k1 and lateral limits l0(s)..l1(s)."""
+def _seat_pad(mb, g, k0, k1, l0, l1, na, nb, mat, roll=0.012, drop=0.010, skirt=0.024, puff=0.005,
+              flat=False):
+    """One upholstery pillow between control indices k0..k1 and lateral limits l0(s)..l1(s)."""
     s0, s1 = g.sk(k0), g.sk(k1)
     sa = _edge_params(s0, s1, na, roll)
     front = np.zeros((na, nb, 3))
     sk = np.zeros((na, nb, 3))
     for i, s in enumerate(sa):
-        a, b = (l0(s), l1(s)) if callable(l0) else (l0, l1)
-        lb = _edge_params(a, b, nb, roll)
+        lb = _edge_params(l0(s), l1(s), nb, roll)
         for j, l in enumerate(lb):
-            nA = g.nA(s, l)
+            nA = 0.012 * (1.0 - (l / g.wo(s)) ** 2) if flat else g.nA(s, l)
             edge = i in (0, na - 1) or j in (0, nb - 1)
             u, v = i / (na - 1), j / (nb - 1)
             crown = puff * (math.sin(PI * u) * math.sin(PI * v)) ** 0.5
@@ -774,58 +793,47 @@ def _seat_pad(mb, g, k0, k1, l0, l1, na, nb, mat, roll=0.013, drop=0.010, skirt=
 
 def _build_seat(col, tag, y0):
     g = _SeatGeom(y0)
-    # ---------------- carbon shell
-    ks = [2.15, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.35, 7.7, 8, 8.4, 9, 9.5, 10, 10.5, 11,
-          11.5, 12, 12.42, 12.82, 13.28, 13.68, 14, 14.5, 15, 15.5, 16, 16.2]
-    nl = 13
+    # ---------------- carbon shell: U sections (lip - wall - back - wall - lip), solidified
+    # outwards and subdivided; a harness slot is left open below the headrest
+    ks = [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5, 4, 4.5, 5, 5.5, 6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10, 10.5,
+          11, 11.5, 12, 12.4, 12.75, 13.0, 13.38, 13.7, 14, 14.5, 15, 15.5, 16, 16.5, 17]
     verts = []
     for k in ks:
-        s = g.sk(min(k, 16)) + (0.014 if k > 16 else 0.0)
-        wc, wo = g.wc(s), g.wo(s)
-        W = wo + 0.015
-        half = [0.0, 0.5 * wc, wc, wc + 0.5 * (wo - wc), wo - 0.012, wo + 0.003, W]
-        ls = [-a for a in half[:0:-1]] + half
-        curl = 1.0 if k <= 15.5 else (0.6 if k <= 16 else 0.0)
-        if k < 2.4:
-            curl = 0.7
-        for l in ls:
-            nA = g.nA(s, min(abs(l), wo))
-            n = nA + (g.n_shell(s, l) - nA) * curl
-            if k > 16:
-                n = nA + 0.004
-                l *= 0.86
-            verts.append(g.pt(s, l, n))
-    i0, i1 = ks.index(12.82), ks.index(13.28)
+        s = g.sk(k)
+        half = g.shell_half(s)
+        prof = [(-l, n) for l, n in half[:0:-1]] + half
+        verts += [g.pt(s, l, n) for l, n in prof]
+    nl = 2 * len(g.shell_half(0.0)) - 1
+    i0 = ks.index(13.0)
     faces = []
     for q in util.grid_faces(len(ks), nl, flip=True):
         u = min(q) // nl
         v = min(i % nl for i in q)
-        if u == i0 and 4 <= v <= 7:          # harness slot between the shoulders
+        if u == i0 and v in (nl // 2 - 1, nl // 2):
             continue
         faces.append(q)
     shell = _obj(PREFIX + "Seat_" + tag, (verts, faces), col, "carbon_gloss")
-    util.solidify(shell, 0.009, offset=-1.0)
+    util.solidify(shell, _SEAT_SHELL_T, offset=-1.0)
     util.subsurf(shell, 2)
 
-    # ---------------- upholstery
+    # ---------------- upholstery: perforated centre panels sunk between high leather bolsters
     mb = _MB()
     P, L = "leather_perforated", "leather_light"
     gp = 0.003
     wcp = lambda s: g.wc(s) - gp
     wcm = lambda s: -(g.wc(s) - gp)
-    bo0 = lambda s: g.wc(s) + gp
-    bo1 = lambda s: g.wo(s) - 0.002
-    _seat_pad(mb, g, 0.25, 3.45, wcm, wcp, 9, 8, P)                     # cushion, thigh panel
-    _seat_pad(mb, g, 3.52, 7.55, wcm, wcp, 11, 8, P)                    # cushion, main panel
-    _seat_pad(mb, g, 7.62, 10.25, wcm, wcp, 9, 8, P)                    # back, lumbar panel
-    _seat_pad(mb, g, 10.32, 12.55, wcm, wcp, 8, 8, P)                   # back, upper panel
+    _seat_pad(mb, g, 0.55, 3.42, wcm, wcp, 9, 8, P)                     # cushion, thigh panel
+    _seat_pad(mb, g, 3.52, 7.50, wcm, wcp, 11, 8, P)                    # cushion, main panel
+    _seat_pad(mb, g, 7.62, 10.20, wcm, wcp, 9, 8, P)                    # back, lumbar panel
+    _seat_pad(mb, g, 10.30, 12.40, wcm, wcp, 8, 8, P)                   # back, upper panel
     for sgn in (1, -1):
-        a = (lambda s, sgn=sgn: sgn * bo0(s))
-        b = (lambda s, sgn=sgn: sgn * bo1(s))
+        a = (lambda s, sgn=sgn: sgn * (g.wc(s) + gp))
+        b = (lambda s, sgn=sgn: sgn * (g.wo(s) - 0.001))
         lo, hi = (a, b) if sgn > 0 else (b, a)
-        _seat_pad(mb, g, 0.25, 7.85, lo, hi, 18, 6, L)                  # thigh / hip bolster
-        _seat_pad(mb, g, 7.92, 12.6, lo, hi, 14, 6, L)                  # torso bolster
-    _seat_pad(mb, g, 13.62, 15.85, lambda s: -(g.wo(s) - 0.012), lambda s: g.wo(s) - 0.012, 8, 9, L)
+        _seat_pad(mb, g, 0.55, 7.85, lo, hi, 18, 7, L)                  # thigh / hip bolster
+        _seat_pad(mb, g, 7.95, 12.55, lo, hi, 14, 7, L)                 # torso bolster
+    _seat_pad(mb, g, 13.72, 16.05, lambda s: -(g.wo(s) - 0.008), lambda s: g.wo(s) - 0.008, 8, 9, L,
+              flat=True)                                                # headrest pad
     pads = mb.build(PREFIX + "Seat_%s_Pads" % tag, col, angle=None, recalc=False)
     util.subsurf(pads, 2)
     _child(pads, shell)
@@ -840,33 +848,29 @@ def _build_seat(col, tag, y0):
         nr = [g.nrm(s) for s in ss]
         tm.add(_sweep_n(_half_round(0.011, 0.0065), path, nr, closed=False), AP)
         tm.add(_sweep_n(_flat_bar(0.0045, 0.0072, 0.0008), path[1:-1], nr[1:-1], closed=False), "plastic_black")
-        # bright inlay line down the back of the shell
-        ss = np.linspace(g.sk(8.9), g.sk(12.35), 22)
-        path, nr = [], []
-        for s in ss:
-            l = sgn * (g.wo(s) - 0.045)
-            path.append(g.pt(s, l, g.n_shell(s, l) - 0.0075))
-            nr.append(tuple(-c for c in g.nrm(s)))
-        tm.add(_sweep_n(_flat_bar(0.006, 0.0035, 0.001), path, nr, closed=False), AP)
-        # floor rails
-        rail = [(-0.10, 0.164), (0.33, 0.164), (0.33, 0.250), (-0.10, 0.171)]
-        tm.add(util.extrude_outline(rail, 0.022, plane='XZ', offset=y0 + sgn * 0.105, both=True), "alu_brushed")
-    # trim bar under the harness slot (seen from behind) and at its front lip
-    s = g.sk(12.72)
-    for side, off in ((-1, -0.0078), (1, -0.0012)):
-        ls = np.linspace(-g.wc(s) * 0.86, g.wc(s) * 0.86, 12)
-        path = [g.pt(s, l, g.n_shell(s, l) + off) for l in ls]
-        nn = tuple(side * c for c in g.nrm(s))
-        tm.add(_sweep_n(_flat_bar(0.007, 0.004, 0.001), path, nn, closed=False), AP)
+        # bright inlay line along the outside of each backrest wing
+        ss = np.linspace(g.sk(8.6), g.sk(12.3), 24)
+        path = [g.pt(s, sgn * (g.W(s) + _SEAT_SHELL_T - 0.0005), 0.5 * (g.nb(s) + g.lip(s))) for s in ss]
+        tm.add(_sweep_n(_flat_bar(0.007, 0.003, 0.0008), path, (0.0, float(sgn), 0.0), closed=False), AP)
+        # floor rails under the shell
+        ss = np.linspace(g.sk(2.6), g.sk(7.4), 10)
+        top = [g.pt(s, sgn * 0.105, g.nb(s) - _SEAT_SHELL_T + 0.002) for s in ss]
+        outline = [(p[0], p[2]) for p in top] + [(top[-1][0], 0.166), (top[0][0], 0.166)]
+        tm.add(util.extrude_outline(outline, 0.022, plane='XZ', offset=y0 + sgn * 0.105, both=True), "alu_brushed")
+    # polished lip above the harness slot
+    s = g.sk(13.42)
+    ls = np.linspace(-0.36 * g.W(s), 0.36 * g.W(s), 12)
+    path = [g.pt(s, l, g.nb(s) + 0.0008) for l in ls]
+    tm.add(_sweep_n(_flat_bar(0.006, 0.0025, 0.0008), path, g.nrm(s), closed=False), AP)
     trim = tm.build(PREFIX + "Seat_%s_Trim" % tag, col, angle=35)
     _child(trim, shell)
     return shell
 
 
 # ====================================================================== DASHBOARD
-_DASH_HALF = 0.700
+_DASH_HALF = 0.708
 _DASH_SPS = 6
-_WING_H = 0.016            # how far the leather wings stand proud of the dark body
+_WING_H = 0.010            # how far the leather wings stand proud of the dark body
 _dash_cache = {}
 
 
@@ -880,9 +884,9 @@ def _dash_ctrl(a):
     return np.array([
         (xc - 0.02, zl + 0.02),               # 0  underside, front
         (xr + 0.16, zl - 0.012),              # 1  underside
-        (xr + 0.060, zl),                     # 2  lower edge              (t = 0)
-        (xr + 0.022, zl + 0.06),              # 3
-        (xr + 0.004, zl + 0.17),              # 4
+        (xr + 0.040, zl),                     # 2  lower edge              (t = 0)
+        (xr + 0.014, zl + 0.06),              # 3
+        (xr + 0.003, zl + 0.17),              # 4
         (xr, zd - 0.085),                     # 5  belly of the top roll
         (xr + 0.014, zd - 0.028),             # 6
         (xr + 0.055, zd),                     # 7  deck starts             (tau = 1)
@@ -923,16 +927,15 @@ def _dash_t(y, tau):
     return tau * t7 if tau <= 1.0 else t7 + (tau - 1.0)
 
 
-_WING_TOP = util.Curve1D([(0.235, 1.40), (0.30, 1.29), (0.40, 1.16), (0.55, 1.06), (0.692, 1.02)])
-_WING_INNER = util.Curve1D([(-0.10, 0.122), (0.30, 0.122), (0.70, 0.125), (0.95, 0.138),
-                            (1.10, 0.158), (1.25, 0.190), (1.40, 0.235)])
-_VENTS = [(0.168, 0.52), (0.612, 0.52)]      # (|y|, tau) of the slot centres on each wing
+_WING_TOP = util.Curve1D([(0.160, 0.56), (0.25, 0.66), (0.40, 0.74), (0.55, 0.79), (0.700, 0.82)])
+_WING_INNER = util.Curve1D([(-0.10, 0.122), (0.20, 0.122), (0.40, 0.132), (0.56, 0.160)])
+_VENTS = [(0.200, 0.36), (0.600, 0.42)]      # (|y|, tau) of the slot centres on each wing
 _VENT_W, _VENT_L, _VENT_BEND = 0.020, 0.105, 0.005
 
 
 def _wing_coons(u, v):
     """(|y|, tau) of the wing outline patch: u inner -> door, v lower edge -> eyebrow."""
-    Y_IN, Y_OUT, Y_PK, TB, TPK, TO = 0.122, 0.692, 0.235, -0.10, 1.40, 1.02
+    Y_IN, Y_OUT, Y_PK, TB, TPK, TO = 0.122, 0.700, 0.160, -0.10, 0.56, 0.82
     b = np.array([_lerp(Y_IN, Y_OUT, u), TB])
     yt = _lerp(Y_PK, Y_OUT, u)
     tp = np.array([yt, float(_WING_TOP(yt))])
@@ -960,7 +963,7 @@ def _build_dash(col):
     for u in range(len(ys) - 1):
         for k in range(nv):
             fm.append("alcantara_dark" if 7 <= k // _DASH_SPS <= 11 else "leather_dark")
-    fm += ["leather_dark", "leather_dark"]
+    fm += ["leather_light", "leather_light"]
     dash = _MB().add((v, f), fm).build(PREFIX + "Dash", col, angle=50)
 
     # ---------------- the two leather wings (closed pillows, slot vents cut by boolean)
@@ -1028,26 +1031,41 @@ def _build_dash(col):
     amb = []
     for side, tag in ((1, "L"), (-1, "R")):
         path, nr = [], []
-        for yy in np.linspace(0.132, 0.684, 44):
+        for yy in np.linspace(0.132, 0.696, 46):
             P, n = _dash_surf(side * yy, _dash_t(yy, -0.10) - 0.009)
             path.append(P)
             nr.append(n)
-        st = _obj(PREFIX + "Ambient_Dash_" + tag, _sweep_n(_flat_bar(0.006, 0.003, 0.001), path, nr, closed=False),
+        st = _obj(PREFIX + "Ambient_Dash_" + tag, _sweep_n(_flat_bar(0.004, 0.0025, 0.0008), path, nr, closed=False),
                   col, "emit_interior", recalc=True)
         _child(st, dash)
         amb.append(st)
+    # ---------------- closures at the dash ends: a kick panel along the door opening and a
+    # front panel shutting the wheel-house cavity at the outer front corner of each footwell
+    cm = _MB()
+    hwc = lambda z: half_width_at(z) - 0.006
+    for side in (1, -1):
+        rows = []
+        for x in np.linspace(0.70, 0.995, 10):
+            z0 = 0.35 + 0.14 * _sstep(0.62, 0.98, x)
+            rows.append([(x, side * min(hwc(z), 0.704), z) for z in np.linspace(z0, 0.70, 7)])
+        cm.add(util.loft(rows), "leather_light")
+        rows = [[(0.995, side * (0.505 + f * (hwc(z) - 0.505)), z) for f in np.linspace(0.0, 1.0, 5)]
+                for z in np.linspace(0.165, 0.70, 9)]
+        cm.add(util.loft(rows), "leather_dark")
+    closures = cm.build(PREFIX + "Dash_Closures", col, angle=40)
+    _child(closures, dash)
     return dash, wings, amb
 
 
 # ====================================================================== CENTRE CONSOLE
-_BLADE_HW = util.Curve1D([(-0.548, 0.010), (-0.20, 0.010), (0.02, 0.012), (0.14, 0.022), (0.215, 0.036),
-                          (0.27, 0.040), (0.33, 0.044), (0.40, 0.047), (0.46, 0.046), (0.505, 0.038),
-                          (0.535, 0.046), (0.565, 0.054), (0.610, 0.046), (0.655, 0.054), (0.695, 0.040),
-                          (0.735, 0.016), (0.80, 0.007), (1.22, 0.005)])
-_BLADE_LIFT = 0.0085        # blade top above the leather spine
-_DIAL_X = (0.655, 0.565)    # upper / lower rotary dial
-_KNOB_X = 0.497
-_TOGGLE_X = (0.458, 0.428, 0.398, 0.368)
+_BLADE_HW = util.Curve1D([(-0.548, 0.010), (0.04, 0.010), (0.14, 0.013), (0.21, 0.026), (0.27, 0.040),
+                          (0.31, 0.045), (0.445, 0.045), (0.475, 0.033), (0.50, 0.025), (0.515, 0.026),
+                          (0.532, 0.045), (0.564, 0.055), (0.590, 0.045), (0.606, 0.025), (0.622, 0.045),
+                          (0.648, 0.055), (0.676, 0.044), (0.70, 0.022), (0.725, 0.0125), (1.22, 0.0125)])
+_BLADE_LIFT = 0.0085        # blade top above the leather spine (~6 mm proud of the leather)
+_DIAL_X = (0.648, 0.564)    # upper / lower crystal dial, 0.11 apart along the blade
+_KNOB_X = 0.505
+_TOGGLE_X = (0.430, 0.400, 0.370, 0.340)
 _SELECTOR_X = 0.262
 
 
@@ -1095,6 +1113,31 @@ def _rotary_dial(scale=1.0, glow=False):
     return mb
 
 
+def _console_dial():
+    """Console dial about local +Z: 70 mm crystal barrel (55 mm tall with the cap), a 12 mm
+    knurled cap ring and a dark lens on top; a grey movement shows through the crystal."""
+    mb = _MB()
+    AP, AK = "alu_polished", "alu_knurled"
+    R = 0.035
+    mb.add(_lathe([(0, 0), (R + 0.004, 0), (R + 0.004, 0.0025), (R + 0.0015, 0.0045), (0, 0.0045)], 56), AP)
+    z0, z1 = 0.0045, 0.0475
+    mb.add(_ring(R - 0.0045, R, z0, z1, 56, bev=0.0008), "crystal")
+    mb.add(_lathe([(0, z0), (0.010, z0), (0.010, z0 + 0.004), (0.006, z0 + 0.006), (0.006, z1 - 0.006),
+                   (0.010, z1 - 0.004), (0.010, z1), (0, z1)], 24), AP)
+    mb.add(_xf(_gear(36, 0.025, 0.0016, 0.0018, r_in=0.018, hub=0.008, spokes=6), _T(0, 0, z0 + 0.015)),
+           "alu_brushed")
+    mb.add(_xf(_gear(24, 0.017, 0.0014, 0.0016, r_in=0.012, hub=0.006, spokes=4), _T(0, 0, z0 + 0.029)),
+           "steel_dark")
+    for k in range(6):
+        a = 2 * PI * k / 6
+        mb.add(_xf(_cyl(0.0012, z0, z1, 8), _T(0.0272 * math.cos(a), 0.0272 * math.sin(a), 0)), AP)
+    z2 = z1 + 0.012
+    mb.add(_knurl_ring(R + 0.0012, R - 0.0085, z1, z2, n=80, depth=0.0008, bev=0.0009), AK)
+    mb.add(_cyl(R - 0.0080, z2 - 0.0045, z2 - 0.0010, 48, bev=0.0008), "plastic_gloss")
+    mb.add(_ring(R - 0.0094, R - 0.0080, z2 - 0.0020, z2 - 0.0006, 48), AP)
+    return mb
+
+
 def _build_console(col):
     # ---------------- leather spine from the rear bulkhead up into the dash and over the deck
     xs = np.concatenate([np.linspace(C["x_firewall"] + 0.014, 0.10, 14), np.linspace(0.14, 0.90, 30),
@@ -1104,15 +1147,17 @@ def _build_console(col):
         top = float(_console_top(x))
         fz = 1.0 - 0.72 * _sstep(0.74, 0.96, x)
         mid = 0.16 + 0.55 * (top - 0.16)
-        half = [(0.115, 0.16), (0.115, mid), (0.112, top - 0.05), (0.102 * fz, top - 0.014),
-                (0.075 * fz, top - 0.001), (0.040 * fz, top + 0.003)]
+        hb = float(_BLADE_HW(x))
+        w1 = min(0.080, hb + 0.032)          # ~30 mm dark channel either side of the blade
+        half = [(0.115, 0.16), (0.115, mid), (0.112, top - 0.05), (0.104 * fz, top - 0.016),
+                (0.090 * fz, top - 0.006), (w1 * fz, top - 0.001), (0.5 * w1 * fz, top + 0.003)]
         sec = [(-y, z) for y, z in half] + [(0.0, top + 0.004)] + [(y, z) for y, z in half[::-1]]
         secs.append([(x, y, z) for y, z in sec])
     v, f = util.loft(secs)
     fm = []
     for u in range(len(xs) - 1):
-        for k in range(12):
-            fm.append("leather_dark" if 4 <= k <= 7 else "leather_light")
+        for k in range(14):
+            fm.append("leather_dark" if 5 <= k <= 8 else "leather_light")
     console = _MB().add((v, f), fm).build(PREFIX + "Console", col, angle=None, recalc=False)
     util.subsurf(console, 2)
 
@@ -1120,11 +1165,11 @@ def _build_console(col):
     L = _BLADE_LIFT
     mb = _MB()
     AP = "alu_polished"
-    bx = np.concatenate([np.linspace(-0.530, 0.0, 12), np.linspace(0.02, 0.80, 110), np.linspace(0.83, 1.215, 12)])
+    bx = np.concatenate([np.linspace(-0.530, 0.0, 12), np.linspace(0.02, 0.80, 220), np.linspace(0.83, 1.215, 12)])
     mb.add(_console_strip(0, 0, _BLADE_HW, -0.004, L, n=bx), AP)
-    mb.add(_console_strip(0.345, 0.478, 0.031, L - 0.001, L + 0.0012, n=14, chamfer=0.0005), "plastic_gloss")
-    mb.add(_console_strip(0.218, 0.306, 0.024, L - 0.001, L + 0.0012, n=10, chamfer=0.0005), "plastic_gloss")
-    for x, y in ((0.515, 0.027), (0.610, 0.036), (0.705, 0.026), (0.325, 0.037), (0.185, 0.022)):
+    mb.add(_console_strip(0.322, 0.448, 0.036, L - 0.001, L + 0.0012, n=14, chamfer=0.0005), "alcantara_dark")
+    mb.add(_console_strip(0.218, 0.306, 0.024, L - 0.001, L + 0.0012, n=10, chamfer=0.0005), "alcantara_dark")
+    for x, y in ((0.455, 0.036), (0.300, 0.036), (0.190, 0.016)):
         for sy in (1, -1):
             mb.add(_cyl(0.0026, 0, 0.0012, 10, bev=0.0004), "steel_dark", _console_frame(x, sy * y, lift=L))
     for x in (0.08, -0.05, -0.30):
@@ -1138,14 +1183,16 @@ def _build_console(col):
     # ---------------- the two big rotary dials (own objects: local +Z is the dial axis)
     dials = []
     for x, tag in zip(_DIAL_X, ("Upper", "Lower")):
-        d = _rotary_dial(1.0).build(PREFIX + "Console_Dial_" + tag, col, angle=32,
+        d = _console_dial().build(PREFIX + "Console_Dial_" + tag, col, angle=32,
                                     matrix=_console_frame(x, 0, lift=L))
         _child(d, console)
         dials.append(d)
 
     # ---------------- start knob (glows), toggle field, gear selector
-    kb = _rotary_dial(0.52, glow=True)
-    kb.add(_ring(0.0205, 0.0222, 0.0, 0.0034, 40), "emit_screen")
+    kb = _MB()                                # 22 mm blue-lit start button in a knurled ring
+    kb.add(_knurl_ring(0.0140, 0.0112, 0.0, 0.0048, n=44, depth=0.0005, bev=0.0006), "alu_knurled")
+    kb.add(_cyl(0.0110, -0.001, 0.0068, 36, bev=0.0012), "emit_screen")
+    kb.add(_ring(0.0140, 0.0158, -0.001, 0.0010, 40, bev=0.0003), "alu_polished")
     knob = kb.build(PREFIX + "Console_StartKnob", col, angle=32, matrix=_console_frame(_KNOB_X, 0, lift=L))
     _child(knob, console)
 
@@ -1184,9 +1231,9 @@ def _build_console(col):
         path, nr = [], []
         for x in np.linspace(-0.32, 0.665, 48):
             M = _console_frame(x)
-            path.append(M[:3, 3] + M[:3, 1] * (side * 0.0775) + M[:3, 2] * (-0.0022))
-            nr.append(M[:3, 2])
-        st = _obj(PREFIX + "Ambient_Console_" + tag, _sweep_n(_flat_bar(0.0045, 0.0032, 0.001), path, nr, closed=False),
+            path.append(np.array([x, side * 0.0905, float(_console_top(x)) - 0.0068]))
+            nr.append(_unit(M[:3, 2] * 0.89 + np.array([0.0, side * 0.45, 0.0])))
+        st = _obj(PREFIX + "Ambient_Console_" + tag, _sweep_n(_flat_bar(0.004, 0.0025, 0.0008), path, nr, closed=False),
                   col, "emit_interior", recalc=True)
         _child(st, console)
         amb.append(st)
@@ -1227,7 +1274,7 @@ def _build_rim(col):
         a = math.degrees(math.atan2(P[i][1], P[i][0]))
         ang.append(a)
         grip = 1.0 + 0.16 * math.exp(-((min(abs(a), 180 - abs(a)) - 6) / 15.0) ** 2)
-        ra, rb = 0.0150 * grip, 0.0172
+        ra, rb = 0.0170, 0.0170
         secs.append([(P[i][0] + nr[0] * ra * math.cos(2 * PI * k / seg),
                       P[i][1] + nr[1] * ra * math.cos(2 * PI * k / seg),
                       rb * math.sin(2 * PI * k / seg)) for k in range(seg)])
@@ -1235,12 +1282,10 @@ def _build_rim(col):
     for i in range(n):
         a0, a1 = ang[i], ang[(i + 1) % n]
         a = a0 if abs(a1 - a0) > 180 else 0.5 * (a0 + a1)
-        if abs(a + 90) < 5.0:
-            m = "alu_polished"
-        elif abs(a - 90) < 2.3:
-            m = "leather_light"
-        elif 31 < a < 149:
-            m = "leather_dark"
+        if abs(a - 90) < 2.6:
+            m = "leather_light"          # 12 o'clock marker
+        elif 31 < abs(a) < 149:
+            m = "leather_dark"           # dark sectors top and bottom
         else:
             m = "leather_light"
         fm += [m] * seg
@@ -1265,7 +1310,6 @@ def _build_rim(col):
         path = util.catmull_rom([(sx * 0.0115, y, z) for y, z in low], samples_per_seg=6)
         mb.add(_sweep_n(util.rounded_rect(0.0095, 0.0085, 0.003, seg=2), path, (1.0, 0.0, 0.0), closed=False),
                "carbon_gloss")
-    mb.add(_xf(_box(0.036, 0.012, 0.018, 0.003), _T(0, -0.1415, -0.006)), "alu_polished")
     mb.add(_ring(0.034, 0.052, -0.105, -0.080, 40, bev=0.002), "alu_dark")
     return mb.build(PREFIX + "SteeringRim", col, angle=40)
 
@@ -1278,21 +1322,21 @@ def _build_hub(col):
     Mh = _T(0, HY, 0)
     mb.add(_cyl(0.027, -0.262, -0.045, 32), "alu_dark")
     mb.add(_lathe([(0, -0.068), (0.034, -0.068), (0.046, -0.050), (0.0535, -0.022), (0.0555, -0.009),
-                   (0.0535, -0.0045), (0.0505, -0.0040), (0.0505, -0.008), (0, -0.008)], 56), AP, Mh)
+                   (0.0535, -0.0045), (0.0505, -0.0040), (0.0505, -0.008), (0, -0.008)], 56), "alu_dark", Mh)
+    mb.add(_ring(0.0498, 0.0562, -0.0062, 0.0010, 56, bev=0.0008), AP, Mh)      # bright ring round the pad
     mb.add(_lathe([(0.0505, -0.0075), (0.0505, -0.0035), (0.0490, -0.0012), (0.0440, 0.0010),
                    (0.0320, 0.0030), (0.0160, 0.0040), (0, 0.0043)], 56), "leather_light", Mh)
     mb.add(_prism(_ellipse(0.0265, 0.0170, 44), 0.0022, 0.0058, bev=0.0009), AP, Mh)
     mb.add(_prism(_ellipse(0.0225, 0.0130, 40), 0.0050, 0.0064, bev=0.0003), "alu_brushed", Mh)
     for sx in (1, -1):
-        Mp = _T(sx * 0.108, -0.032, -0.016)
-        mb.add(_prism(util.rounded_rect(0.038, 0.054, 0.010, 4), -0.010, 0.008, bev=0.002), AP, Mp)
-        mb.add(_prism(util.rounded_rect(0.029, 0.045, 0.007, 4), 0.0075, 0.0088), "plastic_gloss", Mp)
+        Mp = _T(sx * 0.106, -0.034, -0.016)
+        mb.add(_prism(util.rounded_rect(0.035, 0.045, 0.0135, 5), -0.010, 0.008, bev=0.002), AP, Mp)
+        mb.add(_prism(util.rounded_rect(0.027, 0.037, 0.0105, 5), 0.0075, 0.0088), "plastic_gloss", Mp)
         mb.add(_xf(_knurl_ring(0.0052, 0.001, -0.008, 0.008, n=14, depth=0.0005, bev=0.0006), _R('y', PI / 2)),
                "alu_knurled", Mp @ _T(0, 0.010, 0.0098))
         for bx in (-0.0068, 0.0068):
             mb.add(_cyl(0.0047, 0.0085, 0.0108, 14, bev=0.0005), AP, Mp @ _T(bx, -0.010, 0))
-        mb.add(_bar((sx * 0.048, -0.034, -0.024), (sx * 0.094, -0.032, -0.020), 0.016, 0.010, up=(0, 0, 1),
-                    bev=0.002), AP)
+        mb.add(_bar((sx * 0.050, -0.036, -0.030), (sx * 0.090, -0.034, -0.026), 0.010, 0.008, up=(0, 0, 1), bev=0.002), "alu_dark")
         # round mode buttons below the pods
         Mb = _T(sx * 0.078, -0.086, -0.012)
         mb.add(_knurl_ring(0.0125, 0.004, -0.008, 0.0, n=26, depth=0.0006, bev=0.0008), "alu_knurled", Mb)
@@ -1312,9 +1356,9 @@ def _build_hub(col):
 
 _CLUSTER_DIALS = [
     # tag, x, y, radius, front z, depth, ticks, needle position (0..1 of the 270 deg scale)
-    ("C", 0.0, 0.076, 0.0550, -0.010, 0.046, 54, 0.30),
-    ("L", -0.0880, 0.032, 0.0375, -0.015, 0.036, 30, 0.62),
-    ("R", 0.0880, 0.032, 0.0375, -0.015, 0.036, 30, 0.42),
+    ("C", 0.0, 0.074, 0.0430, -0.010, 0.040, 54, 0.30),
+    ("L", -0.0800, 0.036, 0.0280, -0.014, 0.032, 30, 0.62),
+    ("R", 0.0800, 0.036, 0.0280, -0.014, 0.032, 30, 0.42),
 ]
 _MOVEMENT_MAIN = [  # x, y, tip radius, teeth, z, material, spokes
     (0.0, 0.0, 0.0200, 64, -0.0300, "brass", 5),
@@ -1335,21 +1379,21 @@ def _cluster_dial(mb, gl, x, y, R, zf, D, nt, mirror=False):
     """One skeleton dial: knurled bezel, chapter ring with ticks, open-worked gear train."""
     M = _T(x, y, zf)
     AP = "alu_polished"
-    brass = _brass()
+    brass = "alu_brushed"          # grey-metal movement
     mb.add(_ring(R - 0.0035, R, -D, -0.006, 64, bev=0.0006), AP, M)
-    mb.add(_cyl(R - 0.003, -D, -D + 0.0015, 48), "steel_dark", M)
+    mb.add(_cyl(R - 0.003, -D, -D + 0.0015, 48), "dial_black", M)
     mb.add(_ring(R - 0.002, R + 0.0065, -D - 0.0005, -D + 0.0028, 64, bev=0.0008), AP, M)
-    mb.add(_knurl_ring(R + 0.0035, R - 0.0045, -0.0075, 0.0, n=int(R * 1700), depth=0.0007, bev=0.0012),
+    mb.add(_knurl_ring(R + 0.0030, R - 0.0030, -0.0070, 0.0, n=int(R * 2600), depth=0.0005, bev=0.0008),
            "alu_knurled", M)
-    mb.add(_lathe([(R - 0.0045, -0.0015), (R - 0.0045, -0.0075), (0.93 * R, -0.0128), (0.93 * R, -0.0105)],
+    mb.add(_lathe([(R - 0.0030, -0.0015), (R - 0.0030, -0.0070), (0.93 * R, -0.0128), (0.93 * R, -0.0105)],
                   64, closed=True), AP, M)
     mb.add(_ring(0.70 * R, 0.93 * R, -0.0138, -0.0122, 64), "dial_black", M)
-    mb.add(_ring(0.665 * R, 0.70 * R, -0.0142, -0.0117, 64), "emit_dial", M)
+    mb.add(_ring(0.665 * R, 0.70 * R, -0.0142, -0.0117, 64), "dial_black", M)
     major = 6 if nt > 40 else 5
     for k in range(nt + 1):
         a = math.radians(225.0 - 270.0 * k / nt)
         big = k % major == 0
-        ln, w = (0.17 * R, 0.0012) if big else (0.09 * R, 0.0006)
+        ln, w = (0.16 * R, 0.0008) if big else (0.08 * R, 0.0004)
         mb.add(_box(ln, w, 0.0006), "emit_dial" if big else "dial_face",
                M @ _R('z', a) @ _T(0.915 * R - ln / 2, 0, -0.0120))
     # skeleton ring + three-arm bridge carrying the centre jewel
@@ -1364,7 +1408,10 @@ def _cluster_dial(mb, gl, x, y, R, zf, D, nt, mirror=False):
     mb.add(_cyl(0.0056, zb - 0.0012, zb + 0.0022, 20, bev=0.0006), AP, M)
     mb.add(_cyl(0.0017, -D + 0.001, -0.0078, 10), AP, M)
     # gear train
-    for gx, gy, rt, nteeth, gz, gm, spk in (_MOVEMENT_MAIN if R > 0.05 else _MOVEMENT_SIDE):
+    main = R > 0.035
+    fs = R / (0.055 if main else 0.0375)
+    for gx, gy, rt, nteeth, gz, gm, spk in (_MOVEMENT_MAIN if main else _MOVEMENT_SIDE):
+        gx, gy, rt = gx * fs, gy * fs, rt * fs
         if mirror:
             gx = -gx
         Mg = M @ _T(gx, gy, gz)
@@ -1398,19 +1445,18 @@ def _build_cluster(col):
     for tag, x, y, R, zf, D, nt, pos in _CLUSTER_DIALS:
         _cluster_dial(mb, gl, x, y, R, zf, D, nt, mirror=(tag == "L"))
         nb = _MB()
-        ol = [(-0.24 * R, -0.0011), (0.0, -0.0015), (0.86 * R, -0.00035), (0.86 * R, 0.00035),
-              (0.0, 0.0015), (-0.24 * R, 0.0011)]
+        ol = [(-0.22 * R, -0.0006), (0.0, -0.00075), (0.88 * R, -0.0002), (0.88 * R, 0.0002),
+              (0.0, 0.00075), (-0.22 * R, 0.0006)]
         nb.add(_prism(ol, -0.0004, 0.0004), "needle_red")
-        nb.add(_cyl(0.0027, -0.0005, 0.0005, 12), "needle_red", _T(-0.24 * R, 0, 0))
-        nb.add(_cyl(0.0052, -0.0008, 0.0022, 20, bev=0.0006), "alu_polished")
+        nb.add(_cyl(0.0017, -0.0004, 0.0004, 12), "needle_red", _T(-0.22 * R, 0, 0))
+        nb.add(_cyl(0.0036, -0.0008, 0.0020, 20, bev=0.0005), "alu_polished")
         nd = nb.build(PREFIX + "Cluster_Needle_" + tag, col, angle=35)
         needles.append((nd, _T(x, y, zf - 0.0088) @ _R('z', math.radians(225.0 - 270.0 * pos))))
     # carrier: bridges from the fixed hub up to the three cases
     AP = "alu_polished"
-    mb.add(_bar((0, 0.026, -0.046), (0, 0.004, -0.046), 0.018, 0.007, bev=0.0015), AP)
+    mb.add(_bar((0, 0.048, -0.0535), (0, 0.004, -0.0535), 0.010, 0.006, bev=0.0015), "alu_dark")
     for sx in (1, -1):
-        mb.add(_bar((sx * 0.066, 0.010, -0.044), (sx * 0.034, -0.012, -0.046), 0.011, 0.006, bev=0.0015), AP)
-        mb.add(_bar((sx * 0.052, 0.058, -0.046), (sx * 0.064, 0.050, -0.046), 0.014, 0.005, bev=0.001), AP)
+        mb.add(_bar((sx * 0.012, 0.064, -0.0535), (sx * 0.070, 0.040, -0.0535), 0.010, 0.005, bev=0.001), "alu_dark")
     cluster = mb.build(PREFIX + "Cluster", col, angle=35)
     glass = gl.build(PREFIX + "Cluster_Glass", col, angle=35)
     return cluster, glass, needles
@@ -1482,15 +1528,17 @@ def _build_mirror(col):
 
 
 def _build_footwell_ambient(col, tub):
+    """Thin light lines set into the top edge of the sill liners along both footwells."""
     out = []
     for side, tag in ((1, "L"), (-1, "R")):
-        path = []
-        for x in np.linspace(0.74, 1.10, 16):
-            z = 0.30
+        path, nr = [], []
+        for x in np.linspace(0.40, 0.70, 16):
+            z = 0.36 + 0.14 * _sstep(0.62, 0.98, x) - 0.026
             y = _footwell_half_width(x) + 0.2727 * (z - 0.16) - 0.003 - 0.016
-            path.append((x, side * y, z))
+            path.append((x, side * (y + 0.0006), z))
+            nr.append(_unit((0.0, -side, 0.2727)))
         st = _obj(PREFIX + "Ambient_Footwell_" + tag,
-                  _sweep_n(_flat_bar(0.008, 0.003, 0.001), path, (0.0, -side, 0.27), closed=False),
+                  _sweep_n(_flat_bar(0.004, 0.0018, 0.0006), path, nr, closed=False),
                   col, "emit_interior", recalc=True)
         _child(st, tub)
         out.append(st)
