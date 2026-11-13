@@ -10,6 +10,11 @@ wheels, a showroom, and a 40-second film with an original synthesised soundtrack
   doors, lights, wing and steering (see *Working functions* below).
 
 <!-- stills -->
+| | |
+| --- | --- |
+| ![Front three-quarter](renders/stills/01_front34.jpg) | ![Rear three-quarter, wing raised](renders/stills/02_rear34.jpg) |
+| ![Side profile](renders/stills/03_side.jpg) | ![Dihedral doors open](renders/stills/04_doors_open.jpg) |
+| ![Cabin](renders/stills/05_cabin.jpg) | ![Skeleton instrument cluster](renders/stills/06_cluster.jpg) |
 <!-- /stills -->
 
 Nothing here is a downloaded asset: every mesh, material, light, camera move and sound is
