@@ -21,8 +21,10 @@ def opt(a, name, default):
 
 
 def main():
+    global FILM
     a = sys.argv[1:]
     cmd = a[0] if a else "help"
+    FILM = os.path.join(ROOT, opt(a, "--film", os.path.relpath(FILM, ROOT)))
     if cmd == "encode":
         out = os.path.join(ROOT, opt(a, "--out", "video/tourbillon_showcase.mp4"))
         os.makedirs(os.path.dirname(out), exist_ok=True)
@@ -58,7 +60,7 @@ def main():
             frames.append(int(x))
         res = tuple(int(v) for v in opt(a, "--res", "640x360").split("x"))
         animation.setup_render(scene, res, int(opt(a, "--samples", "16")))
-        out = os.path.join(ROOT, "renders", "dev", "probe"); os.makedirs(out, exist_ok=True)
+        out = os.path.join(ROOT, opt(a, "--out", "renders/dev/probe")); os.makedirs(out, exist_ok=True)
         files = []
         for f in frames:
             scene.frame_set(f)

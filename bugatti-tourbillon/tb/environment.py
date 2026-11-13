@@ -10,8 +10,8 @@ from . import spec, util, materials
 MOODS = {
     #            Key   StripL StripR Front Rear  RimL  RimR  | Blades Ring
     "black":  dict(ENV_Key=0.0, ENV_StripL=0.0, ENV_StripR=0.0, ENV_Front=0.0, ENV_Rear=0.0, ENV_RimL=0.0, ENV_RimR=0.0, blades=0.0, ring=0.0),
-    "dark":   dict(ENV_Key=0.10, ENV_StripL=0.07, ENV_StripR=0.0, ENV_Front=0.03, ENV_Rear=0.03, ENV_RimL=0.5, ENV_RimR=0.4, blades=0.4, ring=0.7),
-    "reveal": dict(ENV_Key=0.22, ENV_StripL=0.15, ENV_StripR=0.05, ENV_Front=0.1, ENV_Rear=0.1, ENV_RimL=0.8, ENV_RimR=0.7, blades=0.7, ring=1.0),
+    "dark":   dict(ENV_Key=0.40, ENV_StripL=0.30, ENV_StripR=0.10, ENV_Front=0.20, ENV_Rear=0.15, ENV_RimL=0.9, ENV_RimR=0.8, blades=0.5, ring=0.8),
+    "reveal": dict(ENV_Key=0.55, ENV_StripL=0.45, ENV_StripR=0.20, ENV_Front=0.35, ENV_Rear=0.30, ENV_RimL=1.0, ENV_RimR=1.0, blades=0.8, ring=1.0),
     "hero":   dict(ENV_Key=1.0, ENV_StripL=1.0, ENV_StripR=1.0, ENV_Front=1.0, ENV_Rear=1.0, ENV_RimL=1.0, ENV_RimR=1.0, blades=1.0, ring=1.0),
     "cabin":  dict(ENV_Key=0.38, ENV_StripL=0.35, ENV_StripR=0.3, ENV_Front=0.3, ENV_Rear=0.2, ENV_RimL=0.5, ENV_RimR=0.5, blades=0.6, ring=0.8),
 }
@@ -102,6 +102,16 @@ def build(collection=None):
         "ENV_RimL": area("ENV_RimL", (-5.8, 5.0, 3.4), (3.0, 1.0), 300, colour=(0.75, 0.86, 1.0)),
         "ENV_RimR": area("ENV_RimR", (-5.2, -5.4, 3.2), (3.0, 1.0), 260, colour=(0.75, 0.86, 1.0)),
     }
+    # The softboxes are hidden from the camera, so their reflections in the polished outer floor
+    # read as floating grey cards.  Light linking keeps them off the outer floor only; the car and
+    # the turntable still receive (and reflect) every light.
+    rc = bpy.data.collections.new("ENV_FloorLightExclude")
+    rc.use_fake_user = True
+    rc.objects.link(floor)
+    rc.collection_objects[0].light_linking.link_state = 'EXCLUDE'
+    for lo in lights.values():
+        lo.light_linking.receiver_collection = rc
+
     return dict(floor=floor, turntable=tt, backdrop=wall, lights=lights,
                 emissives=dict(blades=blade_m, ring=ring_m), world=w)
 

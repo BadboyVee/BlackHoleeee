@@ -402,7 +402,11 @@ def build(collection=None, keep_work=False):
         out["engine_glass_" + sn] = rg
         util.delete(rg_in); util.delete(rg_out)
     can.name = PREFIX + "CanopyFrame"
-    _finish(can, "paint_dark", collection=col_body)
+    _finish(can, "paint_dark", thickness=0.0, collection=col_body)
+    can.data.materials.append(materials.get("alcantara_dark"))
+    sm = util.solidify(can, 0.012, offset=-1.0)
+    sm.material_offset = 1; sm.material_offset_rim = 0
+    can.modifiers.move(len(can.modifiers) - 1, 0)
     out["canopy_frame"] = can
     util.delete(ws_in); util.delete(ws_out)
 
