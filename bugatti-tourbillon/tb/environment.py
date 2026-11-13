@@ -111,6 +111,19 @@ def build(collection=None):
     rc.collection_objects[0].light_linking.link_state = 'EXCLUDE'
     for lo in lights.values():
         lo.light_linking.receiver_collection = rc
+    # The big softboxes (overhead key and the two side strips) would fill the door windows with a
+    # flat grey reflection, while the references show dark glass: keep them off the door glass too.
+    # The paint still receives and reflects them.
+    side_glass = [o for o in bpy.data.objects if o.name.startswith("BODY_Door_") and o.name.endswith("Glass")]
+    if side_glass:
+        rc2 = bpy.data.collections.new("ENV_SideLightExclude")
+        rc2.use_fake_user = True
+        for o in [floor] + side_glass:
+            rc2.objects.link(o)
+        for co in rc2.collection_objects:
+            co.light_linking.link_state = 'EXCLUDE'
+        for name in ("ENV_Key", "ENV_StripL", "ENV_StripR"):
+            lights[name].light_linking.receiver_collection = rc2
 
     return dict(floor=floor, turntable=tt, backdrop=wall, lights=lights,
                 emissives=dict(blades=blade_m, ring=ring_m), world=w)

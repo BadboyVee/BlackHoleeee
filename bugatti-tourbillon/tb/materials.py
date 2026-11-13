@@ -509,7 +509,7 @@ def emit_drl(mat):
 @register
 def emit_tail(mat):
     """Rear light bar (red)."""
-    _emit(mat, (1.0, 0.030, 0.02), 6.0, base=(0.25, 0.0, 0.0))
+    _emit(mat, (1.0, 0.025, 0.015), 3.0, base=(0.25, 0.0, 0.0))
 
 
 @register

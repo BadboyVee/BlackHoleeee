@@ -135,21 +135,26 @@ def build(bp):
     # ------------------------------------------------ mirrors (ride on the doors)
     for s, sn in ((+1, "L"), (-1, "R")):
         mx, my, mz = spec.MIRROR["x"], s * spec.MIRROR["y"], spec.MIRROR["z"]
+        # aero pod: rounded nose toward +X, nearly flat oval face at the back for the glass,
+        # 18 cm wide x 9 cm tall x 13.5 cm deep, tapering toward the nose
         bm = bmesh.new()
-        bmesh.ops.create_uvsphere(bm, u_segments=32, v_segments=16, radius=1.0)
+        bmesh.ops.create_uvsphere(bm, u_segments=40, v_segments=20, radius=1.0)
         for v in bm.verts:
-            taper = 1.0 - 0.35 * max(0.0, v.co.x)        # pointed toward the front
-            v.co = Vector((v.co.x * 0.105 if v.co.x > -0.35 else -0.035, v.co.y * 0.045 * taper,
-                           v.co.z * 0.055 * taper))
+            x, y, z = v.co
+            xx = 0.10 * x if x > 0 else -0.035 * (1.0 - (1.0 + x) ** 4)
+            k = max(0.0, x)
+            v.co = Vector((xx, y * 0.090 * (1.0 - 0.25 * k), z * 0.046 * (1.0 - 0.30 * k)))
         h = util.bmesh_object("BODY_Mirror_%s" % sn, bm, collection=_col("doors"), material="paint_light")
-        util.shade_smooth(h, 40)
+        util.shade_smooth(h)
         h.location = (mx, my, mz)
-        g = util.cylinder("BODY_MirrorGlass_%s" % sn, 0.046, 0.003, axis='X', location=(mx - 0.0365, my, mz),
-                          collection=_col("doors"), material="chrome", segments=32)
-        g.scale = (1, 0.92, 1.12)
-        v, f = util.tube(util.catmull_rom([(0.80, s * 0.900, 0.842), (0.77, s * 0.960, 0.852), (mx + 0.01, my - s * 0.03, mz - 0.02)], 6),
-                         0.012, segments=10)
+        g = util.cylinder("BODY_MirrorGlass_%s" % sn, 0.068, 0.003, axis='X', location=(mx - 0.0365, my, mz),
+                          collection=_col("doors"), material="chrome", segments=40)
+        g.scale = (1, 1.0, 0.53)
+        # slim blade stalk from the door shoulder into the pod's inboard side
+        path = util.catmull_rom([(0.805, s * 0.865, 0.832), (0.765, s * 0.915, 0.848), (0.725, s * 0.950, 0.858)], 6)
+        v, f = util.sweep(util.rounded_rect(0.024, 0.008, 0.0035, seg=3), path, up=(0, 0, 1))
         st = util.mesh_object("BODY_MirrorStalk_%s" % sn, v, f, collection=_col("doors"), material="paint_black")
+        util.recalc_normals(st)
         door_children[sn] += [h, g, st]
 
     # ------------------------------------------------ wiper (parked on the centre line)

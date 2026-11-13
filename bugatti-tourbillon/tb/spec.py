@@ -62,7 +62,7 @@ HEADLIGHT = dict(x0=1.80, x1=2.08, y_in=0.50, y_out=0.93, z0=0.585, z1=0.655)
 HORSESHOE = dict(half_w=0.285, z0=0.215, z1=0.565, x_face=2.36)
 TAIL_BAR = dict(half_w=0.92, z0=0.70, z1=0.82, x=-2.20)
 REAR_WING = dict(x0=-2.22, x1=-1.87, half_span=0.68, z=0.88)
-MIRROR = dict(x=0.70, y=1.04, z=0.87)
+MIRROR = dict(x=0.70, y=1.01, z=0.87)
 
 # C-line ("Bugatti line") in side view: rearmost point and the lower branch
 CLINE = dict(rear_x=-0.73, rear_z=0.93, top_z=1.10, low_z_mid=0.46, low_z_front=0.40)
