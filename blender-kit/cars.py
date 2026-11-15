@@ -27,7 +27,7 @@ def _lib(name):
     return c
 
 
-def _wrap(name, objs, length, yaw=0.0, colls=()):
+def _wrap(name, objs, length, yaw=0.0, colls=(), ground=None):
     """Parent the imported roots to one empty, turn the nose to +X, scale to a real
     length, drop the wheels onto z=0."""
     c = _lib(name)
@@ -50,6 +50,8 @@ def _wrap(name, objs, length, yaw=0.0, colls=()):
         bpy.context.view_layer.update()
         lo, hi = kit._bbox(meshes)
         size = hi - lo
+    if ground is not None:
+        lo.z = ground
     L = max(size.x, size.y)
     s = length / L
     root = bpy.data.objects.new(name + "_root", None)
@@ -69,6 +71,35 @@ def bmw(color=None):
     key = "bmw" + ("" if color is None else "_" + "_".join(f"{v:.2f}" for v in color))
     if key in _cache:
         return _cache[key]
+    if color is not None:
+        # a repaint: copy the already-loaded car's objects (sharing meshes) and swap the body paint
+        base = bmw()
+        c = _lib(key)
+        m = {}
+        for o in base.objects:
+            o2 = o.copy()
+            c.objects.link(o2)
+            m[o] = o2
+        for o, o2 in m.items():
+            if o.parent in m:
+                o2.parent = m[o.parent]
+                o2.matrix_parent_inverse = o.matrix_parent_inverse.copy()
+            if o2.type == "MESH" and any(mt and mt.name.startswith("CarShell") for mt in o2.data.materials):
+                o2.data = o2.data.copy()
+                for i, mt in enumerate(o2.data.materials):
+                    if mt and mt.name.startswith("CarShell"):
+                        m2 = mt.copy()
+                        for n in m2.node_tree.nodes:
+                            for inp in n.inputs:
+                                if inp.name in ("Base Color", "Color") and not inp.is_linked and hasattr(inp, "default_value"):
+                                    try:
+                                        inp.default_value = tuple(color) + (1,)
+                                    except Exception:
+                                        pass
+                        o2.data.materials[i] = m2
+        c["size"] = tuple(base["size"])
+        _cache[key] = c
+        return c
     path = os.path.join(CARS, "bmw", "bmw27", "bmw27_cpu.blend")
     skip = ("Light", "Floor", "Cube", "carRig", "carController", "Camera")
     with bpy.data.libraries.load(path) as (src, dst):
@@ -105,7 +136,30 @@ def bmw(color=None):
                                     except Exception:
                                         pass
                         o.data.materials[i] = m2
-    c = _wrap(key, body, 4.38, yaw=math.pi)
+    # the file carries a driving rig (constraints to an armature): freeze every object where it stands
+    for o in objs:
+        if o.name not in bpy.context.scene.collection.objects:
+            try:
+                bpy.context.scene.collection.objects.link(o)
+            except Exception:
+                pass
+    bpy.context.view_layer.update()
+    frozen = {o: o.matrix_world.copy() for o in objs}
+    for o in objs:
+        o.animation_data_clear()
+        for k in list(o.constraints):
+            o.constraints.remove(k)
+    for o in sorted(objs, key=lambda q: 0 if q.parent is None else 1):
+        o.matrix_world = frozen[o]
+    bpy.context.view_layer.update()
+    for o in [q for q in bpy.data.objects if q.name.startswith("carController")]:
+        bpy.data.objects.remove(o)
+    for o in inst_members:                 # wheel parts live only inside their instanced collections
+        if o.name in bpy.context.scene.collection.objects:
+            bpy.context.scene.collection.objects.unlink(o)
+    tyres = [o for o in objs if o.name.startswith("Tire") and o.instance_collection]
+    ground = min(frozen[o].translation.z for o in tyres) - 0.469 if tyres else None
+    c = _wrap(key, body, 4.38, yaw=math.pi, ground=ground)
     _cache[key] = c
     return c
 
