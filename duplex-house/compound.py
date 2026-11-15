@@ -22,7 +22,7 @@ def site_materials(M):
     S = dict(M)
     S["pavers"] = kit.mat_pbr("pavers", "concrete_pavers", size=1.6, val=1.15, sat=0.6, rough_mul=1.0)
     S["lawn"] = kit.mat_pbr("lawn", "sparse_grass", size=3.0, normal=1.0,
-                            ramp=[(0.05, (0.02, 0.06, 0.012)), (0.35, (0.07, 0.17, 0.03)), (0.8, (0.2, 0.33, 0.07))])
+                            ramp=[(0.05, (0.03, 0.09, 0.015)), (0.35, (0.1, 0.24, 0.04)), (0.8, (0.26, 0.42, 0.09))])
     S["asphalt"] = kit.mat_pbr("asphalt", "asphalt_02", size=5.0, val=0.75)
     S["deck"] = kit.mat_pbr("deck", "wood_floor_deck", size=1.8, tint=(0.75, 0.62, 0.5), rough_mul=0.9)
     S["pool_tile"] = kit.mat_pbr("pool_tile", "long_white_tiles", size=1.0, tint=(0.2, 0.62, 0.85), rough_mul=0.4)
@@ -413,7 +413,7 @@ class Site:
         # palms (royal palms lining the drive edge and pool) and shade trees
         self.palms += [(8.4, -4.2, 6.6), (8.4, -9.4, 7.4), (-11.6, -1.9, 6.0), (-11.8, 9.6, 7.0), (-2.0, -11.6, 5.6),
                        (24.0, -5.5, 6.4), (24.0, 0.3, 5.8), (-6.5, 9.9, 6.2)]
-        self.trees += [("island_tree_01", -8.5, -8.6, 1.5), ("island_tree_02", 3.5, 18.5, 1.9),
+        self.trees += [("island_tree_01", -11.0, -11.0, 1.25), ("island_tree_02", 3.5, 18.5, 1.9),
                        ("tree_small_02", -9.0, 17.5, 1.5), ("island_tree_02", 9.0, 20.5, 1.5)]
 
     # --------------------------------------------------- the street ---
@@ -456,7 +456,7 @@ class Site:
                     prev = p
         # street lights on our side
         for x in range(-130, 150, 28):
-            sx, sy = x + 6, ROAD_Y1 + 1.4
+            sx, sy = x - 2, ROAD_Y1 + 1.4
             d.cyl((sx, sy, 0), (sx, sy, 7.0), 0.08, S["steel"], seg=10, r1=0.05)
             d.cyl((sx, sy, 7.0), (sx, sy - 1.6, 7.25), 0.04, S["steel"], seg=8)
             d.box(sx - 0.12, sy - 2.1, 7.18, sx + 0.12, sy - 1.5, 7.28, S["black_metal"], {"-z": S["lamp"]})
@@ -711,7 +711,7 @@ class Site:
             if lk:
                 h = m.node_tree.nodes.new("ShaderNodeHueSaturation")
                 h.inputs["Hue"].default_value = 0.52
-                h.inputs["Saturation"].default_value = 1.15
-                h.inputs["Value"].default_value = 1.1
+                h.inputs["Saturation"].default_value = 1.1
+                h.inputs["Value"].default_value = 1.9
                 m.node_tree.links.new(lk[0].from_socket, h.inputs["Color"])
                 m.node_tree.links.new(h.outputs[0], b[0].inputs["Base Color"])

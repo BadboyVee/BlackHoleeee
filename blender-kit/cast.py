@@ -1,31 +1,51 @@
-"""The recurring cast: three men and two women, with fixed looks."""
+"""The recurring cast, with fixed looks: a mixed group of black and white men and women."""
 import mh
 
-SAND, OLIVE, RUST, WHITE, MUSTARD, KHAKI, STONE, BLACK = (
-    (0.78, 0.66, 0.48), (0.33, 0.37, 0.22), (0.62, 0.25, 0.14), (0.9, 0.9, 0.88), (0.8, 0.58, 0.16),
-    (0.6, 0.52, 0.38), (0.55, 0.53, 0.5), (0.06, 0.06, 0.07))
+SAND, OLIVE, RUST, WHITE, MUSTARD, KHAKI, STONE, NAVY, SKY, CREAM, CHARCOAL, TEAL, WINE = (
+    (0.78, 0.66, 0.48), (0.36, 0.4, 0.24), (0.7, 0.3, 0.17), (0.92, 0.92, 0.9), (0.85, 0.62, 0.18),
+    (0.66, 0.57, 0.42), (0.6, 0.58, 0.54), (0.1, 0.14, 0.26), (0.55, 0.7, 0.88), (0.9, 0.85, 0.74),
+    (0.2, 0.2, 0.22), (0.12, 0.42, 0.45), (0.45, 0.1, 0.16))
+BROWN_HAIR, BLOND, BLACK_HAIR, AUBURN = (0.5, 0.75, 0.55), (0.5, 0.9, 1.0), (0.5, 0.3, 0.3), (0.5, 0.9, 0.6)
 
 CAST = {
-    # the driver: field jacket, jeans, boots
-    "tunde": dict(gender="male", race="african", clothes=["male_casualsuit05", "shoes04"], hair="short04",
-                  muscle="average"),
-    # front passenger: rust tee, khaki trousers
-    "amina": dict(gender="female", race="african", clothes=["female_casualsuit01", "shoes03"], hair="bob01",
-                  retint={"female_casualsuit01": dict(top=RUST, bottom=KHAKI)}),
-    # back seat: white tee + jeans, fedora
-    "chidi": dict(gender="male", race="african", clothes=["male_casualsuit06", "shoes01", "fedora01"], hair=None,
-                  retint={"male_casualsuit06": dict(top=WHITE)}),
-    # back seat: mustard tee, denim shorts
-    "zainab": dict(gender="female", race="african", clothes=["female_casualsuit02", "shoes05"], hair="braid01",
-                   retint={"female_casualsuit02": dict(top=MUSTARD)}),
-    # back seat: olive tee, stone trousers
-    "emeka": dict(gender="male", race="african", clothes=["male_casualsuit04", "shoes06"], hair="short01",
-                  weight="average", retint={"male_casualsuit04": dict(top=OLIVE, bottom=STONE)}),
-    # extras for the house scene
-    "ngozi": dict(gender="female", race="african", clothes=["female_elegantsuit01", "shoes03"], hair="long01"),
-    "bayo": dict(gender="male", race="african", clothes=["male_casualsuit01", "shoes01"], hair="short03"),
-    "kunle": dict(gender="male", race="african", clothes=["male_worksuit01", "shoes04"], hair="short01"),
-    "guard": dict(gender="male", race="african", clothes=["male_elegantsuit01", "shoes01"], hair="short04"),
+    # ---- the Sahara crew: three men, two women
+    "tunde": dict(gender="male", race="african", hair="short04", expression="smile",
+                  clothes=["namuhekam_male_polo_shirt", "toigo_wool_pants", "toigo_ankle_boots_male"],
+                  retint={"toigo_wool_pants": dict(whole=KHAKI)}),
+    "jack": dict(gender="male", race="caucasian", hair="cortu_short_messy_hair", expression="grin",
+                 clothes=["elvs_male_shirt_untucked_bd1", "toigo_wool_pants", "culturalibre_male_boots"],
+                 retint={"elvs_male_shirt_untucked_bd1": dict(whole=SKY), "toigo_wool_pants": dict(whole=STONE)},
+                 tint={"cortu_short_messy_hair": BROWN_HAIR}),
+    "emeka": dict(gender="male", race="african", hair="afro01", expression="soft",
+                  clothes=["elvs_male_boho_top1", "toigo_wool_pants", "culturalibre_sneakers"],
+                  retint={"elvs_male_boho_top1": dict(whole=CREAM), "toigo_wool_pants": dict(whole=OLIVE)}),
+    "amina": dict(gender="female", race="african", hair="elvs_reverse_french_braid_bun", expression="smile",
+                  clothes=["mindfront_knitted_sweater_02", "toigo_harem_pants", "toigo_ballet_flats"],
+                  retint={"mindfront_knitted_sweater_02": dict(whole=MUSTARD)}),
+    "sophie": dict(gender="female", race="caucasian", hair="toigo_inverted_bob", expression="grin",
+                   clothes=["punkduck_off-shoulder_long-sleeve_top", "toigo_wool_pants", "toigo_ankle_boots_female"],
+                   retint={"toigo_wool_pants": dict(whole=SAND)}, tint={"toigo_inverted_bob": BLOND}),
+    # ---- at the house
+    "ngozi": dict(gender="female", race="african", hair="elvs_reverse_french_braid_bun", expression="smile",
+                  clothes=["toigo_female_suit", "mindfront_shoes_oxford_female"]),
+    "bayo": dict(gender="male", race="african", hair="short04", expression="soft",
+                 clothes=["toigo_male_suit_3", "mindfront_shoes_oxford_male"]),
+    "claire": dict(gender="female", race="caucasian", hair="elvs_wavy_bob", expression="smile",
+                   clothes=["punkduck_lace_up_blouse", "toigo_long_full_skirt", "toigo_ballet_flats"],
+                   tint={"elvs_wavy_bob": AUBURN}),
+    "mark": dict(gender="male", race="caucasian", hair="elvs_grump_hair", expression="smile",
+                 clothes=["namuhekam_male_polo_shirt", "toigo_wool_pants", "mindfront_shoes_oxford_male"],
+                 retint={"toigo_wool_pants": dict(whole=NAVY)}, tint={"elvs_grump_hair": BROWN_HAIR}),
+    "zainab": dict(gender="female", race="african", hair="elvs_micky_afro", expression="grin",
+                   clothes=["toigo_camisole_top", "frankyaye_mini_skirt_01", "dressupdoc_sandals1"]),
+    "lena": dict(gender="female", race="caucasian", hair="elvs_hazel_hair", expression="soft",
+                 clothes=["mindfront_knitted_sweater_01", "toigo_wool_pants", "toigo_ankle_boots_female"],
+                 retint={"toigo_wool_pants": dict(whole=CHARCOAL)}, tint={"elvs_hazel_hair": BROWN_HAIR}),
+    "kunle": dict(gender="male", race="african", hair="short01", expression="neutral",
+                  clothes=["male_worksuit01", "shoes04"]),
+    "guard": dict(gender="male", race="african", hair="short04", expression="neutral",
+                  clothes=["elvs_male_shirt_tie_tucked1", "toigo_wool_pants", "mindfront_shoes_oxford_male"],
+                  retint={"elvs_male_shirt_tie_tucked1": dict(whole=SKY), "toigo_wool_pants": dict(whole=NAVY)}),
 }
 
 

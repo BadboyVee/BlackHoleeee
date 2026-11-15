@@ -186,21 +186,32 @@ TOP_REGION = {   # where the shirt lives in each suit's texture (fractions, orig
 }
 
 
-def retint(asset, key, top=None, bottom=None, cache="/home/user/assets/mh/retint"):
-    """Write a recoloured copy of a suit's diffuse texture: `top` = new shirt colour
-    (also wipes the printed logo), `bottom` = new trouser colour. Returns the path."""
+def retint(asset, key, top=None, bottom=None, whole=None, cache="/home/user/assets/mh/retint"):
+    """Write a recoloured copy of a garment's diffuse texture and return its path.
+    top / bottom: new shirt / trouser colours for the two-piece system suits (also wipes
+    the printed logo). whole: recolour the entire garment, keeping its shading."""
     from PIL import Image, ImageFilter
     os.makedirs(cache, exist_ok=True)
     out = os.path.join(cache, f"{asset}_{key}.png")
     if os.path.exists(out):
         return out
-    src = os.path.join(SYS, "clothes", asset, asset + "_diffuse.png")
-    im = Image.open(src).convert("RGB")
+    kind, d = _asset_dir(asset)
+    clo = [f for f in os.listdir(d) if f.endswith(".mhclo")][0]
+    info, _, _ = _mhclo(os.path.join(d, clo))
+    mm = _mhmat(os.path.join(d, info.get("material", asset + ".mhmat")))
+    src = os.path.join(d, mm["diffuseTexture"])
+    im0 = Image.open(src)
+    alpha = im0.getchannel("A") if im0.mode == "RGBA" else None
+    im = im0.convert("RGB")
     a = np.asarray(im).astype(np.float32) / 255.0
     h, w, _ = a.shape
     yy, xx = np.mgrid[0:h, 0:w]
     reg = TOP_REGION.get(asset, lambda x, y: y < 0.47)(xx / w, yy / h)
     lum = a.mean(axis=2)
+    if whole is not None:
+        used = lum > 0.02
+        ref = float(np.percentile(lum[used], 70)) if used.any() else 0.5
+        a = np.clip((lum / max(ref, 1e-3))[..., None] * np.array(whole, dtype=np.float32)[None, None, :], 0, 1)
     if top is not None:
         r, g, b = a[..., 0], a[..., 1], a[..., 2]
         white_tee = float(np.median(lum[reg])) > 0.7
@@ -214,7 +225,10 @@ def retint(asset, key, top=None, bottom=None, cache="/home/user/assets/mh/retint
     if bottom is not None:
         nb = np.clip((lum / 0.45)[..., None] * np.array(bottom, dtype=np.float32)[None, None, :], 0, 1)
         a = np.where(reg[..., None], a, nb)
-    Image.fromarray((a * 255).astype(np.uint8)).save(out)
+    res = Image.fromarray((a * 255).astype(np.uint8))
+    if alpha is not None:
+        res.putalpha(alpha)
+    res.save(out)
     return out
 
 
@@ -259,12 +273,38 @@ def _material(name, diffuse=None, normal=None, color=(0.8, 0.8, 0.8), rough=0.6,
     return m
 
 
+def _roots():
+    """The system asset pack plus any extra community packs unpacked beside it (ext_*)."""
+    base_dir = os.path.dirname(SYS)
+    extra = sorted(os.path.join(base_dir, d) for d in os.listdir(base_dir) if d.startswith("ext_"))
+    return [SYS] + extra
+
+
 def _asset_dir(name):
-    for kind in ("clothes", "hair", "eyebrows", "eyelashes", "eyes", "teeth", "tongue"):
-        d = os.path.join(SYS, kind, name)
-        if os.path.isdir(d):
-            return kind, d
+    for root in _roots():
+        for kind in ("clothes", "hair", "eyebrows", "eyelashes", "eyes", "teeth", "tongue"):
+            d = os.path.join(root, kind, name)
+            if os.path.isdir(d):
+                return kind, d
     raise FileNotFoundError(name)
+
+
+def _skin_dir(name):
+    for root in _roots():
+        d = os.path.join(root, "skins", name)
+        if os.path.isdir(d):
+            return d
+    raise FileNotFoundError(name)
+
+
+EXPRESSIONS = {
+    "neutral": {},
+    "smile": {"mouth-corner-puller": 0.55, "mouth-elevation": 0.15, "eye-left-slit": 0.2, "eye-right-slit": 0.2},
+    "grin": {"mouth-corner-puller": 0.8, "mouth-part-later": 0.5, "mouth-open": 0.15, "eye-left-slit": 0.35, "eye-right-slit": 0.35},
+    "soft": {"mouth-corner-puller": 0.3, "eyebrows-left-up": 0.2, "eyebrows-right-up": 0.2},
+    "laugh": {"mouth-corner-puller": 0.9, "mouth-open": 0.45, "eye-left-slit": 0.5, "eye-right-slit": 0.5},
+    "squint": {"eye-left-slit": 0.55, "eye-right-slit": 0.55, "eyebrows-left-down": 0.4, "eyebrows-right-down": 0.4, "mouth-corner-puller": 0.2},
+}
 
 
 def _mesh_obj(name, co, faces, fuv, vt, mat, collection, smooth=True):
@@ -286,12 +326,15 @@ def _mesh_obj(name, co, faces, fuv, vt, mat, collection, smooth=True):
 
 def human(name, gender="male", race="african", age="young", muscle="average", weight="average", height=None,
           skin=None, clothes=(), hair=None, eyes="brown", eyebrows="eyebrow001", pose=None, collection=None,
-          tint=None, extra_targets=(), subdiv=1, shift=(0, 0, 0), textures=None):
+          tint=None, extra_targets=(), subdiv=1, shift=(0, 0, 0), textures=None, expression="soft"):
     """Build a posed, clothed person as one mesh object standing on z=0 at the origin."""
     b = base()
     collection = collection or bpy.context.scene.collection
     tint = tint or {}
-    mv = shape(gender, race, age, muscle, weight, height, extra_targets)
+    ex = list(extra_targets)
+    for unit, wgt in (EXPRESSIONS.get(expression, {}) if isinstance(expression, str) else (expression or {})).items():
+        ex.append((f"expression/units/{race}/{unit}", wgt))
+    mv = shape(gender, race, age, muscle, weight, height, ex)
     bl = _to_bl(mv)
     ground = bl[sorted(b["groups"]["joint-ground"])].mean(axis=0)[2] if "joint-ground" in b["groups"] else bl[:, 2].min()
     bl[:, 2] -= ground
@@ -327,16 +370,16 @@ def human(name, gender="male", race="african", age="young", muscle="average", we
         nor = os.path.join(dd, mm["normalmapTexture"]) if "normalmapTexture" in mm else None
         col = tuple(float(x) for x in mm.get("diffuseColor", "0.8 0.8 0.8").split()[:3])
         mat = _material(f"mh_{an}" + (f"_{name}" if (an in tint or (textures and an in textures)) else ""), dif, nor, color=col,
-                        rough=0.35 if kind in ("eyes", "teeth") else (0.45 if kind == "hair" else 0.75),
+                        rough=0.35 if kind in ("eyes", "teeth") else (0.6 if kind == "hair" else 0.75),
                         alpha=kind in ("hair", "eyebrows", "eyelashes", "eyes"),
-                        hue=tint.get(an, (0.5, 0.25, 0.16) if kind == "hair" else None),
-                        spec=0.6 if kind == "eyes" else 0.3)
+                        hue=tint.get(an, (0.5, 0.3, 0.3) if kind == "hair" else None),
+                        spec=0.6 if kind == "eyes" else (0.12 if kind == "hair" else 0.3))
         parts.append((_mesh_obj(f"{name}_{an}", cb, faces, fuv, vt, mat, collection), bind))
 
     # --- body (only the 'body' group faces, minus what the clothes cover)
     if skin is None:
         skin = f"young_{race}_{gender}"
-    sd = os.path.join(SYS, "skins", skin)
+    sd = _skin_dir(skin)
     sm = _mhmat(os.path.join(sd, [f for f in os.listdir(sd) if f.endswith(".mhmat")][0]))
     smat = _material(f"mh_skin_{skin}", os.path.join(sd, sm.get("diffuseTexture", "")), None, rough=0.48, sss=0.06,
                      spec=0.35)
