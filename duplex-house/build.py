@@ -58,7 +58,8 @@ def main():
     ap.add_argument("--save", default="")
     ap.add_argument("--no-veg", action="store_true")
     ap.add_argument("--no-interior", action="store_true")
-    ap.add_argument("--gate", type=float, default=0.55)
+    ap.add_argument("--no-people", action="store_true")
+    ap.add_argument("--gate", type=float, default=0.75)
     ap.add_argument("--sun", type=float, default=215.0, help="sun azimuth, degrees from +X toward +Y")
     ap.add_argument("--sun-lamp", type=float, default=2.5)
     ap.add_argument("--sun-el", type=float, default=48.0)
@@ -86,8 +87,38 @@ def main():
 
     cc = kit.coll("Cars")
     kit.place("ferrari", (18.3, 4.4, 0.03), rz=math.pi, collection=cc, path=os.path.join(CARS, "ferrari_plain.glb"))
-    kit.place("carconcept", (13.2, -5.6, 0.03), rz=math.radians(200), collection=cc,
+    kit.place("carconcept", (12.6, -6.4, 0.03), rz=math.radians(205), collection=cc,
               path=os.path.join(CARS, "CarConcept_plain.glb"), center=False)
+    import suv
+    white = suv.build("suv_white", paint=(0.86, 0.86, 0.84), rack=False, dusty=False, snorkel=False, bullbar=False)
+    grey = suv.build("suv_grey", paint=(0.2, 0.21, 0.23), rack=False, dusty=False, snorkel=False, bullbar=False)
+    black = suv.build("suv_black", paint=(0.02, 0.02, 0.022), rack=False, dusty=False, snorkel=False, bullbar=True)
+    arriving = suv.instance(white, (18.65, -12.2, 0.03), math.radians(92), cc, "suv_arriving")
+    suv.instance(black, (21.2, 4.3, 0.03), math.radians(-90), cc, "suv_carport")
+    suv.instance(grey, (-3.0, -21.0, -0.06), 0.0, cc, "suv_street_1")
+    suv.instance(white, (44.0, -16.1, -0.06), math.pi, cc, "suv_street_2")
+    suv.instance(black, (-34.0, -16.1, -0.06), math.pi, cc, "suv_street_3")
+    kit.place("carconcept", (62.0, -20.9, -0.06), rz=math.radians(-90), collection=cc,
+              path=os.path.join(CARS, "CarConcept_plain.glb"), center=False)
+
+    if not a.no_people:
+        import cast
+        from house import Z0, Z1
+        cp = kit.coll("People")
+
+        def put(name, pose, loc, rz=0.0, **kw):
+            o = cast.make(name, pose, cp, **kw)
+            o.location, o.rotation_euler = loc, (0, 0, rz)
+            return o
+
+        put("ngozi", "stand_relaxed", (3.2, -1.5, 0.42), math.radians(25))          # on the terrace
+        put("bayo", "walk", (10.6, -3.2, 0.03), math.radians(-150))                 # walking to the car
+        put("kunle", "stand", (-9.6, -10.6, 0.0), math.radians(-60))                # gardener by the beds
+        put("guard", "stand", (20.4, -10.2, 0.03), math.radians(120))               # security at the gate
+        put("amina", "sit", (-7.2, 5.56, 0.155 - 0.47), 0.0)                        # feet in the pool
+        put("zainab", "stand_relaxed", (-5.4, 6.3, 0.12), math.radians(40))
+        put("emeka", "hands_hips", (3.4, -0.45, Z1), math.radians(10))              # on the master balcony
+        suv.seat_people(arriving, {"driver": cast.make("tunde", "car_drive", cp)})
 
     kit.world_hdri(a.sky, "4k", a.sky_strength, sun_az=a.sun)
     if a.sun_lamp > 0:      # a crisp sun on top of the sky's own soft one
