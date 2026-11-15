@@ -56,6 +56,7 @@ def main():
     ap.add_argument("--samples", type=int, default=48)
     ap.add_argument("--out", default="/home/user/out")
     ap.add_argument("--save", default="")
+    ap.add_argument("--export", default="", help="write the scene as .glb or .fbx for Unreal / other engines")
     ap.add_argument("--no-veg", action="store_true")
     ap.add_argument("--no-interior", action="store_true")
     ap.add_argument("--no-people", action="store_true")
@@ -157,6 +158,17 @@ def main():
     if a.save:
         bpy.context.scene.camera = cams["hero"]
         bpy.ops.wm.save_as_mainfile(filepath=os.path.abspath(a.save))
+    if a.export:
+        p = os.path.abspath(a.export)
+        os.makedirs(os.path.dirname(p), exist_ok=True)
+        if p.lower().endswith(".fbx"):
+            bpy.ops.export_scene.fbx(filepath=p, path_mode="COPY", embed_textures=True, use_mesh_modifiers=True,
+                                     object_types={"MESH", "EMPTY"}, axis_forward="-Y", axis_up="Z")
+        else:
+            bpy.ops.export_scene.gltf(filepath=p, export_format="GLB", export_apply=True, export_cameras=False,
+                                      export_lights=False, export_image_format="JPEG", export_jpeg_quality=85)
+        print("exported", p, os.path.getsize(p) // (1024 * 1024), "MB")
+        return
     os.makedirs(a.out, exist_ok=True)
     if a.anim:
         from house import Z0
