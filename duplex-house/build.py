@@ -30,7 +30,7 @@ def cameras(c):
     cam = {}
     K = lambda n, loc, tgt, lens: cam.__setitem__(n, kit.camera(n, loc, tgt, lens=lens, collection=c))
     K("hero", (-7.0, -11.4, 1.5), (6.4, 2.0, 3.3), 24)
-    K("front", (8.5, -12.0, 1.6), (7.3, 3.0, 3.6), 22)
+    K("front", (5.2, -12.4, 1.6), (7.3, 3.0, 3.6), 22)
     K("drive", (23.0, -11.0, 1.6), (9.0, 3.0, 3.0), 24)
     K("street", (20.0, -25.0, 1.7), (13.0, 0.0, 3.6), 22)
     K("gate", (22.5, -21.0, 1.6), (11.0, 1.0, 3.4), 24)
@@ -141,7 +141,7 @@ def main():
         put("lena", "stand", (1.6, 0.9, Z1), math.radians(-30))
         if not a.no_interior:
             put("amina", "sit", (3.3, 4.2, Z0 + 0.4 - 0.47), math.radians(-90))     # on the living-room sofa
-            put("jack", "stand_relaxed", (6.9, 8.6, Z0), math.radians(100))         # in the kitchen
+            put("jack", "stand_relaxed", (7.5, 9.72, Z0), math.radians(170))         # in the kitchen
             put("sophie", "sit", (2.7, 9.27 - 0.25, Z0 + 0.47 - 0.47), math.pi)     # at the dining table
             put("emeka", "stand", (5.6, 2.0, Z0), math.radians(60))                 # living room, by the window
 
