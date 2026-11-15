@@ -1,0 +1,6210 @@
+{
+  "project": "Lagos 2090 by BreezeOg",
+  "pipeline": "Blender (hero prep, headless) + Unreal Engine 5.4+ (scenes, Lumen/Nanite, Movie Render Queue). Default look is high-fidelity cinematic; anime-cinematic is a toggle only.",
+  "description": "Starter asset pack for a 30-second cinematic solarpunk Lagos montage. Models include original glTF/GLB plus Unreal-ready FBX (centimetres, Z-up, pivot at the base). High-detail Poly Haven scans are in models/*/hd-*/. Textures are 4K. HDRIs include 4K EXR. All assets are CC0 1.0, CC-BY 3.0, or SIL Open Font License 1.1.",
+  "note": "Run fetch-assets.ps1 (Windows) or fetch_assets.py first — it downloads the 4K textures, HDRIs and high-detail Poly Haven models listed here. Prefer Megascans (Fab, free in UE5) and the hd-* models in the foreground. Kenney meshes are low-poly and often toy-scale — use as blockout or restyle in Blender. Recolor the van as a yellow hover-danfo with black stripes (scale up to a midibus); recolor the motorcycle as a glowing electric okada (scale up slightly). school-bus.fbx and bicycle.fbx have incorrect source scale — see scale_note. Build anything missing procedurally. Quixel Megascans are not included in this pack.",
+  "fbx_export": {
+    "units": "centimetres",
+    "up": "Z",
+    "forward": "-Y",
+    "pivot": "base-center",
+    "transforms": "applied",
+    "textures": "embedded on loose Kenney/pack FBX files; alongside the FBX in each hd-* folder",
+    "unreal_import_scale": 1.0
+  },
+  "assets": [
+    {
+      "path": "models/vehicles/van.glb",
+      "name": "Van",
+      "category": "vehicles",
+      "description": "Box van — restyle as a yellow hover-danfo with black stripes (hero vehicle for shots 1 and 7).",
+      "shots": [
+        1,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/car-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney car-kit",
+      "bytes": 185736,
+      "path_glb": "models/vehicles/van.glb",
+      "path_fbx": "models/vehicles/van.fbx",
+      "bytes_fbx": 137708,
+      "scale_note": "Kenney stylized length ~2.75 m. Scale the hero danfo up to a real midibus, about 7–8 m long.",
+      "size_cm": [
+        150.0,
+        275.0,
+        135.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/vehicles/delivery-van.glb",
+      "name": "Delivery van",
+      "category": "vehicles",
+      "description": "Shorter delivery van, useful as a second danfo or city traffic.",
+      "shots": [
+        1,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/car-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney car-kit",
+      "bytes": 250220,
+      "path_glb": "models/vehicles/delivery-van.glb",
+      "path_fbx": "models/vehicles/delivery-van.fbx",
+      "bytes_fbx": 159164,
+      "size_cm": [
+        150.0,
+        325.0,
+        165.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/vehicles/delivery-flat.glb",
+      "name": "Flat delivery van",
+      "category": "vehicles",
+      "description": "Open-back delivery van for street traffic.",
+      "shots": [
+        3,
+        6,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/car-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney car-kit",
+      "bytes": 224900,
+      "path_glb": "models/vehicles/delivery-flat.glb",
+      "path_fbx": "models/vehicles/delivery-flat.fbx",
+      "bytes_fbx": 162652,
+      "size_cm": [
+        150.0,
+        325.0,
+        135.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/vehicles/sedan.glb",
+      "name": "Sedan",
+      "category": "vehicles",
+      "description": "Everyday passenger car for street and traffic shots.",
+      "shots": [
+        3,
+        6,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/car-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney car-kit",
+      "bytes": 182288,
+      "path_glb": "models/vehicles/sedan.glb",
+      "path_fbx": "models/vehicles/sedan.fbx",
+      "bytes_fbx": 137004,
+      "size_cm": [
+        150.0,
+        255.0,
+        130.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/vehicles/taxi.glb",
+      "name": "Taxi",
+      "category": "vehicles",
+      "description": "Taxi — recolor to Lagos yellow if useful in street shots.",
+      "shots": [
+        3,
+        6,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/car-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney car-kit",
+      "bytes": 185680,
+      "path_glb": "models/vehicles/taxi.glb",
+      "path_fbx": "models/vehicles/taxi.fbx",
+      "bytes_fbx": 138892,
+      "size_cm": [
+        150.0,
+        275.0,
+        150.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/vehicles/suv.glb",
+      "name": "SUV",
+      "category": "vehicles",
+      "description": "SUV for background city traffic.",
+      "shots": [
+        3,
+        6,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/car-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney car-kit",
+      "bytes": 217060,
+      "path_glb": "models/vehicles/suv.glb",
+      "path_fbx": "models/vehicles/suv.fbx",
+      "bytes_fbx": 158828,
+      "size_cm": [
+        150.0,
+        270.0,
+        130.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/vehicles/hatchback-sports.glb",
+      "name": "Sports hatchback",
+      "category": "vehicles",
+      "description": "Small hatchback for background traffic.",
+      "shots": [
+        3,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/car-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney car-kit",
+      "bytes": 207860,
+      "path_glb": "models/vehicles/hatchback-sports.glb",
+      "path_fbx": "models/vehicles/hatchback-sports.fbx",
+      "bytes_fbx": 138540,
+      "size_cm": [
+        130.0,
+        285.0,
+        110.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/vehicles/truck.glb",
+      "name": "Truck",
+      "category": "vehicles",
+      "description": "Box truck for streets and the market area.",
+      "shots": [
+        3,
+        6,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/car-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney car-kit",
+      "bytes": 186396,
+      "path_glb": "models/vehicles/truck.glb",
+      "path_fbx": "models/vehicles/truck.fbx",
+      "bytes_fbx": 138620,
+      "size_cm": [
+        150.0,
+        295.0,
+        130.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/vehicles/truck-flat.glb",
+      "name": "Flatbed truck",
+      "category": "vehicles",
+      "description": "Flatbed truck for roadside and market loading.",
+      "shots": [
+        3,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/car-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney car-kit",
+      "bytes": 217876,
+      "path_glb": "models/vehicles/truck-flat.glb",
+      "path_fbx": "models/vehicles/truck-flat.fbx",
+      "bytes_fbx": 156812,
+      "size_cm": [
+        150.0,
+        274.511,
+        130.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/commercial-building-a.glb",
+      "name": "Commercial building A",
+      "category": "city",
+      "description": "Mid-rise commercial building for the Lagos skyline and streets.",
+      "shots": [
+        2,
+        3,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-commercial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-commercial",
+      "bytes": 119584,
+      "path_glb": "models/city/commercial-building-a.glb",
+      "path_fbx": "models/city/commercial-building-a.fbx",
+      "bytes_fbx": 73036,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        88.359,
+        94.0,
+        129.3
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/commercial-building-b.glb",
+      "name": "Commercial building B",
+      "category": "city",
+      "description": "Mid-rise commercial building.",
+      "shots": [
+        2,
+        3,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-commercial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-commercial",
+      "bytes": 117040,
+      "path_glb": "models/city/commercial-building-b.glb",
+      "path_fbx": "models/city/commercial-building-b.fbx",
+      "bytes_fbx": 71628,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        97.0,
+        94.0,
+        129.3
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/commercial-building-c.glb",
+      "name": "Commercial building C",
+      "category": "city",
+      "description": "Mid-rise commercial building.",
+      "shots": [
+        2,
+        3,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-commercial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-commercial",
+      "bytes": 113432,
+      "path_glb": "models/city/commercial-building-c.glb",
+      "path_fbx": "models/city/commercial-building-c.fbx",
+      "bytes_fbx": 74572,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        88.359,
+        109.0,
+        89.3
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/commercial-building-d.glb",
+      "name": "Commercial building D",
+      "category": "city",
+      "description": "Mid-rise commercial building.",
+      "shots": [
+        2,
+        3,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-commercial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-commercial",
+      "bytes": 105804,
+      "path_glb": "models/city/commercial-building-d.glb",
+      "path_fbx": "models/city/commercial-building-d.fbx",
+      "bytes_fbx": 69532,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        84.0,
+        90.0,
+        129.3
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/commercial-building-e.glb",
+      "name": "Commercial building E",
+      "category": "city",
+      "description": "Mid-rise commercial building.",
+      "shots": [
+        2,
+        3,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-commercial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-commercial",
+      "bytes": 138840,
+      "path_glb": "models/city/commercial-building-e.glb",
+      "path_fbx": "models/city/commercial-building-e.fbx",
+      "bytes_fbx": 79132,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        164.0,
+        100.789,
+        89.3
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/commercial-building-f.glb",
+      "name": "Commercial building F",
+      "category": "city",
+      "description": "Mid-rise commercial building.",
+      "shots": [
+        2,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-commercial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-commercial",
+      "bytes": 159696,
+      "path_glb": "models/city/commercial-building-f.glb",
+      "path_fbx": "models/city/commercial-building-f.fbx",
+      "bytes_fbx": 86780,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        84.0,
+        103.0,
+        169.3
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/commercial-building-g.glb",
+      "name": "Commercial building G",
+      "category": "city",
+      "description": "Mid-rise commercial building.",
+      "shots": [
+        2,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-commercial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-commercial",
+      "bytes": 177000,
+      "path_glb": "models/city/commercial-building-g.glb",
+      "path_fbx": "models/city/commercial-building-g.fbx",
+      "bytes_fbx": 93164,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        97.0,
+        92.2,
+        169.3
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/commercial-building-h.glb",
+      "name": "Commercial building H",
+      "category": "city",
+      "description": "Mid-rise commercial building.",
+      "shots": [
+        2,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-commercial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-commercial",
+      "bytes": 138136,
+      "path_glb": "models/city/commercial-building-h.glb",
+      "path_fbx": "models/city/commercial-building-h.fbx",
+      "bytes_fbx": 79500,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        88.359,
+        100.789,
+        129.3
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/skyscraper-a.glb",
+      "name": "Skyscraper A",
+      "category": "city",
+      "description": "Tall skyscraper for the skyline behind rooftops and the danfo window.",
+      "shots": [
+        2,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-commercial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-commercial",
+      "bytes": 121968,
+      "path_glb": "models/city/skyscraper-a.glb",
+      "path_fbx": "models/city/skyscraper-a.fbx",
+      "bytes_fbx": 70956,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        136.0,
+        136.0,
+        288.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/skyscraper-c.glb",
+      "name": "Skyscraper C",
+      "category": "city",
+      "description": "Tall skyscraper for the skyline.",
+      "shots": [
+        2,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-commercial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-commercial",
+      "bytes": 160152,
+      "path_glb": "models/city/skyscraper-c.glb",
+      "path_fbx": "models/city/skyscraper-c.fbx",
+      "bytes_fbx": 87452,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        128.0,
+        138.789,
+        408.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/skyscraper-e.glb",
+      "name": "Skyscraper E",
+      "category": "city",
+      "description": "Tall skyscraper for the skyline.",
+      "shots": [
+        2,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-commercial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-commercial",
+      "bytes": 112508,
+      "path_glb": "models/city/skyscraper-e.glb",
+      "path_fbx": "models/city/skyscraper-e.fbx",
+      "bytes_fbx": 64012,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        129.5,
+        124.2,
+        408.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/low-detail-building-a.glb",
+      "name": "Low-detail building A",
+      "category": "city",
+      "description": "Cheap background building for distant city blocks.",
+      "shots": [
+        2,
+        5,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-commercial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-commercial",
+      "bytes": 25124,
+      "path_glb": "models/city/low-detail-building-a.glb",
+      "path_fbx": "models/city/low-detail-building-a.fbx",
+      "bytes_fbx": 35436,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        50.0,
+        50.0,
+        200.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/low-detail-building-d.glb",
+      "name": "Low-detail building D",
+      "category": "city",
+      "description": "Cheap background building.",
+      "shots": [
+        2,
+        5,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-commercial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-commercial",
+      "bytes": 19508,
+      "path_glb": "models/city/low-detail-building-d.glb",
+      "path_fbx": "models/city/low-detail-building-d.fbx",
+      "bytes_fbx": 33308,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        50.0,
+        50.0,
+        175.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/low-detail-building-g.glb",
+      "name": "Low-detail building G",
+      "category": "city",
+      "description": "Cheap background building.",
+      "shots": [
+        2,
+        5,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-commercial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-commercial",
+      "bytes": 27112,
+      "path_glb": "models/city/low-detail-building-g.glb",
+      "path_fbx": "models/city/low-detail-building-g.fbx",
+      "bytes_fbx": 35324,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        50.0,
+        50.0,
+        200.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/low-detail-building-wide-a.glb",
+      "name": "Wide low-detail building",
+      "category": "city",
+      "description": "Wide background apartment or office block.",
+      "shots": [
+        2,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-commercial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-commercial",
+      "bytes": 23524,
+      "path_glb": "models/city/low-detail-building-wide-a.glb",
+      "path_fbx": "models/city/low-detail-building-wide-a.fbx",
+      "bytes_fbx": 34316,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        100.0,
+        50.0,
+        110.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/awning.glb",
+      "name": "Shop awning",
+      "category": "city",
+      "description": "Storefront awning for kiosks and market shops.",
+      "shots": [
+        3,
+        4,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-commercial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-commercial",
+      "bytes": 16304,
+      "path_glb": "models/city/awning.glb",
+      "path_fbx": "models/city/awning.fbx",
+      "bytes_fbx": 31852,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        40.0,
+        14.789,
+        40.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/awning-wide.glb",
+      "name": "Wide shop awning",
+      "category": "city",
+      "description": "Wide storefront awning.",
+      "shots": [
+        3,
+        4,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-commercial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-commercial",
+      "bytes": 16316,
+      "path_glb": "models/city/awning-wide.glb",
+      "path_fbx": "models/city/awning-wide.fbx",
+      "bytes_fbx": 31996,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        80.0,
+        14.789,
+        40.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/parasol-a.glb",
+      "name": "Market parasol A",
+      "category": "city",
+      "description": "Market / cafe umbrella — recolor in bright fabrics for the market street.",
+      "shots": [
+        3,
+        4
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-commercial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-commercial",
+      "bytes": 21072,
+      "path_glb": "models/city/parasol-a.glb",
+      "path_fbx": "models/city/parasol-a.fbx",
+      "bytes_fbx": 34188,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        34.641,
+        40.0,
+        45.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/parasol-b.glb",
+      "name": "Market parasol B",
+      "category": "city",
+      "description": "Second market umbrella style.",
+      "shots": [
+        3,
+        4
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-commercial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-commercial",
+      "bytes": 22876,
+      "path_glb": "models/city/parasol-b.glb",
+      "path_fbx": "models/city/parasol-b.fbx",
+      "bytes_fbx": 35436,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        34.641,
+        40.0,
+        45.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/overhang.glb",
+      "name": "Building overhang",
+      "category": "city",
+      "description": "Overhang / canopy, useful on shopfronts or a vine-covered overpass.",
+      "shots": [
+        1,
+        3
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-commercial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-commercial",
+      "bytes": 17492,
+      "path_glb": "models/city/overhang.glb",
+      "path_fbx": "models/city/overhang.fbx",
+      "bytes_fbx": 32124,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        50.0,
+        20.0,
+        40.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/overhang-wide.glb",
+      "name": "Wide building overhang",
+      "category": "city",
+      "description": "Wider overhang / canopy piece.",
+      "shots": [
+        1,
+        3
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-commercial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-commercial",
+      "bytes": 17504,
+      "path_glb": "models/city/overhang-wide.glb",
+      "path_fbx": "models/city/overhang-wide.fbx",
+      "bytes_fbx": 32172,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        100.0,
+        20.0,
+        40.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/suburban-building-a.glb",
+      "name": "Suburban / apartment building A",
+      "category": "city",
+      "description": "Low-rise apartment or house — good rooftop-garden host.",
+      "shots": [
+        2,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-suburban",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-suburban",
+      "bytes": 110132,
+      "path_glb": "models/city/suburban-building-a.glb",
+      "path_fbx": "models/city/suburban-building-a.fbx",
+      "bytes_fbx": 75772,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        130.0,
+        102.814,
+        83.354
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/suburban-building-c.glb",
+      "name": "Suburban / apartment building C",
+      "category": "city",
+      "description": "Low-rise residential building.",
+      "shots": [
+        2,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-suburban",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-suburban",
+      "bytes": 111028,
+      "path_glb": "models/city/suburban-building-c.glb",
+      "path_fbx": "models/city/suburban-building-c.fbx",
+      "bytes_fbx": 76140,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        128.638,
+        102.814,
+        103.354
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/suburban-building-e.glb",
+      "name": "Suburban / apartment building E",
+      "category": "city",
+      "description": "Low-rise residential building.",
+      "shots": [
+        2,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-suburban",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-suburban",
+      "bytes": 157036,
+      "path_glb": "models/city/suburban-building-e.glb",
+      "path_fbx": "models/city/suburban-building-e.fbx",
+      "bytes_fbx": 95004,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        130.0,
+        102.8,
+        113.75
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/suburban-building-g.glb",
+      "name": "Suburban / apartment building G",
+      "category": "city",
+      "description": "Low-rise residential building, useful as a rooftop-garden block.",
+      "shots": [
+        2,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-suburban",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-suburban",
+      "bytes": 105124,
+      "path_glb": "models/city/suburban-building-g.glb",
+      "path_fbx": "models/city/suburban-building-g.fbx",
+      "bytes_fbx": 77580,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        145.0,
+        117.8,
+        76.821
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/suburban-building-i.glb",
+      "name": "Suburban / apartment building I",
+      "category": "city",
+      "description": "Low-rise residential building.",
+      "shots": [
+        2,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-suburban",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-suburban",
+      "bytes": 81292,
+      "path_glb": "models/city/suburban-building-i.glb",
+      "path_fbx": "models/city/suburban-building-i.fbx",
+      "bytes_fbx": 64044,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        128.638,
+        102.8,
+        73.75
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/suburban-building-k.glb",
+      "name": "Suburban / apartment building K",
+      "category": "city",
+      "description": "Low-rise residential building.",
+      "shots": [
+        2,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-suburban",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-suburban",
+      "bytes": 100588,
+      "path_glb": "models/city/suburban-building-k.glb",
+      "path_fbx": "models/city/suburban-building-k.fbx",
+      "bytes_fbx": 71180,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        92.094,
+        102.0,
+        114.96
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/suburban-building-m.glb",
+      "name": "Suburban / apartment building M",
+      "category": "city",
+      "description": "Low-rise residential building.",
+      "shots": [
+        2,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-suburban",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-suburban",
+      "bytes": 108412,
+      "path_glb": "models/city/suburban-building-m.glb",
+      "path_fbx": "models/city/suburban-building-m.fbx",
+      "bytes_fbx": 76988,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        142.8,
+        142.8,
+        73.75
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/suburban-building-o.glb",
+      "name": "Suburban / apartment building O",
+      "category": "city",
+      "description": "Low-rise residential building.",
+      "shots": [
+        2,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-suburban",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-suburban",
+      "bytes": 125832,
+      "path_glb": "models/city/suburban-building-o.glb",
+      "path_fbx": "models/city/suburban-building-o.fbx",
+      "bytes_fbx": 83756,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        127.0,
+        102.8,
+        113.75
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/fence-1x3.glb",
+      "name": "Fence 1x3",
+      "category": "city",
+      "description": "Residential fence section for the roadside corner.",
+      "shots": [
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-suburban",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-suburban",
+      "bytes": 32596,
+      "path_glb": "models/city/fence-1x3.glb",
+      "path_fbx": "models/city/fence-1x3.fbx",
+      "bytes_fbx": 37516,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        127.5,
+        43.75,
+        27.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/fence-2x2.glb",
+      "name": "Fence 2x2",
+      "category": "city",
+      "description": "Residential fence section.",
+      "shots": [
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-suburban",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-suburban",
+      "bytes": 35436,
+      "path_glb": "models/city/fence-2x2.glb",
+      "path_fbx": "models/city/fence-2x2.fbx",
+      "bytes_fbx": 37708,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        87.5,
+        83.75,
+        27.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/fence-3x3.glb",
+      "name": "Fence 3x3",
+      "category": "city",
+      "description": "Longer residential fence section.",
+      "shots": [
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-suburban",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-suburban",
+      "bytes": 47380,
+      "path_glb": "models/city/fence-3x3.glb",
+      "path_fbx": "models/city/fence-3x3.fbx",
+      "bytes_fbx": 42060,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        127.5,
+        123.75,
+        27.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/fence-low.glb",
+      "name": "Low fence",
+      "category": "city",
+      "description": "Low fence / wall.",
+      "shots": [
+        6,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-suburban",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-suburban",
+      "bytes": 30112,
+      "path_glb": "models/city/fence-low.glb",
+      "path_fbx": "models/city/fence-low.fbx",
+      "bytes_fbx": 36620,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        127.5,
+        83.75,
+        17.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/suburban-tree-large.glb",
+      "name": "Suburban large tree",
+      "category": "city",
+      "description": "Street tree for roadside shade and dappled shadows.",
+      "shots": [
+        6,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-suburban",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-suburban",
+      "bytes": 17268,
+      "path_glb": "models/city/suburban-tree-large.glb",
+      "path_fbx": "models/city/suburban-tree-large.fbx",
+      "bytes_fbx": 33276,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        21.044,
+        24.3,
+        76.7
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/suburban-tree-small.glb",
+      "name": "Suburban small tree",
+      "category": "city",
+      "description": "Small street tree.",
+      "shots": [
+        6,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-suburban",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-suburban",
+      "bytes": 17268,
+      "path_glb": "models/city/suburban-tree-small.glb",
+      "path_fbx": "models/city/suburban-tree-small.fbx",
+      "bytes_fbx": 33276,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        21.044,
+        24.3,
+        56.7
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/planter.glb",
+      "name": "Planter",
+      "category": "city",
+      "description": "Street or rooftop planter box.",
+      "shots": [
+        2,
+        6,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-suburban",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-suburban",
+      "bytes": 31804,
+      "path_glb": "models/city/planter.glb",
+      "path_fbx": "models/city/planter.fbx",
+      "bytes_fbx": 42220,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        40.0,
+        30.0,
+        17.711
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/industrial-building-a.glb",
+      "name": "Industrial building A",
+      "category": "city",
+      "description": "Blocky industrial or warehouse volume; can be restyled as a kiosk or workshop.",
+      "shots": [
+        1,
+        4,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-industrial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-industrial",
+      "bytes": 188860,
+      "path_glb": "models/city/industrial-building-a.glb",
+      "path_fbx": "models/city/industrial-building-a.fbx",
+      "bytes_fbx": 103612,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        208.359,
+        124.2,
+        147.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/industrial-building-d.glb",
+      "name": "Industrial building D",
+      "category": "city",
+      "description": "Industrial / warehouse volume.",
+      "shots": [
+        1,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-industrial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-industrial",
+      "bytes": 112316,
+      "path_glb": "models/city/industrial-building-d.glb",
+      "path_fbx": "models/city/industrial-building-d.fbx",
+      "bytes_fbx": 75308,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        88.359,
+        142.0,
+        141.455
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/industrial-building-g.glb",
+      "name": "Industrial building G",
+      "category": "city",
+      "description": "Industrial / warehouse volume.",
+      "shots": [
+        1,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-industrial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-industrial",
+      "bytes": 118480,
+      "path_glb": "models/city/industrial-building-g.glb",
+      "path_fbx": "models/city/industrial-building-g.fbx",
+      "bytes_fbx": 79676,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        167.814,
+        128.359,
+        128.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/industrial-building-j.glb",
+      "name": "Industrial building J",
+      "category": "city",
+      "description": "Industrial / warehouse volume.",
+      "shots": [
+        1,
+        5
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-industrial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-industrial",
+      "bytes": 92348,
+      "path_glb": "models/city/industrial-building-j.glb",
+      "path_fbx": "models/city/industrial-building-j.fbx",
+      "bytes_fbx": 73212,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        102.662,
+        130.0,
+        86.115
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/industrial-building-m.glb",
+      "name": "Industrial building M",
+      "category": "city",
+      "description": "Industrial / warehouse volume.",
+      "shots": [
+        1,
+        5
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-industrial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-industrial",
+      "bytes": 150460,
+      "path_glb": "models/city/industrial-building-m.glb",
+      "path_fbx": "models/city/industrial-building-m.fbx",
+      "bytes_fbx": 97660,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        131.628,
+        170.0,
+        151.901
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/industrial-building-p.glb",
+      "name": "Industrial building P",
+      "category": "city",
+      "description": "Industrial / warehouse volume.",
+      "shots": [
+        5
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-industrial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-industrial",
+      "bytes": 115296,
+      "path_glb": "models/city/industrial-building-p.glb",
+      "path_fbx": "models/city/industrial-building-p.fbx",
+      "bytes_fbx": 79132,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        168.359,
+        99.2,
+        71.455
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/solar-panel-flat.glb",
+      "name": "Flat solar panel",
+      "category": "city",
+      "description": "Rooftop solar panel for the apartment garden.",
+      "shots": [
+        2
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-industrial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-industrial",
+      "bytes": 25512,
+      "path_glb": "models/city/solar-panel-flat.glb",
+      "path_fbx": "models/city/solar-panel-flat.fbx",
+      "bytes_fbx": 38172,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        41.82,
+        71.34,
+        6.15
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/solar-panel-landscape.glb",
+      "name": "Landscape solar panel",
+      "category": "city",
+      "description": "Angled solar panel.",
+      "shots": [
+        2
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-industrial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-industrial",
+      "bytes": 33440,
+      "path_glb": "models/city/solar-panel-landscape.glb",
+      "path_fbx": "models/city/solar-panel-landscape.fbx",
+      "bytes_fbx": 42684,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        71.34,
+        39.505,
+        26.236
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/solar-panel-landscape-group.glb",
+      "name": "Landscape solar panel group",
+      "category": "city",
+      "description": "Group of angled solar panels.",
+      "shots": [
+        2
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-industrial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-industrial",
+      "bytes": 93520,
+      "path_glb": "models/city/solar-panel-landscape-group.glb",
+      "path_fbx": "models/city/solar-panel-landscape-group.fbx",
+      "bytes_fbx": 67756,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        151.34,
+        89.505,
+        26.236
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/solar-panel-portrait.glb",
+      "name": "Portrait solar panel",
+      "category": "city",
+      "description": "Upright solar panel.",
+      "shots": [
+        2
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-industrial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-industrial",
+      "bytes": 33440,
+      "path_glb": "models/city/solar-panel-portrait.glb",
+      "path_fbx": "models/city/solar-panel-portrait.fbx",
+      "bytes_fbx": 41772,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        41.82,
+        64.857,
+        40.996
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/shipping-container-a.glb",
+      "name": "Shipping container A",
+      "category": "city",
+      "description": "Shipping container — useful as a converted kiosk or waterfront prop.",
+      "shots": [
+        4,
+        5,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-industrial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-industrial",
+      "bytes": 48236,
+      "path_glb": "models/city/shipping-container-a.glb",
+      "path_fbx": "models/city/shipping-container-a.fbx",
+      "bytes_fbx": 47564,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        37.26,
+        82.26,
+        34.808
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/shipping-container-b.glb",
+      "name": "Shipping container B",
+      "category": "city",
+      "description": "Shipping container variant.",
+      "shots": [
+        4,
+        5,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-industrial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-industrial",
+      "bytes": 48596,
+      "path_glb": "models/city/shipping-container-b.glb",
+      "path_fbx": "models/city/shipping-container-b.fbx",
+      "bytes_fbx": 49372,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        37.26,
+        82.26,
+        34.808
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/water-tower.glb",
+      "name": "Water tower",
+      "category": "city",
+      "description": "Water tower for the skyline / rooftops.",
+      "shots": [
+        2,
+        5
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-industrial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-industrial",
+      "bytes": 105568,
+      "path_glb": "models/city/water-tower.glb",
+      "path_fbx": "models/city/water-tower.fbx",
+      "bytes_fbx": 86956,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        85.222,
+        83.18,
+        214.167
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/windmill.glb",
+      "name": "Wind turbine",
+      "category": "city",
+      "description": "Small wind turbine for the solarpunk skyline.",
+      "shots": [
+        2,
+        5
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-industrial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-industrial",
+      "bytes": 57396,
+      "path_glb": "models/city/windmill.glb",
+      "path_fbx": "models/city/windmill.fbx",
+      "bytes_fbx": 62332,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        60.469,
+        112.686,
+        231.385
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/chimney-medium.glb",
+      "name": "Medium chimney",
+      "category": "city",
+      "description": "Chimney / stack for industrial background.",
+      "shots": [
+        1,
+        5
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-industrial",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-industrial",
+      "bytes": 26756,
+      "path_glb": "models/city/chimney-medium.glb",
+      "path_fbx": "models/city/chimney-medium.fbx",
+      "bytes_fbx": 38076,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        45.0,
+        45.0,
+        192.5
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/road-straight.glb",
+      "name": "Straight road",
+      "category": "city",
+      "description": "Straight road tile.",
+      "shots": [
+        1,
+        4,
+        6,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 16460,
+      "path_glb": "models/city/road-straight.glb",
+      "path_fbx": "models/city/road-straight.fbx",
+      "bytes_fbx": 31644,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        100.0,
+        100.0,
+        2.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/road-straight-half.glb",
+      "name": "Half straight road",
+      "category": "city",
+      "description": "Shorter straight road tile.",
+      "shots": [
+        1,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 16480,
+      "path_glb": "models/city/road-straight-half.glb",
+      "path_fbx": "models/city/road-straight-half.fbx",
+      "bytes_fbx": 31692,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        50.0,
+        100.0,
+        2.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/road-curve.glb",
+      "name": "Curved road",
+      "category": "city",
+      "description": "Curved road tile.",
+      "shots": [
+        1,
+        6,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 35068,
+      "path_glb": "models/city/road-curve.glb",
+      "path_fbx": "models/city/road-curve.fbx",
+      "bytes_fbx": 41100,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        200.0,
+        200.0,
+        2.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/road-crossroad.glb",
+      "name": "Crossroad",
+      "category": "city",
+      "description": "Four-way intersection.",
+      "shots": [
+        3,
+        6,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 21292,
+      "path_glb": "models/city/road-crossroad.glb",
+      "path_fbx": "models/city/road-crossroad.fbx",
+      "bytes_fbx": 33564,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        100.0,
+        100.0,
+        2.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/road-intersection.glb",
+      "name": "T-intersection",
+      "category": "city",
+      "description": "T-intersection road tile.",
+      "shots": [
+        3,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 19108,
+      "path_glb": "models/city/road-intersection.glb",
+      "path_fbx": "models/city/road-intersection.fbx",
+      "bytes_fbx": 32796,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        100.0,
+        100.0,
+        2.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/road-bridge.glb",
+      "name": "Road bridge deck",
+      "category": "city",
+      "description": "Bridge deck — use for the overpass (shot 1) and Third Mainland Bridge (shot 5).",
+      "shots": [
+        1,
+        5
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 35880,
+      "path_glb": "models/city/road-bridge.glb",
+      "path_fbx": "models/city/road-bridge.fbx",
+      "bytes_fbx": 37548,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        100.0,
+        100.0,
+        52.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/road-slant.glb",
+      "name": "Slanted road / ramp",
+      "category": "city",
+      "description": "Inclined road, useful as a bridge approach or overpass ramp.",
+      "shots": [
+        1,
+        5
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 16452,
+      "path_glb": "models/city/road-slant.glb",
+      "path_fbx": "models/city/road-slant.fbx",
+      "bytes_fbx": 31772,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        100.0,
+        100.0,
+        27.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/road-crossing.glb",
+      "name": "Pedestrian crossing",
+      "category": "city",
+      "description": "Zebra crossing tile.",
+      "shots": [
+        3,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 19912,
+      "path_glb": "models/city/road-crossing.glb",
+      "path_fbx": "models/city/road-crossing.fbx",
+      "bytes_fbx": 33068,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        100.0,
+        100.0,
+        2.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/road-bend.glb",
+      "name": "Road bend",
+      "category": "city",
+      "description": "Bent road tile.",
+      "shots": [
+        6,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 31328,
+      "path_glb": "models/city/road-bend.glb",
+      "path_fbx": "models/city/road-bend.fbx",
+      "bytes_fbx": 39324,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        100.0,
+        100.0,
+        2.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/road-end.glb",
+      "name": "Road end",
+      "category": "city",
+      "description": "Dead-end road tile.",
+      "shots": [
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 16160,
+      "path_glb": "models/city/road-end.glb",
+      "path_fbx": "models/city/road-end.fbx",
+      "bytes_fbx": 31596,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        100.0,
+        100.0,
+        2.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/bridge-pillar.glb",
+      "name": "Bridge pillar",
+      "category": "city",
+      "description": "Bridge support pillar for the overpass and lagoon bridge.",
+      "shots": [
+        1,
+        5
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 16684,
+      "path_glb": "models/city/bridge-pillar.glb",
+      "path_fbx": "models/city/bridge-pillar.fbx",
+      "bytes_fbx": 32060,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        10.0,
+        10.0,
+        50.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/bridge-pillar-wide.glb",
+      "name": "Wide bridge pillar",
+      "category": "city",
+      "description": "Wider bridge support.",
+      "shots": [
+        1,
+        5
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 16700,
+      "path_glb": "models/city/bridge-pillar-wide.glb",
+      "path_fbx": "models/city/bridge-pillar-wide.fbx",
+      "bytes_fbx": 32060,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        14.0,
+        14.0,
+        50.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/traffic-light.glb",
+      "name": "Traffic light",
+      "category": "city",
+      "description": "Traffic light on a pole.",
+      "shots": [
+        3,
+        6,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 31524,
+      "path_glb": "models/city/traffic-light.glb",
+      "path_fbx": "models/city/traffic-light.fbx",
+      "bytes_fbx": 39356,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        11.76,
+        9.0,
+        51.5
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/traffic-light-hanging.glb",
+      "name": "Hanging traffic light",
+      "category": "city",
+      "description": "Overhead hanging traffic light.",
+      "shots": [
+        3,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 33260,
+      "path_glb": "models/city/traffic-light-hanging.glb",
+      "path_fbx": "models/city/traffic-light-hanging.fbx",
+      "bytes_fbx": 40332,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        11.76,
+        29.5,
+        50.909
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/traffic-light-vertical.glb",
+      "name": "Vertical traffic light head",
+      "category": "city",
+      "description": "Traffic light head only (vertical).",
+      "shots": [
+        3,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 23584,
+      "path_glb": "models/city/traffic-light-vertical.glb",
+      "path_fbx": "models/city/traffic-light-vertical.fbx",
+      "bytes_fbx": 35852,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        9.76,
+        6.106,
+        14.319
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/electricity-pole.glb",
+      "name": "Electricity pole",
+      "category": "city",
+      "description": "Power pole with lines hardware.",
+      "shots": [
+        1,
+        4,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 54832,
+      "path_glb": "models/city/electricity-pole.glb",
+      "path_fbx": "models/city/electricity-pole.fbx",
+      "bytes_fbx": 51564,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        57.909,
+        21.422,
+        52.5
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/electricity-pole-wide.glb",
+      "name": "Wide electricity pole",
+      "category": "city",
+      "description": "Wider power pole / gantry.",
+      "shots": [
+        1,
+        5,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 67908,
+      "path_glb": "models/city/electricity-pole-wide.glb",
+      "path_fbx": "models/city/electricity-pole-wide.fbx",
+      "bytes_fbx": 61564,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        107.909,
+        21.422,
+        52.5
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/electricity-pole-single.glb",
+      "name": "Single electricity pole",
+      "category": "city",
+      "description": "Simple single power pole.",
+      "shots": [
+        4,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 30664,
+      "path_glb": "models/city/electricity-pole-single.glb",
+      "path_fbx": "models/city/electricity-pole-single.fbx",
+      "bytes_fbx": 41068,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        7.908,
+        21.422,
+        52.5
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/street-light-curved.glb",
+      "name": "Curved street light",
+      "category": "city",
+      "description": "Curved-arm street lamp.",
+      "shots": [
+        3,
+        4,
+        6,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 20700,
+      "path_glb": "models/city/street-light-curved.glb",
+      "path_fbx": "models/city/street-light-curved.fbx",
+      "bytes_fbx": 34652,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        5.0,
+        22.5,
+        67.5
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/street-light-square.glb",
+      "name": "Square street light",
+      "category": "city",
+      "description": "Square-head street lamp.",
+      "shots": [
+        3,
+        6,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 18204,
+      "path_glb": "models/city/street-light-square.glb",
+      "path_fbx": "models/city/street-light-square.fbx",
+      "bytes_fbx": 33180,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        5.0,
+        23.75,
+        60.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/street-light-curved-double.glb",
+      "name": "Double curved street light",
+      "category": "city",
+      "description": "Double-arm curved street lamp.",
+      "shots": [
+        5,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 25420,
+      "path_glb": "models/city/street-light-curved-double.glb",
+      "path_fbx": "models/city/street-light-curved-double.fbx",
+      "bytes_fbx": 36524,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        5.0,
+        40.0,
+        67.5
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/construction-fence.glb",
+      "name": "Construction fence",
+      "category": "city",
+      "description": "Temporary / construction fence.",
+      "shots": [
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 26068,
+      "path_glb": "models/city/construction-fence.glb",
+      "path_fbx": "models/city/construction-fence.fbx",
+      "bytes_fbx": 37964,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        7.5,
+        37.5,
+        17.875
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/road-sign-stop.glb",
+      "name": "Stop sign",
+      "category": "city",
+      "description": "Stop sign on a post.",
+      "shots": [
+        6,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 21900,
+      "path_glb": "models/city/road-sign-stop.glb",
+      "path_fbx": "models/city/road-sign-stop.fbx",
+      "bytes_fbx": 36124,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        7.75,
+        13.821,
+        49.407
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/road-sign-street.glb",
+      "name": "Street name sign",
+      "category": "city",
+      "description": "Street-name sign; recolor / relabel if needed.",
+      "shots": [
+        3,
+        6,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 27124,
+      "path_glb": "models/city/road-sign-street.glb",
+      "path_fbx": "models/city/road-sign-street.fbx",
+      "bytes_fbx": 37612,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        19.625,
+        19.625,
+        47.5
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/sign-highway.glb",
+      "name": "Highway sign",
+      "category": "city",
+      "description": "Overhead / highway sign panel.",
+      "shots": [
+        1,
+        5,
+        7
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 28424,
+      "path_glb": "models/city/sign-highway.glb",
+      "path_fbx": "models/city/sign-highway.fbx",
+      "bytes_fbx": 37420,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        13.237,
+        100.0,
+        70.737
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/road-straight-barrier.glb",
+      "name": "Straight road with barrier",
+      "category": "city",
+      "description": "Road with side barrier, useful on the bridge.",
+      "shots": [
+        1,
+        5
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 15320,
+      "path_glb": "models/city/road-straight-barrier.glb",
+      "path_fbx": "models/city/road-straight-barrier.fbx",
+      "bytes_fbx": 31468,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        100.0,
+        100.0,
+        8.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/city/road-side.glb",
+      "name": "Road side / curb",
+      "category": "city",
+      "description": "Roadside or curb piece.",
+      "shots": [
+        4,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/city-kit-roads",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney city-kit-roads",
+      "bytes": 16484,
+      "path_glb": "models/city/road-side.glb",
+      "path_fbx": "models/city/road-side.fbx",
+      "bytes_fbx": 31708,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        100.0,
+        131.0,
+        2.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/lantern.glb",
+      "name": "Lantern",
+      "category": "props",
+      "description": "Standing lantern — hang or place in the market street.",
+      "shots": [
+        3
+      ],
+      "source_url": "https://kenney.nl/assets/holiday-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney holiday-kit",
+      "bytes": 30016,
+      "path_glb": "models/props/lantern.glb",
+      "path_fbx": "models/props/lantern.fbx",
+      "bytes_fbx": 40668,
+      "size_cm": [
+        52.519,
+        45.483,
+        173.728
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/lantern-hanging.glb",
+      "name": "Hanging lantern",
+      "category": "props",
+      "description": "Hanging lantern for market stalls.",
+      "shots": [
+        3
+      ],
+      "source_url": "https://kenney.nl/assets/holiday-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney holiday-kit",
+      "bytes": 28480,
+      "path_glb": "models/props/lantern-hanging.glb",
+      "path_fbx": "models/props/lantern-hanging.fbx",
+      "bytes_fbx": 40332,
+      "size_cm": [
+        42.541,
+        41.621,
+        66.712
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/string-lights-colored.glb",
+      "name": "Colored string lights",
+      "category": "props",
+      "description": "String lights — useful as hanging market lights (ignore any holiday association).",
+      "shots": [
+        3
+      ],
+      "source_url": "https://kenney.nl/assets/holiday-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney holiday-kit",
+      "bytes": 90692,
+      "path_glb": "models/props/string-lights-colored.glb",
+      "path_fbx": "models/props/string-lights-colored.fbx",
+      "bytes_fbx": 78284,
+      "size_cm": [
+        100.972,
+        6.36,
+        31.618
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/bench-park.glb",
+      "name": "Park bench",
+      "category": "props",
+      "description": "Outdoor bench for the park and roadside.",
+      "shots": [
+        6,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/holiday-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney holiday-kit",
+      "bytes": 28496,
+      "path_glb": "models/props/bench-park.glb",
+      "path_fbx": "models/props/bench-park.fbx",
+      "bytes_fbx": 38204,
+      "size_cm": [
+        112.105,
+        63.211,
+        73.053
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/bench-short.glb",
+      "name": "Short bench",
+      "category": "props",
+      "description": "Shorter outdoor bench.",
+      "shots": [
+        6,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/holiday-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney holiday-kit",
+      "bytes": 28516,
+      "path_glb": "models/props/bench-short.glb",
+      "path_fbx": "models/props/bench-short.fbx",
+      "bytes_fbx": 37996,
+      "size_cm": [
+        62.105,
+        63.211,
+        73.053
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/bench-cushion.glb",
+      "name": "Cushioned bench",
+      "category": "props",
+      "description": "Cushioned bench, useful on rooftops or courtyards.",
+      "shots": [
+        2,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/furniture-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney furniture-kit",
+      "bytes": 12056,
+      "path_glb": "models/props/bench-cushion.glb",
+      "path_fbx": "models/props/bench-cushion.fbx",
+      "bytes_fbx": 24284,
+      "size_cm": [
+        40.0,
+        20.0,
+        46.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/furniture-bench.glb",
+      "name": "Simple bench",
+      "category": "props",
+      "description": "Simple bench.",
+      "shots": [
+        2,
+        6,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/furniture-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney furniture-kit",
+      "bytes": 10480,
+      "path_glb": "models/props/furniture-bench.glb",
+      "path_fbx": "models/props/furniture-bench.fbx",
+      "bytes_fbx": 22316,
+      "size_cm": [
+        40.0,
+        20.0,
+        47.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/cardboard-box-closed.glb",
+      "name": "Closed cardboard box",
+      "category": "props",
+      "description": "Closed cardboard box for stacked market / roadside crates.",
+      "shots": [
+        3,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/furniture-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney furniture-kit",
+      "bytes": 4948,
+      "path_glb": "models/props/cardboard-box-closed.glb",
+      "path_fbx": "models/props/cardboard-box-closed.fbx",
+      "bytes_fbx": 18908,
+      "size_cm": [
+        21.25,
+        21.25,
+        28.1
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/cardboard-box-open.glb",
+      "name": "Open cardboard box",
+      "category": "props",
+      "description": "Open cardboard box.",
+      "shots": [
+        3,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/furniture-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney furniture-kit",
+      "bytes": 4964,
+      "path_glb": "models/props/cardboard-box-open.glb",
+      "path_fbx": "models/props/cardboard-box-open.fbx",
+      "bytes_fbx": 18844,
+      "size_cm": [
+        37.188,
+        21.25,
+        28.1
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/potted-plant.glb",
+      "name": "Potted plant",
+      "category": "props",
+      "description": "Potted plant for rooftop gardens and kiosks.",
+      "shots": [
+        2,
+        4,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/furniture-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney furniture-kit",
+      "bytes": 6832,
+      "path_glb": "models/props/potted-plant.glb",
+      "path_fbx": "models/props/potted-plant.fbx",
+      "bytes_fbx": 25292,
+      "size_cm": [
+        21.206,
+        24.146,
+        65.402
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/plant-small-1.glb",
+      "name": "Small potted plant 1",
+      "category": "props",
+      "description": "Small potted plant.",
+      "shots": [
+        2,
+        4
+      ],
+      "source_url": "https://kenney.nl/assets/furniture-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney furniture-kit",
+      "bytes": 7824,
+      "path_glb": "models/props/plant-small-1.glb",
+      "path_fbx": "models/props/plant-small-1.fbx",
+      "bytes_fbx": 22876,
+      "size_cm": [
+        9.466,
+        9.466,
+        14.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/plant-small-2.glb",
+      "name": "Small potted plant 2",
+      "category": "props",
+      "description": "Small potted plant variant.",
+      "shots": [
+        2,
+        4
+      ],
+      "source_url": "https://kenney.nl/assets/furniture-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney furniture-kit",
+      "bytes": 12596,
+      "path_glb": "models/props/plant-small-2.glb",
+      "path_fbx": "models/props/plant-small-2.fbx",
+      "bytes_fbx": 27644,
+      "size_cm": [
+        9.466,
+        9.466,
+        14.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/trashcan.glb",
+      "name": "Trash can",
+      "category": "props",
+      "description": "Street trash can.",
+      "shots": [
+        3,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/furniture-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney furniture-kit",
+      "bytes": 6052,
+      "path_glb": "models/props/trashcan.glb",
+      "path_fbx": "models/props/trashcan.fbx",
+      "bytes_fbx": 20892,
+      "size_cm": [
+        20.769,
+        23.412,
+        42.787
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/table.glb",
+      "name": "Table",
+      "category": "props",
+      "description": "Table for market stalls or rooftop.",
+      "shots": [
+        2,
+        3
+      ],
+      "source_url": "https://kenney.nl/assets/furniture-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney furniture-kit",
+      "bytes": 7896,
+      "path_glb": "models/props/table.glb",
+      "path_fbx": "models/props/table.fbx",
+      "bytes_fbx": 20652,
+      "size_cm": [
+        84.149,
+        44.737,
+        32.673
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/chair.glb",
+      "name": "Chair",
+      "category": "props",
+      "description": "Simple chair.",
+      "shots": [
+        3,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/furniture-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney furniture-kit",
+      "bytes": 10480,
+      "path_glb": "models/props/chair.glb",
+      "path_fbx": "models/props/chair.fbx",
+      "bytes_fbx": 22028,
+      "size_cm": [
+        20.0,
+        20.0,
+        47.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/ceiling-fan.glb",
+      "name": "Ceiling fan",
+      "category": "props",
+      "description": "Ceiling fan, useful if a kiosk interior is glimpsed.",
+      "shots": [
+        4,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/furniture-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney furniture-kit",
+      "bytes": 14672,
+      "path_glb": "models/props/ceiling-fan.glb",
+      "path_fbx": "models/props/ceiling-fan.fbx",
+      "bytes_fbx": 30268,
+      "size_cm": [
+        45.474,
+        52.508,
+        13.372
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/dryer.glb",
+      "name": "Dryer",
+      "category": "props",
+      "description": "Laundry dryer — rooftop laundry / washing-line context.",
+      "shots": [
+        2
+      ],
+      "source_url": "https://kenney.nl/assets/furniture-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney furniture-kit",
+      "bytes": 16920,
+      "path_glb": "models/props/dryer.glb",
+      "path_fbx": "models/props/dryer.fbx",
+      "bytes_fbx": 35484,
+      "size_cm": [
+        39.0,
+        38.0,
+        47.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/washer.glb",
+      "name": "Washing machine",
+      "category": "props",
+      "description": "Washing machine — rooftop laundry context.",
+      "shots": [
+        2
+      ],
+      "source_url": "https://kenney.nl/assets/furniture-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney furniture-kit",
+      "bytes": 46852,
+      "path_glb": "models/props/washer.glb",
+      "path_fbx": "models/props/washer.fbx",
+      "bytes_fbx": 74236,
+      "size_cm": [
+        39.0,
+        39.0,
+        47.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/radio.glb",
+      "name": "Radio",
+      "category": "props",
+      "description": "Radio, a nice kiosk / stall prop.",
+      "shots": [
+        3,
+        4,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/furniture-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney furniture-kit",
+      "bytes": 24388,
+      "path_glb": "models/props/radio.glb",
+      "path_fbx": "models/props/radio.fbx",
+      "bytes_fbx": 41996,
+      "size_cm": [
+        31.5,
+        9.75,
+        22.819
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/display-fruit.glb",
+      "name": "Fruit display",
+      "category": "props",
+      "description": "Fruit stall display for the market street.",
+      "shots": [
+        3
+      ],
+      "source_url": "https://kenney.nl/assets/mini-shop",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney mini-shop",
+      "bytes": 99896,
+      "path_glb": "models/props/display-fruit.glb",
+      "path_fbx": "models/props/display-fruit.fbx",
+      "bytes_fbx": 100396,
+      "size_cm": [
+        60.0,
+        60.0,
+        51.596
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/display-flowers.glb",
+      "name": "Flower display",
+      "category": "props",
+      "description": "Flower stall display.",
+      "shots": [
+        3
+      ],
+      "source_url": "https://kenney.nl/assets/mini-shop",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney mini-shop",
+      "bytes": 196484,
+      "path_glb": "models/props/display-flowers.glb",
+      "path_fbx": "models/props/display-flowers.fbx",
+      "bytes_fbx": 170604,
+      "size_cm": [
+        80.0,
+        80.027,
+        63.212
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/display-cans.glb",
+      "name": "Can display",
+      "category": "props",
+      "description": "Canned-goods stall display.",
+      "shots": [
+        3,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/mini-shop",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney mini-shop",
+      "bytes": 154112,
+      "path_glb": "models/props/display-cans.glb",
+      "path_fbx": "models/props/display-cans.fbx",
+      "bytes_fbx": 163900,
+      "size_cm": [
+        80.0,
+        80.0,
+        90.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/display-bread.glb",
+      "name": "Bread display",
+      "category": "props",
+      "description": "Bread / bakery stall display.",
+      "shots": [
+        3
+      ],
+      "source_url": "https://kenney.nl/assets/mini-shop",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney mini-shop",
+      "bytes": 82160,
+      "path_glb": "models/props/display-bread.glb",
+      "path_fbx": "models/props/display-bread.fbx",
+      "bytes_fbx": 86972,
+      "size_cm": [
+        70.0,
+        60.0,
+        50.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/display-small.glb",
+      "name": "Small display stand",
+      "category": "props",
+      "description": "Small market display stand / kiosk counter.",
+      "shots": [
+        3,
+        4,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/mini-shop",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney mini-shop",
+      "bytes": 63100,
+      "path_glb": "models/props/display-small.glb",
+      "path_fbx": "models/props/display-small.fbx",
+      "bytes_fbx": 68492,
+      "size_cm": [
+        39.114,
+        28.336,
+        83.256
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/shelf-boxes.glb",
+      "name": "Shelf with boxes",
+      "category": "props",
+      "description": "Shelf stacked with boxes — kiosk / stall shelving.",
+      "shots": [
+        3,
+        4,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/mini-shop",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney mini-shop",
+      "bytes": 111512,
+      "path_glb": "models/props/shelf-boxes.glb",
+      "path_fbx": "models/props/shelf-boxes.fbx",
+      "bytes_fbx": 117564,
+      "size_cm": [
+        80.0,
+        70.0,
+        85.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/shelf-bags.glb",
+      "name": "Shelf with bags",
+      "category": "props",
+      "description": "Shelf with bags.",
+      "shots": [
+        3,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/mini-shop",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney mini-shop",
+      "bytes": 131452,
+      "path_glb": "models/props/shelf-bags.glb",
+      "path_fbx": "models/props/shelf-bags.fbx",
+      "bytes_fbx": 136700,
+      "size_cm": [
+        80.0,
+        70.0,
+        86.338
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/cash-register.glb",
+      "name": "Cash register",
+      "category": "props",
+      "description": "Cash register for a stall or kiosk.",
+      "shots": [
+        3,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/mini-shop",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney mini-shop",
+      "bytes": 69224,
+      "path_glb": "models/props/cash-register.glb",
+      "path_fbx": "models/props/cash-register.fbx",
+      "bytes_fbx": 73900,
+      "size_cm": [
+        90.0,
+        85.0,
+        59.064
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/vending-machine.glb",
+      "name": "Vending machine",
+      "category": "props",
+      "description": "Vending machine for the roadside kiosk corner (shot 6). Recolor if you want it more Lagos/solarpunk.",
+      "shots": [
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/mini-arcade",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney mini-arcade",
+      "bytes": 24688,
+      "path_glb": "models/props/vending-machine.glb",
+      "path_fbx": "models/props/vending-machine.fbx",
+      "bytes_fbx": 34796,
+      "size_cm": [
+        50.0,
+        47.5,
+        75.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/barrel.glb",
+      "name": "Barrel",
+      "category": "props",
+      "description": "Wooden/metal barrel for market and roadside stacks.",
+      "shots": [
+        3,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/survival-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney survival-kit",
+      "bytes": 41376,
+      "path_glb": "models/props/barrel.glb",
+      "path_fbx": "models/props/barrel.fbx",
+      "bytes_fbx": 40940,
+      "size_cm": [
+        23.65,
+        23.65,
+        34.4
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/barrel-open.glb",
+      "name": "Open barrel",
+      "category": "props",
+      "description": "Open barrel.",
+      "shots": [
+        3,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/survival-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney survival-kit",
+      "bytes": 38896,
+      "path_glb": "models/props/barrel-open.glb",
+      "path_fbx": "models/props/barrel-open.fbx",
+      "bytes_fbx": 39564,
+      "size_cm": [
+        23.65,
+        23.65,
+        34.4
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/box.glb",
+      "name": "Crate / box",
+      "category": "props",
+      "description": "Wooden crate for stacked roadside and market goods.",
+      "shots": [
+        3,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/survival-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney survival-kit",
+      "bytes": 21152,
+      "path_glb": "models/props/box.glb",
+      "path_fbx": "models/props/box.fbx",
+      "bytes_fbx": 32924,
+      "size_cm": [
+        25.0,
+        25.0,
+        25.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/box-large.glb",
+      "name": "Large crate",
+      "category": "props",
+      "description": "Large crate.",
+      "shots": [
+        3,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/survival-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney survival-kit",
+      "bytes": 21168,
+      "path_glb": "models/props/box-large.glb",
+      "path_fbx": "models/props/box-large.fbx",
+      "bytes_fbx": 33020,
+      "size_cm": [
+        25.0,
+        50.0,
+        25.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/box-open.glb",
+      "name": "Open crate",
+      "category": "props",
+      "description": "Open crate.",
+      "shots": [
+        3,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/survival-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney survival-kit",
+      "bytes": 24236,
+      "path_glb": "models/props/box-open.glb",
+      "path_fbx": "models/props/box-open.fbx",
+      "bytes_fbx": 33948,
+      "size_cm": [
+        25.0,
+        25.0,
+        30.625
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/signpost.glb",
+      "name": "Signpost",
+      "category": "props",
+      "description": "Wooden signpost; swap in glowing market signage.",
+      "shots": [
+        3,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/survival-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney survival-kit",
+      "bytes": 13120,
+      "path_glb": "models/props/signpost.glb",
+      "path_fbx": "models/props/signpost.fbx",
+      "bytes_fbx": 28396,
+      "size_cm": [
+        21.412,
+        4.298,
+        46.008
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/signpost-single.glb",
+      "name": "Single signpost",
+      "category": "props",
+      "description": "Single-board signpost.",
+      "shots": [
+        3,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/survival-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney survival-kit",
+      "bytes": 11648,
+      "path_glb": "models/props/signpost-single.glb",
+      "path_fbx": "models/props/signpost-single.fbx",
+      "bytes_fbx": 27868,
+      "size_cm": [
+        20.864,
+        4.298,
+        46.008
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/tent.glb",
+      "name": "Canvas tent / stall",
+      "category": "props",
+      "description": "Canvas tent — usable as a market stall canopy.",
+      "shots": [
+        3
+      ],
+      "source_url": "https://kenney.nl/assets/survival-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney survival-kit",
+      "bytes": 21240,
+      "path_glb": "models/props/tent.glb",
+      "path_fbx": "models/props/tent.fbx",
+      "bytes_fbx": 32092,
+      "size_cm": [
+        56.076,
+        56.1,
+        49.137
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/tent-canvas.glb",
+      "name": "Canvas stall cover",
+      "category": "props",
+      "description": "Canvas cover piece for a stall.",
+      "shots": [
+        3
+      ],
+      "source_url": "https://kenney.nl/assets/survival-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney survival-kit",
+      "bytes": 24080,
+      "path_glb": "models/props/tent-canvas.glb",
+      "path_fbx": "models/props/tent-canvas.fbx",
+      "bytes_fbx": 33484,
+      "size_cm": [
+        56.076,
+        56.1,
+        49.137
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/fruit-banana.glb",
+      "name": "Banana",
+      "category": "props",
+      "description": "Banana for fruit stalls.",
+      "shots": [
+        3
+      ],
+      "source_url": "https://kenney.nl/assets/food-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney food-kit",
+      "bytes": 22716,
+      "path_glb": "models/props/fruit-banana.glb",
+      "path_fbx": "models/props/fruit-banana.fbx",
+      "bytes_fbx": 37468,
+      "size_cm": [
+        13.76,
+        62.987,
+        19.58
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/fruit-apple.glb",
+      "name": "Apple",
+      "category": "props",
+      "description": "Apple for fruit stalls.",
+      "shots": [
+        3
+      ],
+      "source_url": "https://kenney.nl/assets/food-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney food-kit",
+      "bytes": 24732,
+      "path_glb": "models/props/fruit-apple.glb",
+      "path_fbx": "models/props/fruit-apple.fbx",
+      "bytes_fbx": 37900,
+      "size_cm": [
+        19.629,
+        19.629,
+        19.075
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/fruit-orange.glb",
+      "name": "Orange",
+      "category": "props",
+      "description": "Orange for fruit stalls.",
+      "shots": [
+        3
+      ],
+      "source_url": "https://kenney.nl/assets/food-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney food-kit",
+      "bytes": 23536,
+      "path_glb": "models/props/fruit-orange.glb",
+      "path_fbx": "models/props/fruit-orange.fbx",
+      "bytes_fbx": 36220,
+      "size_cm": [
+        16.969,
+        16.969,
+        16.72
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/fruit-pineapple.glb",
+      "name": "Pineapple",
+      "category": "props",
+      "description": "Pineapple for fruit stalls.",
+      "shots": [
+        3
+      ],
+      "source_url": "https://kenney.nl/assets/food-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney food-kit",
+      "bytes": 30696,
+      "path_glb": "models/props/fruit-pineapple.glb",
+      "path_fbx": "models/props/fruit-pineapple.fbx",
+      "bytes_fbx": 41324,
+      "size_cm": [
+        24.116,
+        24.476,
+        47.159
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/fruit-watermelon.glb",
+      "name": "Watermelon",
+      "category": "props",
+      "description": "Watermelon for fruit stalls.",
+      "shots": [
+        3
+      ],
+      "source_url": "https://kenney.nl/assets/food-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney food-kit",
+      "bytes": 100596,
+      "path_glb": "models/props/fruit-watermelon.glb",
+      "path_fbx": "models/props/fruit-watermelon.fbx",
+      "bytes_fbx": 113740,
+      "size_cm": [
+        45.54,
+        45.54,
+        47.61
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/fruit-grapes.glb",
+      "name": "Grapes",
+      "category": "props",
+      "description": "Grapes for fruit stalls.",
+      "shots": [
+        3
+      ],
+      "source_url": "https://kenney.nl/assets/food-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney food-kit",
+      "bytes": 69452,
+      "path_glb": "models/props/fruit-grapes.glb",
+      "path_fbx": "models/props/fruit-grapes.fbx",
+      "bytes_fbx": 61628,
+      "size_cm": [
+        27.899,
+        23.86,
+        42.262
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/fruit-coconut.glb",
+      "name": "Coconut",
+      "category": "props",
+      "description": "Coconut for fruit stalls.",
+      "shots": [
+        3
+      ],
+      "source_url": "https://kenney.nl/assets/food-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney food-kit",
+      "bytes": 19412,
+      "path_glb": "models/props/fruit-coconut.glb",
+      "path_fbx": "models/props/fruit-coconut.fbx",
+      "bytes_fbx": 34348,
+      "size_cm": [
+        24.84,
+        24.84,
+        24.84
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/fruit-tomato.glb",
+      "name": "Tomato",
+      "category": "props",
+      "description": "Tomato for produce stalls.",
+      "shots": [
+        3
+      ],
+      "source_url": "https://kenney.nl/assets/food-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney food-kit",
+      "bytes": 24528,
+      "path_glb": "models/props/fruit-tomato.glb",
+      "path_fbx": "models/props/fruit-tomato.fbx",
+      "bytes_fbx": 36924,
+      "size_cm": [
+        16.969,
+        16.969,
+        14.266
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/bag.glb",
+      "name": "Bag",
+      "category": "props",
+      "description": "Shopping / produce bag.",
+      "shots": [
+        3,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/food-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney food-kit",
+      "bytes": 16788,
+      "path_glb": "models/props/bag.glb",
+      "path_fbx": "models/props/bag.fbx",
+      "bytes_fbx": 32844,
+      "size_cm": [
+        22.01,
+        41.18,
+        59.976
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/soda-bottle.glb",
+      "name": "Soda bottle",
+      "category": "props",
+      "description": "Soda bottle for kiosk shelves.",
+      "shots": [
+        3,
+        4,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/food-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney food-kit",
+      "bytes": 21756,
+      "path_glb": "models/props/soda-bottle.glb",
+      "path_fbx": "models/props/soda-bottle.fbx",
+      "bytes_fbx": 35468,
+      "size_cm": [
+        18.049,
+        15.631,
+        58.041
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/soda-can.glb",
+      "name": "Soda can",
+      "category": "props",
+      "description": "Soda can.",
+      "shots": [
+        3,
+        6
+      ],
+      "source_url": "https://kenney.nl/assets/food-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney food-kit",
+      "bytes": 26852,
+      "path_glb": "models/props/soda-can.glb",
+      "path_fbx": "models/props/soda-can.fbx",
+      "bytes_fbx": 38444,
+      "size_cm": [
+        22.464,
+        22.464,
+        35.06
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/props/food-barrel.glb",
+      "name": "Food barrel",
+      "category": "props",
+      "description": "Barrel from the food kit, useful at stalls.",
+      "shots": [
+        3
+      ],
+      "source_url": "https://kenney.nl/assets/food-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney food-kit",
+      "bytes": 37308,
+      "path_glb": "models/props/food-barrel.glb",
+      "path_fbx": "models/props/food-barrel.fbx",
+      "bytes_fbx": 39996,
+      "size_cm": [
+        76.0,
+        67.891,
+        67.891
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/palm.glb",
+      "name": "Palm tree",
+      "category": "nature",
+      "description": "Palm tree — hero foliage for shots 4, 5 and 8.",
+      "shots": [
+        4,
+        5,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 13128,
+      "path_glb": "models/nature/palm.glb",
+      "path_fbx": "models/nature/palm.fbx",
+      "bytes_fbx": 26860,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        93.549,
+        101.276,
+        151.459
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/palm-tall.glb",
+      "name": "Tall palm tree",
+      "category": "nature",
+      "description": "Tall palm tree.",
+      "shots": [
+        4,
+        5,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 15104,
+      "path_glb": "models/nature/palm-tall.glb",
+      "path_fbx": "models/nature/palm-tall.fbx",
+      "bytes_fbx": 27676,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        103.433,
+        103.433,
+        135.566
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/palm-short.glb",
+      "name": "Short palm tree",
+      "category": "nature",
+      "description": "Short palm tree, good as a blurred foreground element in shot 4.",
+      "shots": [
+        4,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 15108,
+      "path_glb": "models/nature/palm-short.glb",
+      "path_fbx": "models/nature/palm-short.fbx",
+      "bytes_fbx": 27884,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        103.433,
+        103.433,
+        105.623
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/palm-bend.glb",
+      "name": "Bending palm tree",
+      "category": "nature",
+      "description": "Leaning palm tree.",
+      "shots": [
+        4,
+        5,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 14332,
+      "path_glb": "models/nature/palm-bend.glb",
+      "path_fbx": "models/nature/palm-bend.fbx",
+      "bytes_fbx": 27820,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        93.549,
+        101.276,
+        137.991
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/palm-detailed-tall.glb",
+      "name": "Detailed tall palm",
+      "category": "nature",
+      "description": "More detailed tall palm.",
+      "shots": [
+        4,
+        5,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 27348,
+      "path_glb": "models/nature/palm-detailed-tall.glb",
+      "path_fbx": "models/nature/palm-detailed-tall.fbx",
+      "bytes_fbx": 43884,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        103.433,
+        103.433,
+        142.347
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/palm-detailed-short.glb",
+      "name": "Detailed short palm",
+      "category": "nature",
+      "description": "More detailed short palm.",
+      "shots": [
+        4,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 27352,
+      "path_glb": "models/nature/palm-detailed-short.glb",
+      "path_fbx": "models/nature/palm-detailed-short.fbx",
+      "bytes_fbx": 43836,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        103.433,
+        103.433,
+        112.404
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/tree-oak.glb",
+      "name": "Oak tree",
+      "category": "nature",
+      "description": "Broad tree for parks and roadside shade.",
+      "shots": [
+        6,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 14168,
+      "path_glb": "models/nature/tree-oak.glb",
+      "path_fbx": "models/nature/tree-oak.fbx",
+      "bytes_fbx": 30732,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        64.055,
+        73.965,
+        122.624
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/tree-detailed.glb",
+      "name": "Detailed tree",
+      "category": "nature",
+      "description": "Detailed deciduous tree.",
+      "shots": [
+        6,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 30736,
+      "path_glb": "models/nature/tree-detailed.glb",
+      "path_fbx": "models/nature/tree-detailed.fbx",
+      "bytes_fbx": 45404,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        84.712,
+        76.16,
+        133.242
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/tree-tall.glb",
+      "name": "Tall tree",
+      "category": "nature",
+      "description": "Tall tree.",
+      "shots": [
+        6,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 6512,
+      "path_glb": "models/nature/tree-tall.glb",
+      "path_fbx": "models/nature/tree-tall.fbx",
+      "bytes_fbx": 21324,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        39.958,
+        46.14,
+        168.772
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/tree-default.glb",
+      "name": "Default tree",
+      "category": "nature",
+      "description": "General-purpose tree.",
+      "shots": [
+        2,
+        6,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 8944,
+      "path_glb": "models/nature/tree-default.glb",
+      "path_fbx": "models/nature/tree-default.fbx",
+      "bytes_fbx": 24348,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        75.5,
+        65.385,
+        170.789
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/tree-simple.glb",
+      "name": "Simple tree",
+      "category": "nature",
+      "description": "Simple stylized tree.",
+      "shots": [
+        2,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 6012,
+      "path_glb": "models/nature/tree-simple.glb",
+      "path_fbx": "models/nature/tree-simple.fbx",
+      "bytes_fbx": 20540,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        35.464,
+        40.95,
+        151.944
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/tree-fat.glb",
+      "name": "Full / fat tree",
+      "category": "nature",
+      "description": "Full-canopy tree.",
+      "shots": [
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 5092,
+      "path_glb": "models/nature/tree-fat.glb",
+      "path_fbx": "models/nature/tree-fat.fbx",
+      "bytes_fbx": 19804,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        75.5,
+        65.385,
+        115.039
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/tree-cone.glb",
+      "name": "Conical tree",
+      "category": "nature",
+      "description": "Conical / pine-like tree.",
+      "shots": [
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 10432,
+      "path_glb": "models/nature/tree-cone.glb",
+      "path_fbx": "models/nature/tree-cone.fbx",
+      "bytes_fbx": 25212,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        52.966,
+        52.966,
+        143.033
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/tree-small.glb",
+      "name": "Small tree",
+      "category": "nature",
+      "description": "Small tree or sapling.",
+      "shots": [
+        2,
+        6,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 6008,
+      "path_glb": "models/nature/tree-small.glb",
+      "path_fbx": "models/nature/tree-small.fbx",
+      "bytes_fbx": 20540,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        35.464,
+        40.95,
+        111.004
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/bush.glb",
+      "name": "Bush",
+      "category": "nature",
+      "description": "Bush / shrub.",
+      "shots": [
+        2,
+        6,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 4092,
+      "path_glb": "models/nature/bush.glb",
+      "path_fbx": "models/nature/bush.fbx",
+      "bytes_fbx": 17484,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        39.6,
+        39.6,
+        24.444
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/bush-large.glb",
+      "name": "Large bush",
+      "category": "nature",
+      "description": "Large bush.",
+      "shots": [
+        6,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 6128,
+      "path_glb": "models/nature/bush-large.glb",
+      "path_fbx": "models/nature/bush-large.fbx",
+      "bytes_fbx": 20060,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        37.431,
+        33.569,
+        24.293
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/bush-detailed.glb",
+      "name": "Detailed bush",
+      "category": "nature",
+      "description": "Detailed bush.",
+      "shots": [
+        2,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 9844,
+      "path_glb": "models/nature/bush-detailed.glb",
+      "path_fbx": "models/nature/bush-detailed.fbx",
+      "bytes_fbx": 21452,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        60.254,
+        60.254,
+        36.041
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/bush-small.glb",
+      "name": "Small bush",
+      "category": "nature",
+      "description": "Small bush.",
+      "shots": [
+        2,
+        6,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 2884,
+      "path_glb": "models/nature/bush-small.glb",
+      "path_fbx": "models/nature/bush-small.fbx",
+      "bytes_fbx": 16940,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        38.298,
+        33.634,
+        20.729
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/bush-triangle.glb",
+      "name": "Triangle bush",
+      "category": "nature",
+      "description": "Stylized triangular bush.",
+      "shots": [
+        2,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 3636,
+      "path_glb": "models/nature/bush-triangle.glb",
+      "path_fbx": "models/nature/bush-triangle.fbx",
+      "bytes_fbx": 17996,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        36.443,
+        41.359,
+        29.554
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/plant-flat-tall.glb",
+      "name": "Tall flat plant",
+      "category": "nature",
+      "description": "Tall leafy plant, useful as vines / foliage clusters.",
+      "shots": [
+        1,
+        2,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 3168,
+      "path_glb": "models/nature/plant-flat-tall.glb",
+      "path_fbx": "models/nature/plant-flat-tall.fbx",
+      "bytes_fbx": 18076,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        27.166,
+        27.166,
+        28.431
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/plant-flat-short.glb",
+      "name": "Short flat plant",
+      "category": "nature",
+      "description": "Short leafy plant.",
+      "shots": [
+        2,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 3604,
+      "path_glb": "models/nature/plant-flat-short.glb",
+      "path_fbx": "models/nature/plant-flat-short.fbx",
+      "bytes_fbx": 18652,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        27.762,
+        27.762,
+        23.508
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/flower-red.glb",
+      "name": "Red flower",
+      "category": "nature",
+      "description": "Red flower clump.",
+      "shots": [
+        2,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 6628,
+      "path_glb": "models/nature/flower-red.glb",
+      "path_fbx": "models/nature/flower-red.fbx",
+      "bytes_fbx": 20844,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        15.91,
+        18.106,
+        29.25
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/flower-yellow.glb",
+      "name": "Yellow flower",
+      "category": "nature",
+      "description": "Yellow flower clump.",
+      "shots": [
+        2,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 6640,
+      "path_glb": "models/nature/flower-yellow.glb",
+      "path_fbx": "models/nature/flower-yellow.fbx",
+      "bytes_fbx": 20812,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        15.91,
+        18.106,
+        19.25
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/flower-purple.glb",
+      "name": "Purple flower",
+      "category": "nature",
+      "description": "Purple flower clump.",
+      "shots": [
+        2,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 6632,
+      "path_glb": "models/nature/flower-purple.glb",
+      "path_fbx": "models/nature/flower-purple.fbx",
+      "bytes_fbx": 20844,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        15.91,
+        18.106,
+        24.25
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/flower-red-b.glb",
+      "name": "Red flower B",
+      "category": "nature",
+      "description": "Red flower variant.",
+      "shots": [
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 7596,
+      "path_glb": "models/nature/flower-red-b.glb",
+      "path_fbx": "models/nature/flower-red-b.fbx",
+      "bytes_fbx": 22988,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        20.733,
+        23.918,
+        25.85
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/flower-yellow-b.glb",
+      "name": "Yellow flower B",
+      "category": "nature",
+      "description": "Yellow flower variant.",
+      "shots": [
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 10776,
+      "path_glb": "models/nature/flower-yellow-b.glb",
+      "path_fbx": "models/nature/flower-yellow-b.fbx",
+      "bytes_fbx": 25372,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        20.733,
+        23.918,
+        15.85
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/grass-large.glb",
+      "name": "Large grass clump",
+      "category": "nature",
+      "description": "Large stylized grass clump for parks and roadsides.",
+      "shots": [
+        2,
+        6,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 18180,
+      "path_glb": "models/nature/grass-large.glb",
+      "path_fbx": "models/nature/grass-large.fbx",
+      "bytes_fbx": 26732,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        40.9,
+        40.789,
+        25.4
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/grass-leafs.glb",
+      "name": "Leafy grass",
+      "category": "nature",
+      "description": "Leafy grass clump.",
+      "shots": [
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 4296,
+      "path_glb": "models/nature/grass-leafs.glb",
+      "path_fbx": "models/nature/grass-leafs.fbx",
+      "bytes_fbx": 19692,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        23.449,
+        25.731,
+        14.25
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/grass-leafs-large.glb",
+      "name": "Large leafy grass",
+      "category": "nature",
+      "description": "Larger leafy grass clump.",
+      "shots": [
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 13672,
+      "path_glb": "models/nature/grass-leafs-large.glb",
+      "path_fbx": "models/nature/grass-leafs-large.fbx",
+      "bytes_fbx": 30444,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        47.59,
+        48.731,
+        14.25
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/ground-grass.glb",
+      "name": "Grass ground patch",
+      "category": "nature",
+      "description": "Ground plane patch of grass.",
+      "shots": [
+        6,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 1216,
+      "path_glb": "models/nature/ground-grass.glb",
+      "path_fbx": "models/nature/ground-grass.fbx",
+      "bytes_fbx": 15852,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        100.0,
+        100.0,
+        0.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/platform-grass.glb",
+      "name": "Grass platform",
+      "category": "nature",
+      "description": "Raised grass platform / mound.",
+      "shots": [
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 12076,
+      "path_glb": "models/nature/platform-grass.glb",
+      "path_fbx": "models/nature/platform-grass.fbx",
+      "bytes_fbx": 30524,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        89.32,
+        72.392,
+        8.25
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/patch-grass.glb",
+      "name": "Grass patch",
+      "category": "nature",
+      "description": "Small grass patch.",
+      "shots": [
+        6,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/survival-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney survival-kit",
+      "bytes": 10720,
+      "path_glb": "models/nature/patch-grass.glb",
+      "path_fbx": "models/nature/patch-grass.fbx",
+      "bytes_fbx": 27292,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        120.0,
+        120.0,
+        0.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/patch-grass-large.glb",
+      "name": "Large grass patch",
+      "category": "nature",
+      "description": "Larger grass patch.",
+      "shots": [
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/survival-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney survival-kit",
+      "bytes": 10736,
+      "path_glb": "models/nature/patch-grass-large.glb",
+      "path_fbx": "models/nature/patch-grass-large.fbx",
+      "bytes_fbx": 27388,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        140.0,
+        120.0,
+        0.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/rock-large-a.glb",
+      "name": "Large rock A",
+      "category": "nature",
+      "description": "Large rock.",
+      "shots": [
+        5,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 7072,
+      "path_glb": "models/nature/rock-large-a.glb",
+      "path_fbx": "models/nature/rock-large-a.fbx",
+      "bytes_fbx": 23564,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        78.491,
+        101.546,
+        25.978
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/rock-large-c.glb",
+      "name": "Large rock C",
+      "category": "nature",
+      "description": "Large rock variant.",
+      "shots": [
+        5,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 6528,
+      "path_glb": "models/nature/rock-large-c.glb",
+      "path_fbx": "models/nature/rock-large-c.fbx",
+      "bytes_fbx": 22684,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        106.441,
+        101.566,
+        32.111
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/rock-small-a.glb",
+      "name": "Small rock A",
+      "category": "nature",
+      "description": "Small rock.",
+      "shots": [
+        6,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 2588,
+      "path_glb": "models/nature/rock-small-a.glb",
+      "path_fbx": "models/nature/rock-small-a.fbx",
+      "bytes_fbx": 18220,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        36.08,
+        36.08,
+        19.122
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/rock-small-c.glb",
+      "name": "Small rock C",
+      "category": "nature",
+      "description": "Small rock variant.",
+      "shots": [
+        6,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 2588,
+      "path_glb": "models/nature/rock-small-c.glb",
+      "path_fbx": "models/nature/rock-small-c.fbx",
+      "bytes_fbx": 18268,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        36.08,
+        36.08,
+        12.267
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/rock-tall-a.glb",
+      "name": "Tall rock A",
+      "category": "nature",
+      "description": "Tall rock / boulder.",
+      "shots": [
+        5,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 11404,
+      "path_glb": "models/nature/rock-tall-a.glb",
+      "path_fbx": "models/nature/rock-tall-a.fbx",
+      "bytes_fbx": 28572,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        98.307,
+        68.321,
+        99.593
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/nature/rock-tall-c.glb",
+      "name": "Tall rock C",
+      "category": "nature",
+      "description": "Tall rock variant.",
+      "shots": [
+        5,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 4512,
+      "path_glb": "models/nature/rock-tall-c.glb",
+      "path_fbx": "models/nature/rock-tall-c.fbx",
+      "bytes_fbx": 20780,
+      "scale_note": "Kenney kit is toy-scale (often ~1–2 m). Scale up for cinematic use, or prefer hd-* / Megascans in the foreground.",
+      "size_cm": [
+        45.619,
+        43.651,
+        78.294
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/boats/boat-row-small.glb",
+      "name": "Small rowboat",
+      "category": "boats",
+      "description": "Small rowboat for the lagoon under the bridge.",
+      "shots": [
+        5,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/watercraft-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney watercraft-kit",
+      "bytes": 25716,
+      "path_glb": "models/boats/boat-row-small.glb",
+      "path_fbx": "models/boats/boat-row-small.fbx",
+      "bytes_fbx": 39084,
+      "size_cm": [
+        274.854,
+        237.215,
+        84.77
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/boats/boat-row-large.glb",
+      "name": "Large rowboat",
+      "category": "boats",
+      "description": "Larger rowboat.",
+      "shots": [
+        5
+      ],
+      "source_url": "https://kenney.nl/assets/watercraft-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney watercraft-kit",
+      "bytes": 24108,
+      "path_glb": "models/boats/boat-row-large.glb",
+      "path_fbx": "models/boats/boat-row-large.fbx",
+      "bytes_fbx": 37980,
+      "size_cm": [
+        274.854,
+        285.215,
+        84.77
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/boats/boat-fishing-small.glb",
+      "name": "Small fishing boat",
+      "category": "boats",
+      "description": "Small fishing boat for the lagoon.",
+      "shots": [
+        5
+      ],
+      "source_url": "https://kenney.nl/assets/watercraft-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney watercraft-kit",
+      "bytes": 31508,
+      "path_glb": "models/boats/boat-fishing-small.glb",
+      "path_fbx": "models/boats/boat-fishing-small.fbx",
+      "bytes_fbx": 38348,
+      "size_cm": [
+        178.5,
+        387.0,
+        260.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/boats/boat-sail-a.glb",
+      "name": "Sailboat A",
+      "category": "boats",
+      "description": "Small sailboat.",
+      "shots": [
+        5
+      ],
+      "source_url": "https://kenney.nl/assets/watercraft-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney watercraft-kit",
+      "bytes": 43432,
+      "path_glb": "models/boats/boat-sail-a.glb",
+      "path_fbx": "models/boats/boat-sail-a.fbx",
+      "bytes_fbx": 45596,
+      "size_cm": [
+        178.5,
+        377.0,
+        473.914
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/boats/boat-sail-b.glb",
+      "name": "Sailboat B",
+      "category": "boats",
+      "description": "Small sailboat variant.",
+      "shots": [
+        5
+      ],
+      "source_url": "https://kenney.nl/assets/watercraft-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney watercraft-kit",
+      "bytes": 46312,
+      "path_glb": "models/boats/boat-sail-b.glb",
+      "path_fbx": "models/boats/boat-sail-b.fbx",
+      "bytes_fbx": 46604,
+      "size_cm": [
+        178.5,
+        407.0,
+        448.086
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/boats/boat-tug-a.glb",
+      "name": "Tugboat",
+      "category": "boats",
+      "description": "Small tug / work boat.",
+      "shots": [
+        5
+      ],
+      "source_url": "https://kenney.nl/assets/watercraft-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney watercraft-kit",
+      "bytes": 49600,
+      "path_glb": "models/boats/boat-tug-a.glb",
+      "path_fbx": "models/boats/boat-tug-a.fbx",
+      "bytes_fbx": 48140,
+      "size_cm": [
+        178.5,
+        347.0,
+        223.7
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/boats/boat-house-a.glb",
+      "name": "Houseboat",
+      "category": "boats",
+      "description": "Small houseboat for the lagoon.",
+      "shots": [
+        5
+      ],
+      "source_url": "https://kenney.nl/assets/watercraft-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney watercraft-kit",
+      "bytes": 46868,
+      "path_glb": "models/boats/boat-house-a.glb",
+      "path_fbx": "models/boats/boat-house-a.fbx",
+      "bytes_fbx": 42284,
+      "size_cm": [
+        267.75,
+        464.4,
+        217.25
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/boats/ship-small.glb",
+      "name": "Small ship",
+      "category": "boats",
+      "description": "Small ship, useful in the far lagoon background.",
+      "shots": [
+        5
+      ],
+      "source_url": "https://kenney.nl/assets/watercraft-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney watercraft-kit",
+      "bytes": 151108,
+      "path_glb": "models/boats/ship-small.glb",
+      "path_fbx": "models/boats/ship-small.fbx",
+      "bytes_fbx": 109196,
+      "size_cm": [
+        480.0,
+        1060.0,
+        996.352
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/boats/canoe.glb",
+      "name": "Canoe",
+      "category": "boats",
+      "description": "Canoe for the lagoon.",
+      "shots": [
+        5,
+        8
+      ],
+      "source_url": "https://kenney.nl/assets/nature-kit",
+      "author": "Kenney",
+      "license": "CC0 1.0",
+      "pack": "Kenney nature-kit",
+      "bytes": 15320,
+      "path_glb": "models/boats/canoe.glb",
+      "path_fbx": "models/boats/canoe.fbx",
+      "bytes_fbx": 33644,
+      "size_cm": [
+        30.0,
+        115.0,
+        18.25
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/vehicles/motorcycle.glb",
+      "name": "Cartoony motorcycle",
+      "category": "vehicles",
+      "description": "Stylized motorcycle — restyle as a glowing electric okada for shot 4.",
+      "shots": [
+        4
+      ],
+      "source_url": "https://poly.pizza/m/j20srJUjpB",
+      "author": "AliceCassie",
+      "license": "CC0 1.0",
+      "notes": "via Poly Pizza",
+      "bytes": 91144,
+      "path_glb": "models/vehicles/motorcycle.glb",
+      "path_fbx": "models/vehicles/motorcycle.fbx",
+      "bytes_fbx": 102316,
+      "scale_note": "Slightly small (~1.0 m long). Scale to a real okada, about 2.0 m long.",
+      "size_cm": [
+        20.809,
+        103.905,
+        48.762
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/vehicles/bicycle.glb",
+      "name": "Bicycle",
+      "category": "vehicles",
+      "description": "Bicycle to lean against a fence in shot 6.",
+      "shots": [
+        6
+      ],
+      "source_url": "https://poly.pizza/m/axc03j3xKfz",
+      "author": "jeremy",
+      "license": "CC-BY 3.0",
+      "notes": "via Poly Pizza. Attribution required.",
+      "bytes": 122472,
+      "path_glb": "models/vehicles/bicycle.glb",
+      "path_fbx": "models/vehicles/bicycle.fbx",
+      "bytes_fbx": 91852,
+      "scale_note": "Source scale is wrong (~20 m long). Rescale to ~1.8 m long, ~1.1 m tall.",
+      "size_cm": [
+        545.686,
+        1957.674,
+        995.862
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/vehicles/school-bus.glb",
+      "name": "School bus",
+      "category": "vehicles",
+      "description": "Bus silhouette — restyle as a yellow Lagos danfo (or use the Kenney van if you prefer a cleaner low-poly look).",
+      "shots": [
+        1,
+        7
+      ],
+      "source_url": "https://poly.pizza/m/2_1dZHNPJqJ",
+      "author": "Kyle Li",
+      "license": "CC-BY 3.0",
+      "notes": "via Poly Pizza (made in Tinkercad). Attribution required.",
+      "bytes": 327036,
+      "path_glb": "models/vehicles/school-bus.glb",
+      "path_fbx": "models/vehicles/school-bus.fbx",
+      "bytes_fbx": 685132,
+      "scale_note": "Source scale is wrong (~118 m tall). Rescale / reorient to a ~7.5 m midibus, or prefer van.fbx as the danfo body.",
+      "size_cm": [
+        6843.4,
+        5703.9,
+        11850.0
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/animals/bird.glb",
+      "name": "Bird",
+      "category": "animals",
+      "description": "Low-poly bird (jay). Duplicate, recolor and pose as egrets flying across shot 8, and as smaller birds elsewhere.",
+      "shots": [
+        1,
+        8
+      ],
+      "source_url": "https://poly.pizza/m/gYYC0gYMnw",
+      "author": "Quaternius",
+      "license": "CC0 1.0",
+      "notes": "via Poly Pizza; original pack at https://quaternius.com/",
+      "bytes": 48544,
+      "path_glb": "models/animals/bird.glb",
+      "path_fbx": "models/animals/bird.fbx",
+      "bytes_fbx": 86636,
+      "size_cm": [
+        76.461,
+        63.474,
+        38.625
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "models/animals/butterfly.glb",
+      "name": "Butterfly",
+      "category": "animals",
+      "description": "Butterfly for the roadside corner (shot 6). Recolor freely.",
+      "shots": [
+        6,
+        8
+      ],
+      "source_url": "https://poly.pizza/m/2ZwYwkTVnfG",
+      "author": "Poly by Google",
+      "license": "CC-BY 3.0",
+      "notes": "via Poly Pizza (Google Poly archive). Attribution required.",
+      "bytes": 110020,
+      "path_glb": "models/animals/butterfly.glb",
+      "path_fbx": "models/animals/butterfly.fbx",
+      "bytes_fbx": 142460,
+      "scale_note": "Oversized (~1.5 m). Scale to ~8–12 cm.",
+      "size_cm": [
+        155.1,
+        109.161,
+        92.324
+      ],
+      "pivot": "base-center",
+      "up": "Z",
+      "units": "cm (FBX)"
+    },
+    {
+      "path": "fonts/Montserrat-Light.ttf",
+      "name": "Montserrat Light",
+      "category": "fonts",
+      "description": "Thin, clean sans-serif for credit titles and the end card. Use this OFL font for all on-screen text.",
+      "shots": [
+        1,
+        2,
+        4,
+        7,
+        8
+      ],
+      "source_url": "https://github.com/JulietaUla/Montserrat",
+      "author": "Julieta Ulanovsky, Sol Matas, Juan Pablo del Peral, Jacques Le Bailly and contributors",
+      "license": "OFL 1.1",
+      "notes": "License file at fonts/OFL.txt. Also listed at https://fonts.google.com/specimen/Montserrat",
+      "bytes": 444356
+    },
+    {
+      "path": "models/city/hd-modular-chainlink-fence/",
+      "path_fbx": "models/city/hd-modular-chainlink-fence/hd-modular-chainlink-fence.fbx",
+      "path_gltf": "models/city/hd-modular-chainlink-fence/modular_chainlink_fence_2k.gltf",
+      "name": "Modular Chainlink Fence",
+      "category": "city",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail modular chain-link fence — roadside corner and overpass edges (shots 1, 6).",
+      "shots": [
+        1,
+        6
+      ],
+      "source_url": "https://polyhaven.com/a/modular_chainlink_fence",
+      "author": "James Ray Cock, Amal Kumar",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 5093788,
+      "size_cm": [
+        811.5,
+        214.915,
+        252.291
+      ],
+      "bytes": 21314933
+    },
+    {
+      "path": "models/city/hd-modular-electricity-poles/",
+      "path_fbx": "models/city/hd-modular-electricity-poles/hd-modular-electricity-poles.fbx",
+      "path_gltf": "models/city/hd-modular-electricity-poles/modular_electricity_poles_2k.gltf",
+      "name": "Modular Electricity Poles",
+      "category": "city",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail modular electricity poles and wires — Lagos roadside and market streets (shots 3, 4, 6).",
+      "shots": [
+        3,
+        4,
+        6
+      ],
+      "source_url": "https://polyhaven.com/a/modular_electricity_poles",
+      "author": "James Ray Cock",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 13707404,
+      "size_cm": [
+        1311.914,
+        195.727,
+        700.0
+      ],
+      "bytes": 39626749
+    },
+    {
+      "path": "models/city/hd-modular-urban-apartments-facade/",
+      "path_fbx": "models/city/hd-modular-urban-apartments-facade/hd-modular-urban-apartments-facade.fbx",
+      "path_gltf": "models/city/hd-modular-urban-apartments-facade/modular_urban_apartments_facade_2k.gltf",
+      "name": "Modular Urban Apartments Facade",
+      "category": "city",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail modular mid-rise apartment facade — kitbash Lagos apartment blocks and the skyline (shots 1, 2, 5, 7).",
+      "shots": [
+        1,
+        2,
+        5,
+        7
+      ],
+      "source_url": "https://polyhaven.com/a/modular_urban_apartments_facade",
+      "author": "James Ray Cock",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 10519052,
+      "size_cm": [
+        5153.0,
+        666.5,
+        1700.0
+      ],
+      "bytes": 51946452
+    },
+    {
+      "path": "models/city/hd-modular-wooden-pier/",
+      "path_fbx": "models/city/hd-modular-wooden-pier/hd-modular-wooden-pier.fbx",
+      "path_gltf": "models/city/hd-modular-wooden-pier/modular_wooden_pier_2k.gltf",
+      "name": "Modular Wooden Pier",
+      "category": "city",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail modular wooden pier — lagoon edge and park shoreline (shots 5, 8).",
+      "shots": [
+        5,
+        8
+      ],
+      "source_url": "https://polyhaven.com/a/modular_wooden_pier",
+      "author": "Rico Cilliers",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 5427084,
+      "size_cm": [
+        310.156,
+        1902.637,
+        751.568
+      ],
+      "bytes": 28485827
+    },
+    {
+      "path": "models/city/hd-power-box-01/",
+      "path_fbx": "models/city/hd-power-box-01/hd-power-box-01.fbx",
+      "path_gltf": "models/city/hd-power-box-01/power_box_01_2k.gltf",
+      "name": "Power Box 01",
+      "category": "city",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail electrical power box — roadside and market dressing.",
+      "shots": [
+        3,
+        6
+      ],
+      "source_url": "https://polyhaven.com/a/power_box_01",
+      "author": "Rico Cilliers, Yann Kervran",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 1352652,
+      "size_cm": [
+        46.132,
+        39.899,
+        50.314
+      ],
+      "bytes": 9768840
+    },
+    {
+      "path": "models/city/hd-street-lamp-01/",
+      "path_fbx": "models/city/hd-street-lamp-01/hd-street-lamp-01.fbx",
+      "path_gltf": "models/city/hd-street-lamp-01/street_lamp_01_2k.gltf",
+      "name": "Street Lamp 01",
+      "category": "city",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail street lamp, real-world scale (~3.9 m).",
+      "shots": [
+        3,
+        4,
+        6
+      ],
+      "source_url": "https://polyhaven.com/a/street_lamp_01",
+      "author": "Josh Dean",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 2053340,
+      "size_cm": [
+        70.434,
+        38.649,
+        387.056
+      ],
+      "bytes": 7962798
+    },
+    {
+      "path": "models/city/hd-utility-box-02/",
+      "path_fbx": "models/city/hd-utility-box-02/hd-utility-box-02.fbx",
+      "path_gltf": "models/city/hd-utility-box-02/utility_box_02_2k.gltf",
+      "name": "Utility Box 02",
+      "category": "city",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail roadside utility box.",
+      "shots": [
+        3,
+        6
+      ],
+      "source_url": "https://polyhaven.com/a/utility_box_02",
+      "author": "James Ray Cock",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 401708,
+      "size_cm": [
+        92.0,
+        43.2,
+        112.033
+      ],
+      "bytes": 7498972
+    },
+    {
+      "path": "models/nature/hd-calathea-orbifolia-01/",
+      "path_fbx": "models/nature/hd-calathea-orbifolia-01/hd-calathea-orbifolia-01.fbx",
+      "path_gltf": "models/nature/hd-calathea-orbifolia-01/calathea_orbifolia_01_2k.gltf",
+      "name": "Calathea Orbifolia 01",
+      "category": "nature",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail calathea — rooftop pots and lush corners (shot 2).",
+      "shots": [
+        2
+      ],
+      "source_url": "https://polyhaven.com/a/calathea_orbifolia_01",
+      "author": "Rob Tuytel, Rico Cilliers",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 1009772,
+      "size_cm": [
+        249.151,
+        119.359,
+        42.429
+      ],
+      "bytes": 6757681
+    },
+    {
+      "path": "models/nature/hd-fern-02/",
+      "path_fbx": "models/nature/hd-fern-02/hd-fern-02.fbx",
+      "path_gltf": "models/nature/hd-fern-02/fern_02_2k.gltf",
+      "name": "Fern 02",
+      "category": "nature",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail tropical fern — undergrowth, rooftop and park (shots 2, 8).",
+      "shots": [
+        2,
+        8
+      ],
+      "source_url": "https://polyhaven.com/a/fern_02",
+      "author": "Rob Tuytel, Rico Cilliers",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 427212,
+      "size_cm": [
+        197.253,
+        172.403,
+        42.769
+      ],
+      "bytes": 3820699
+    },
+    {
+      "path": "models/nature/hd-grass-bermuda-01/",
+      "path_fbx": "models/nature/hd-grass-bermuda-01/hd-grass-bermuda-01.fbx",
+      "path_gltf": "models/nature/hd-grass-bermuda-01/grass_bermuda_01_2k.gltf",
+      "name": "Grass Bermuda 01",
+      "category": "nature",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail Bermuda grass clump — park and roadside (shots 6, 8). Prefer Megascans for wide lawns.",
+      "shots": [
+        6,
+        8
+      ],
+      "source_url": "https://polyhaven.com/a/grass_bermuda_01",
+      "author": "Rico Cilliers",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 161388,
+      "size_cm": [
+        168.648,
+        14.219,
+        15.826
+      ],
+      "bytes": 4934605
+    },
+    {
+      "path": "models/nature/hd-grass-medium-01/",
+      "path_fbx": "models/nature/hd-grass-medium-01/hd-grass-medium-01.fbx",
+      "path_gltf": "models/nature/hd-grass-medium-01/grass_medium_01_2k.gltf",
+      "name": "Grass Medium 01",
+      "category": "nature",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail medium grass clump — park and verge (shots 6, 8).",
+      "shots": [
+        6,
+        8
+      ],
+      "source_url": "https://polyhaven.com/a/grass_medium_01",
+      "author": "Rob Tuytel, Rico Cilliers",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 2127788,
+      "size_cm": [
+        560.498,
+        32.656,
+        34.258
+      ],
+      "bytes": 10115071
+    },
+    {
+      "path": "models/nature/hd-rock-moss-set-01/",
+      "path_fbx": "models/nature/hd-rock-moss-set-01/hd-rock-moss-set-01.fbx",
+      "path_gltf": "models/nature/hd-rock-moss-set-01/rock_moss_set_01_2k.gltf",
+      "name": "Rock Moss Set 01",
+      "category": "nature",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail mossy rock set — lagoon edge dressing (shots 5, 8).",
+      "shots": [
+        5,
+        8
+      ],
+      "source_url": "https://polyhaven.com/a/rock_moss_set_01",
+      "author": "Kless Gyzen",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 4539036,
+      "size_cm": [
+        800.46,
+        694.876,
+        176.832
+      ],
+      "bytes": 7799830
+    },
+    {
+      "path": "models/nature/hd-shrub-01/",
+      "path_fbx": "models/nature/hd-shrub-01/hd-shrub-01.fbx",
+      "path_gltf": "models/nature/hd-shrub-01/shrub_01_2k.gltf",
+      "name": "Shrub 01",
+      "category": "nature",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail shrub — roadside and park (shots 6, 8).",
+      "shots": [
+        6,
+        8
+      ],
+      "source_url": "https://polyhaven.com/a/shrub_01",
+      "author": "Rico Cilliers",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 9705660,
+      "size_cm": [
+        258.666,
+        21.856,
+        39.597
+      ],
+      "bytes": 20461369
+    },
+    {
+      "path": "models/props/hd-bananas/",
+      "path_fbx": "models/props/hd-bananas/hd-bananas.fbx",
+      "path_gltf": "models/props/hd-bananas/bananas_2k.gltf",
+      "name": "Bananas",
+      "category": "props",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail banana bunch for market stalls (shot 3).",
+      "shots": [
+        3
+      ],
+      "source_url": "https://polyhaven.com/a/bananas",
+      "author": "Alexander Shulha",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 2849612,
+      "size_cm": [
+        60.002,
+        24.405,
+        17.877
+      ],
+      "bytes": 8418796
+    },
+    {
+      "path": "models/props/hd-barrel-01/",
+      "path_fbx": "models/props/hd-barrel-01/hd-barrel-01.fbx",
+      "path_gltf": "models/props/hd-barrel-01/Barrel_01_2k.gltf",
+      "name": "Barrel 01",
+      "category": "props",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail barrel — roadside and market dressing.",
+      "shots": [
+        3,
+        6
+      ],
+      "source_url": "https://polyhaven.com/a/Barrel_01",
+      "author": "Jorge Camacho",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 190364,
+      "size_cm": [
+        56.304,
+        56.304,
+        88.0
+      ],
+      "bytes": 2577784
+    },
+    {
+      "path": "models/props/hd-cardboard-box-01/",
+      "path_fbx": "models/props/hd-cardboard-box-01/hd-cardboard-box-01.fbx",
+      "path_gltf": "models/props/hd-cardboard-box-01/cardboard_box_01_2k.gltf",
+      "name": "Cardboard Box 01",
+      "category": "props",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail cardboard box.",
+      "shots": [
+        3,
+        6
+      ],
+      "source_url": "https://polyhaven.com/a/cardboard_box_01",
+      "author": "Rahul Chaudhary",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 1017596,
+      "size_cm": [
+        38.702,
+        51.587,
+        34.18
+      ],
+      "bytes": 7705628
+    },
+    {
+      "path": "models/props/hd-coffeecart-01/",
+      "path_fbx": "models/props/hd-coffeecart-01/hd-coffeecart-01.fbx",
+      "path_gltf": "models/props/hd-coffeecart-01/CoffeeCart_01_2k.gltf",
+      "name": "Coffee Cart 01",
+      "category": "props",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail street vendor cart — restyle as a Lagos roadside / market stall (shots 3, 6).",
+      "shots": [
+        3,
+        6
+      ],
+      "source_url": "https://polyhaven.com/a/CoffeeCart_01",
+      "author": "Joe Seabuhr",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 1817116,
+      "size_cm": [
+        216.764,
+        107.329,
+        171.767
+      ],
+      "bytes": 5651091
+    },
+    {
+      "path": "models/props/hd-food-apple-01/",
+      "path_fbx": "models/props/hd-food-apple-01/hd-food-apple-01.fbx",
+      "path_gltf": "models/props/hd-food-apple-01/food_apple_01_2k.gltf",
+      "name": "Food Apple 01",
+      "category": "props",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail apple for market stalls (shot 3).",
+      "shots": [
+        3
+      ],
+      "source_url": "https://polyhaven.com/a/food_apple_01",
+      "author": "Oliver Harries",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 595212,
+      "size_cm": [
+        9.756,
+        9.59,
+        8.539
+      ],
+      "bytes": 1795089
+    },
+    {
+      "path": "models/props/hd-food-avocado-01/",
+      "path_fbx": "models/props/hd-food-avocado-01/hd-food-avocado-01.fbx",
+      "path_gltf": "models/props/hd-food-avocado-01/food_avocado_01_2k.gltf",
+      "name": "Food Avocado 01",
+      "category": "props",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail avocado for market stalls (shot 3).",
+      "shots": [
+        3
+      ],
+      "source_url": "https://polyhaven.com/a/food_avocado_01",
+      "author": "Oliver Harries",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 656348,
+      "size_cm": [
+        9.519,
+        9.457,
+        14.323
+      ],
+      "bytes": 2250597
+    },
+    {
+      "path": "models/props/hd-food-lime-01/",
+      "path_fbx": "models/props/hd-food-lime-01/hd-food-lime-01.fbx",
+      "path_gltf": "models/props/hd-food-lime-01/food_lime_01_2k.gltf",
+      "name": "Food Lime 01",
+      "category": "props",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail lime for market stalls (shot 3).",
+      "shots": [
+        3
+      ],
+      "source_url": "https://polyhaven.com/a/food_lime_01",
+      "author": "Oliver Harries",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 661004,
+      "size_cm": [
+        6.007,
+        6.134,
+        7.544
+      ],
+      "bytes": 2358664
+    },
+    {
+      "path": "models/props/hd-lantern-01/",
+      "path_fbx": "models/props/hd-lantern-01/hd-lantern-01.fbx",
+      "path_gltf": "models/props/hd-lantern-01/Lantern_01_2k.gltf",
+      "name": "Lantern 01",
+      "category": "props",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail lantern — market strings and kiosk light (shots 3, 4).",
+      "shots": [
+        3,
+        4
+      ],
+      "source_url": "https://polyhaven.com/a/Lantern_01",
+      "author": "Rajil Jose Macatangay",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 2012892,
+      "size_cm": [
+        12.209,
+        9.718,
+        29.425
+      ],
+      "bytes": 5056442
+    },
+    {
+      "path": "models/props/hd-metal-trash-can/",
+      "path_fbx": "models/props/hd-metal-trash-can/hd-metal-trash-can.fbx",
+      "path_gltf": "models/props/hd-metal-trash-can/metal_trash_can_1k.gltf",
+      "name": "Metal Trash Can",
+      "category": "props",
+      "detail": "high",
+      "resolution": "1K",
+      "description": "High-detail metal trash can — roadside (shot 6). 1K textures.",
+      "shots": [
+        6
+      ],
+      "source_url": "https://polyhaven.com/a/metal_trash_can",
+      "author": "GurJas Studios",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 917612,
+      "size_cm": [
+        177.801,
+        55.629,
+        90.617
+      ],
+      "bytes": 5912823
+    },
+    {
+      "path": "models/props/hd-modular-street-seating/",
+      "path_fbx": "models/props/hd-modular-street-seating/hd-modular-street-seating.fbx",
+      "path_gltf": "models/props/hd-modular-street-seating/modular_street_seating_1k.gltf",
+      "name": "Modular Street Seating",
+      "category": "props",
+      "detail": "high",
+      "resolution": "1K",
+      "description": "High-detail modular street bench / seating. 1K textures.",
+      "shots": [
+        6,
+        8
+      ],
+      "source_url": "https://polyhaven.com/a/modular_street_seating",
+      "author": "Stuart Attenborrow",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 1998780,
+      "size_cm": [
+        434.0,
+        77.037,
+        95.0
+      ],
+      "bytes": 9617005
+    },
+    {
+      "path": "models/props/hd-old-tyre/",
+      "path_fbx": "models/props/hd-old-tyre/hd-old-tyre.fbx",
+      "path_gltf": "models/props/hd-old-tyre/old_tyre_2k.gltf",
+      "name": "Old Tyre",
+      "category": "props",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail discarded tyre — very Lagos roadside dressing (shots 4, 6).",
+      "shots": [
+        4,
+        6
+      ],
+      "source_url": "https://polyhaven.com/a/old_tyre",
+      "author": "MP",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 203708,
+      "size_cm": [
+        60.0,
+        16.5,
+        60.0
+      ],
+      "bytes": 8874766
+    },
+    {
+      "path": "models/props/hd-planter-box-01/",
+      "path_fbx": "models/props/hd-planter-box-01/hd-planter-box-01.fbx",
+      "path_gltf": "models/props/hd-planter-box-01/planter_box_01_2k.gltf",
+      "name": "Planter Box 01",
+      "category": "props",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail planter box — rooftop garden (shot 2) and park (shot 8).",
+      "shots": [
+        2,
+        8
+      ],
+      "source_url": "https://polyhaven.com/a/planter_box_01",
+      "author": "James Ray Cock",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 610316,
+      "size_cm": [
+        91.261,
+        41.367,
+        42.497
+      ],
+      "bytes": 8601054
+    },
+    {
+      "path": "models/props/hd-plastic-crate-01/",
+      "path_fbx": "models/props/hd-plastic-crate-01/hd-plastic-crate-01.fbx",
+      "path_gltf": "models/props/hd-plastic-crate-01/plastic_crate_01_2k.gltf",
+      "name": "Plastic Crate 01",
+      "category": "props",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail plastic crate — market stacks (shot 3, 6).",
+      "shots": [
+        3,
+        6
+      ],
+      "source_url": "https://polyhaven.com/a/plastic_crate_01",
+      "author": "PierreB3D",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 1306844,
+      "size_cm": [
+        29.8,
+        40.8,
+        26.417
+      ],
+      "bytes": 10330074
+    },
+    {
+      "path": "models/props/hd-potted-plant-01/",
+      "path_fbx": "models/props/hd-potted-plant-01/hd-potted-plant-01.fbx",
+      "path_gltf": "models/props/hd-potted-plant-01/potted_plant_01_2k.gltf",
+      "name": "Potted Plant 01",
+      "category": "props",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail potted plant — rooftop garden (shot 2).",
+      "shots": [
+        2
+      ],
+      "source_url": "https://polyhaven.com/a/potted_plant_01",
+      "author": "Rico Cilliers",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 10558092,
+      "size_cm": [
+        58.739,
+        63.356,
+        135.016
+      ],
+      "bytes": 19608023
+    },
+    {
+      "path": "models/props/hd-potted-plant-02/",
+      "path_fbx": "models/props/hd-potted-plant-02/hd-potted-plant-02.fbx",
+      "path_gltf": "models/props/hd-potted-plant-02/potted_plant_02_2k.gltf",
+      "name": "Potted Plant 02",
+      "category": "props",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail potted plant — rooftop garden (shot 2).",
+      "shots": [
+        2
+      ],
+      "source_url": "https://polyhaven.com/a/potted_plant_02",
+      "author": "Rico Cilliers",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 4175580,
+      "size_cm": [
+        70.116,
+        65.739,
+        84.118
+      ],
+      "bytes": 9052804
+    },
+    {
+      "path": "models/props/hd-wooden-crate-01/",
+      "path_fbx": "models/props/hd-wooden-crate-01/hd-wooden-crate-01.fbx",
+      "path_gltf": "models/props/hd-wooden-crate-01/wooden_crate_01_2k.gltf",
+      "name": "Wooden Crate 01",
+      "category": "props",
+      "detail": "high",
+      "resolution": "2K",
+      "description": "High-detail wooden crate — market and roadside stacks (shots 3, 6).",
+      "shots": [
+        3,
+        6
+      ],
+      "source_url": "https://polyhaven.com/a/wooden_crate_01",
+      "author": "James Ray Cock",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "units": "cm (FBX)",
+      "pivot": "base-center",
+      "up": "Z",
+      "scale_note": "Real-world centimetre scale. Use as-is.",
+      "bytes_fbx": 447068,
+      "size_cm": [
+        82.527,
+        40.895,
+        34.962
+      ],
+      "bytes": 8733266
+    },
+    {
+      "path": "textures/asphalt/",
+      "name": "Asphalt 033",
+      "category": "textures",
+      "description": "4K urban asphalt — roads and Third Mainland Bridge deck (shots 1, 5, 6). Complement with Megascans in the foreground.",
+      "shots": [
+        1,
+        5,
+        6
+      ],
+      "source_url": "https://ambientcg.com/a/Asphalt033",
+      "author": "ambientCG (Lennart Demes)",
+      "license": "CC0 1.0",
+      "pack": "ambientCG 4K JPG",
+      "maps": [
+        "Asphalt033_4K-JPG_AmbientOcclusion.jpg",
+        "Asphalt033_4K-JPG_Color.jpg",
+        "Asphalt033_4K-JPG_NormalGL.jpg",
+        "Asphalt033_4K-JPG_Roughness.jpg"
+      ],
+      "bytes": 48703938
+    },
+    {
+      "path": "textures/concrete/",
+      "name": "Concrete 034",
+      "category": "textures",
+      "description": "4K concrete — overpass, pillars, apartments (shots 1, 2, 5).",
+      "shots": [
+        1,
+        2,
+        5
+      ],
+      "source_url": "https://ambientcg.com/a/Concrete034",
+      "author": "ambientCG (Lennart Demes)",
+      "license": "CC0 1.0",
+      "pack": "ambientCG 4K JPG",
+      "maps": [
+        "Concrete034_4K-JPG_Color.jpg",
+        "Concrete034_4K-JPG_NormalGL.jpg",
+        "Concrete034_4K-JPG_Roughness.jpg"
+      ],
+      "bytes": 22648731
+    },
+    {
+      "path": "textures/plaster-wall/",
+      "name": "Plaster 001",
+      "category": "textures",
+      "description": "4K plaster wall — building facades (shots 2, 3, 7).",
+      "shots": [
+        2,
+        3,
+        7
+      ],
+      "source_url": "https://ambientcg.com/a/Plaster001",
+      "author": "ambientCG (Lennart Demes)",
+      "license": "CC0 1.0",
+      "pack": "ambientCG 4K JPG",
+      "maps": [
+        "Plaster001_4K-JPG_Color.jpg",
+        "Plaster001_4K-JPG_NormalGL.jpg",
+        "Plaster001_4K-JPG_Roughness.jpg"
+      ],
+      "bytes": 34856919
+    },
+    {
+      "path": "textures/grass/",
+      "name": "Grass 001",
+      "category": "textures",
+      "description": "4K grass ground — park and verges (shots 6, 8). Prefer Megascans foliage on top.",
+      "shots": [
+        6,
+        8
+      ],
+      "source_url": "https://ambientcg.com/a/Grass001",
+      "author": "ambientCG (Lennart Demes)",
+      "license": "CC0 1.0",
+      "pack": "ambientCG 4K JPG",
+      "maps": [
+        "Grass001_4K-JPG_AmbientOcclusion.jpg",
+        "Grass001_4K-JPG_Color.jpg",
+        "Grass001_4K-JPG_NormalGL.jpg",
+        "Grass001_4K-JPG_Roughness.jpg"
+      ],
+      "bytes": 49878193
+    },
+    {
+      "path": "textures/wood/",
+      "name": "Wood 051",
+      "category": "textures",
+      "description": "4K wood — crates, stalls, pier dressing (shots 3, 5, 6).",
+      "shots": [
+        3,
+        5,
+        6
+      ],
+      "source_url": "https://ambientcg.com/a/Wood051",
+      "author": "ambientCG (Lennart Demes)",
+      "license": "CC0 1.0",
+      "pack": "ambientCG 4K JPG",
+      "maps": [
+        "Wood051_4K-JPG_Color.jpg",
+        "Wood051_4K-JPG_NormalGL.jpg",
+        "Wood051_4K-JPG_Roughness.jpg"
+      ],
+      "bytes": 29943968
+    },
+    {
+      "path": "textures/corrugated-metal/",
+      "name": "Corrugated Steel 007A",
+      "category": "textures",
+      "description": "4K corrugated metal — roofs, kiosks, informal additions (shots 2, 3, 4).",
+      "shots": [
+        2,
+        3,
+        4
+      ],
+      "source_url": "https://ambientcg.com/a/CorrugatedSteel007A",
+      "author": "ambientCG (Lennart Demes)",
+      "license": "CC0 1.0",
+      "pack": "ambientCG 4K JPG",
+      "maps": [
+        "CorrugatedSteel007A_4K-JPG_AmbientOcclusion.jpg",
+        "CorrugatedSteel007A_4K-JPG_Color.jpg",
+        "CorrugatedSteel007A_4K-JPG_Metalness.jpg",
+        "CorrugatedSteel007A_4K-JPG_NormalGL.jpg",
+        "CorrugatedSteel007A_4K-JPG_Roughness.jpg"
+      ],
+      "bytes": 19096403
+    },
+    {
+      "path": "textures/facade/",
+      "name": "Facade 001",
+      "category": "textures",
+      "description": "4K painted building facade — Lagos apartment and shop fronts (shots 2, 3, 7).",
+      "shots": [
+        2,
+        3,
+        7
+      ],
+      "source_url": "https://ambientcg.com/a/Facade001",
+      "author": "ambientCG (Lennart Demes)",
+      "license": "CC0 1.0",
+      "pack": "ambientCG 4K JPG",
+      "maps": [
+        "Facade001_4K-JPG_Color.jpg",
+        "Facade001_4K-JPG_Metalness.jpg",
+        "Facade001_4K-JPG_NormalGL.jpg",
+        "Facade001_4K-JPG_Roughness.jpg"
+      ],
+      "bytes": 9931783
+    },
+    {
+      "path": "textures/rust/",
+      "name": "Rust 001",
+      "category": "textures",
+      "description": "4K rust — metal wear on poles, kiosks and signs.",
+      "shots": [
+        1,
+        4,
+        6
+      ],
+      "source_url": "https://ambientcg.com/a/Rust001",
+      "author": "ambientCG (Lennart Demes)",
+      "license": "CC0 1.0",
+      "pack": "ambientCG 4K JPG",
+      "maps": [
+        "Rust001_4K-JPG_AmbientOcclusion.jpg",
+        "Rust001_4K-JPG_Color.jpg",
+        "Rust001_4K-JPG_NormalGL.jpg",
+        "Rust001_4K-JPG_Roughness.jpg"
+      ],
+      "bytes": 11945792
+    },
+    {
+      "path": "textures/painted-metal/",
+      "name": "Metal 032",
+      "category": "textures",
+      "description": "4K painted metal — signs, kiosks, vehicle trim (shots 3, 4).",
+      "shots": [
+        3,
+        4
+      ],
+      "source_url": "https://ambientcg.com/a/Metal032",
+      "author": "ambientCG (Lennart Demes)",
+      "license": "CC0 1.0",
+      "pack": "ambientCG 4K JPG",
+      "maps": [
+        "Metal032_4K-JPG_Color.jpg",
+        "Metal032_4K-JPG_Metalness.jpg",
+        "Metal032_4K-JPG_NormalGL.jpg",
+        "Metal032_4K-JPG_Roughness.jpg"
+      ],
+      "bytes": 45433185
+    },
+    {
+      "path": "textures/tiles/",
+      "name": "Tiles 015",
+      "category": "textures",
+      "description": "4K ceramic tiles — shop fronts and interiors (shots 3, 7).",
+      "shots": [
+        3,
+        7
+      ],
+      "source_url": "https://ambientcg.com/a/Tiles015",
+      "author": "ambientCG (Lennart Demes)",
+      "license": "CC0 1.0",
+      "pack": "ambientCG 4K JPG",
+      "maps": [
+        "Tiles015_4K-JPG_Color.jpg",
+        "Tiles015_4K-JPG_NormalGL.jpg",
+        "Tiles015_4K-JPG_Roughness.jpg"
+      ],
+      "bytes": 35909336
+    },
+    {
+      "path": "hdri/the_sky_is_on_fire_4k.exr",
+      "name": "The Sky Is On Fire (4K EXR)",
+      "category": "hdri",
+      "description": "Preferred golden-hour / sunset lighting and backdrop (shots 1, 5, 7).",
+      "shots": [
+        1,
+        5,
+        7
+      ],
+      "source_url": "https://polyhaven.com/a/the_sky_is_on_fire",
+      "author": "Greg Zaal",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "bytes": 18139397
+    },
+    {
+      "path": "hdri/the_sky_is_on_fire_2k.hdr",
+      "name": "The Sky Is On Fire (2K HDR)",
+      "category": "hdri",
+      "description": "Lighter fallback of the sunset HDRI.",
+      "shots": [
+        1,
+        5,
+        7
+      ],
+      "source_url": "https://polyhaven.com/a/the_sky_is_on_fire",
+      "author": "Greg Zaal",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "bytes": 5996454
+    },
+    {
+      "path": "hdri/spruit_sunrise_4k.exr",
+      "name": "Spruit Sunrise (4K EXR)",
+      "category": "hdri",
+      "description": "Preferred brighter morning / park lighting (shots 2, 6, 8).",
+      "shots": [
+        2,
+        6,
+        8
+      ],
+      "source_url": "https://polyhaven.com/a/spruit_sunrise",
+      "author": "Greg Zaal",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "bytes": 21031659
+    },
+    {
+      "path": "hdri/spruit_sunrise_2k.hdr",
+      "name": "Spruit Sunrise (2K HDR)",
+      "category": "hdri",
+      "description": "Lighter fallback of the sunrise HDRI.",
+      "shots": [
+        2,
+        6,
+        8
+      ],
+      "source_url": "https://polyhaven.com/a/spruit_sunrise",
+      "author": "Greg Zaal",
+      "license": "CC0 1.0",
+      "pack": "Poly Haven",
+      "bytes": 5934209
+    },
+    {
+      "path": "fonts/Montserrat-Light.ttf",
+      "name": "Montserrat Light",
+      "category": "fonts",
+      "description": "Thin, clean sans-serif for credit titles and the end card. Use this OFL font for all on-screen text.",
+      "shots": [
+        1,
+        2,
+        4,
+        7,
+        8
+      ],
+      "source_url": "https://github.com/JulietaUla/Montserrat",
+      "author": "Julieta Ulanovsky, Sol Matas, Juan Pablo del Peral, Jacques Le Bailly and contributors",
+      "license": "OFL 1.1",
+      "notes": "License file at fonts/OFL.txt. Also listed at https://fonts.google.com/specimen/Montserrat",
+      "bytes": 444356
+    }
+  ],
+  "fetch": {
+    "script_windows": "fetch-assets.ps1",
+    "script_python": "fetch_assets.py",
+    "manifest": "fetch-manifest.json",
+    "note": "4K textures, HDRIs and hd-* Poly Haven models are not bundled. Run the fetch script first, then verify every path in this file exists on disk."
+  }
+}

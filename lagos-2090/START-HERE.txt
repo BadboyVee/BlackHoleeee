@@ -1,0 +1,45 @@
+Lagos 2090 — Blender + Unreal Engine 5 lean pack
+================================================
+
+Short steps:
+
+1. Install Unreal Engine 5.4 or newer (5.5 or 5.6 is fine) with the Epic Games Launcher,
+   if it is not already on this PC:
+   https://store.epicgames.com/en-US/download
+   Include the engine and the usual Visual Studio / IDE prerequisites the installer suggests.
+   Blender is already installed on your PC; leave it installed (the fetch script uses it).
+
+2. Extract lagos-2090-ue-lean.zip into the same place, so you get one folder:
+   C:\lagos-2090
+   That folder must contain PROMPT.md, START-HERE.txt, fetch-assets.ps1, fetch_assets.py,
+   assets-manifest.json, models and fonts.
+
+3. Download the rest of the assets (4K textures, HDRIs and high-detail models). From
+   C:\lagos-2090, in PowerShell, run:
+     powershell -ExecutionPolicy Bypass -File .\fetch-assets.ps1
+   This needs an internet connection and takes a few minutes. It also converts the
+   high-detail models to Unreal-ready FBX with Blender. If you use Python instead:
+     python fetch_assets.py
+   Do not continue until the script says every manifest file is present.
+
+4. Open that folder in VS Code: File → Open Folder → C:\lagos-2090
+
+5. Open Claude Code (Claude icon in the left sidebar).
+   If it is not there: Extensions (Ctrl+Shift+X), search "Claude Code", install it, then sign in.
+   Pick Fable 5.2 as the model (/model).
+
+6. Open PROMPT.md, copy the whole prompt, paste it into Claude Code, and press Enter.
+   When it asks for permission, choose "Yes, don't ask again". Let it run until it writes
+   ./output/lagos-2090.mp4. The first pass can take a while — this is a full UE5 cinematic render.
+
+Optional: connect blender-mcp so Claude can drive a running Blender UI.
+  - Install uv if needed, add the blender-mcp addon in Blender, then:
+    claude mcp add blender uvx blender-mcp
+  Headless Blender (`blender -b -P script.py`) is enough; mcp is not required.
+
+Notes:
+- ffmpeg is required for the final encode. The prompt tells Claude to install it if it is missing.
+- Quixel Megascans (via Fab, free in UE5) are required for hero foliage and surfaces. They are
+  not inside this zip; Claude will pull them inside Unreal.
+- If you post the video, credit the CC-BY authors listed in CREDITS.md (school bus, bicycle,
+  butterfly). Crediting the CC0 authors is appreciated.

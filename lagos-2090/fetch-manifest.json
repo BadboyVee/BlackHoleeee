@@ -1,0 +1,471 @@
+{
+  "description": "Files excluded from the lean pack. fetch-assets.ps1 / fetch_assets.py download these into the same paths assets-manifest.json expects.",
+  "hdris": [
+    {
+      "path": "hdri/the_sky_is_on_fire_4k.exr",
+      "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/exr/4k/the_sky_is_on_fire_4k.exr"
+    },
+    {
+      "path": "hdri/the_sky_is_on_fire_2k.hdr",
+      "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/the_sky_is_on_fire_2k.hdr"
+    },
+    {
+      "path": "hdri/spruit_sunrise_4k.exr",
+      "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/exr/4k/spruit_sunrise_4k.exr"
+    },
+    {
+      "path": "hdri/spruit_sunrise_2k.hdr",
+      "url": "https://dl.polyhaven.org/file/ph-assets/HDRIs/hdr/2k/spruit_sunrise_2k.hdr"
+    }
+  ],
+  "textures": [
+    {
+      "id": "Asphalt033",
+      "dest": "textures/asphalt/",
+      "zip": "Asphalt033_4K-JPG.zip",
+      "url": "https://ambientcg.com/get?file=Asphalt033_4K-JPG.zip",
+      "keep": [
+        "Asphalt033_4K-JPG_AmbientOcclusion.jpg",
+        "Asphalt033_4K-JPG_Color.jpg",
+        "Asphalt033_4K-JPG_NormalGL.jpg",
+        "Asphalt033_4K-JPG_Roughness.jpg"
+      ],
+      "source_page": "https://ambientcg.com/a/Asphalt033"
+    },
+    {
+      "id": "Concrete034",
+      "dest": "textures/concrete/",
+      "zip": "Concrete034_4K-JPG.zip",
+      "url": "https://ambientcg.com/get?file=Concrete034_4K-JPG.zip",
+      "keep": [
+        "Concrete034_4K-JPG_Color.jpg",
+        "Concrete034_4K-JPG_NormalGL.jpg",
+        "Concrete034_4K-JPG_Roughness.jpg"
+      ],
+      "source_page": "https://ambientcg.com/a/Concrete034"
+    },
+    {
+      "id": "Plaster001",
+      "dest": "textures/plaster-wall/",
+      "zip": "Plaster001_4K-JPG.zip",
+      "url": "https://ambientcg.com/get?file=Plaster001_4K-JPG.zip",
+      "keep": [
+        "Plaster001_4K-JPG_Color.jpg",
+        "Plaster001_4K-JPG_NormalGL.jpg",
+        "Plaster001_4K-JPG_Roughness.jpg"
+      ],
+      "source_page": "https://ambientcg.com/a/Plaster001"
+    },
+    {
+      "id": "Grass001",
+      "dest": "textures/grass/",
+      "zip": "Grass001_4K-JPG.zip",
+      "url": "https://ambientcg.com/get?file=Grass001_4K-JPG.zip",
+      "keep": [
+        "Grass001_4K-JPG_AmbientOcclusion.jpg",
+        "Grass001_4K-JPG_Color.jpg",
+        "Grass001_4K-JPG_NormalGL.jpg",
+        "Grass001_4K-JPG_Roughness.jpg"
+      ],
+      "source_page": "https://ambientcg.com/a/Grass001"
+    },
+    {
+      "id": "Wood051",
+      "dest": "textures/wood/",
+      "zip": "Wood051_4K-JPG.zip",
+      "url": "https://ambientcg.com/get?file=Wood051_4K-JPG.zip",
+      "keep": [
+        "Wood051_4K-JPG_Color.jpg",
+        "Wood051_4K-JPG_NormalGL.jpg",
+        "Wood051_4K-JPG_Roughness.jpg"
+      ],
+      "source_page": "https://ambientcg.com/a/Wood051"
+    },
+    {
+      "id": "CorrugatedSteel007A",
+      "dest": "textures/corrugated-metal/",
+      "zip": "CorrugatedSteel007A_4K-JPG.zip",
+      "url": "https://ambientcg.com/get?file=CorrugatedSteel007A_4K-JPG.zip",
+      "keep": [
+        "CorrugatedSteel007A_4K-JPG_AmbientOcclusion.jpg",
+        "CorrugatedSteel007A_4K-JPG_Color.jpg",
+        "CorrugatedSteel007A_4K-JPG_Metalness.jpg",
+        "CorrugatedSteel007A_4K-JPG_NormalGL.jpg",
+        "CorrugatedSteel007A_4K-JPG_Roughness.jpg"
+      ],
+      "source_page": "https://ambientcg.com/a/CorrugatedSteel007A"
+    },
+    {
+      "id": "Facade001",
+      "dest": "textures/facade/",
+      "zip": "Facade001_4K-JPG.zip",
+      "url": "https://ambientcg.com/get?file=Facade001_4K-JPG.zip",
+      "keep": [
+        "Facade001_4K-JPG_Color.jpg",
+        "Facade001_4K-JPG_Metalness.jpg",
+        "Facade001_4K-JPG_NormalGL.jpg",
+        "Facade001_4K-JPG_Roughness.jpg"
+      ],
+      "source_page": "https://ambientcg.com/a/Facade001"
+    },
+    {
+      "id": "Rust001",
+      "dest": "textures/rust/",
+      "zip": "Rust001_4K-JPG.zip",
+      "url": "https://ambientcg.com/get?file=Rust001_4K-JPG.zip",
+      "keep": [
+        "Rust001_4K-JPG_AmbientOcclusion.jpg",
+        "Rust001_4K-JPG_Color.jpg",
+        "Rust001_4K-JPG_NormalGL.jpg",
+        "Rust001_4K-JPG_Roughness.jpg"
+      ],
+      "source_page": "https://ambientcg.com/a/Rust001"
+    },
+    {
+      "id": "Metal032",
+      "dest": "textures/painted-metal/",
+      "zip": "Metal032_4K-JPG.zip",
+      "url": "https://ambientcg.com/get?file=Metal032_4K-JPG.zip",
+      "keep": [
+        "Metal032_4K-JPG_Color.jpg",
+        "Metal032_4K-JPG_Metalness.jpg",
+        "Metal032_4K-JPG_NormalGL.jpg",
+        "Metal032_4K-JPG_Roughness.jpg"
+      ],
+      "source_page": "https://ambientcg.com/a/Metal032"
+    },
+    {
+      "id": "Tiles015",
+      "dest": "textures/tiles/",
+      "zip": "Tiles015_4K-JPG.zip",
+      "url": "https://ambientcg.com/get?file=Tiles015_4K-JPG.zip",
+      "keep": [
+        "Tiles015_4K-JPG_Color.jpg",
+        "Tiles015_4K-JPG_NormalGL.jpg",
+        "Tiles015_4K-JPG_Roughness.jpg"
+      ],
+      "source_page": "https://ambientcg.com/a/Tiles015"
+    }
+  ],
+  "models": [
+    {
+      "slug": "modular_chainlink_fence",
+      "res": "2k",
+      "folder": "models/city/hd-modular-chainlink-fence",
+      "path_gltf": "models/city/hd-modular-chainlink-fence/modular_chainlink_fence_2k.gltf",
+      "path_fbx": "models/city/hd-modular-chainlink-fence/hd-modular-chainlink-fence.fbx",
+      "source_page": "https://polyhaven.com/a/modular_chainlink_fence",
+      "name": "Modular Chainlink Fence",
+      "author": "James Ray Cock, Amal Kumar",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "modular_electricity_poles",
+      "res": "2k",
+      "folder": "models/city/hd-modular-electricity-poles",
+      "path_gltf": "models/city/hd-modular-electricity-poles/modular_electricity_poles_2k.gltf",
+      "path_fbx": "models/city/hd-modular-electricity-poles/hd-modular-electricity-poles.fbx",
+      "source_page": "https://polyhaven.com/a/modular_electricity_poles",
+      "name": "Modular Electricity Poles",
+      "author": "James Ray Cock",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "modular_urban_apartments_facade",
+      "res": "2k",
+      "folder": "models/city/hd-modular-urban-apartments-facade",
+      "path_gltf": "models/city/hd-modular-urban-apartments-facade/modular_urban_apartments_facade_2k.gltf",
+      "path_fbx": "models/city/hd-modular-urban-apartments-facade/hd-modular-urban-apartments-facade.fbx",
+      "source_page": "https://polyhaven.com/a/modular_urban_apartments_facade",
+      "name": "Modular Urban Apartments Facade",
+      "author": "James Ray Cock",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "modular_wooden_pier",
+      "res": "2k",
+      "folder": "models/city/hd-modular-wooden-pier",
+      "path_gltf": "models/city/hd-modular-wooden-pier/modular_wooden_pier_2k.gltf",
+      "path_fbx": "models/city/hd-modular-wooden-pier/hd-modular-wooden-pier.fbx",
+      "source_page": "https://polyhaven.com/a/modular_wooden_pier",
+      "name": "Modular Wooden Pier",
+      "author": "Rico Cilliers",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "power_box_01",
+      "res": "2k",
+      "folder": "models/city/hd-power-box-01",
+      "path_gltf": "models/city/hd-power-box-01/power_box_01_2k.gltf",
+      "path_fbx": "models/city/hd-power-box-01/hd-power-box-01.fbx",
+      "source_page": "https://polyhaven.com/a/power_box_01",
+      "name": "Power Box 01",
+      "author": "Rico Cilliers, Yann Kervran",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "street_lamp_01",
+      "res": "2k",
+      "folder": "models/city/hd-street-lamp-01",
+      "path_gltf": "models/city/hd-street-lamp-01/street_lamp_01_2k.gltf",
+      "path_fbx": "models/city/hd-street-lamp-01/hd-street-lamp-01.fbx",
+      "source_page": "https://polyhaven.com/a/street_lamp_01",
+      "name": "Street Lamp 01",
+      "author": "Josh Dean",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "utility_box_02",
+      "res": "2k",
+      "folder": "models/city/hd-utility-box-02",
+      "path_gltf": "models/city/hd-utility-box-02/utility_box_02_2k.gltf",
+      "path_fbx": "models/city/hd-utility-box-02/hd-utility-box-02.fbx",
+      "source_page": "https://polyhaven.com/a/utility_box_02",
+      "name": "Utility Box 02",
+      "author": "James Ray Cock",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "calathea_orbifolia_01",
+      "res": "2k",
+      "folder": "models/nature/hd-calathea-orbifolia-01",
+      "path_gltf": "models/nature/hd-calathea-orbifolia-01/calathea_orbifolia_01_2k.gltf",
+      "path_fbx": "models/nature/hd-calathea-orbifolia-01/hd-calathea-orbifolia-01.fbx",
+      "source_page": "https://polyhaven.com/a/calathea_orbifolia_01",
+      "name": "Calathea Orbifolia 01",
+      "author": "Rob Tuytel, Rico Cilliers",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "fern_02",
+      "res": "2k",
+      "folder": "models/nature/hd-fern-02",
+      "path_gltf": "models/nature/hd-fern-02/fern_02_2k.gltf",
+      "path_fbx": "models/nature/hd-fern-02/hd-fern-02.fbx",
+      "source_page": "https://polyhaven.com/a/fern_02",
+      "name": "Fern 02",
+      "author": "Rob Tuytel, Rico Cilliers",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "grass_bermuda_01",
+      "res": "2k",
+      "folder": "models/nature/hd-grass-bermuda-01",
+      "path_gltf": "models/nature/hd-grass-bermuda-01/grass_bermuda_01_2k.gltf",
+      "path_fbx": "models/nature/hd-grass-bermuda-01/hd-grass-bermuda-01.fbx",
+      "source_page": "https://polyhaven.com/a/grass_bermuda_01",
+      "name": "Grass Bermuda 01",
+      "author": "Rico Cilliers",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "grass_medium_01",
+      "res": "2k",
+      "folder": "models/nature/hd-grass-medium-01",
+      "path_gltf": "models/nature/hd-grass-medium-01/grass_medium_01_2k.gltf",
+      "path_fbx": "models/nature/hd-grass-medium-01/hd-grass-medium-01.fbx",
+      "source_page": "https://polyhaven.com/a/grass_medium_01",
+      "name": "Grass Medium 01",
+      "author": "Rob Tuytel, Rico Cilliers",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "rock_moss_set_01",
+      "res": "2k",
+      "folder": "models/nature/hd-rock-moss-set-01",
+      "path_gltf": "models/nature/hd-rock-moss-set-01/rock_moss_set_01_2k.gltf",
+      "path_fbx": "models/nature/hd-rock-moss-set-01/hd-rock-moss-set-01.fbx",
+      "source_page": "https://polyhaven.com/a/rock_moss_set_01",
+      "name": "Rock Moss Set 01",
+      "author": "Kless Gyzen",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "shrub_01",
+      "res": "2k",
+      "folder": "models/nature/hd-shrub-01",
+      "path_gltf": "models/nature/hd-shrub-01/shrub_01_2k.gltf",
+      "path_fbx": "models/nature/hd-shrub-01/hd-shrub-01.fbx",
+      "source_page": "https://polyhaven.com/a/shrub_01",
+      "name": "Shrub 01",
+      "author": "Rico Cilliers",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "bananas",
+      "res": "2k",
+      "folder": "models/props/hd-bananas",
+      "path_gltf": "models/props/hd-bananas/bananas_2k.gltf",
+      "path_fbx": "models/props/hd-bananas/hd-bananas.fbx",
+      "source_page": "https://polyhaven.com/a/bananas",
+      "name": "Bananas",
+      "author": "Alexander Shulha",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "Barrel_01",
+      "res": "2k",
+      "folder": "models/props/hd-barrel-01",
+      "path_gltf": "models/props/hd-barrel-01/Barrel_01_2k.gltf",
+      "path_fbx": "models/props/hd-barrel-01/hd-barrel-01.fbx",
+      "source_page": "https://polyhaven.com/a/Barrel_01",
+      "name": "Barrel 01",
+      "author": "Jorge Camacho",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "cardboard_box_01",
+      "res": "2k",
+      "folder": "models/props/hd-cardboard-box-01",
+      "path_gltf": "models/props/hd-cardboard-box-01/cardboard_box_01_2k.gltf",
+      "path_fbx": "models/props/hd-cardboard-box-01/hd-cardboard-box-01.fbx",
+      "source_page": "https://polyhaven.com/a/cardboard_box_01",
+      "name": "Cardboard Box 01",
+      "author": "Rahul Chaudhary",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "CoffeeCart_01",
+      "res": "2k",
+      "folder": "models/props/hd-coffeecart-01",
+      "path_gltf": "models/props/hd-coffeecart-01/CoffeeCart_01_2k.gltf",
+      "path_fbx": "models/props/hd-coffeecart-01/hd-coffeecart-01.fbx",
+      "source_page": "https://polyhaven.com/a/CoffeeCart_01",
+      "name": "Coffee Cart 01",
+      "author": "Joe Seabuhr",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "food_apple_01",
+      "res": "2k",
+      "folder": "models/props/hd-food-apple-01",
+      "path_gltf": "models/props/hd-food-apple-01/food_apple_01_2k.gltf",
+      "path_fbx": "models/props/hd-food-apple-01/hd-food-apple-01.fbx",
+      "source_page": "https://polyhaven.com/a/food_apple_01",
+      "name": "Food Apple 01",
+      "author": "Oliver Harries",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "food_avocado_01",
+      "res": "2k",
+      "folder": "models/props/hd-food-avocado-01",
+      "path_gltf": "models/props/hd-food-avocado-01/food_avocado_01_2k.gltf",
+      "path_fbx": "models/props/hd-food-avocado-01/hd-food-avocado-01.fbx",
+      "source_page": "https://polyhaven.com/a/food_avocado_01",
+      "name": "Food Avocado 01",
+      "author": "Oliver Harries",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "food_lime_01",
+      "res": "2k",
+      "folder": "models/props/hd-food-lime-01",
+      "path_gltf": "models/props/hd-food-lime-01/food_lime_01_2k.gltf",
+      "path_fbx": "models/props/hd-food-lime-01/hd-food-lime-01.fbx",
+      "source_page": "https://polyhaven.com/a/food_lime_01",
+      "name": "Food Lime 01",
+      "author": "Oliver Harries",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "Lantern_01",
+      "res": "2k",
+      "folder": "models/props/hd-lantern-01",
+      "path_gltf": "models/props/hd-lantern-01/Lantern_01_2k.gltf",
+      "path_fbx": "models/props/hd-lantern-01/hd-lantern-01.fbx",
+      "source_page": "https://polyhaven.com/a/Lantern_01",
+      "name": "Lantern 01",
+      "author": "Rajil Jose Macatangay",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "metal_trash_can",
+      "res": "1k",
+      "folder": "models/props/hd-metal-trash-can",
+      "path_gltf": "models/props/hd-metal-trash-can/metal_trash_can_1k.gltf",
+      "path_fbx": "models/props/hd-metal-trash-can/hd-metal-trash-can.fbx",
+      "source_page": "https://polyhaven.com/a/metal_trash_can",
+      "name": "Metal Trash Can",
+      "author": "GurJas Studios",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "modular_street_seating",
+      "res": "1k",
+      "folder": "models/props/hd-modular-street-seating",
+      "path_gltf": "models/props/hd-modular-street-seating/modular_street_seating_1k.gltf",
+      "path_fbx": "models/props/hd-modular-street-seating/hd-modular-street-seating.fbx",
+      "source_page": "https://polyhaven.com/a/modular_street_seating",
+      "name": "Modular Street Seating",
+      "author": "Stuart Attenborrow",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "old_tyre",
+      "res": "2k",
+      "folder": "models/props/hd-old-tyre",
+      "path_gltf": "models/props/hd-old-tyre/old_tyre_2k.gltf",
+      "path_fbx": "models/props/hd-old-tyre/hd-old-tyre.fbx",
+      "source_page": "https://polyhaven.com/a/old_tyre",
+      "name": "Old Tyre",
+      "author": "MP",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "planter_box_01",
+      "res": "2k",
+      "folder": "models/props/hd-planter-box-01",
+      "path_gltf": "models/props/hd-planter-box-01/planter_box_01_2k.gltf",
+      "path_fbx": "models/props/hd-planter-box-01/hd-planter-box-01.fbx",
+      "source_page": "https://polyhaven.com/a/planter_box_01",
+      "name": "Planter Box 01",
+      "author": "James Ray Cock",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "plastic_crate_01",
+      "res": "2k",
+      "folder": "models/props/hd-plastic-crate-01",
+      "path_gltf": "models/props/hd-plastic-crate-01/plastic_crate_01_2k.gltf",
+      "path_fbx": "models/props/hd-plastic-crate-01/hd-plastic-crate-01.fbx",
+      "source_page": "https://polyhaven.com/a/plastic_crate_01",
+      "name": "Plastic Crate 01",
+      "author": "PierreB3D",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "potted_plant_01",
+      "res": "2k",
+      "folder": "models/props/hd-potted-plant-01",
+      "path_gltf": "models/props/hd-potted-plant-01/potted_plant_01_2k.gltf",
+      "path_fbx": "models/props/hd-potted-plant-01/hd-potted-plant-01.fbx",
+      "source_page": "https://polyhaven.com/a/potted_plant_01",
+      "name": "Potted Plant 01",
+      "author": "Rico Cilliers",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "potted_plant_02",
+      "res": "2k",
+      "folder": "models/props/hd-potted-plant-02",
+      "path_gltf": "models/props/hd-potted-plant-02/potted_plant_02_2k.gltf",
+      "path_fbx": "models/props/hd-potted-plant-02/hd-potted-plant-02.fbx",
+      "source_page": "https://polyhaven.com/a/potted_plant_02",
+      "name": "Potted Plant 02",
+      "author": "Rico Cilliers",
+      "license": "CC0 1.0"
+    },
+    {
+      "slug": "wooden_crate_01",
+      "res": "2k",
+      "folder": "models/props/hd-wooden-crate-01",
+      "path_gltf": "models/props/hd-wooden-crate-01/wooden_crate_01_2k.gltf",
+      "path_fbx": "models/props/hd-wooden-crate-01/hd-wooden-crate-01.fbx",
+      "source_page": "https://polyhaven.com/a/wooden_crate_01",
+      "name": "Wooden Crate 01",
+      "author": "James Ray Cock",
+      "license": "CC0 1.0"
+    }
+  ]
+}

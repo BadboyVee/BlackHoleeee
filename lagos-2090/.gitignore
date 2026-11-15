@@ -1,0 +1,12 @@
+# fetched by fetch_assets.py / scripts/fetch_extra_polyhaven.py (free, re-downloadable)
+/textures/
+/hdri/
+/models/*/hd-*/
+/models/extra/
+# generated
+/blender/*.blend
+/blender/*.blend1
+/blender/gen/
+/renders/
+__pycache__/
+*.pyc

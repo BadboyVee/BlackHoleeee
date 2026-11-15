@@ -1,0 +1,8543 @@
+{
+ "modular-chainlink-fence": {
+  "path": "models/city/hd-modular-chainlink-fence/modular_chainlink_fence_2k.gltf",
+  "size": [
+   8.115,
+   2.149,
+   2.523
+  ],
+  "pieces": [
+   {
+    "name": "modular-chainlink-fence__modular_chainlink_fence",
+    "dims": [
+     0.934,
+     0.049,
+     2.37
+    ],
+    "tris": 3028,
+    "mats": [
+     "modular_chainlink_fence_wire",
+     "modular_chainlink_fence_posts"
+    ]
+   },
+   {
+    "name": "modular-chainlink-fence__modular_chainlink_fence_bar_bracket_01",
+    "dims": [
+     0.115,
+     0.08,
+     0.02
+    ],
+    "tris": 352,
+    "mats": [
+     "modular_chainlink_fence_posts"
+    ]
+   },
+   {
+    "name": "modular-chainlink-fence__modular_chainlink_fence_bar_bracket_02",
+    "dims": [
+     0.15,
+     0.08,
+     0.02
+    ],
+    "tris": 488,
+    "mats": [
+     "modular_chainlink_fence_posts"
+    ]
+   },
+   {
+    "name": "modular-chainlink-fence__modular_chainlink_fence_bar_bracket_03",
+    "dims": [
+     0.115,
+     0.115,
+     0.02
+    ],
+    "tris": 500,
+    "mats": [
+     "modular_chainlink_fence_posts"
+    ]
+   },
+   {
+    "name": "modular-chainlink-fence__modular_chainlink_fence_corner_inner",
+    "dims": [
+     1.114,
+     1.114,
+     2.523
+    ],
+    "tris": 14562,
+    "mats": [
+     "modular_chainlink_fence_posts",
+     "modular_chainlink_fence_wire"
+    ]
+   },
+   {
+    "name": "modular-chainlink-fence__modular_chainlink_fence_corner_outer",
+    "dims": [
+     1.114,
+     1.114,
+     2.523
+    ],
+    "tris": 14598,
+    "mats": [
+     "modular_chainlink_fence_posts",
+     "modular_chainlink_fence_wire"
+    ]
+   },
+   {
+    "name": "modular-chainlink-fence__modular_chainlink_fence_corner_support",
+    "dims": [
+     1.08,
+     0.08,
+     0.9
+    ],
+    "tris": 1716,
+    "mats": [
+     "modular_chainlink_fence_posts"
+    ]
+   },
+   {
+    "name": "modular-chainlink-fence__modular_chainlink_fence_door_frame",
+    "dims": [
+     1.911,
+     0.148,
+     2.523
+    ],
+    "tris": 19940,
+    "mats": [
+     "modular_chainlink_fence_posts",
+     "modular_chainlink_fence_wire"
+    ]
+   },
+   {
+    "name": "modular-chainlink-fence__modular_chainlink_fence_door_gate",
+    "dims": [
+     0.951,
+     0.05,
+     1.817
+    ],
+    "tris": 4554,
+    "mats": [
+     "modular_chainlink_fence_posts",
+     "modular_chainlink_fence_wire"
+    ]
+   },
+   {
+    "name": "modular-chainlink-fence__modular_chainlink_fence_door_latch",
+    "dims": [
+     0.258,
+     0.07,
+     0.029
+    ],
+    "tris": 680,
+    "mats": [
+     "modular_chainlink_fence_posts"
+    ]
+   },
+   {
+    "name": "modular-chainlink-fence__modular_chainlink_fence_double",
+    "dims": [
+     1.914,
+     0.049,
+     2.37
+    ],
+    "tris": 3054,
+    "mats": [
+     "modular_chainlink_fence_wire",
+     "modular_chainlink_fence_posts"
+    ]
+   },
+   {
+    "name": "modular-chainlink-fence__modular_chainlink_fence_end_01",
+    "dims": [
+     0.149,
+     0.148,
+     2.523
+    ],
+    "tris": 4010,
+    "mats": [
+     "modular_chainlink_fence_posts"
+    ]
+   },
+   {
+    "name": "modular-chainlink-fence__modular_chainlink_fence_end_02",
+    "dims": [
+     0.149,
+     0.148,
+     2.523
+    ],
+    "tris": 4010,
+    "mats": [
+     "modular_chainlink_fence_posts"
+    ]
+   },
+   {
+    "name": "modular-chainlink-fence__modular_chainlink_fence_post",
+    "dims": [
+     0.149,
+     0.149,
+     2.523
+    ],
+    "tris": 1134,
+    "mats": [
+     "modular_chainlink_fence_posts"
+    ]
+   },
+   {
+    "name": "modular-chainlink-fence__modular_chainlink_fence_post_bracket_01",
+    "dims": [
+     0.113,
+     0.08,
+     0.024
+    ],
+    "tris": 372,
+    "mats": [
+     "modular_chainlink_fence_posts"
+    ]
+   },
+   {
+    "name": "modular-chainlink-fence__modular_chainlink_fence_post_bracket_02",
+    "dims": [
+     0.146,
+     0.08,
+     0.024
+    ],
+    "tris": 496,
+    "mats": [
+     "modular_chainlink_fence_posts"
+    ]
+   },
+   {
+    "name": "modular-chainlink-fence__modular_chainlink_fence_post_bracket_03",
+    "dims": [
+     0.113,
+     0.113,
+     0.024
+    ],
+    "tris": 492,
+    "mats": [
+     "modular_chainlink_fence_posts"
+    ]
+   },
+   {
+    "name": "modular-chainlink-fence__modular_chainlink_fence_start_01_corner_01",
+    "dims": [
+     0.149,
+     0.149,
+     2.523
+    ],
+    "tris": 5110,
+    "mats": [
+     "modular_chainlink_fence_posts"
+    ]
+   },
+   {
+    "name": "modular-chainlink-fence__modular_chainlink_fence_start_01_corner_02",
+    "dims": [
+     0.149,
+     0.149,
+     2.523
+    ],
+    "tris": 5074,
+    "mats": [
+     "modular_chainlink_fence_posts"
+    ]
+   },
+   {
+    "name": "modular-chainlink-fence__modular_chainlink_post_middle",
+    "dims": [
+     0.15,
+     0.148,
+     2.523
+    ],
+    "tris": 5062,
+    "mats": [
+     "modular_chainlink_fence_posts"
+    ]
+   }
+  ]
+ },
+ "modular-electricity-poles": {
+  "path": "models/city/hd-modular-electricity-poles/modular_electricity_poles_2k.gltf",
+  "size": [
+   13.119,
+   1.957,
+   7.0
+  ],
+  "pieces": [
+   {
+    "name": "modular-electricity-poles__bolt_large",
+    "dims": [
+     0.02,
+     0.218,
+     0.023
+    ],
+    "tris": 122,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__bolt_small",
+    "dims": [
+     0.02,
+     0.09,
+     0.023
+    ],
+    "tris": 92,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__cap",
+    "dims": [
+     0.191,
+     0.03,
+     0.32
+    ],
+    "tris": 164,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__connection_large_01",
+    "dims": [
+     1.2,
+     0.852,
+     0.503
+    ],
+    "tris": 13376,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__connection_large_02",
+    "dims": [
+     1.2,
+     0.516,
+     0.503
+    ],
+    "tris": 7736,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__connection_large_offset_01",
+    "dims": [
+     1.2,
+     0.852,
+     0.503
+    ],
+    "tris": 13778,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__connection_large_offset_02",
+    "dims": [
+     1.2,
+     0.516,
+     0.503
+    ],
+    "tris": 7736,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__connection_single_01",
+    "dims": [
+     0.156,
+     0.266,
+     0.107
+    ],
+    "tris": 954,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__connection_single_02",
+    "dims": [
+     0.156,
+     0.266,
+     0.107
+    ],
+    "tris": 954,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__connection_single_03",
+    "dims": [
+     0.08,
+     0.124,
+     0.126
+    ],
+    "tris": 1158,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__connection_small_01",
+    "dims": [
+     0.7,
+     0.852,
+     0.503
+    ],
+    "tris": 9818,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__connection_small_02",
+    "dims": [
+     0.7,
+     0.516,
+     0.503
+    ],
+    "tris": 5620,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__fastener",
+    "dims": [
+     1.446,
+     0.039,
+     3.058
+    ],
+    "tris": 1802,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__fastener_bolt",
+    "dims": [
+     0.041,
+     0.014,
+     0.042
+    ],
+    "tris": 164,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__fastener_connection",
+    "dims": [
+     0.188,
+     0.156,
+     0.03
+    ],
+    "tris": 366,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__fastener_loop",
+    "dims": [
+     0.046,
+     0.015,
+     0.073
+    ],
+    "tris": 144,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__fastener_nut",
+    "dims": [
+     0.041,
+     0.025,
+     0.042
+    ],
+    "tris": 238,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__fuse_01",
+    "dims": [
+     0.437,
+     0.352,
+     0.403
+    ],
+    "tris": 2392,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__fuse_02",
+    "dims": [
+     0.937,
+     0.355,
+     0.475
+    ],
+    "tris": 3660,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__insulator_01",
+    "dims": [
+     0.07,
+     0.343,
+     0.248
+    ],
+    "tris": 2116,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__insulator_02",
+    "dims": [
+     0.078,
+     0.343,
+     0.294
+    ],
+    "tris": 2116,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__insulator_03",
+    "dims": [
+     0.084,
+     0.343,
+     0.36
+    ],
+    "tris": 2116,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__insulator_cable_01",
+    "dims": [
+     0.046,
+     0.524,
+     0.219
+    ],
+    "tris": 248,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__insulator_cable_02",
+    "dims": [
+     0.067,
+     0.524,
+     0.326
+    ],
+    "tris": 232,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__insulator_cable_03",
+    "dims": [
+     0.053,
+     0.524,
+     0.284
+    ],
+    "tris": 248,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__insulators_large",
+    "dims": [
+     0.97,
+     0.343,
+     0.36
+    ],
+    "tris": 6348,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__insulators_small",
+    "dims": [
+     0.47,
+     0.343,
+     0.36
+    ],
+    "tris": 4232,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__nail",
+    "dims": [
+     0.017,
+     0.022,
+     0.017
+    ],
+    "tris": 114,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__nail_bent",
+    "dims": [
+     0.019,
+     0.028,
+     0.048
+    ],
+    "tris": 198,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__nut",
+    "dims": [
+     0.02,
+     0.009,
+     0.023
+    ],
+    "tris": 96,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__pole",
+    "dims": [
+     0.14,
+     0.14,
+     6.0
+    ],
+    "tris": 360,
+    "mats": [
+     "modular_electricity_poles"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__pole_large",
+    "dims": [
+     0.138,
+     0.138,
+     7.0
+    ],
+    "tris": 400,
+    "mats": [
+     "modular_electricity_poles"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__pole_small",
+    "dims": [
+     0.14,
+     0.14,
+     5.0
+    ],
+    "tris": 288,
+    "mats": [
+     "modular_electricity_poles"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_bolt_small_01",
+    "dims": [
+     0.091,
+     0.028,
+     0.029
+    ],
+    "tris": 92,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_bolt_small_02",
+    "dims": [
+     0.091,
+     0.033,
+     0.026
+    ],
+    "tris": 92,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_bolt_small_03",
+    "dims": [
+     0.091,
+     0.025,
+     0.023
+    ],
+    "tris": 92,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_bolt_small_04",
+    "dims": [
+     0.091,
+     0.033,
+     0.026
+    ],
+    "tris": 92,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_bolt_small_05",
+    "dims": [
+     0.091,
+     0.031,
+     0.023
+    ],
+    "tris": 92,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_bolt_small_06",
+    "dims": [
+     0.091,
+     0.026,
+     0.023
+    ],
+    "tris": 92,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_bolt_small_07",
+    "dims": [
+     0.091,
+     0.032,
+     0.023
+    ],
+    "tris": 92,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_bolt_small_08",
+    "dims": [
+     0.091,
+     0.026,
+     0.029
+    ],
+    "tris": 92,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_bolt_small_09",
+    "dims": [
+     0.091,
+     0.031,
+     0.023
+    ],
+    "tris": 92,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_cap",
+    "dims": [
+     0.191,
+     0.03,
+     0.32
+    ],
+    "tris": 164,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_connection_large_02",
+    "dims": [
+     1.2,
+     0.516,
+     0.503
+    ],
+    "tris": 7736,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_connection_single_01",
+    "dims": [
+     0.156,
+     0.266,
+     0.107
+    ],
+    "tris": 954,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_connection_small_02",
+    "dims": [
+     0.7,
+     0.516,
+     0.503
+    ],
+    "tris": 5620,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_fastener",
+    "dims": [
+     0.039,
+     1.446,
+     3.058
+    ],
+    "tris": 1802,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_fastener_connection",
+    "dims": [
+     0.156,
+     0.188,
+     0.03
+    ],
+    "tris": 366,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_fastener_loop",
+    "dims": [
+     0.015,
+     0.046,
+     0.073
+    ],
+    "tris": 144,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_fuse_01",
+    "dims": [
+     0.437,
+     0.352,
+     0.403
+    ],
+    "tris": 2392,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_fuse_02",
+    "dims": [
+     0.937,
+     0.355,
+     0.475
+    ],
+    "tris": 3660,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_nail_bent",
+    "dims": [
+     0.019,
+     0.028,
+     0.048
+    ],
+    "tris": 198,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_pole",
+    "dims": [
+     0.14,
+     0.14,
+     6.0
+    ],
+    "tris": 360,
+    "mats": [
+     "modular_electricity_poles"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_ring_large",
+    "dims": [
+     0.154,
+     0.154,
+     0.04
+    ],
+    "tris": 120,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_ring_small",
+    "dims": [
+     0.15,
+     0.15,
+     0.02
+    ],
+    "tris": 120,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_ring_small_01",
+    "dims": [
+     0.15,
+     0.15,
+     0.02
+    ],
+    "tris": 120,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_ring_small_02",
+    "dims": [
+     0.15,
+     0.15,
+     0.02
+    ],
+    "tris": 120,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_ring_small_03",
+    "dims": [
+     0.15,
+     0.15,
+     0.02
+    ],
+    "tris": 120,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_transformer_01",
+    "dims": [
+     0.547,
+     0.299,
+     0.612
+    ],
+    "tris": 6076,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_01_transformer_02",
+    "dims": [
+     0.175,
+     0.22,
+     0.298
+    ],
+    "tris": 1032,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_02_cap",
+    "dims": [
+     0.191,
+     0.03,
+     0.32
+    ],
+    "tris": 164,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_02_connection_large_01",
+    "dims": [
+     1.2,
+     0.852,
+     0.503
+    ],
+    "tris": 13376,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_02_connection_single_01",
+    "dims": [
+     0.156,
+     0.266,
+     0.107
+    ],
+    "tris": 954,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_02_connection_single_01_02",
+    "dims": [
+     0.155,
+     0.263,
+     0.107
+    ],
+    "tris": 954,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_02_connection_small_01",
+    "dims": [
+     0.7,
+     0.852,
+     0.503
+    ],
+    "tris": 9818,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_02_pole",
+    "dims": [
+     0.14,
+     0.14,
+     6.0
+    ],
+    "tris": 360,
+    "mats": [
+     "modular_electricity_poles"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_02_ring_large",
+    "dims": [
+     0.154,
+     0.154,
+     0.04
+    ],
+    "tris": 120,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_02_ring_large_02",
+    "dims": [
+     0.154,
+     0.154,
+     0.04
+    ],
+    "tris": 120,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_02_ring_small_01",
+    "dims": [
+     0.15,
+     0.15,
+     0.02
+    ],
+    "tris": 120,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_02_ring_small_02",
+    "dims": [
+     0.15,
+     0.15,
+     0.02
+    ],
+    "tris": 120,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_02_ring_small_03",
+    "dims": [
+     0.15,
+     0.15,
+     0.02
+    ],
+    "tris": 120,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_02_ring_small_04",
+    "dims": [
+     0.15,
+     0.15,
+     0.02
+    ],
+    "tris": 120,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_02_ring_small_05",
+    "dims": [
+     0.15,
+     0.15,
+     0.02
+    ],
+    "tris": 120,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_03_bolt_small_01",
+    "dims": [
+     0.09,
+     0.02,
+     0.023
+    ],
+    "tris": 92,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_03_bolt_small_02",
+    "dims": [
+     0.09,
+     0.021,
+     0.023
+    ],
+    "tris": 92,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_03_bolt_small_03",
+    "dims": [
+     0.091,
+     0.043,
+     0.024
+    ],
+    "tris": 92,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_03_bolt_small_04",
+    "dims": [
+     0.091,
+     0.035,
+     0.037
+    ],
+    "tris": 92,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_03_bolt_small_05",
+    "dims": [
+     0.091,
+     0.021,
+     0.023
+    ],
+    "tris": 92,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_03_bolt_small_06",
+    "dims": [
+     0.09,
+     0.021,
+     0.023
+    ],
+    "tris": 92,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_03_cap",
+    "dims": [
+     0.191,
+     0.03,
+     0.32
+    ],
+    "tris": 164,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_03_connection_large_offset_01",
+    "dims": [
+     1.2,
+     0.852,
+     0.503
+    ],
+    "tris": 13778,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_03_connection_single_01",
+    "dims": [
+     0.156,
+     0.266,
+     0.107
+    ],
+    "tris": 954,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_03_connection_small_01_02",
+    "dims": [
+     0.7,
+     0.852,
+     0.503
+    ],
+    "tris": 9818,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_03_fuse_01",
+    "dims": [
+     0.437,
+     0.352,
+     0.403
+    ],
+    "tris": 2392,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_03_nail_bent",
+    "dims": [
+     0.019,
+     0.028,
+     0.048
+    ],
+    "tris": 198,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_03_pole",
+    "dims": [
+     0.14,
+     0.14,
+     6.0
+    ],
+    "tris": 360,
+    "mats": [
+     "modular_electricity_poles"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_03_ring_large_01",
+    "dims": [
+     0.154,
+     0.154,
+     0.04
+    ],
+    "tris": 120,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_03_ring_large_02",
+    "dims": [
+     0.154,
+     0.154,
+     0.04
+    ],
+    "tris": 120,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_03_ring_small_01",
+    "dims": [
+     0.15,
+     0.15,
+     0.02
+    ],
+    "tris": 120,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_03_ring_small_02",
+    "dims": [
+     0.15,
+     0.15,
+     0.02
+    ],
+    "tris": 120,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_03_ring_small_03",
+    "dims": [
+     0.15,
+     0.15,
+     0.02
+    ],
+    "tris": 120,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_03_ring_small_04",
+    "dims": [
+     0.15,
+     0.15,
+     0.02
+    ],
+    "tris": 120,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__preset_03_transformer_01",
+    "dims": [
+     0.547,
+     0.299,
+     0.612
+    ],
+    "tris": 6076,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__ring_large",
+    "dims": [
+     0.154,
+     0.154,
+     0.04
+    ],
+    "tris": 120,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__ring_small",
+    "dims": [
+     0.15,
+     0.15,
+     0.02
+    ],
+    "tris": 120,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__support_large_01",
+    "dims": [
+     1.2,
+     0.283,
+     0.392
+    ],
+    "tris": 2130,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__support_large_02",
+    "dims": [
+     1.2,
+     0.241,
+     0.392
+    ],
+    "tris": 1388,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__support_large_offset_01",
+    "dims": [
+     1.2,
+     0.283,
+     0.392
+    ],
+    "tris": 2130,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__support_large_offset_02",
+    "dims": [
+     1.2,
+     0.241,
+     0.392
+    ],
+    "tris": 1388,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__support_small_01",
+    "dims": [
+     0.7,
+     0.28,
+     0.392
+    ],
+    "tris": 2042,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__support_small_02",
+    "dims": [
+     0.7,
+     0.241,
+     0.392
+    ],
+    "tris": 1388,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__transformer_01",
+    "dims": [
+     0.547,
+     0.299,
+     0.612
+    ],
+    "tris": 6076,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   },
+   {
+    "name": "modular-electricity-poles__transformer_02",
+    "dims": [
+     0.175,
+     0.22,
+     0.298
+    ],
+    "tris": 1032,
+    "mats": [
+     "modular_electricity_poles_pieces"
+    ]
+   }
+  ]
+ },
+ "modular-urban-apartments-facade": {
+  "path": "models/city/hd-modular-urban-apartments-facade/modular_urban_apartments_facade_2k.gltf",
+  "size": [
+   51.53,
+   6.665,
+   17.0
+  ],
+  "pieces": [
+   {
+    "name": "modular-urban-apartments-facade__base_angled_large_01",
+    "dims": [
+     3.2,
+     3.2,
+     0.75
+    ],
+    "tris": 64,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__base_angled_small_01",
+    "dims": [
+     2.2,
+     2.2,
+     0.75
+    ],
+    "tris": 64,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__base_corner_large_01",
+    "dims": [
+     3.2,
+     3.2,
+     0.75
+    ],
+    "tris": 40,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__base_corner_large_02",
+    "dims": [
+     3.0,
+     3.0,
+     0.75
+    ],
+    "tris": 40,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__base_corner_small_01",
+    "dims": [
+     2.2,
+     2.2,
+     0.75
+    ],
+    "tris": 40,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__base_corner_small_02",
+    "dims": [
+     2.0,
+     2.0,
+     0.75
+    ],
+    "tris": 40,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__base_end_01",
+    "dims": [
+     0.2,
+     0.2,
+     0.75
+    ],
+    "tris": 38,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__base_end_02",
+    "dims": [
+     0.2,
+     0.2,
+     0.75
+    ],
+    "tris": 38,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__base_standard_01",
+    "dims": [
+     3.0,
+     0.2,
+     0.75
+    ],
+    "tris": 8,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__cornice_end_01",
+    "dims": [
+     0.14,
+     0.14,
+     0.2
+    ],
+    "tris": 90,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__cornice_end_02",
+    "dims": [
+     0.14,
+     0.14,
+     0.2
+    ],
+    "tris": 90,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__cornice_pier_angled_01",
+    "dims": [
+     0.497,
+     0.277,
+     0.2
+    ],
+    "tris": 56,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__cornice_pier_corner_01",
+    "dims": [
+     0.35,
+     0.35,
+     0.2
+    ],
+    "tris": 56,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__cornice_pier_corner_02",
+    "dims": [
+     0.35,
+     0.35,
+     0.2
+    ],
+    "tris": 98,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__cornice_pier_standard_01",
+    "dims": [
+     0.35,
+     0.1,
+     0.2
+    ],
+    "tris": 42,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__cornice_standard_angled_large_01",
+    "dims": [
+     3.04,
+     3.04,
+     0.2
+    ],
+    "tris": 180,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__cornice_standard_angled_small_01",
+    "dims": [
+     2.04,
+     2.04,
+     0.2
+    ],
+    "tris": 180,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__cornice_standard_corner_large_01",
+    "dims": [
+     3.04,
+     3.04,
+     0.2
+    ],
+    "tris": 90,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__cornice_standard_corner_large_02",
+    "dims": [
+     3.0,
+     3.0,
+     0.2
+    ],
+    "tris": 90,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__cornice_standard_corner_small_01",
+    "dims": [
+     2.04,
+     2.04,
+     0.2
+    ],
+    "tris": 90,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__cornice_standard_corner_small_02",
+    "dims": [
+     2.0,
+     2.0,
+     0.2
+    ],
+    "tris": 90,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__cornice_standard_standard_01",
+    "dims": [
+     3.0,
+     0.04,
+     0.2
+    ],
+    "tris": 18,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__crown_end_01",
+    "dims": [
+     0.43,
+     0.43,
+     0.75
+    ],
+    "tris": 442,
+    "mats": [
+     "modular_urban_apartments_facade_trim_02"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__crown_end_02",
+    "dims": [
+     0.43,
+     0.43,
+     0.75
+    ],
+    "tris": 442,
+    "mats": [
+     "modular_urban_apartments_facade_trim_02"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__crown_pier_angled_01",
+    "dims": [
+     1.072,
+     0.826,
+     0.835
+    ],
+    "tris": 634,
+    "mats": [
+     "modular_urban_apartments_facade_trim_02"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__crown_pier_corner_01",
+    "dims": [
+     0.855,
+     0.855,
+     0.835
+    ],
+    "tris": 634,
+    "mats": [
+     "modular_urban_apartments_facade_trim_02"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__crown_pier_corner_02",
+    "dims": [
+     0.63,
+     0.63,
+     0.835
+    ],
+    "tris": 680,
+    "mats": [
+     "modular_urban_apartments_facade_trim_02"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__crown_pier_pedestal_01",
+    "dims": [
+     0.71,
+     0.525,
+     0.835
+    ],
+    "tris": 486,
+    "mats": [
+     "modular_urban_apartments_facade_trim_02"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__crown_standard_angled_large_01",
+    "dims": [
+     3.33,
+     3.33,
+     0.75
+    ],
+    "tris": 1500,
+    "mats": [
+     "modular_urban_apartments_facade_trim_02"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__crown_standard_angled_small_01",
+    "dims": [
+     2.33,
+     2.33,
+     0.75
+    ],
+    "tris": 1194,
+    "mats": [
+     "modular_urban_apartments_facade_trim_02"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__crown_standard_corner_large_01",
+    "dims": [
+     3.33,
+     3.33,
+     0.75
+    ],
+    "tris": 1700,
+    "mats": [
+     "modular_urban_apartments_facade_trim_02"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__crown_standard_corner_large_02",
+    "dims": [
+     3.1,
+     3.1,
+     0.75
+    ],
+    "tris": 1554,
+    "mats": [
+     "modular_urban_apartments_facade_trim_02"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__crown_standard_corner_small_01",
+    "dims": [
+     2.33,
+     2.33,
+     0.75
+    ],
+    "tris": 1292,
+    "mats": [
+     "modular_urban_apartments_facade_trim_02"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__crown_standard_corner_small_02",
+    "dims": [
+     2.1,
+     2.1,
+     0.75
+    ],
+    "tris": 1146,
+    "mats": [
+     "modular_urban_apartments_facade_trim_02"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__crown_standard_standard_01",
+    "dims": [
+     3.0,
+     0.43,
+     0.75
+    ],
+    "tris": 684,
+    "mats": [
+     "modular_urban_apartments_facade_trim_02"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__dado_door_angled_large_01",
+    "dims": [
+     3.04,
+     3.04,
+     0.5
+    ],
+    "tris": 80,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__dado_door_angled_small_01",
+    "dims": [
+     2.04,
+     2.04,
+     0.5
+    ],
+    "tris": 80,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__dado_door_centered_large_01",
+    "dims": [
+     3.0,
+     0.08,
+     0.5
+    ],
+    "tris": 48,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__dado_door_centered_small_01",
+    "dims": [
+     3.0,
+     0.08,
+     0.5
+    ],
+    "tris": 48,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__dado_door_centered_small_02",
+    "dims": [
+     3.0,
+     0.08,
+     0.5
+    ],
+    "tris": 48,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__dado_door_offset_small_01",
+    "dims": [
+     3.0,
+     0.08,
+     0.5
+    ],
+    "tris": 40,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__dado_door_offset_small_02",
+    "dims": [
+     3.0,
+     0.08,
+     0.5
+    ],
+    "tris": 40,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__dado_door_window_small_01",
+    "dims": [
+     3.0,
+     0.08,
+     0.5
+    ],
+    "tris": 80,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__dado_end_01",
+    "dims": [
+     0.14,
+     0.08,
+     0.5
+    ],
+    "tris": 40,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__dado_end_02",
+    "dims": [
+     0.14,
+     0.08,
+     0.5
+    ],
+    "tris": 40,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__dado_pier_angled_01",
+    "dims": [
+     0.57,
+     0.349,
+     0.54
+    ],
+    "tris": 68,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__dado_pier_corner_01",
+    "dims": [
+     0.41,
+     0.41,
+     0.54
+    ],
+    "tris": 68,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__dado_pier_corner_02",
+    "dims": [
+     0.38,
+     0.38,
+     0.54
+    ],
+    "tris": 122,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__dado_pier_pedestal_01",
+    "dims": [
+     0.4,
+     0.13,
+     0.54
+    ],
+    "tris": 50,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__dado_standard_angled_large_01",
+    "dims": [
+     3.04,
+     3.04,
+     0.5
+    ],
+    "tris": 80,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__dado_standard_angled_small_01",
+    "dims": [
+     2.04,
+     2.04,
+     0.5
+    ],
+    "tris": 72,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__dado_standard_corner_large_01",
+    "dims": [
+     3.04,
+     3.04,
+     0.5
+    ],
+    "tris": 40,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__dado_standard_corner_large_02",
+    "dims": [
+     3.0,
+     3.0,
+     0.5
+    ],
+    "tris": 40,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__dado_standard_corner_small_01",
+    "dims": [
+     2.04,
+     2.04,
+     0.5
+    ],
+    "tris": 40,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__dado_standard_corner_small_02",
+    "dims": [
+     2.0,
+     2.0,
+     0.5
+    ],
+    "tris": 40,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__dado_standard_standard_01",
+    "dims": [
+     3.0,
+     0.04,
+     0.5
+    ],
+    "tris": 8,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__door_angled_large_01",
+    "dims": [
+     1.779,
+     1.779,
+     2.81
+    ],
+    "tris": 1711,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__door_angled_small_01",
+    "dims": [
+     1.355,
+     1.355,
+     2.81
+    ],
+    "tris": 1360,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__door_centered_large_01",
+    "dims": [
+     2.08,
+     0.44,
+     2.81
+    ],
+    "tris": 1711,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__door_centered_small_01",
+    "dims": [
+     1.48,
+     0.44,
+     2.81
+    ],
+    "tris": 1360,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__door_centered_small_02",
+    "dims": [
+     1.12,
+     0.23,
+     2.26
+    ],
+    "tris": 790,
+    "mats": [
+     "modular_urban_apartments_facade_objects"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__door_offset_small_01",
+    "dims": [
+     1.12,
+     0.23,
+     2.26
+    ],
+    "tris": 790,
+    "mats": [
+     "modular_urban_apartments_facade_objects"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__door_offset_small_02",
+    "dims": [
+     1.12,
+     0.23,
+     2.26
+    ],
+    "tris": 790,
+    "mats": [
+     "modular_urban_apartments_facade_objects"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__door_offset_small_03",
+    "dims": [
+     1.48,
+     0.44,
+     2.81
+    ],
+    "tris": 1360,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__door_offset_small_04",
+    "dims": [
+     1.48,
+     0.44,
+     2.81
+    ],
+    "tris": 1360,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__door_window_small_01",
+    "dims": [
+     2.62,
+     0.39,
+     2.3
+    ],
+    "tris": 1637,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__door_window_small_010",
+    "dims": [
+     2.48,
+     0.255,
+     2.26
+    ],
+    "tris": 1195,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass",
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__door_window_small_011",
+    "dims": [
+     2.66,
+     0.44,
+     2.81
+    ],
+    "tris": 1765,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass",
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__door_window_small_012",
+    "dims": [
+     2.66,
+     0.44,
+     2.81
+    ],
+    "tris": 1765,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass",
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__door_window_small_02",
+    "dims": [
+     2.62,
+     0.39,
+     2.3
+    ],
+    "tris": 1637,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__door_window_small_03",
+    "dims": [
+     2.8,
+     0.44,
+     2.81
+    ],
+    "tris": 2207,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__door_window_small_04",
+    "dims": [
+     2.8,
+     0.44,
+     2.81
+    ],
+    "tris": 2207,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__door_window_small_05",
+    "dims": [
+     2.62,
+     0.39,
+     2.3
+    ],
+    "tris": 1597,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__door_window_small_06",
+    "dims": [
+     2.62,
+     0.39,
+     2.3
+    ],
+    "tris": 1597,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__door_window_small_07",
+    "dims": [
+     2.8,
+     0.44,
+     2.81
+    ],
+    "tris": 2167,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__door_window_small_08",
+    "dims": [
+     2.8,
+     0.44,
+     2.81
+    ],
+    "tris": 2167,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__door_window_small_09",
+    "dims": [
+     2.48,
+     0.255,
+     2.26
+    ],
+    "tris": 1195,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass",
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_door_angled_large_01",
+    "dims": [
+     3.0,
+     3.0,
+     3.0
+    ],
+    "tris": 5736,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_door_angled_small_01",
+    "dims": [
+     2.0,
+     2.0,
+     3.0
+    ],
+    "tris": 4800,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_door_centered_large_01",
+    "dims": [
+     3.0,
+     0.0,
+     3.0
+    ],
+    "tris": 2256,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_door_centered_small_01",
+    "dims": [
+     3.0,
+     0.0,
+     3.0
+    ],
+    "tris": 3264,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_door_centered_small_02",
+    "dims": [
+     3.0,
+     0.0,
+     3.0
+    ],
+    "tris": 3520,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_door_offset_small_01",
+    "dims": [
+     3.0,
+     0.0,
+     3.0
+    ],
+    "tris": 3520,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_door_offset_small_02",
+    "dims": [
+     3.0,
+     0.0,
+     3.0
+    ],
+    "tris": 3520,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_door_offset_small_03",
+    "dims": [
+     3.0,
+     0.0,
+     3.0
+    ],
+    "tris": 3264,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_door_offset_small_04",
+    "dims": [
+     3.0,
+     0.0,
+     3.0
+    ],
+    "tris": 3264,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_door_window_small_01",
+    "dims": [
+     3.0,
+     0.0,
+     3.0
+    ],
+    "tris": 2688,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_door_window_small_010",
+    "dims": [
+     3.0,
+     0.18,
+     3.0
+    ],
+    "tris": 3968,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_door_window_small_012",
+    "dims": [
+     3.0,
+     0.18,
+     3.0
+    ],
+    "tris": 3712,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_door_window_small_013",
+    "dims": [
+     3.0,
+     0.18,
+     3.0
+    ],
+    "tris": 3712,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_door_window_small_02",
+    "dims": [
+     3.0,
+     0.0,
+     3.0
+    ],
+    "tris": 2688,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_door_window_small_03",
+    "dims": [
+     3.0,
+     0.0,
+     3.0
+    ],
+    "tris": 2432,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_door_window_small_04",
+    "dims": [
+     3.0,
+     0.0,
+     3.0
+    ],
+    "tris": 2432,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_door_window_small_05",
+    "dims": [
+     3.0,
+     0.0,
+     3.0
+    ],
+    "tris": 2688,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_door_window_small_06",
+    "dims": [
+     3.0,
+     0.0,
+     3.0
+    ],
+    "tris": 2688,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_door_window_small_07",
+    "dims": [
+     3.0,
+     0.0,
+     3.0
+    ],
+    "tris": 2432,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_door_window_small_08",
+    "dims": [
+     3.0,
+     0.0,
+     3.0
+    ],
+    "tris": 2432,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_door_window_small_09",
+    "dims": [
+     3.0,
+     0.18,
+     3.0
+    ],
+    "tris": 3968,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_pier_angled_01",
+    "dims": [
+     0.373,
+     0.191,
+     3.0
+    ],
+    "tris": 576,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_pier_corner_01",
+    "dims": [
+     0.25,
+     0.25,
+     3.0
+    ],
+    "tris": 576,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_pier_corner_02",
+    "dims": [
+     0.3,
+     0.3,
+     3.0
+    ],
+    "tris": 576,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_pier_standard_01",
+    "dims": [
+     0.25,
+     0.05,
+     3.0
+    ],
+    "tris": 384,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_standard_angled_large_01",
+    "dims": [
+     3.0,
+     3.0,
+     3.0
+    ],
+    "tris": 8256,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_standard_angled_small_01",
+    "dims": [
+     2.0,
+     2.0,
+     3.0
+    ],
+    "tris": 6144,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_standard_corner_large_01",
+    "dims": [
+     3.0,
+     3.0,
+     3.0
+    ],
+    "tris": 9216,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_standard_corner_large_02",
+    "dims": [
+     3.0,
+     3.0,
+     3.0
+    ],
+    "tris": 9216,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_standard_corner_small_01",
+    "dims": [
+     2.0,
+     2.0,
+     3.0
+    ],
+    "tris": 6144,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_standard_corner_small_02",
+    "dims": [
+     2.0,
+     2.0,
+     3.0
+    ],
+    "tris": 6144,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_standard_standard_01",
+    "dims": [
+     3.0,
+     0.0,
+     3.0
+    ],
+    "tris": 4608,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_window_angled_large_01",
+    "dims": [
+     3.0,
+     3.0,
+     3.0
+    ],
+    "tris": 6696,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_window_angled_large_02",
+    "dims": [
+     3.0,
+     3.0,
+     3.0
+    ],
+    "tris": 6696,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_window_angled_small_01",
+    "dims": [
+     2.0,
+     2.0,
+     3.0
+    ],
+    "tris": 5312,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_window_angled_small_02",
+    "dims": [
+     2.0,
+     2.0,
+     3.0
+    ],
+    "tris": 5312,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_window_centered_double_01",
+    "dims": [
+     3.0,
+     0.0,
+     3.0
+    ],
+    "tris": 2944,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_window_centered_double_02",
+    "dims": [
+     3.0,
+     0.0,
+     3.0
+    ],
+    "tris": 2944,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_window_centered_double_03",
+    "dims": [
+     3.0,
+     0.18,
+     3.0
+    ],
+    "tris": 5504,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_window_centered_large_01",
+    "dims": [
+     3.0,
+     0.0,
+     3.0
+    ],
+    "tris": 2944,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_window_centered_large_02",
+    "dims": [
+     3.0,
+     0.0,
+     3.0
+    ],
+    "tris": 2944,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_window_centered_large_03",
+    "dims": [
+     3.0,
+     0.18,
+     3.0
+    ],
+    "tris": 4608,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_window_centered_small_01",
+    "dims": [
+     3.0,
+     0.0,
+     3.0
+    ],
+    "tris": 3776,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_window_centered_small_02",
+    "dims": [
+     3.0,
+     0.0,
+     3.0
+    ],
+    "tris": 3776,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_window_centered_small_03",
+    "dims": [
+     3.0,
+     0.18,
+     3.0
+    ],
+    "tris": 5056,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_window_offset_small_01",
+    "dims": [
+     3.0,
+     0.0,
+     3.0
+    ],
+    "tris": 3776,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_window_offset_small_02",
+    "dims": [
+     3.0,
+     0.0,
+     3.0
+    ],
+    "tris": 3776,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_window_offset_small_03",
+    "dims": [
+     3.0,
+     0.0,
+     3.0
+    ],
+    "tris": 3776,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_window_offset_small_04",
+    "dims": [
+     3.0,
+     0.0,
+     3.0
+    ],
+    "tris": 3776,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_window_offset_small_05",
+    "dims": [
+     3.0,
+     0.18,
+     3.0
+    ],
+    "tris": 5056,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__wall_window_offset_small_06",
+    "dims": [
+     3.0,
+     0.18,
+     3.0
+    ],
+    "tris": 5056,
+    "mats": [
+     "modular_urban_apartments_facade_plaster"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__window_angled_large_01",
+    "dims": [
+     1.773,
+     1.773,
+     2.3
+    ],
+    "tris": 1408,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__window_angled_large_02",
+    "dims": [
+     1.773,
+     1.773,
+     2.0
+    ],
+    "tris": 1264,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__window_angled_small_01",
+    "dims": [
+     1.065,
+     1.065,
+     2.3
+    ],
+    "tris": 847,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__window_angled_small_02",
+    "dims": [
+     1.065,
+     1.065,
+     2.0
+    ],
+    "tris": 807,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__window_centered_double_01",
+    "dims": [
+     2.62,
+     0.39,
+     2.3
+    ],
+    "tris": 1694,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__window_centered_double_02",
+    "dims": [
+     2.62,
+     0.39,
+     2.0
+    ],
+    "tris": 1614,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__window_centered_double_03",
+    "dims": [
+     2.34,
+     0.255,
+     1.685
+    ],
+    "tris": 810,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01",
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__window_centered_large_01",
+    "dims": [
+     2.12,
+     0.39,
+     2.3
+    ],
+    "tris": 1408,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__window_centered_large_02",
+    "dims": [
+     2.12,
+     0.39,
+     2.0
+    ],
+    "tris": 1264,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__window_centered_large_03",
+    "dims": [
+     1.74,
+     0.205,
+     1.685
+    ],
+    "tris": 730,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass",
+     "modular_urban_apartments_facade_trim_01"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__window_centered_small_01",
+    "dims": [
+     1.12,
+     0.39,
+     2.3
+    ],
+    "tris": 847,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__window_centered_small_02",
+    "dims": [
+     1.12,
+     0.39,
+     2.0
+    ],
+    "tris": 807,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__window_centered_small_03",
+    "dims": [
+     0.84,
+     0.255,
+     1.685
+    ],
+    "tris": 405,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01",
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__window_offset_small_01",
+    "dims": [
+     1.12,
+     0.39,
+     2.3
+    ],
+    "tris": 847,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__window_offset_small_02",
+    "dims": [
+     1.12,
+     0.39,
+     2.3
+    ],
+    "tris": 847,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__window_offset_small_03",
+    "dims": [
+     1.12,
+     0.39,
+     2.0
+    ],
+    "tris": 807,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__window_offset_small_04",
+    "dims": [
+     1.12,
+     0.39,
+     2.0
+    ],
+    "tris": 807,
+    "mats": [
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__window_offset_small_05",
+    "dims": [
+     0.84,
+     0.255,
+     1.685
+    ],
+    "tris": 405,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01",
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   },
+   {
+    "name": "modular-urban-apartments-facade__window_offset_small_06",
+    "dims": [
+     0.84,
+     0.255,
+     1.685
+    ],
+    "tris": 405,
+    "mats": [
+     "modular_urban_apartments_facade_trim_01",
+     "modular_urban_apartments_facade_objects",
+     "modular_urban_apartments_facade_glass"
+    ]
+   }
+  ]
+ },
+ "modular-wooden-pier": {
+  "path": "models/city/hd-modular-wooden-pier/modular_wooden_pier_2k.gltf",
+  "size": [
+   3.102,
+   19.026,
+   7.516
+  ],
+  "pieces": [
+   {
+    "name": "modular-wooden-pier__modular_wooden_pier_planks",
+    "dims": [
+     2.524,
+     2.203,
+     0.08
+    ],
+    "tris": 5512,
+    "mats": [
+     "modular_wooden_pier_planks"
+    ]
+   },
+   {
+    "name": "modular-wooden-pier__modular_wooden_pier_poles",
+    "dims": [
+     2.212,
+     3.081,
+     3.849
+    ],
+    "tris": 2460,
+    "mats": [
+     "modular_wooden_pier_poles"
+    ]
+   },
+   {
+    "name": "modular-wooden-pier__modular_wooden_pier_section_01",
+    "dims": [
+     2.49,
+     3.518,
+     4.266
+    ],
+    "tris": 23280,
+    "mats": [
+     "modular_wooden_pier_planks",
+     "modular_wooden_pier_poles.001"
+    ]
+   },
+   {
+    "name": "modular-wooden-pier__modular_wooden_pier_section_02",
+    "dims": [
+     2.507,
+     3.392,
+     3.838
+    ],
+    "tris": 11758,
+    "mats": [
+     "modular_wooden_pier_planks",
+     "modular_wooden_pier_poles.001"
+    ]
+   },
+   {
+    "name": "modular-wooden-pier__modular_wooden_pier_section_03",
+    "dims": [
+     2.507,
+     3.392,
+     3.838
+    ],
+    "tris": 14162,
+    "mats": [
+     "modular_wooden_pier_planks",
+     "modular_wooden_pier_poles.001"
+    ]
+   },
+   {
+    "name": "modular-wooden-pier__modular_wooden_pier_section_04",
+    "dims": [
+     2.458,
+     3.158,
+     4.158
+    ],
+    "tris": 14598,
+    "mats": [
+     "modular_wooden_pier_planks",
+     "modular_wooden_pier_poles.001"
+    ]
+   },
+   {
+    "name": "modular-wooden-pier__modular_wooden_pier_section_05",
+    "dims": [
+     3.102,
+     0.465,
+     7.001
+    ],
+    "tris": 13010,
+    "mats": [
+     "modular_wooden_pier_planks",
+     "modular_wooden_pier_poles.001"
+    ]
+   }
+  ]
+ },
+ "power-box-01": {
+  "path": "models/city/hd-power-box-01/power_box_01_2k.gltf",
+  "size": [
+   0.461,
+   0.399,
+   0.503
+  ],
+  "pieces": [
+   {
+    "name": "power-box-01__power_box_01_box",
+    "dims": [
+     0.346,
+     0.095,
+     0.503
+    ],
+    "tris": 19856,
+    "mats": [
+     "power_box_01"
+    ]
+   },
+   {
+    "name": "power-box-01__power_box_01_door",
+    "dims": [
+     0.126,
+     0.312,
+     0.487
+    ],
+    "tris": 1416,
+    "mats": [
+     "power_box_01"
+    ]
+   }
+  ]
+ },
+ "street-lamp-01": {
+  "path": "models/city/hd-street-lamp-01/street_lamp_01_2k.gltf",
+  "size": [
+   0.704,
+   0.386,
+   3.871
+  ],
+  "pieces": [
+   {
+    "name": "street-lamp-01__street_lamp_01",
+    "dims": [
+     0.704,
+     0.386,
+     3.871
+    ],
+    "tris": 30610,
+    "mats": [
+     "street_lamp_01",
+     "street_lamp_01_glass",
+     "street_lamp_01_bulb"
+    ]
+   }
+  ]
+ },
+ "utility-box-02": {
+  "path": "models/city/hd-utility-box-02/utility_box_02_2k.gltf",
+  "size": [
+   0.92,
+   0.432,
+   1.12
+  ],
+  "pieces": [
+   {
+    "name": "utility-box-02__utility_box_02",
+    "dims": [
+     0.92,
+     0.432,
+     1.12
+    ],
+    "tris": 6268,
+    "mats": [
+     "utility_box_02"
+    ]
+   }
+  ]
+ },
+ "anthurium-botany-01": {
+  "path": "models/extra/hd-anthurium-botany-01/anthurium_botany_01_1k.gltf",
+  "size": [
+   2.796,
+   1.798,
+   0.5
+  ],
+  "pieces": [
+   {
+    "name": "anthurium-botany-01__anthurium_botany_01_a",
+    "dims": [
+     0.896,
+     1.142,
+     0.5
+    ],
+    "tris": 15808,
+    "mats": [
+     "anthurium_botany_01"
+    ]
+   },
+   {
+    "name": "anthurium-botany-01__anthurium_botany_01_b",
+    "dims": [
+     0.757,
+     0.572,
+     0.472
+    ],
+    "tris": 15544,
+    "mats": [
+     "anthurium_botany_01"
+    ]
+   },
+   {
+    "name": "anthurium-botany-01__anthurium_botany_01_c",
+    "dims": [
+     0.601,
+     0.657,
+     0.359
+    ],
+    "tris": 9072,
+    "mats": [
+     "anthurium_botany_01"
+    ]
+   },
+   {
+    "name": "anthurium-botany-01__anthurium_botany_04_d",
+    "dims": [
+     0.481,
+     0.351,
+     0.301
+    ],
+    "tris": 10360,
+    "mats": [
+     "anthurium_botany_01"
+    ]
+   },
+   {
+    "name": "anthurium-botany-01__anthurium_botany_05_e",
+    "dims": [
+     0.32,
+     0.29,
+     0.159
+    ],
+    "tris": 7664,
+    "mats": [
+     "anthurium_botany_01"
+    ]
+   },
+   {
+    "name": "anthurium-botany-01__anthurium_botany_06_f",
+    "dims": [
+     0.313,
+     0.279,
+     0.139
+    ],
+    "tris": 8704,
+    "mats": [
+     "anthurium_botany_01"
+    ]
+   }
+  ]
+ },
+ "barrel-02": {
+  "path": "models/extra/hd-barrel-02/Barrel_02_1k.gltf",
+  "size": [
+   0.488,
+   0.485,
+   0.88
+  ],
+  "pieces": [
+   {
+    "name": "barrel-02__Barrel_02",
+    "dims": [
+     0.488,
+     0.485,
+     0.88
+    ],
+    "tris": 2688,
+    "mats": [
+     "Barrel_02"
+    ]
+   }
+  ]
+ },
+ "cement-bag": {
+  "path": "models/extra/hd-cement-bag/cement_bag_1k.gltf",
+  "size": [
+   0.462,
+   0.7,
+   0.18
+  ],
+  "pieces": [
+   {
+    "name": "cement-bag__cement_bag",
+    "dims": [
+     0.462,
+     0.7,
+     0.18
+    ],
+    "tris": 844,
+    "mats": [
+     "cement_bag"
+    ]
+   }
+  ]
+ },
+ "concrete-road-barrier": {
+  "path": "models/extra/hd-concrete-road-barrier/concrete_road_barrier_1k.gltf",
+  "size": [
+   1.545,
+   0.639,
+   0.831
+  ],
+  "pieces": [
+   {
+    "name": "concrete-road-barrier__concrete_road_barrier",
+    "dims": [
+     1.545,
+     0.639,
+     0.831
+    ],
+    "tris": 60928,
+    "mats": [
+     "concrete_road_barrier"
+    ]
+   }
+  ]
+ },
+ "covered-car": {
+  "path": "models/extra/hd-covered-car/covered_car_1k.gltf",
+  "size": [
+   1.789,
+   4.38,
+   1.411
+  ],
+  "pieces": [
+   {
+    "name": "covered-car__covered_car",
+    "dims": [
+     1.789,
+     4.38,
+     1.285
+    ],
+    "tris": 4528,
+    "mats": [
+     "covered_car.001"
+    ]
+   },
+   {
+    "name": "covered-car__covered_car_wheel_01",
+    "dims": [
+     0.161,
+     0.598,
+     0.598
+    ],
+    "tris": 2016,
+    "mats": [
+     "covered_car"
+    ]
+   },
+   {
+    "name": "covered-car__covered_car_wheel_02",
+    "dims": [
+     0.161,
+     0.6,
+     0.6
+    ],
+    "tris": 2016,
+    "mats": [
+     "covered_car.001"
+    ]
+   },
+   {
+    "name": "covered-car__covered_car_wheel_03",
+    "dims": [
+     0.161,
+     0.6,
+     0.6
+    ],
+    "tris": 2016,
+    "mats": [
+     "covered_car.001"
+    ]
+   },
+   {
+    "name": "covered-car__covered_car_wheel_04",
+    "dims": [
+     0.161,
+     0.6,
+     0.6
+    ],
+    "tris": 2016,
+    "mats": [
+     "covered_car"
+    ]
+   }
+  ]
+ },
+ "food-kiwi-01": {
+  "path": "models/extra/hd-food-kiwi-01/food_kiwi_01_1k.gltf",
+  "size": [
+   0.07,
+   0.069,
+   0.09
+  ],
+  "pieces": [
+   {
+    "name": "food-kiwi-01__food_kiwi_01",
+    "dims": [
+     0.07,
+     0.069,
+     0.09
+    ],
+    "tris": 7748,
+    "mats": [
+     "food_kiwi_01"
+    ]
+   }
+  ]
+ },
+ "food-pears-asian-01": {
+  "path": "models/extra/hd-food-pears-asian-01/food_pears_asian_01_1k.gltf",
+  "size": [
+   0.126,
+   0.167,
+   0.071
+  ],
+  "pieces": [
+   {
+    "name": "food-pears-asian-01__food_pears_asian_01_a",
+    "dims": [
+     0.062,
+     0.054,
+     0.042
+    ],
+    "tris": 2604,
+    "mats": [
+     "food_pears_asian_01"
+    ]
+   },
+   {
+    "name": "food-pears-asian-01__food_pears_asian_01_b",
+    "dims": [
+     0.044,
+     0.08,
+     0.044
+    ],
+    "tris": 2668,
+    "mats": [
+     "food_pears_asian_01"
+    ]
+   },
+   {
+    "name": "food-pears-asian-01__food_pears_asian_01_c",
+    "dims": [
+     0.044,
+     0.044,
+     0.071
+    ],
+    "tris": 2540,
+    "mats": [
+     "food_pears_asian_01"
+    ]
+   },
+   {
+    "name": "food-pears-asian-01__food_pears_asian_01_d",
+    "dims": [
+     0.051,
+     0.047,
+     0.044
+    ],
+    "tris": 2412,
+    "mats": [
+     "food_pears_asian_01"
+    ]
+   },
+   {
+    "name": "food-pears-asian-01__food_pears_asian_01_e",
+    "dims": [
+     0.043,
+     0.043,
+     0.067
+    ],
+    "tris": 2348,
+    "mats": [
+     "food_pears_asian_01"
+    ]
+   }
+  ]
+ },
+ "food-pomegranate-01": {
+  "path": "models/extra/hd-food-pomegranate-01/food_pomegranate_01_1k.gltf",
+  "size": [
+   0.114,
+   0.115,
+   0.115
+  ],
+  "pieces": [
+   {
+    "name": "food-pomegranate-01__food_pomegranate_01",
+    "dims": [
+     0.114,
+     0.115,
+     0.115
+    ],
+    "tris": 8142,
+    "mats": [
+     "food_pomegranate_01"
+    ]
+   }
+  ]
+ },
+ "grass-medium-02": {
+  "path": "models/extra/hd-grass-medium-02/grass_medium_02_1k.gltf",
+  "size": [
+   1.311,
+   0.433,
+   0.405
+  ],
+  "pieces": [
+   {
+    "name": "grass-medium-02__grass_medium_02_a",
+    "dims": [
+     0.119,
+     0.12,
+     0.157
+    ],
+    "tris": 714,
+    "mats": [
+     "grass_medium_02"
+    ]
+   },
+   {
+    "name": "grass-medium-02__grass_medium_02_b",
+    "dims": [
+     0.179,
+     0.199,
+     0.18
+    ],
+    "tris": 1760,
+    "mats": [
+     "grass_medium_02"
+    ]
+   },
+   {
+    "name": "grass-medium-02__grass_medium_02_c",
+    "dims": [
+     0.262,
+     0.25,
+     0.232
+    ],
+    "tris": 1215,
+    "mats": [
+     "grass_medium_02"
+    ]
+   },
+   {
+    "name": "grass-medium-02__grass_medium_02_d",
+    "dims": [
+     0.317,
+     0.362,
+     0.26
+    ],
+    "tris": 2489,
+    "mats": [
+     "grass_medium_02"
+    ]
+   },
+   {
+    "name": "grass-medium-02__grass_medium_02_e",
+    "dims": [
+     0.356,
+     0.433,
+     0.403
+    ],
+    "tris": 1664,
+    "mats": [
+     "grass_medium_02"
+    ]
+   }
+  ]
+ },
+ "hand-truck": {
+  "path": "models/extra/hd-hand-truck/hand_truck_1k.gltf",
+  "size": [
+   0.593,
+   0.693,
+   1.403
+  ],
+  "pieces": [
+   {
+    "name": "hand-truck__hand_truck",
+    "dims": [
+     0.593,
+     0.693,
+     1.403
+    ],
+    "tris": 13220,
+    "mats": [
+     "hand_truck"
+    ]
+   }
+  ]
+ },
+ "industrial-pastic-container": {
+  "path": "models/extra/hd-industrial-pastic-container/industrial_pastic_container_1k.gltf",
+  "size": [
+   0.457,
+   0.631,
+   0.419
+  ],
+  "pieces": [
+   {
+    "name": "industrial-pastic-container__industrial_pastic_container",
+    "dims": [
+     0.35,
+     0.626,
+     0.415
+    ],
+    "tris": 2392,
+    "mats": [
+     "industrial_pastic_container"
+    ]
+   },
+   {
+    "name": "industrial-pastic-container__industrial_pastic_container_lid_a",
+    "dims": [
+     0.07,
+     0.631,
+     0.205
+    ],
+    "tris": 2334,
+    "mats": [
+     "industrial_pastic_container"
+    ]
+   },
+   {
+    "name": "industrial-pastic-container__industrial_pastic_container_lid_b",
+    "dims": [
+     0.064,
+     0.631,
+     0.241
+    ],
+    "tris": 2392,
+    "mats": [
+     "industrial_pastic_container"
+    ]
+   }
+  ]
+ },
+ "island-tree-01": {
+  "path": "models/extra/hd-island-tree-01/island_tree_01_1k.gltf",
+  "size": [
+   4.755,
+   4.818,
+   5.027
+  ],
+  "pieces": [
+   {
+    "name": "island-tree-01__island_tree_01_LOD0",
+    "dims": [
+     4.755,
+     4.818,
+     5.027
+    ],
+    "tris": 1599403,
+    "mats": [
+     "island_tree_01",
+     "island_tree_01_leaves",
+     "island_tree_01_branches"
+    ]
+   }
+  ]
+ },
+ "island-tree-02": {
+  "path": "models/extra/hd-island-tree-02/island_tree_02_1k.gltf",
+  "size": [
+   4.208,
+   4.071,
+   3.407
+  ],
+  "pieces": [
+   {
+    "name": "island-tree-02__island_tree_02_LOD0",
+    "dims": [
+     4.208,
+     4.071,
+     3.407
+    ],
+    "tris": 1072212,
+    "mats": [
+     "island_tree_02",
+     "island_tree_02_leaves",
+     "island_tree_02_branches"
+    ]
+   }
+  ]
+ },
+ "island-tree-03": {
+  "path": "models/extra/hd-island-tree-03/island_tree_03_1k.gltf",
+  "size": [
+   2.972,
+   2.913,
+   2.615
+  ],
+  "pieces": [
+   {
+    "name": "island-tree-03__island_tree_03_LOD0",
+    "dims": [
+     2.972,
+     2.913,
+     2.615
+    ],
+    "tris": 2085320,
+    "mats": [
+     "island_tree_03",
+     "island_tree_03_leaves",
+     "island_tree_03_branches"
+    ]
+   }
+  ]
+ },
+ "jacaranda-tree": {
+  "path": "models/extra/hd-jacaranda-tree/jacaranda_tree_1k.gltf",
+  "size": [
+   24.417,
+   19.155,
+   19.469
+  ],
+  "pieces": [
+   {
+    "name": "jacaranda-tree__jacaranda_tree_LOD0",
+    "dims": [
+     24.417,
+     19.155,
+     19.469
+    ],
+    "tris": 3863832,
+    "mats": [
+     "jacaranda_tree_branches",
+     "jacaranda_tree_trunk",
+     "jacaranda_tree_leaves"
+    ]
+   }
+  ]
+ },
+ "modular-pipes": {
+  "path": "models/extra/hd-modular-pipes/modular_pipes_1k.gltf",
+  "size": [
+   4.187,
+   0.458,
+   2.435
+  ],
+  "pieces": [
+   {
+    "name": "modular-pipes__pipe_100cm_metal",
+    "dims": [
+     0.1,
+     0.1,
+     1.0
+    ],
+    "tris": 144,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_100cm_pvc",
+    "dims": [
+     0.1,
+     0.1,
+     1.0
+    ],
+    "tris": 144,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_10cm_metal",
+    "dims": [
+     0.1,
+     0.1,
+     0.1
+    ],
+    "tris": 48,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_10cm_pvc",
+    "dims": [
+     0.1,
+     0.1,
+     0.1
+    ],
+    "tris": 48,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_140cm_metal",
+    "dims": [
+     0.1,
+     0.1,
+     1.4
+    ],
+    "tris": 192,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_140cm_pvc",
+    "dims": [
+     0.1,
+     0.1,
+     1.4
+    ],
+    "tris": 192,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_200cm_metal",
+    "dims": [
+     0.1,
+     0.1,
+     2.0
+    ],
+    "tris": 288,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_200cm_pvc",
+    "dims": [
+     0.1,
+     0.1,
+     2.0
+    ],
+    "tris": 288,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_20cm_metal",
+    "dims": [
+     0.1,
+     0.1,
+     0.2
+    ],
+    "tris": 48,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_20cm_pvc",
+    "dims": [
+     0.1,
+     0.1,
+     0.2
+    ],
+    "tris": 48,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_40cm_metal",
+    "dims": [
+     0.1,
+     0.1,
+     0.4
+    ],
+    "tris": 48,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_40cm_pvc",
+    "dims": [
+     0.1,
+     0.1,
+     0.4
+    ],
+    "tris": 48,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_5cm_metal",
+    "dims": [
+     0.1,
+     0.1,
+     0.05
+    ],
+    "tris": 48,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_5cm_pvc",
+    "dims": [
+     0.1,
+     0.1,
+     0.05
+    ],
+    "tris": 48,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_60cm_metal",
+    "dims": [
+     0.1,
+     0.1,
+     0.6
+    ],
+    "tris": 96,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_60cm_pvc",
+    "dims": [
+     0.1,
+     0.1,
+     0.6
+    ],
+    "tris": 96,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_chamber_large_metal",
+    "dims": [
+     0.2,
+     0.2,
+     0.6
+    ],
+    "tris": 912,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_chamber_large_pvc",
+    "dims": [
+     0.2,
+     0.2,
+     0.6
+    ],
+    "tris": 912,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_chamber_small_metal",
+    "dims": [
+     0.14,
+     0.14,
+     0.2
+    ],
+    "tris": 1152,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_chamber_small_pvc",
+    "dims": [
+     0.14,
+     0.14,
+     0.2
+    ],
+    "tris": 1152,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_junction_t_2_metal",
+    "dims": [
+     0.15,
+     0.1,
+     0.2
+    ],
+    "tris": 378,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_junction_t_2_pvc",
+    "dims": [
+     0.15,
+     0.1,
+     0.2
+    ],
+    "tris": 378,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_junction_t_3_metal",
+    "dims": [
+     0.2,
+     0.105,
+     0.153
+    ],
+    "tris": 1064,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_junction_t_3_pvc",
+    "dims": [
+     0.2,
+     0.105,
+     0.153
+    ],
+    "tris": 1064,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_junction_t_metal",
+    "dims": [
+     0.2,
+     0.1,
+     0.15
+    ],
+    "tris": 300,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_junction_t_pvc",
+    "dims": [
+     0.2,
+     0.1,
+     0.15
+    ],
+    "tris": 300,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_junction_x_2_metal",
+    "dims": [
+     0.2,
+     0.1,
+     0.2
+    ],
+    "tris": 700,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_junction_x_2_pvc",
+    "dims": [
+     0.2,
+     0.1,
+     0.2
+    ],
+    "tris": 700,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_junction_x_metal",
+    "dims": [
+     0.2,
+     0.1,
+     0.2
+    ],
+    "tris": 496,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_junction_x_pvc",
+    "dims": [
+     0.2,
+     0.1,
+     0.2
+    ],
+    "tris": 496,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_s_curve_1_metal",
+    "dims": [
+     0.202,
+     0.106,
+     0.2
+    ],
+    "tris": 912,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_s_curve_1_pvc",
+    "dims": [
+     0.202,
+     0.106,
+     0.2
+    ],
+    "tris": 912,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_s_curve_2_metal",
+    "dims": [
+     0.302,
+     0.106,
+     0.3
+    ],
+    "tris": 1200,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_s_curve_2_pvc",
+    "dims": [
+     0.302,
+     0.106,
+     0.3
+    ],
+    "tris": 1200,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_s_curve_3_metal",
+    "dims": [
+     0.304,
+     0.104,
+     0.4
+    ],
+    "tris": 1824,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_s_curve_3_pvc",
+    "dims": [
+     0.304,
+     0.104,
+     0.4
+    ],
+    "tris": 1824,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_s_curve_4_metal",
+    "dims": [
+     0.404,
+     0.104,
+     0.5
+    ],
+    "tris": 1776,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_s_curve_4_pvc",
+    "dims": [
+     0.404,
+     0.104,
+     0.5
+    ],
+    "tris": 1776,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_support_crossover_metal",
+    "dims": [
+     0.111,
+     0.356,
+     0.111
+    ],
+    "tris": 642,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_support_crossover_pvc",
+    "dims": [
+     0.111,
+     0.356,
+     0.111
+    ],
+    "tris": 642,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_support_double_metal",
+    "dims": [
+     0.111,
+     0.356,
+     0.032
+    ],
+    "tris": 642,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_support_double_pvc",
+    "dims": [
+     0.111,
+     0.356,
+     0.032
+    ],
+    "tris": 642,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_support_extension_long_metal",
+    "dims": [
+     0.022,
+     0.3,
+     0.022
+    ],
+    "tris": 22,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_support_extension_long_pvc",
+    "dims": [
+     0.022,
+     0.3,
+     0.022
+    ],
+    "tris": 22,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_support_extension_short_metal",
+    "dims": [
+     0.022,
+     0.1,
+     0.022
+    ],
+    "tris": 22,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_support_extension_short_pvc",
+    "dims": [
+     0.022,
+     0.1,
+     0.022
+    ],
+    "tris": 22,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_support_long_metal",
+    "dims": [
+     0.111,
+     0.256,
+     0.032
+    ],
+    "tris": 278,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_support_long_pvc",
+    "dims": [
+     0.111,
+     0.256,
+     0.032
+    ],
+    "tris": 278,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_support_metal",
+    "dims": [
+     0.111,
+     0.156,
+     0.032
+    ],
+    "tris": 278,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_support_pvc",
+    "dims": [
+     0.111,
+     0.156,
+     0.032
+    ],
+    "tris": 278,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_100cm_metal",
+    "dims": [
+     1.0,
+     0.06,
+     0.06
+    ],
+    "tris": 144,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_100cm_pvc",
+    "dims": [
+     1.0,
+     0.06,
+     0.06
+    ],
+    "tris": 144,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_10cm_metal",
+    "dims": [
+     0.1,
+     0.06,
+     0.06
+    ],
+    "tris": 48,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_10cm_pvc",
+    "dims": [
+     0.1,
+     0.06,
+     0.06
+    ],
+    "tris": 48,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_140cm_metal",
+    "dims": [
+     1.4,
+     0.06,
+     0.06
+    ],
+    "tris": 192,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_140cm_pvc",
+    "dims": [
+     1.4,
+     0.06,
+     0.06
+    ],
+    "tris": 192,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_200cm_metal",
+    "dims": [
+     2.0,
+     0.06,
+     0.06
+    ],
+    "tris": 288,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_200cm_pvc",
+    "dims": [
+     2.0,
+     0.06,
+     0.06
+    ],
+    "tris": 288,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_20cm_metal",
+    "dims": [
+     0.2,
+     0.06,
+     0.06
+    ],
+    "tris": 48,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_20cm_pvc",
+    "dims": [
+     0.2,
+     0.06,
+     0.06
+    ],
+    "tris": 48,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_40cm_metal",
+    "dims": [
+     0.4,
+     0.06,
+     0.06
+    ],
+    "tris": 48,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_40cm_pvc",
+    "dims": [
+     0.4,
+     0.06,
+     0.06
+    ],
+    "tris": 48,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_5cm_metal",
+    "dims": [
+     0.05,
+     0.06,
+     0.06
+    ],
+    "tris": 48,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_5cm_pvc",
+    "dims": [
+     0.05,
+     0.06,
+     0.06
+    ],
+    "tris": 48,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_60cm_metal",
+    "dims": [
+     0.6,
+     0.06,
+     0.06
+    ],
+    "tris": 96,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_60cm_pvc",
+    "dims": [
+     0.6,
+     0.06,
+     0.06
+    ],
+    "tris": 96,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_end_metal",
+    "dims": [
+     0.076,
+     0.137,
+     0.266
+    ],
+    "tris": 1418,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_end_pvc",
+    "dims": [
+     0.076,
+     0.137,
+     0.266
+    ],
+    "tris": 1418,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_junction_t_metal",
+    "dims": [
+     0.2,
+     0.06,
+     0.13
+    ],
+    "tris": 252,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_junction_t_pvc",
+    "dims": [
+     0.2,
+     0.06,
+     0.13
+    ],
+    "tris": 252,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_junction_x_metal",
+    "dims": [
+     0.2,
+     0.06,
+     0.2
+    ],
+    "tris": 400,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_junction_x_pvc",
+    "dims": [
+     0.2,
+     0.06,
+     0.2
+    ],
+    "tris": 400,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_s_curve_1_metal",
+    "dims": [
+     0.164,
+     0.064,
+     0.2
+    ],
+    "tris": 960,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_s_curve_1_pvc",
+    "dims": [
+     0.164,
+     0.064,
+     0.2
+    ],
+    "tris": 960,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_s_curve_2_metal",
+    "dims": [
+     0.264,
+     0.064,
+     0.3
+    ],
+    "tris": 912,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_s_curve_2_pvc",
+    "dims": [
+     0.264,
+     0.064,
+     0.3
+    ],
+    "tris": 912,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_support_crossover_metal",
+    "dims": [
+     0.07,
+     0.335,
+     0.07
+    ],
+    "tris": 642,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_support_crossover_pvc",
+    "dims": [
+     0.07,
+     0.335,
+     0.07
+    ],
+    "tris": 642,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_support_double_metal",
+    "dims": [
+     0.032,
+     0.335,
+     0.07
+    ],
+    "tris": 642,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_support_double_pvc",
+    "dims": [
+     0.032,
+     0.335,
+     0.07
+    ],
+    "tris": 642,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_support_long_metal",
+    "dims": [
+     0.032,
+     0.235,
+     0.07
+    ],
+    "tris": 278,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_support_long_pvc",
+    "dims": [
+     0.032,
+     0.235,
+     0.07
+    ],
+    "tris": 278,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_support_metal",
+    "dims": [
+     0.032,
+     0.135,
+     0.07
+    ],
+    "tris": 278,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_support_pvc",
+    "dims": [
+     0.032,
+     0.135,
+     0.07
+    ],
+    "tris": 278,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_turn_long_metal",
+    "dims": [
+     0.232,
+     0.064,
+     0.232
+    ],
+    "tris": 864,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_turn_long_pvc",
+    "dims": [
+     0.232,
+     0.064,
+     0.232
+    ],
+    "tris": 864,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_turn_short_metal",
+    "dims": [
+     0.132,
+     0.064,
+     0.132
+    ],
+    "tris": 768,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_turn_short_pvc",
+    "dims": [
+     0.132,
+     0.064,
+     0.132
+    ],
+    "tris": 768,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_valve_1_metal",
+    "dims": [
+     0.082,
+     0.242,
+     0.2
+    ],
+    "tris": 2516,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_valve_1_pvc",
+    "dims": [
+     0.082,
+     0.242,
+     0.2
+    ],
+    "tris": 2516,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_valve_2_metal",
+    "dims": [
+     0.1,
+     0.136,
+     0.232
+    ],
+    "tris": 1032,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_thin_valve_2_pvc",
+    "dims": [
+     0.1,
+     0.136,
+     0.232
+    ],
+    "tris": 1032,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_to_thin_metal",
+    "dims": [
+     0.1,
+     0.1,
+     0.05
+    ],
+    "tris": 336,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_to_thin_pvc",
+    "dims": [
+     0.1,
+     0.1,
+     0.05
+    ],
+    "tris": 336,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_turn_long_metal",
+    "dims": [
+     0.253,
+     0.105,
+     0.253
+    ],
+    "tris": 960,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_turn_long_pvc",
+    "dims": [
+     0.253,
+     0.105,
+     0.253
+    ],
+    "tris": 960,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_turn_short_metal",
+    "dims": [
+     0.153,
+     0.105,
+     0.153
+    ],
+    "tris": 864,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_turn_short_pvc",
+    "dims": [
+     0.153,
+     0.105,
+     0.153
+    ],
+    "tris": 864,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_uturn_metal",
+    "dims": [
+     0.305,
+     0.105,
+     0.152
+    ],
+    "tris": 1632,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_uturn_pvc",
+    "dims": [
+     0.305,
+     0.105,
+     0.152
+    ],
+    "tris": 1632,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_valve_large_metal",
+    "dims": [
+     0.24,
+     0.458,
+     0.5
+    ],
+    "tris": 8432,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_valve_large_pvc",
+    "dims": [
+     0.24,
+     0.458,
+     0.5
+    ],
+    "tris": 8432,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_valve_small_1_metal",
+    "dims": [
+     0.151,
+     0.253,
+     0.4
+    ],
+    "tris": 4910,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_valve_small_1_pvc",
+    "dims": [
+     0.151,
+     0.253,
+     0.4
+    ],
+    "tris": 4910,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_valve_small_2_metal",
+    "dims": [
+     0.151,
+     0.253,
+     0.4
+    ],
+    "tris": 4910,
+    "mats": [
+     "modular_pipes_metal"
+    ]
+   },
+   {
+    "name": "modular-pipes__pipe_valve_small_2_pvc",
+    "dims": [
+     0.151,
+     0.253,
+     0.4
+    ],
+    "tris": 4910,
+    "mats": [
+     "modular_pipes_pvc"
+    ]
+   }
+  ]
+ },
+ "nettle-plant": {
+  "path": "models/extra/hd-nettle-plant/nettle_plant_1k.gltf",
+  "size": [
+   1.083,
+   0.095,
+   0.218
+  ],
+  "pieces": [
+   {
+    "name": "nettle-plant__nettle_plant_medium_a_LOD0",
+    "dims": [
+     0.077,
+     0.089,
+     0.131
+    ],
+    "tris": 5896,
+    "mats": [
+     "nettle_plant"
+    ]
+   },
+   {
+    "name": "nettle-plant__nettle_plant_medium_b_LOD0",
+    "dims": [
+     0.065,
+     0.066,
+     0.105
+    ],
+    "tris": 5664,
+    "mats": [
+     "nettle_plant"
+    ]
+   },
+   {
+    "name": "nettle-plant__nettle_plant_small_a_LOD0",
+    "dims": [
+     0.064,
+     0.043,
+     0.063
+    ],
+    "tris": 3592,
+    "mats": [
+     "nettle_plant"
+    ]
+   },
+   {
+    "name": "nettle-plant__nettle_plant_small_b_LOD0",
+    "dims": [
+     0.06,
+     0.039,
+     0.022
+    ],
+    "tris": 1088,
+    "mats": [
+     "nettle_plant"
+    ]
+   },
+   {
+    "name": "nettle-plant__nettle_plant_tall_a_LOD0",
+    "dims": [
+     0.104,
+     0.09,
+     0.217
+    ],
+    "tris": 6984,
+    "mats": [
+     "nettle_plant"
+    ]
+   },
+   {
+    "name": "nettle-plant__nettle_plant_tall_b_LOD0",
+    "dims": [
+     0.082,
+     0.095,
+     0.193
+    ],
+    "tris": 8080,
+    "mats": [
+     "nettle_plant"
+    ]
+   }
+  ]
+ },
+ "outdoor-table-chair-set-01": {
+  "path": "models/extra/hd-outdoor-table-chair-set-01/outdoor_table_chair_set_01_1k.gltf",
+  "size": [
+   0.742,
+   1.717,
+   0.859
+  ],
+  "pieces": [
+   {
+    "name": "outdoor-table-chair-set-01__outdoor_table_chair_set_01_chair_01",
+    "dims": [
+     0.574,
+     0.661,
+     0.859
+    ],
+    "tris": 3752,
+    "mats": [
+     "outdoor_table_chair_set_01_chair"
+    ]
+   },
+   {
+    "name": "outdoor-table-chair-set-01__outdoor_table_chair_set_01_chair_02",
+    "dims": [
+     0.491,
+     0.612,
+     0.859
+    ],
+    "tris": 3752,
+    "mats": [
+     "outdoor_table_chair_set_01_chair"
+    ]
+   },
+   {
+    "name": "outdoor-table-chair-set-01__outdoor_table_chair_set_01_table",
+    "dims": [
+     0.692,
+     0.692,
+     0.726
+    ],
+    "tris": 2324,
+    "mats": [
+     "outdoor_table_chair_set_01_table"
+    ]
+   }
+  ]
+ },
+ "pachira-aquatica-01": {
+  "path": "models/extra/hd-pachira-aquatica-01/pachira_aquatica_01_1k.gltf",
+  "size": [
+   6.869,
+   0.997,
+   1.904
+  ],
+  "pieces": [
+   {
+    "name": "pachira-aquatica-01__pachira_aquatica_01_bark_a",
+    "dims": [
+     0.233,
+     0.241,
+     0.851
+    ],
+    "tris": 13453,
+    "mats": [
+     "pachira_aquatica_01_bark"
+    ]
+   },
+   {
+    "name": "pachira-aquatica-01__pachira_aquatica_01_bark_b",
+    "dims": [
+     0.155,
+     0.23,
+     0.584
+    ],
+    "tris": 584,
+    "mats": [
+     "pachira_aquatica_01_bark"
+    ]
+   },
+   {
+    "name": "pachira-aquatica-01__pachira_aquatica_01_bark_c",
+    "dims": [
+     0.593,
+     0.495,
+     1.002
+    ],
+    "tris": 3496,
+    "mats": [
+     "pachira_aquatica_01_bark"
+    ]
+   },
+   {
+    "name": "pachira-aquatica-01__pachira_aquatica_01_bark_d",
+    "dims": [
+     0.601,
+     0.432,
+     1.627
+    ],
+    "tris": 3764,
+    "mats": [
+     "pachira_aquatica_01_bark"
+    ]
+   },
+   {
+    "name": "pachira-aquatica-01__pachira_aquatica_01_leaves_a",
+    "dims": [
+     0.744,
+     0.647,
+     0.74
+    ],
+    "tris": 9714,
+    "mats": [
+     "pachira_aquatica_01_leaves"
+    ]
+   },
+   {
+    "name": "pachira-aquatica-01__pachira_aquatica_01_leaves_b",
+    "dims": [
+     0.503,
+     0.607,
+     0.518
+    ],
+    "tris": 4507,
+    "mats": [
+     "pachira_aquatica_01_leaves"
+    ]
+   },
+   {
+    "name": "pachira-aquatica-01__pachira_aquatica_01_leaves_c",
+    "dims": [
+     0.975,
+     0.924,
+     0.894
+    ],
+    "tris": 17055,
+    "mats": [
+     "pachira_aquatica_01_leaves"
+    ]
+   },
+   {
+    "name": "pachira-aquatica-01__pachira_aquatica_01_leaves_d",
+    "dims": [
+     1.054,
+     0.997,
+     1.649
+    ],
+    "tris": 24341,
+    "mats": [
+     "pachira_aquatica_01_leaves"
+    ]
+   }
+  ]
+ },
+ "painted-wooden-stool": {
+  "path": "models/extra/hd-painted-wooden-stool/painted_wooden_stool_1k.gltf",
+  "size": [
+   0.385,
+   0.406,
+   0.579
+  ],
+  "pieces": [
+   {
+    "name": "painted-wooden-stool__painted_wooden_stool",
+    "dims": [
+     0.385,
+     0.406,
+     0.579
+    ],
+    "tris": 676,
+    "mats": [
+     "painted_wooden_stool"
+    ]
+   }
+  ]
+ },
+ "painted-wooden-table": {
+  "path": "models/extra/hd-painted-wooden-table/painted_wooden_table_1k.gltf",
+  "size": [
+   2.406,
+   1.137,
+   0.959
+  ],
+  "pieces": [
+   {
+    "name": "painted-wooden-table__painted_wooden_table",
+    "dims": [
+     2.406,
+     1.137,
+     0.959
+    ],
+    "tris": 600,
+    "mats": [
+     "painted_wooden_table"
+    ]
+   }
+  ]
+ },
+ "planter-box-02": {
+  "path": "models/extra/hd-planter-box-02/planter_box_02_1k.gltf",
+  "size": [
+   1.252,
+   0.467,
+   0.453
+  ],
+  "pieces": [
+   {
+    "name": "planter-box-02__planter_box_02",
+    "dims": [
+     1.252,
+     0.467,
+     0.453
+    ],
+    "tris": 10944,
+    "mats": [
+     "planter_box_02"
+    ]
+   }
+  ]
+ },
+ "plastic-bottle-gallon": {
+  "path": "models/extra/hd-plastic-bottle-gallon/plastic_bottle_gallon_1k.gltf",
+  "size": [
+   0.166,
+   0.126,
+   0.274
+  ],
+  "pieces": [
+   {
+    "name": "plastic-bottle-gallon__plastic_bottle_gallon",
+    "dims": [
+     0.166,
+     0.126,
+     0.274
+    ],
+    "tris": 13728,
+    "mats": [
+     "plastic_bottle_gallon"
+    ]
+   }
+  ]
+ },
+ "plastic-container": {
+  "path": "models/extra/hd-plastic-container/plastic_container_1k.gltf",
+  "size": [
+   0.895,
+   0.626,
+   0.43
+  ],
+  "pieces": [
+   {
+    "name": "plastic-container__plastic_container",
+    "dims": [
+     0.895,
+     0.626,
+     0.43
+    ],
+    "tris": 4070,
+    "mats": [
+     "plastic_container"
+    ]
+   }
+  ]
+ },
+ "plastic-crate-02": {
+  "path": "models/extra/hd-plastic-crate-02/plastic_crate_02_1k.gltf",
+  "size": [
+   0.506,
+   0.406,
+   0.254
+  ],
+  "pieces": [
+   {
+    "name": "plastic-crate-02__plastic_crate_02",
+    "dims": [
+     0.506,
+     0.406,
+     0.254
+    ],
+    "tris": 5840,
+    "mats": [
+     "plastic_crate_02"
+    ]
+   }
+  ]
+ },
+ "plastic-crate-03": {
+  "path": "models/extra/hd-plastic-crate-03/plastic_crate_03_1k.gltf",
+  "size": [
+   0.481,
+   0.265,
+   0.266
+  ],
+  "pieces": [
+   {
+    "name": "plastic-crate-03__plastic_crate_03",
+    "dims": [
+     0.481,
+     0.265,
+     0.266
+    ],
+    "tris": 21740,
+    "mats": [
+     "plastic_crate_03"
+    ]
+   }
+  ]
+ },
+ "plastic-jerrycan": {
+  "path": "models/extra/hd-plastic-jerrycan/plastic_jerrycan_1k.gltf",
+  "size": [
+   0.268,
+   0.341,
+   0.318
+  ],
+  "pieces": [
+   {
+    "name": "plastic-jerrycan__plastic_jerrycan",
+    "dims": [
+     0.268,
+     0.341,
+     0.318
+    ],
+    "tris": 7348,
+    "mats": [
+     "plastic_jerrycan"
+    ]
+   }
+  ]
+ },
+ "plastic-monobloc-chair-01": {
+  "path": "models/extra/hd-plastic-monobloc-chair-01/plastic_monobloc_chair_01_1k.gltf",
+  "size": [
+   0.642,
+   0.628,
+   0.88
+  ],
+  "pieces": [
+   {
+    "name": "plastic-monobloc-chair-01__plastic_monobloc_chair_01",
+    "dims": [
+     0.642,
+     0.628,
+     0.88
+    ],
+    "tris": 3356,
+    "mats": [
+     "plastic_monobloc_chair_01"
+    ]
+   }
+  ]
+ },
+ "portable-generator": {
+  "path": "models/extra/hd-portable-generator/portable_generator_1k.gltf",
+  "size": [
+   0.818,
+   0.564,
+   0.577
+  ],
+  "pieces": [
+   {
+    "name": "portable-generator__portable_generator",
+    "dims": [
+     0.818,
+     0.564,
+     0.577
+    ],
+    "tris": 26299,
+    "mats": [
+     "portable_generator",
+     "portable_generator_glass"
+    ]
+   },
+   {
+    "name": "portable-generator__portable_generator_dial",
+    "dims": [
+     0.011,
+     0.009,
+     0.03
+    ],
+    "tris": 38,
+    "mats": [
+     "portable_generator"
+    ]
+   },
+   {
+    "name": "portable-generator__portable_generator_switch",
+    "dims": [
+     0.027,
+     0.038,
+     0.02
+    ],
+    "tris": 32,
+    "mats": [
+     "portable_generator"
+    ]
+   },
+   {
+    "name": "portable-generator__portable_generator_toggle",
+    "dims": [
+     0.008,
+     0.015,
+     0.008
+    ],
+    "tris": 50,
+    "mats": [
+     "portable_generator"
+    ]
+   }
+  ]
+ },
+ "potted-plant-04": {
+  "path": "models/extra/hd-potted-plant-04/potted_plant_04_1k.gltf",
+  "size": [
+   0.168,
+   0.185,
+   0.267
+  ],
+  "pieces": [
+   {
+    "name": "potted-plant-04__potted_plant_04_dirt",
+    "dims": [
+     0.156,
+     0.156,
+     0.019
+    ],
+    "tris": 411,
+    "mats": [
+     "potted_plant_04"
+    ]
+   },
+   {
+    "name": "potted-plant-04__potted_plant_04_ground",
+    "dims": [
+     0.147,
+     0.149,
+     0.022
+    ],
+    "tris": 1380,
+    "mats": [
+     "potted_plant_04"
+    ]
+   },
+   {
+    "name": "potted-plant-04__potted_plant_04_plant",
+    "dims": [
+     0.146,
+     0.173,
+     0.132
+    ],
+    "tris": 3394,
+    "mats": [
+     "potted_plant_04"
+    ]
+   },
+   {
+    "name": "potted-plant-04__potted_plant_04_pot",
+    "dims": [
+     0.168,
+     0.168,
+     0.155
+    ],
+    "tris": 3744,
+    "mats": [
+     "potted_plant_04"
+    ]
+   }
+  ]
+ },
+ "rollershutter-door": {
+  "path": "models/extra/hd-rollershutter-door/rollershutter_door_1k.gltf",
+  "size": [
+   3.08,
+   0.3,
+   2.4
+  ],
+  "pieces": [
+   {
+    "name": "rollershutter-door__rollershutter_door",
+    "dims": [
+     1.08,
+     0.3,
+     2.4
+    ],
+    "tris": 552,
+    "mats": [
+     "rollershutter_door"
+    ]
+   },
+   {
+    "name": "rollershutter-door__rollershutter_door_graffiti",
+    "dims": [
+     1.08,
+     0.3,
+     2.4
+    ],
+    "tris": 552,
+    "mats": [
+     "rollershutter_door_graffiti"
+    ]
+   }
+  ]
+ },
+ "rollershutter-window-01": {
+  "path": "models/extra/hd-rollershutter-window-01/rollershutter_window_01_1k.gltf",
+  "size": [
+   5.1,
+   0.3,
+   1.851
+  ],
+  "pieces": [
+   {
+    "name": "rollershutter-window-01__rollershutter_window_01",
+    "dims": [
+     2.1,
+     0.3,
+     1.851
+    ],
+    "tris": 552,
+    "mats": [
+     "rollershutter_window_01"
+    ]
+   },
+   {
+    "name": "rollershutter-window-01__rollershutter_window_01_graffiti",
+    "dims": [
+     2.1,
+     0.3,
+     1.851
+    ],
+    "tris": 552,
+    "mats": [
+     "rollershutter_window_01_graffiti"
+    ]
+   }
+  ]
+ },
+ "rusted-wheel-rim-01": {
+  "path": "models/extra/hd-rusted-wheel-rim-01/rusted_wheel_rim_01_1k.gltf",
+  "size": [
+   0.403,
+   0.154,
+   0.395
+  ],
+  "pieces": [
+   {
+    "name": "rusted-wheel-rim-01__rusted_wheel_rim_01",
+    "dims": [
+     0.403,
+     0.154,
+     0.395
+    ],
+    "tris": 16440,
+    "mats": [
+     "rusted_wheel_rim_01"
+    ]
+   }
+  ]
+ },
+ "shrub-02": {
+  "path": "models/extra/hd-shrub-02/shrub_02_1k.gltf",
+  "size": [
+   6.054,
+   2.285,
+   1.703
+  ],
+  "pieces": [
+   {
+    "name": "shrub-02__shrub_02_a",
+    "dims": [
+     1.312,
+     1.641,
+     1.689
+    ],
+    "tris": 7590,
+    "mats": [
+     "shrub_02"
+    ]
+   },
+   {
+    "name": "shrub-02__shrub_02_b",
+    "dims": [
+     1.11,
+     1.28,
+     1.506
+    ],
+    "tris": 5242,
+    "mats": [
+     "shrub_02"
+    ]
+   },
+   {
+    "name": "shrub-02__shrub_02_c",
+    "dims": [
+     1.767,
+     2.285,
+     1.315
+    ],
+    "tris": 9234,
+    "mats": [
+     "shrub_02"
+    ]
+   },
+   {
+    "name": "shrub-02__shrub_02_d",
+    "dims": [
+     1.08,
+     1.098,
+     1.229
+    ],
+    "tris": 5188,
+    "mats": [
+     "shrub_02"
+    ]
+   }
+  ]
+ },
+ "shrub-03": {
+  "path": "models/extra/hd-shrub-03/shrub_03_1k.gltf",
+  "size": [
+   1.367,
+   0.151,
+   0.403
+  ],
+  "pieces": [
+   {
+    "name": "shrub-03__shrub_03_a",
+    "dims": [
+     0.201,
+     0.151,
+     0.403
+    ],
+    "tris": 2385,
+    "mats": [
+     "shrub_03"
+    ]
+   },
+   {
+    "name": "shrub-03__shrub_03_b",
+    "dims": [
+     0.184,
+     0.123,
+     0.353
+    ],
+    "tris": 2134,
+    "mats": [
+     "shrub_03"
+    ]
+   },
+   {
+    "name": "shrub-03__shrub_03_c",
+    "dims": [
+     0.096,
+     0.113,
+     0.304
+    ],
+    "tris": 1790,
+    "mats": [
+     "shrub_03"
+    ]
+   },
+   {
+    "name": "shrub-03__shrub_03_d",
+    "dims": [
+     0.113,
+     0.089,
+     0.256
+    ],
+    "tris": 1978,
+    "mats": [
+     "shrub_03"
+    ]
+   }
+  ]
+ },
+ "shrub-04": {
+  "path": "models/extra/hd-shrub-04/shrub_04_1k.gltf",
+  "size": [
+   0.584,
+   0.146,
+   0.219
+  ],
+  "pieces": [
+   {
+    "name": "shrub-04__shrub_04",
+    "dims": [
+     0.584,
+     0.146,
+     0.219
+    ],
+    "tris": 27327,
+    "mats": [
+     "shrub_04"
+    ]
+   }
+  ]
+ },
+ "small-lpg-tank": {
+  "path": "models/extra/hd-small-lpg-tank/small_lpg_tank_1k.gltf",
+  "size": [
+   0.41,
+   0.409,
+   0.642
+  ],
+  "pieces": [
+   {
+    "name": "small-lpg-tank__small_lpg_tank",
+    "dims": [
+     0.41,
+     0.409,
+     0.642
+    ],
+    "tris": 15042,
+    "mats": [
+     "small_lpg_tank"
+    ]
+   }
+  ]
+ },
+ "street-lamp-02": {
+  "path": "models/extra/hd-street-lamp-02/street_lamp_02_1k.gltf",
+  "size": [
+   0.386,
+   0.807,
+   1.675
+  ],
+  "pieces": [
+   {
+    "name": "street-lamp-02__street_lamp_02",
+    "dims": [
+     0.386,
+     0.807,
+     1.675
+    ],
+    "tris": 20338,
+    "mats": [
+     "street_lamp_02",
+     "street_lamp_02_glass",
+     "street_lamp_02_bulb"
+    ]
+   }
+  ]
+ },
+ "sweet-potato": {
+  "path": "models/extra/hd-sweet-potato/sweet_potato_1k.gltf",
+  "size": [
+   0.058,
+   0.061,
+   0.1
+  ],
+  "pieces": [
+   {
+    "name": "sweet-potato__sweet_potato",
+    "dims": [
+     0.058,
+     0.061,
+     0.1
+    ],
+    "tris": 2042,
+    "mats": [
+     "sweet_potato"
+    ]
+   }
+  ]
+ },
+ "trashbag": {
+  "path": "models/extra/hd-trashbag/trashbag_1k.gltf",
+  "size": [
+   0.528,
+   0.463,
+   0.575
+  ],
+  "pieces": [
+   {
+    "name": "trashbag__trashbag",
+    "dims": [
+     0.528,
+     0.463,
+     0.575
+    ],
+    "tris": 4482,
+    "mats": [
+     "trashbag"
+    ]
+   }
+  ]
+ },
+ "tree-small-02": {
+  "path": "models/extra/hd-tree-small-02/tree_small_02_1k.gltf",
+  "size": [
+   2.917,
+   4.292,
+   4.557
+  ],
+  "pieces": [
+   {
+    "name": "tree-small-02__tree_small_02_LOD0",
+    "dims": [
+     2.917,
+     4.292,
+     4.557
+    ],
+    "tris": 2062487,
+    "mats": [
+     "tree_small_02_branches",
+     "tree_small_02_leaves",
+     "tree_small_02_trunk"
+    ]
+   }
+  ]
+ },
+ "water-manhole-cover": {
+  "path": "models/extra/hd-water-manhole-cover/water_manhole_cover_1k.gltf",
+  "size": [
+   0.691,
+   0.691,
+   0.068
+  ],
+  "pieces": [
+   {
+    "name": "water-manhole-cover__water_manhole_cover",
+    "dims": [
+     0.61,
+     0.6,
+     0.025
+    ],
+    "tris": 5661,
+    "mats": [
+     "water_manhole_cover"
+    ]
+   },
+   {
+    "name": "water-manhole-cover__water_manhole_cover_frame",
+    "dims": [
+     0.691,
+     0.691,
+     0.068
+    ],
+    "tris": 640,
+    "mats": [
+     "water_manhole_cover"
+    ]
+   }
+  ]
+ },
+ "weed-plant-02": {
+  "path": "models/extra/hd-weed-plant-02/weed_plant_02_1k.gltf",
+  "size": [
+   2.125,
+   0.291,
+   0.075
+  ],
+  "pieces": [
+   {
+    "name": "weed-plant-02__weed_plant_02_a_LOD0",
+    "dims": [
+     0.219,
+     0.291,
+     0.072
+    ],
+    "tris": 2967,
+    "mats": [
+     "weed_plant_02"
+    ]
+   },
+   {
+    "name": "weed-plant-02__weed_plant_02_b_LOD0",
+    "dims": [
+     0.188,
+     0.199,
+     0.068
+    ],
+    "tris": 2273,
+    "mats": [
+     "weed_plant_02"
+    ]
+   },
+   {
+    "name": "weed-plant-02__weed_plant_02_c_LOD0",
+    "dims": [
+     0.142,
+     0.143,
+     0.055
+    ],
+    "tris": 1766,
+    "mats": [
+     "weed_plant_02.001"
+    ]
+   },
+   {
+    "name": "weed-plant-02__weed_plant_02_d_LOD0",
+    "dims": [
+     0.154,
+     0.108,
+     0.039
+    ],
+    "tris": 1928,
+    "mats": [
+     "weed_plant_02"
+    ]
+   },
+   {
+    "name": "weed-plant-02__weed_plant_02_e_LOD0",
+    "dims": [
+     0.119,
+     0.061,
+     0.04
+    ],
+    "tris": 2182,
+    "mats": [
+     "weed_plant_02"
+    ]
+   }
+  ]
+ },
+ "wicker-basket-01": {
+  "path": "models/extra/hd-wicker-basket-01/wicker_basket_01_1k.gltf",
+  "size": [
+   0.383,
+   0.295,
+   0.117
+  ],
+  "pieces": [
+   {
+    "name": "wicker-basket-01__wicker_basket_01",
+    "dims": [
+     0.383,
+     0.295,
+     0.117
+    ],
+    "tris": 22276,
+    "mats": [
+     "wicker_basket_01"
+    ]
+   }
+  ]
+ },
+ "wicker-basket-02": {
+  "path": "models/extra/hd-wicker-basket-02/wicker_basket_02_1k.gltf",
+  "size": [
+   0.347,
+   0.254,
+   0.2
+  ],
+  "pieces": [
+   {
+    "name": "wicker-basket-02__wicker_basket_02_base",
+    "dims": [
+     0.212,
+     0.216,
+     0.2
+    ],
+    "tris": 11338,
+    "mats": [
+     "wicker_basket_02"
+    ]
+   },
+   {
+    "name": "wicker-basket-02__wicker_basket_02_lid",
+    "dims": [
+     0.16,
+     0.227,
+     0.195
+    ],
+    "tris": 6512,
+    "mats": [
+     "wicker_basket_02"
+    ]
+   }
+  ]
+ },
+ "wooden-bucket-01": {
+  "path": "models/extra/hd-wooden-bucket-01/wooden_bucket_01_1k.gltf",
+  "size": [
+   0.367,
+   0.342,
+   0.55
+  ],
+  "pieces": [
+   {
+    "name": "wooden-bucket-01__wooden_bucket_01",
+    "dims": [
+     0.347,
+     0.342,
+     0.349
+    ],
+    "tris": 4484,
+    "mats": [
+     "wooden_bucket_01"
+    ]
+   },
+   {
+    "name": "wooden-bucket-01__wooden_bucket_01_handle",
+    "dims": [
+     0.367,
+     0.008,
+     0.236
+    ],
+    "tris": 632,
+    "mats": [
+     "wooden_bucket_01"
+    ]
+   }
+  ]
+ },
+ "calathea-orbifolia-01": {
+  "path": "models/nature/hd-calathea-orbifolia-01/calathea_orbifolia_01_2k.gltf",
+  "size": [
+   2.492,
+   1.194,
+   0.424
+  ],
+  "pieces": [
+   {
+    "name": "calathea-orbifolia-01__calathea_orbifolia_01_a",
+    "dims": [
+     0.601,
+     0.526,
+     0.424
+    ],
+    "tris": 5904,
+    "mats": [
+     "calathea_orbifolia_01"
+    ]
+   },
+   {
+    "name": "calathea-orbifolia-01__calathea_orbifolia_01_b",
+    "dims": [
+     0.347,
+     0.44,
+     0.303
+    ],
+    "tris": 3446,
+    "mats": [
+     "calathea_orbifolia_01"
+    ]
+   },
+   {
+    "name": "calathea-orbifolia-01__calathea_orbifolia_01_c",
+    "dims": [
+     0.375,
+     0.384,
+     0.284
+    ],
+    "tris": 3542,
+    "mats": [
+     "calathea_orbifolia_01"
+    ]
+   },
+   {
+    "name": "calathea-orbifolia-01__calathea_orbifolia_01_d",
+    "dims": [
+     0.226,
+     0.163,
+     0.13
+    ],
+    "tris": 1802,
+    "mats": [
+     "calathea_orbifolia_01"
+    ]
+   },
+   {
+    "name": "calathea-orbifolia-01__calathea_orbifolia_01_e",
+    "dims": [
+     0.213,
+     0.252,
+     0.152
+    ],
+    "tris": 1994,
+    "mats": [
+     "calathea_orbifolia_01"
+    ]
+   }
+  ]
+ },
+ "fern-02": {
+  "path": "models/nature/hd-fern-02/fern_02_2k.gltf",
+  "size": [
+   1.973,
+   1.724,
+   0.428
+  ],
+  "pieces": [
+   {
+    "name": "fern-02__fern_02_a",
+    "dims": [
+     0.552,
+     0.613,
+     0.287
+    ],
+    "tris": 784,
+    "mats": [
+     "fern_02"
+    ]
+   },
+   {
+    "name": "fern-02__fern_02_b",
+    "dims": [
+     0.99,
+     0.894,
+     0.428
+    ],
+    "tris": 2384,
+    "mats": [
+     "fern_02"
+    ]
+   },
+   {
+    "name": "fern-02__fern_02_c",
+    "dims": [
+     0.874,
+     0.765,
+     0.349
+    ],
+    "tris": 2248,
+    "mats": [
+     "fern_02"
+    ]
+   },
+   {
+    "name": "fern-02__fern_02_d",
+    "dims": [
+     0.573,
+     0.593,
+     0.213
+    ],
+    "tris": 816,
+    "mats": [
+     "fern_02"
+    ]
+   }
+  ]
+ },
+ "grass-bermuda-01": {
+  "path": "models/nature/hd-grass-bermuda-01/grass_bermuda_01_2k.gltf",
+  "size": [
+   1.686,
+   0.142,
+   0.158
+  ],
+  "pieces": [
+   {
+    "name": "grass-bermuda-01__grass_bermuda_01_dead_a",
+    "dims": [
+     0.068,
+     0.084,
+     0.025
+    ],
+    "tris": 12,
+    "mats": [
+     "grass_bermuda_01"
+    ]
+   },
+   {
+    "name": "grass-bermuda-01__grass_bermuda_01_dead_b",
+    "dims": [
+     0.07,
+     0.055,
+     0.043
+    ],
+    "tris": 12,
+    "mats": [
+     "grass_bermuda_01"
+    ]
+   },
+   {
+    "name": "grass-bermuda-01__grass_bermuda_01_flattened_a",
+    "dims": [
+     0.044,
+     0.069,
+     0.044
+    ],
+    "tris": 19,
+    "mats": [
+     "grass_bermuda_01"
+    ]
+   },
+   {
+    "name": "grass-bermuda-01__grass_bermuda_01_medium_a",
+    "dims": [
+     0.039,
+     0.029,
+     0.098
+    ],
+    "tris": 17,
+    "mats": [
+     "grass_bermuda_01"
+    ]
+   },
+   {
+    "name": "grass-bermuda-01__grass_bermuda_01_medium_b",
+    "dims": [
+     0.051,
+     0.022,
+     0.075
+    ],
+    "tris": 8,
+    "mats": [
+     "grass_bermuda_01"
+    ]
+   },
+   {
+    "name": "grass-bermuda-01__grass_bermuda_01_medium_c",
+    "dims": [
+     0.057,
+     0.092,
+     0.067
+    ],
+    "tris": 20,
+    "mats": [
+     "grass_bermuda_01"
+    ]
+   },
+   {
+    "name": "grass-bermuda-01__grass_bermuda_01_medium_d",
+    "dims": [
+     0.055,
+     0.016,
+     0.102
+    ],
+    "tris": 14,
+    "mats": [
+     "grass_bermuda_01"
+    ]
+   },
+   {
+    "name": "grass-bermuda-01__grass_bermuda_01_medium_e",
+    "dims": [
+     0.066,
+     0.037,
+     0.083
+    ],
+    "tris": 24,
+    "mats": [
+     "grass_bermuda_01"
+    ]
+   },
+   {
+    "name": "grass-bermuda-01__grass_bermuda_01_medium_f",
+    "dims": [
+     0.041,
+     0.026,
+     0.113
+    ],
+    "tris": 30,
+    "mats": [
+     "grass_bermuda_01"
+    ]
+   },
+   {
+    "name": "grass-bermuda-01__grass_bermuda_01_seedling_a",
+    "dims": [
+     0.068,
+     0.046,
+     0.151
+    ],
+    "tris": 147,
+    "mats": [
+     "grass_bermuda_01"
+    ]
+   },
+   {
+    "name": "grass-bermuda-01__grass_bermuda_01_seedling_b",
+    "dims": [
+     0.077,
+     0.049,
+     0.127
+    ],
+    "tris": 140,
+    "mats": [
+     "grass_bermuda_01"
+    ]
+   },
+   {
+    "name": "grass-bermuda-01__grass_bermuda_01_seedling_c",
+    "dims": [
+     0.037,
+     0.045,
+     0.092
+    ],
+    "tris": 128,
+    "mats": [
+     "grass_bermuda_01"
+    ]
+   },
+   {
+    "name": "grass-bermuda-01__grass_bermuda_01_seedling_d",
+    "dims": [
+     0.07,
+     0.083,
+     0.152
+    ],
+    "tris": 268,
+    "mats": [
+     "grass_bermuda_01"
+    ]
+   },
+   {
+    "name": "grass-bermuda-01__grass_bermuda_01_single_a",
+    "dims": [
+     0.004,
+     0.014,
+     0.149
+    ],
+    "tris": 15,
+    "mats": [
+     "grass_bermuda_01"
+    ]
+   },
+   {
+    "name": "grass-bermuda-01__grass_bermuda_01_single_b",
+    "dims": [
+     0.004,
+     0.014,
+     0.149
+    ],
+    "tris": 15,
+    "mats": [
+     "grass_bermuda_01"
+    ]
+   },
+   {
+    "name": "grass-bermuda-01__grass_bermuda_01_small_a",
+    "dims": [
+     0.08,
+     0.028,
+     0.032
+    ],
+    "tris": 12,
+    "mats": [
+     "grass_bermuda_01"
+    ]
+   },
+   {
+    "name": "grass-bermuda-01__grass_bermuda_01_small_b",
+    "dims": [
+     0.083,
+     0.036,
+     0.046
+    ],
+    "tris": 12,
+    "mats": [
+     "grass_bermuda_01"
+    ]
+   },
+   {
+    "name": "grass-bermuda-01__grass_bermuda_01_small_c",
+    "dims": [
+     0.054,
+     0.041,
+     0.055
+    ],
+    "tris": 18,
+    "mats": [
+     "grass_bermuda_01"
+    ]
+   },
+   {
+    "name": "grass-bermuda-01__grass_bermuda_01_small_d",
+    "dims": [
+     0.058,
+     0.033,
+     0.055
+    ],
+    "tris": 10,
+    "mats": [
+     "grass_bermuda_01"
+    ]
+   },
+   {
+    "name": "grass-bermuda-01__grass_bermuda_01_small_e",
+    "dims": [
+     0.029,
+     0.018,
+     0.091
+    ],
+    "tris": 10,
+    "mats": [
+     "grass_bermuda_01"
+    ]
+   },
+   {
+    "name": "grass-bermuda-01__grass_bermuda_01_small_f",
+    "dims": [
+     0.036,
+     0.025,
+     0.069
+    ],
+    "tris": 10,
+    "mats": [
+     "grass_bermuda_01"
+    ]
+   }
+  ]
+ },
+ "grass-medium-01": {
+  "path": "models/nature/hd-grass-medium-01/grass_medium_01_2k.gltf",
+  "size": [
+   5.605,
+   0.327,
+   0.343
+  ],
+  "pieces": [
+   {
+    "name": "grass-medium-01__grass_medium_01_large_a_LOD0",
+    "dims": [
+     0.317,
+     0.327,
+     0.147
+    ],
+    "tris": 6422,
+    "mats": [
+     "grass_medium_01"
+    ]
+   },
+   {
+    "name": "grass-medium-01__grass_medium_01_large_b_LOD0",
+    "dims": [
+     0.284,
+     0.276,
+     0.169
+    ],
+    "tris": 4626,
+    "mats": [
+     "grass_medium_01"
+    ]
+   },
+   {
+    "name": "grass-medium-01__grass_medium_01_large_c_LOD0",
+    "dims": [
+     0.279,
+     0.255,
+     0.142
+    ],
+    "tris": 5945,
+    "mats": [
+     "grass_medium_01"
+    ]
+   },
+   {
+    "name": "grass-medium-01__grass_medium_01_mid_a_LOD0",
+    "dims": [
+     0.216,
+     0.221,
+     0.218
+    ],
+    "tris": 2287,
+    "mats": [
+     "grass_medium_01"
+    ]
+   },
+   {
+    "name": "grass-medium-01__grass_medium_01_mid_b_LOD0",
+    "dims": [
+     0.188,
+     0.201,
+     0.178
+    ],
+    "tris": 1257,
+    "mats": [
+     "grass_medium_01"
+    ]
+   },
+   {
+    "name": "grass-medium-01__grass_medium_01_mid_c_LOD0",
+    "dims": [
+     0.192,
+     0.203,
+     0.145
+    ],
+    "tris": 1466,
+    "mats": [
+     "grass_medium_01"
+    ]
+   },
+   {
+    "name": "grass-medium-01__grass_medium_01_small_a_LOD0",
+    "dims": [
+     0.185,
+     0.162,
+     0.14
+    ],
+    "tris": 833,
+    "mats": [
+     "grass_medium_01"
+    ]
+   },
+   {
+    "name": "grass-medium-01__grass_medium_01_small_b_LOD0",
+    "dims": [
+     0.166,
+     0.19,
+     0.1
+    ],
+    "tris": 653,
+    "mats": [
+     "grass_medium_01"
+    ]
+   },
+   {
+    "name": "grass-medium-01__grass_medium_01_tall_a_LOD0",
+    "dims": [
+     0.161,
+     0.159,
+     0.323
+    ],
+    "tris": 290,
+    "mats": [
+     "grass_medium_01"
+    ]
+   },
+   {
+    "name": "grass-medium-01__grass_medium_01_tall_b_LOD0",
+    "dims": [
+     0.15,
+     0.135,
+     0.286
+    ],
+    "tris": 310,
+    "mats": [
+     "grass_medium_01"
+    ]
+   },
+   {
+    "name": "grass-medium-01__grass_medium_01_tall_c_LOD0",
+    "dims": [
+     0.153,
+     0.128,
+     0.236
+    ],
+    "tris": 340,
+    "mats": [
+     "grass_medium_01"
+    ]
+   },
+   {
+    "name": "grass-medium-01__grass_medium_01_tiny_a_LOD0",
+    "dims": [
+     0.067,
+     0.074,
+     0.112
+    ],
+    "tris": 79,
+    "mats": [
+     "grass_medium_01"
+    ]
+   },
+   {
+    "name": "grass-medium-01__grass_medium_01_tiny_b_LOD0",
+    "dims": [
+     0.024,
+     0.034,
+     0.06
+    ],
+    "tris": 28,
+    "mats": [
+     "grass_medium_01"
+    ]
+   },
+   {
+    "name": "grass-medium-01__grass_medium_01_tiny_c_LOD0",
+    "dims": [
+     0.016,
+     0.029,
+     0.082
+    ],
+    "tris": 40,
+    "mats": [
+     "grass_medium_01"
+    ]
+   },
+   {
+    "name": "grass-medium-01__grass_medium_01_tiny_d_LOD0",
+    "dims": [
+     0.043,
+     0.089,
+     0.048
+    ],
+    "tris": 32,
+    "mats": [
+     "grass_medium_01"
+    ]
+   },
+   {
+    "name": "grass-medium-01__grass_medium_01_tiny_e_LOD0",
+    "dims": [
+     0.085,
+     0.074,
+     0.049
+    ],
+    "tris": 62,
+    "mats": [
+     "grass_medium_01"
+    ]
+   },
+   {
+    "name": "grass-medium-01__grass_medium_01_tiny_f_LOD0",
+    "dims": [
+     0.055,
+     0.069,
+     0.047
+    ],
+    "tris": 60,
+    "mats": [
+     "grass_medium_01"
+    ]
+   }
+  ]
+ },
+ "rock-moss-set-01": {
+  "path": "models/nature/hd-rock-moss-set-01/rock_moss_set_01_2k.gltf",
+  "size": [
+   8.005,
+   6.949,
+   1.768
+  ],
+  "pieces": [
+   {
+    "name": "rock-moss-set-01__rock_moss_set_01_rock01",
+    "dims": [
+     2.238,
+     3.369,
+     1.473
+    ],
+    "tris": 11000,
+    "mats": [
+     "rock_moss_set_01"
+    ]
+   },
+   {
+    "name": "rock-moss-set-01__rock_moss_set_01_rock02",
+    "dims": [
+     2.655,
+     3.264,
+     1.262
+    ],
+    "tris": 10996,
+    "mats": [
+     "rock_moss_set_01"
+    ]
+   },
+   {
+    "name": "rock-moss-set-01__rock_moss_set_01_rock03",
+    "dims": [
+     2.109,
+     2.08,
+     1.1
+    ],
+    "tris": 5000,
+    "mats": [
+     "rock_moss_set_01"
+    ]
+   },
+   {
+    "name": "rock-moss-set-01__rock_moss_set_01_rock04",
+    "dims": [
+     2.128,
+     1.965,
+     1.768
+    ],
+    "tris": 10589,
+    "mats": [
+     "rock_moss_set_01"
+    ]
+   },
+   {
+    "name": "rock-moss-set-01__rock_moss_set_01_rock05",
+    "dims": [
+     1.817,
+     2.999,
+     1.205
+    ],
+    "tris": 16548,
+    "mats": [
+     "rock_moss_set_01"
+    ]
+   },
+   {
+    "name": "rock-moss-set-01__rock_moss_set_01_rock06",
+    "dims": [
+     2.126,
+     2.757,
+     1.262
+    ],
+    "tris": 8994,
+    "mats": [
+     "rock_moss_set_01"
+    ]
+   }
+  ]
+ },
+ "shrub-01": {
+  "path": "models/nature/hd-shrub-01/shrub_01_2k.gltf",
+  "size": [
+   2.587,
+   0.219,
+   0.396
+  ],
+  "pieces": [
+   {
+    "name": "shrub-01__shrub_01_a",
+    "dims": [
+     2.587,
+     0.219,
+     0.396
+    ],
+    "tris": 156012,
+    "mats": [
+     "shrub_01"
+    ]
+   }
+  ]
+ },
+ "bananas": {
+  "path": "models/props/hd-bananas/bananas_2k.gltf",
+  "size": [
+   0.6,
+   0.244,
+   0.179
+  ],
+  "pieces": [
+   {
+    "name": "bananas__bananas_a",
+    "dims": [
+     0.137,
+     0.177,
+     0.039
+    ],
+    "tris": 4884,
+    "mats": [
+     "Material.008"
+    ]
+   },
+   {
+    "name": "bananas__bananas_b",
+    "dims": [
+     0.099,
+     0.189,
+     0.043
+    ],
+    "tris": 5016,
+    "mats": [
+     "Material.008"
+    ]
+   },
+   {
+    "name": "bananas__bananas_bunch",
+    "dims": [
+     0.134,
+     0.223,
+     0.179
+    ],
+    "tris": 25876,
+    "mats": [
+     "Material.008"
+    ]
+   },
+   {
+    "name": "bananas__bananas_c",
+    "dims": [
+     0.106,
+     0.211,
+     0.042
+    ],
+    "tris": 5232,
+    "mats": [
+     "Material.008"
+    ]
+   },
+   {
+    "name": "bananas__bananas_d",
+    "dims": [
+     0.13,
+     0.223,
+     0.045
+    ],
+    "tris": 5860,
+    "mats": [
+     "Material.008"
+    ]
+   }
+  ]
+ },
+ "barrel-01": {
+  "path": "models/props/hd-barrel-01/Barrel_01_2k.gltf",
+  "size": [
+   0.563,
+   0.563,
+   0.88
+  ],
+  "pieces": [
+   {
+    "name": "barrel-01__Barrel_01",
+    "dims": [
+     0.563,
+     0.563,
+     0.88
+    ],
+    "tris": 2682,
+    "mats": [
+     "Barrel_01"
+    ]
+   }
+  ]
+ },
+ "cardboard-box-01": {
+  "path": "models/props/hd-cardboard-box-01/cardboard_box_01_2k.gltf",
+  "size": [
+   0.387,
+   0.516,
+   0.342
+  ],
+  "pieces": [
+   {
+    "name": "cardboard-box-01__cardboard_box_01",
+    "dims": [
+     0.387,
+     0.516,
+     0.342
+    ],
+    "tris": 16952,
+    "mats": [
+     "cardboard_box_01"
+    ]
+   }
+  ]
+ },
+ "coffeecart-01": {
+  "path": "models/props/hd-coffeecart-01/CoffeeCart_01_2k.gltf",
+  "size": [
+   2.168,
+   1.073,
+   1.718
+  ],
+  "pieces": [
+   {
+    "name": "coffeecart-01__CoffeeCart_01_cart",
+    "dims": [
+     1.441,
+     0.717,
+     1.052
+    ],
+    "tris": 8970,
+    "mats": [
+     "CoffeeCart_01_cart"
+    ]
+   },
+   {
+    "name": "coffeecart-01__CoffeeCart_01_mugs",
+    "dims": [
+     0.421,
+     0.58,
+     0.119
+    ],
+    "tris": 1760,
+    "mats": [
+     "CoffeeCart_01_mugs"
+    ]
+   },
+   {
+    "name": "coffeecart-01__CoffeeCart_01_props",
+    "dims": [
+     2.008,
+     1.073,
+     1.549
+    ],
+    "tris": 16929,
+    "mats": [
+     "CoffeeCart_01_props"
+    ]
+   }
+  ]
+ },
+ "food-apple-01": {
+  "path": "models/props/hd-food-apple-01/food_apple_01_2k.gltf",
+  "size": [
+   0.098,
+   0.096,
+   0.085
+  ],
+  "pieces": [
+   {
+    "name": "food-apple-01__food_apple_01",
+    "dims": [
+     0.098,
+     0.096,
+     0.085
+    ],
+    "tris": 7012,
+    "mats": [
+     "food_apple_01"
+    ]
+   }
+  ]
+ },
+ "food-avocado-01": {
+  "path": "models/props/hd-food-avocado-01/food_avocado_01_2k.gltf",
+  "size": [
+   0.095,
+   0.095,
+   0.143
+  ],
+  "pieces": [
+   {
+    "name": "food-avocado-01__food_avocado_01",
+    "dims": [
+     0.095,
+     0.095,
+     0.143
+    ],
+    "tris": 7743,
+    "mats": [
+     "food_avocado_01"
+    ]
+   }
+  ]
+ },
+ "food-lime-01": {
+  "path": "models/props/hd-food-lime-01/food_lime_01_2k.gltf",
+  "size": [
+   0.06,
+   0.061,
+   0.075
+  ],
+  "pieces": [
+   {
+    "name": "food-lime-01__food_lime_01",
+    "dims": [
+     0.06,
+     0.061,
+     0.075
+    ],
+    "tris": 8100,
+    "mats": [
+     "food_lime_01"
+    ]
+   }
+  ]
+ },
+ "lantern-01": {
+  "path": "models/props/hd-lantern-01/Lantern_01_2k.gltf",
+  "size": [
+   0.122,
+   0.097,
+   0.294
+  ],
+  "pieces": [
+   {
+    "name": "lantern-01__Lantern_01",
+    "dims": [
+     0.122,
+     0.097,
+     0.294
+    ],
+    "tris": 30830,
+    "mats": [
+     "Lantern_01_brass"
+    ]
+   },
+   {
+    "name": "lantern-01__Lantern_01_glass",
+    "dims": [
+     0.071,
+     0.071,
+     0.068
+    ],
+    "tris": 3072,
+    "mats": [
+     "Lantern_01_glass"
+    ]
+   }
+  ]
+ },
+ "metal-trash-can": {
+  "path": "models/props/hd-metal-trash-can/metal_trash_can_1k.gltf",
+  "size": [
+   1.778,
+   0.556,
+   0.906
+  ],
+  "pieces": [
+   {
+    "name": "metal-trash-can__metal_trash_can",
+    "dims": [
+     0.613,
+     0.552,
+     0.906
+    ],
+    "tris": 4048,
+    "mats": [
+     "metal_trash_can"
+    ]
+   },
+   {
+    "name": "metal-trash-can__metal_trash_can_handle_left",
+    "dims": [
+     0.073,
+     0.186,
+     0.09
+    ],
+    "tris": 416,
+    "mats": [
+     "metal_trash_can"
+    ]
+   },
+   {
+    "name": "metal-trash-can__metal_trash_can_handle_right",
+    "dims": [
+     0.073,
+     0.186,
+     0.09
+    ],
+    "tris": 416,
+    "mats": [
+     "metal_trash_can"
+    ]
+   },
+   {
+    "name": "metal-trash-can__metal_trash_can_lid",
+    "dims": [
+     0.184,
+     0.556,
+     0.54
+    ],
+    "tris": 1548,
+    "mats": [
+     "metal_trash_can"
+    ]
+   },
+   {
+    "name": "metal-trash-can__metal_trash_can_rust",
+    "dims": [
+     0.611,
+     0.549,
+     0.906
+    ],
+    "tris": 4928,
+    "mats": [
+     "metal_trash_can_rust"
+    ]
+   },
+   {
+    "name": "metal-trash-can__metal_trash_can_rust_handle_left",
+    "dims": [
+     0.072,
+     0.186,
+     0.1
+    ],
+    "tris": 448,
+    "mats": [
+     "metal_trash_can_rust.001"
+    ]
+   },
+   {
+    "name": "metal-trash-can__metal_trash_can_rust_handle_right",
+    "dims": [
+     0.057,
+     0.186,
+     0.1
+    ],
+    "tris": 448,
+    "mats": [
+     "metal_trash_can_rust.001"
+    ]
+   },
+   {
+    "name": "metal-trash-can__metal_trash_can_rust_lid",
+    "dims": [
+     0.184,
+     0.544,
+     0.54
+    ],
+    "tris": 1708,
+    "mats": [
+     "metal_trash_can_rust.001"
+    ]
+   }
+  ]
+ },
+ "modular-street-seating": {
+  "path": "models/props/hd-modular-street-seating/modular_street_seating_1k.gltf",
+  "size": [
+   4.34,
+   0.77,
+   0.95
+  ],
+  "pieces": [
+   {
+    "name": "modular-street-seating__arm_rest_01",
+    "dims": [
+     0.08,
+     0.599,
+     0.23
+    ],
+    "tris": 376,
+    "mats": [
+     "modular_street_seating_armrests"
+    ]
+   },
+   {
+    "name": "modular-street-seating__arm_rest_02",
+    "dims": [
+     0.08,
+     0.447,
+     0.167
+    ],
+    "tris": 358,
+    "mats": [
+     "modular_street_seating_armrests"
+    ]
+   },
+   {
+    "name": "modular-street-seating__back_support_l",
+    "dims": [
+     0.13,
+     0.173,
+     0.442
+    ],
+    "tris": 1128,
+    "mats": [
+     "modular_street_seating_armrests"
+    ]
+   },
+   {
+    "name": "modular-street-seating__back_support_r",
+    "dims": [
+     0.13,
+     0.173,
+     0.442
+    ],
+    "tris": 1128,
+    "mats": [
+     "modular_street_seating_armrests.001"
+    ]
+   },
+   {
+    "name": "modular-street-seating__connector_30",
+    "dims": [
+     0.349,
+     0.613,
+     0.025
+    ],
+    "tris": 1500,
+    "mats": [
+     "modular_street_seating_connectors"
+    ]
+   },
+   {
+    "name": "modular-street-seating__connector_45",
+    "dims": [
+     0.494,
+     0.628,
+     0.025
+    ],
+    "tris": 1992,
+    "mats": [
+     "modular_street_seating_connectors"
+    ]
+   },
+   {
+    "name": "modular-street-seating__connector_60",
+    "dims": [
+     0.605,
+     0.649,
+     0.025
+    ],
+    "tris": 2436,
+    "mats": [
+     "modular_street_seating_connectors"
+    ]
+   },
+   {
+    "name": "modular-street-seating__connector_90",
+    "dims": [
+     0.7,
+     0.7,
+     0.025
+    ],
+    "tris": 3324,
+    "mats": [
+     "modular_street_seating_connectors"
+    ]
+   },
+   {
+    "name": "modular-street-seating__crossbar",
+    "dims": [
+     1.862,
+     0.04,
+     0.04
+    ],
+    "tris": 48,
+    "mats": [
+     "modular_street_seating_armrests"
+    ]
+   },
+   {
+    "name": "modular-street-seating__legs_double",
+    "dims": [
+     0.184,
+     0.6,
+     0.45
+    ],
+    "tris": 3488,
+    "mats": [
+     "modular_street_seating_supports"
+    ]
+   },
+   {
+    "name": "modular-street-seating__legs_single",
+    "dims": [
+     0.132,
+     0.6,
+     0.45
+    ],
+    "tris": 2634,
+    "mats": [
+     "modular_street_seating_supports"
+    ]
+   },
+   {
+    "name": "modular-street-seating__seat",
+    "dims": [
+     1.84,
+     0.6,
+     0.025
+    ],
+    "tris": 408,
+    "mats": [
+     "modular_street_seating_timber"
+    ]
+   },
+   {
+    "name": "modular-street-seating__seat_back",
+    "dims": [
+     1.68,
+     0.087,
+     0.363
+    ],
+    "tris": 176,
+    "mats": [
+     "modular_street_seating_timber"
+    ]
+   },
+   {
+    "name": "modular-street-seating__seat_bench",
+    "dims": [
+     1.84,
+     0.6,
+     0.025
+    ],
+    "tris": 408,
+    "mats": [
+     "modular_street_seating_timber"
+    ]
+   },
+   {
+    "name": "modular-street-seating__suspended_support_01",
+    "dims": [
+     0.106,
+     0.567,
+     0.201
+    ],
+    "tris": 2756,
+    "mats": [
+     "modular_street_seating_supports"
+    ]
+   },
+   {
+    "name": "modular-street-seating__suspended_support_02",
+    "dims": [
+     0.184,
+     0.6,
+     0.226
+    ],
+    "tris": 2996,
+    "mats": [
+     "modular_street_seating_supports"
+    ]
+   }
+  ]
+ },
+ "old-tyre": {
+  "path": "models/props/hd-old-tyre/old_tyre_2k.gltf",
+  "size": [
+   0.6,
+   0.165,
+   0.6
+  ],
+  "pieces": [
+   {
+    "name": "old-tyre__old_tyre",
+    "dims": [
+     0.6,
+     0.165,
+     0.6
+    ],
+    "tris": 2880,
+    "mats": [
+     "old_tyre"
+    ]
+   }
+  ]
+ },
+ "planter-box-01": {
+  "path": "models/props/hd-planter-box-01/planter_box_01_2k.gltf",
+  "size": [
+   0.913,
+   0.414,
+   0.425
+  ],
+  "pieces": [
+   {
+    "name": "planter-box-01__planter_box_01",
+    "dims": [
+     0.913,
+     0.414,
+     0.425
+    ],
+    "tris": 8094,
+    "mats": [
+     "planter_box_01"
+    ]
+   }
+  ]
+ },
+ "plastic-crate-01": {
+  "path": "models/props/hd-plastic-crate-01/plastic_crate_01_2k.gltf",
+  "size": [
+   0.298,
+   0.408,
+   0.264
+  ],
+  "pieces": [
+   {
+    "name": "plastic-crate-01__plastic_crate_01",
+    "dims": [
+     0.298,
+     0.408,
+     0.264
+    ],
+    "tris": 18320,
+    "mats": [
+     "plastic_crate_01"
+    ]
+   }
+  ]
+ },
+ "potted-plant-01": {
+  "path": "models/props/hd-potted-plant-01/potted_plant_01_2k.gltf",
+  "size": [
+   0.587,
+   0.634,
+   1.35
+  ],
+  "pieces": [
+   {
+    "name": "potted-plant-01__potted_plant_01_leaves",
+    "dims": [
+     0.587,
+     0.634,
+     0.753
+    ],
+    "tris": 106900,
+    "mats": [
+     "potted_plant_01_leaves"
+    ]
+   },
+   {
+    "name": "potted-plant-01__potted_plant_01_pebbles",
+    "dims": [
+     0.43,
+     0.431,
+     0.544
+    ],
+    "tris": 56878,
+    "mats": [
+     "potted_plant_01_pot"
+    ]
+   },
+   {
+    "name": "potted-plant-01__potted_plant_01_pot",
+    "dims": [
+     0.466,
+     0.466,
+     0.531
+    ],
+    "tris": 5440,
+    "mats": [
+     "potted_plant_01_pot"
+    ]
+   },
+   {
+    "name": "potted-plant-01__potted_plant_01_stem",
+    "dims": [
+     0.371,
+     0.393,
+     0.856
+    ],
+    "tris": 7008,
+    "mats": [
+     "potted_plant_01_pot"
+    ]
+   }
+  ]
+ },
+ "potted-plant-02": {
+  "path": "models/props/hd-potted-plant-02/potted_plant_02_2k.gltf",
+  "size": [
+   0.701,
+   0.657,
+   0.841
+  ],
+  "pieces": [
+   {
+    "name": "potted-plant-02__potted_plant_02_dirt",
+    "dims": [
+     0.414,
+     0.411,
+     0.044
+    ],
+    "tris": 53930,
+    "mats": [
+     "potted_plant_02_pot"
+    ]
+   },
+   {
+    "name": "potted-plant-02__potted_plant_02_leaves",
+    "dims": [
+     0.701,
+     0.643,
+     0.633
+    ],
+    "tris": 10692,
+    "mats": [
+     "potted_plant_02_leaves"
+    ]
+   },
+   {
+    "name": "potted-plant-02__potted_plant_02_pot",
+    "dims": [
+     0.474,
+     0.474,
+     0.336
+    ],
+    "tris": 5184,
+    "mats": [
+     "potted_plant_02_pot"
+    ]
+   }
+  ]
+ },
+ "wooden-crate-01": {
+  "path": "models/props/hd-wooden-crate-01/wooden_crate_01_2k.gltf",
+  "size": [
+   0.825,
+   0.409,
+   0.35
+  ],
+  "pieces": [
+   {
+    "name": "wooden-crate-01__wooden_crate_01",
+    "dims": [
+     0.825,
+     0.408,
+     0.322
+    ],
+    "tris": 5508,
+    "mats": [
+     "wooden_crate_01"
+    ]
+   },
+   {
+    "name": "wooden-crate-01__wooden_crate_01_latch",
+    "dims": [
+     0.026,
+     0.076,
+     0.097
+    ],
+    "tris": 376,
+    "mats": [
+     "wooden_crate_01"
+    ]
+   },
+   {
+    "name": "wooden-crate-01__wooden_crate_01_lid",
+    "dims": [
+     0.708,
+     0.392,
+     0.042
+    ],
+    "tris": 692,
+    "mats": [
+     "wooden_crate_01"
+    ]
+   }
+  ]
+ },
+ "k-van": {
+  "path": "models/vehicles/van.glb",
+  "size": [
+   1.5,
+   2.75,
+   1.35
+  ],
+  "pieces": [
+   {
+    "name": "k-van__body",
+    "dims": [
+     1.5,
+     2.75,
+     1.2
+    ],
+    "tris": 754,
+    "mats": [
+     "colormap"
+    ]
+   },
+   {
+    "name": "k-van__wheel-back-left",
+    "dims": [
+     0.35,
+     0.6,
+     0.6
+    ],
+    "tris": 332,
+    "mats": [
+     "colormap"
+    ]
+   },
+   {
+    "name": "k-van__wheel-back-right",
+    "dims": [
+     0.35,
+     0.6,
+     0.6
+    ],
+    "tris": 332,
+    "mats": [
+     "colormap"
+    ]
+   },
+   {
+    "name": "k-van__wheel-front-left",
+    "dims": [
+     0.35,
+     0.6,
+     0.6
+    ],
+    "tris": 332,
+    "mats": [
+     "colormap"
+    ]
+   },
+   {
+    "name": "k-van__wheel-front-right",
+    "dims": [
+     0.35,
+     0.6,
+     0.6
+    ],
+    "tris": 332,
+    "mats": [
+     "colormap"
+    ]
+   }
+  ]
+ },
+ "k-motorcycle": {
+  "path": "models/vehicles/motorcycle.glb",
+  "size": [
+   0.208,
+   1.039,
+   0.488
+  ],
+  "pieces": [
+   {
+    "name": "k-motorcycle__Circle",
+    "dims": [
+     0.208,
+     1.039,
+     0.488
+    ],
+    "tris": 1500,
+    "mats": [
+     "DarkPurple",
+     "LightPurple",
+     "Yellow"
+    ]
+   }
+  ]
+ },
+ "k-bicycle": {
+  "path": "models/vehicles/bicycle.glb",
+  "size": [
+   5.457,
+   19.577,
+   9.959
+  ],
+  "pieces": [
+   {
+    "name": "k-bicycle__Circle.004",
+    "dims": [
+     5.457,
+     19.577,
+     9.959
+    ],
+    "tris": 2466,
+    "mats": [
+     "1A1A1A",
+     "FF5722",
+     "78909C"
+    ]
+   }
+  ]
+ },
+ "k-bird": {
+  "path": "models/animals/bird.glb",
+  "size": [
+   0.765,
+   0.635,
+   0.386
+  ],
+  "pieces": [
+   {
+    "name": "k-bird__Ernest",
+    "dims": [
+     0.765,
+     0.635,
+     0.386
+    ],
+    "tris": 1204,
+    "mats": [
+     "Atlas"
+    ]
+   }
+  ]
+ },
+ "k-butterfly": {
+  "path": "models/animals/butterfly.glb",
+  "size": [
+   1.551,
+   1.092,
+   0.923
+  ],
+  "pieces": [
+   {
+    "name": "k-butterfly__butterfly",
+    "dims": [
+     1.551,
+     1.092,
+     0.923
+    ],
+    "tris": 448,
+    "mats": [
+     "None"
+    ]
+   }
+  ]
+ },
+ "k-canoe": {
+  "path": "models/boats/canoe.glb",
+  "size": [
+   0.3,
+   1.15,
+   0.183
+  ],
+  "pieces": [
+   {
+    "name": "k-canoe__canoe",
+    "dims": [
+     0.3,
+     1.15,
+     0.183
+    ],
+    "tris": 200,
+    "mats": [
+     "leafsFall",
+     "wood"
+    ]
+   }
+  ]
+ },
+ "k-boat-row-small": {
+  "path": "models/boats/boat-row-small.glb",
+  "size": [
+   2.749,
+   2.372,
+   0.848
+  ],
+  "pieces": [
+   {
+    "name": "k-boat-row-small__boat-row-small",
+    "dims": [
+     1.428,
+     2.372,
+     0.64
+    ],
+    "tris": 112,
+    "mats": [
+     "colormap.001"
+    ]
+   },
+   {
+    "name": "k-boat-row-small__paddles",
+    "dims": [
+     2.749,
+     0.302,
+     0.792
+    ],
+    "tris": 56,
+    "mats": [
+     "colormap.001"
+    ]
+   }
+  ]
+ },
+ "k-boat-fishing-small": {
+  "path": "models/boats/boat-fishing-small.glb",
+  "size": [
+   1.785,
+   3.87,
+   2.6
+  ],
+  "pieces": [
+   {
+    "name": "k-boat-fishing-small__boat-fishing-small",
+    "dims": [
+     1.785,
+     3.87,
+     2.6
+    ],
+    "tris": 237,
+    "mats": [
+     "colormap.002"
+    ]
+   }
+  ]
+ },
+ "k-sedan": {
+  "path": "models/vehicles/sedan.glb",
+  "size": [
+   1.5,
+   2.55,
+   1.3
+  ],
+  "pieces": [
+   {
+    "name": "k-sedan__body",
+    "dims": [
+     1.5,
+     2.55,
+     1.15
+    ],
+    "tris": 704,
+    "mats": [
+     "colormap.003"
+    ]
+   },
+   {
+    "name": "k-sedan__wheel-back-left",
+    "dims": [
+     0.35,
+     0.6,
+     0.6
+    ],
+    "tris": 332,
+    "mats": [
+     "colormap.003"
+    ]
+   },
+   {
+    "name": "k-sedan__wheel-back-right",
+    "dims": [
+     0.35,
+     0.6,
+     0.6
+    ],
+    "tris": 332,
+    "mats": [
+     "colormap.003"
+    ]
+   },
+   {
+    "name": "k-sedan__wheel-front-left",
+    "dims": [
+     0.35,
+     0.6,
+     0.6
+    ],
+    "tris": 332,
+    "mats": [
+     "colormap.003"
+    ]
+   },
+   {
+    "name": "k-sedan__wheel-front-right",
+    "dims": [
+     0.35,
+     0.6,
+     0.6
+    ],
+    "tris": 332,
+    "mats": [
+     "colormap.003"
+    ]
+   }
+  ]
+ },
+ "k-taxi": {
+  "path": "models/vehicles/taxi.glb",
+  "size": [
+   1.5,
+   2.75,
+   1.5
+  ],
+  "pieces": [
+   {
+    "name": "k-taxi__body",
+    "dims": [
+     1.5,
+     2.75,
+     1.35
+    ],
+    "tris": 744,
+    "mats": [
+     "colormap.004"
+    ]
+   },
+   {
+    "name": "k-taxi__wheel-back-left",
+    "dims": [
+     0.3,
+     0.6,
+     0.6
+    ],
+    "tris": 332,
+    "mats": [
+     "colormap.004"
+    ]
+   },
+   {
+    "name": "k-taxi__wheel-back-right",
+    "dims": [
+     0.3,
+     0.6,
+     0.6
+    ],
+    "tris": 332,
+    "mats": [
+     "colormap.004"
+    ]
+   },
+   {
+    "name": "k-taxi__wheel-front-left",
+    "dims": [
+     0.3,
+     0.6,
+     0.6
+    ],
+    "tris": 332,
+    "mats": [
+     "colormap.004"
+    ]
+   },
+   {
+    "name": "k-taxi__wheel-front-right",
+    "dims": [
+     0.3,
+     0.6,
+     0.6
+    ],
+    "tris": 332,
+    "mats": [
+     "colormap.004"
+    ]
+   }
+  ]
+ },
+ "k-suv": {
+  "path": "models/vehicles/suv.glb",
+  "size": [
+   1.5,
+   2.7,
+   1.3
+  ],
+  "pieces": [
+   {
+    "name": "k-suv__body",
+    "dims": [
+     1.5,
+     2.55,
+     1.1
+    ],
+    "tris": 814,
+    "mats": [
+     "colormap.005"
+    ]
+   },
+   {
+    "name": "k-suv__wheel-back",
+    "dims": [
+     0.6,
+     0.35,
+     0.6
+    ],
+    "tris": 332,
+    "mats": [
+     "colormap.005"
+    ]
+   },
+   {
+    "name": "k-suv__wheel-back-left",
+    "dims": [
+     0.35,
+     0.6,
+     0.6
+    ],
+    "tris": 332,
+    "mats": [
+     "colormap.005"
+    ]
+   },
+   {
+    "name": "k-suv__wheel-back-right",
+    "dims": [
+     0.35,
+     0.6,
+     0.6
+    ],
+    "tris": 332,
+    "mats": [
+     "colormap.005"
+    ]
+   },
+   {
+    "name": "k-suv__wheel-front-left",
+    "dims": [
+     0.35,
+     0.6,
+     0.6
+    ],
+    "tris": 332,
+    "mats": [
+     "colormap.005"
+    ]
+   },
+   {
+    "name": "k-suv__wheel-front-right",
+    "dims": [
+     0.35,
+     0.6,
+     0.6
+    ],
+    "tris": 332,
+    "mats": [
+     "colormap.005"
+    ]
+   }
+  ]
+ },
+ "k-truck": {
+  "path": "models/vehicles/truck.glb",
+  "size": [
+   1.5,
+   2.95,
+   1.3
+  ],
+  "pieces": [
+   {
+    "name": "k-truck__body",
+    "dims": [
+     1.5,
+     2.95,
+     1.15
+    ],
+    "tris": 754,
+    "mats": [
+     "colormap.006"
+    ]
+   },
+   {
+    "name": "k-truck__wheel-back-left",
+    "dims": [
+     0.35,
+     0.6,
+     0.6
+    ],
+    "tris": 332,
+    "mats": [
+     "colormap.006"
+    ]
+   },
+   {
+    "name": "k-truck__wheel-back-right",
+    "dims": [
+     0.35,
+     0.6,
+     0.6
+    ],
+    "tris": 332,
+    "mats": [
+     "colormap.006"
+    ]
+   },
+   {
+    "name": "k-truck__wheel-front-left",
+    "dims": [
+     0.35,
+     0.6,
+     0.6
+    ],
+    "tris": 332,
+    "mats": [
+     "colormap.006"
+    ]
+   },
+   {
+    "name": "k-truck__wheel-front-right",
+    "dims": [
+     0.35,
+     0.6,
+     0.6
+    ],
+    "tris": 332,
+    "mats": [
+     "colormap.006"
+    ]
+   }
+  ]
+ },
+ "k-delivery-van": {
+  "path": "models/vehicles/delivery-van.glb",
+  "size": [
+   1.5,
+   3.25,
+   1.65
+  ],
+  "pieces": [
+   {
+    "name": "k-delivery-van__body",
+    "dims": [
+     1.5,
+     3.25,
+     1.5
+    ],
+    "tris": 730,
+    "mats": [
+     "colormap.007"
+    ]
+   },
+   {
+    "name": "k-delivery-van__door",
+    "dims": [
+     1.1,
+     0.091,
+     1.0
+    ],
+    "tris": 34,
+    "mats": [
+     "colormap.007"
+    ]
+   },
+   {
+    "name": "k-delivery-van__wheel-back-left",
+    "dims": [
+     0.3,
+     0.6,
+     0.6
+    ],
+    "tris": 428,
+    "mats": [
+     "colormap.007"
+    ]
+   },
+   {
+    "name": "k-delivery-van__wheel-back-right",
+    "dims": [
+     0.3,
+     0.6,
+     0.6
+    ],
+    "tris": 428,
+    "mats": [
+     "colormap.007"
+    ]
+   },
+   {
+    "name": "k-delivery-van__wheel-front-left",
+    "dims": [
+     0.3,
+     0.6,
+     0.6
+    ],
+    "tris": 428,
+    "mats": [
+     "colormap.007"
+    ]
+   },
+   {
+    "name": "k-delivery-van__wheel-front-right",
+    "dims": [
+     0.3,
+     0.6,
+     0.6
+    ],
+    "tris": 428,
+    "mats": [
+     "colormap.007"
+    ]
+   }
+  ]
+ }
+}
