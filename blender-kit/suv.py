@@ -6,6 +6,7 @@ Local frame: +X forward, +Y left, Z up, ground at z=0, origin under the centre.
     suv.SEATS["driver"]  -> (x, y, z_floor) hip reference for a seated figure
 """
 import math
+import os
 import random
 
 import bpy
@@ -96,6 +97,8 @@ def _mats(paint, dusty):
     M["red"] = kit.mat_plain("suv_tail", (0.5, 0.01, 0.01), rough=0.15, spec=0.8, emit=(1, 0.02, 0.02), emit_strength=0.4)
     M["amber"] = kit.mat_plain("suv_amber", (0.9, 0.35, 0.02), rough=0.15, spec=0.8)
     M["lamp"] = kit.mat_plain("suv_lamp", (0.75, 0.75, 0.72), rough=0.12, metal=1.0, emit=(1, 0.95, 0.85), emit_strength=0.12)
+    M["lampface"] = kit.mat_plain("suv_lampface", (0.8, 0.82, 0.8), rough=0.08, metal=0.85, spec=1.0, coat=1.0,
+                                  emit=(1, 0.97, 0.9), emit_strength=0.25)
     M["seat"] = kit.mat_plain("suv_seat", (0.09, 0.08, 0.07), rough=0.7)
     M["dash"] = kit.mat_plain("suv_dash", (0.04, 0.04, 0.045), rough=0.55)
     M["plate"] = kit.mat_plain("suv_plate", (0.9, 0.9, 0.85), rough=0.4)
@@ -105,6 +108,57 @@ def _mats(paint, dusty):
     M["ladder"] = kit.mat_plain("suv_sandladder", (0.75, 0.3, 0.06), rough=0.6)
     M["well"] = kit.mat_plain("suv_well", (0.012, 0.012, 0.012), rough=0.9)
     return M
+
+
+DECALS = "/home/user/assets/decals"
+
+
+def _font(size):
+    from PIL import ImageFont
+    for p in ("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf"):
+        if os.path.exists(p):
+            return ImageFont.truetype(p, size)
+    return ImageFont.load_default()
+
+
+def decal_material(name, kind, text):
+    """A small generated texture (number plate or door graphic) as a material."""
+    from PIL import Image, ImageDraw
+    key = "decal_" + name
+    if key in kit._mats:
+        return kit._mats[key]
+    os.makedirs(DECALS, exist_ok=True)
+    path = os.path.join(DECALS, name + ".png")
+    if kind == "plate":
+        im = Image.new("RGBA", (520, 120), (238, 238, 232, 255))
+        d = ImageDraw.Draw(im)
+        d.rectangle([3, 3, 516, 116], outline=(20, 20, 20, 255), width=5)
+        f = _font(78)
+        w = d.textlength(text, font=f)
+        d.text(((520 - w) / 2, 14), text, font=f, fill=(15, 15, 15, 255))
+    else:
+        im = Image.new("RGBA", (1024, 420), (0, 0, 0, 0))
+        d = ImageDraw.Draw(im)
+        for i, col in enumerate([(196, 78, 24, 255), (226, 150, 40, 255), (60, 50, 44, 255)]):
+            d.polygon([(30 + i * 34, 300 + i * 26), (990, 300 + i * 26), (960, 318 + i * 26), (0 + i * 34, 318 + i * 26)], fill=col)
+        d.ellipse([40, 30, 250, 240], outline=(40, 34, 30, 255), width=10)
+        d.polygon([(145, 46), (165, 135), (145, 224), (125, 135)], fill=(196, 78, 24, 255))
+        d.polygon([(56, 135), (145, 118), (234, 135), (145, 152)], fill=(40, 34, 30, 255))
+        f1, f2 = _font(78), _font(42)
+        lines = text.split("|")
+        d.text((282, 52), lines[0], font=f1, fill=(40, 34, 30, 255))
+        if len(lines) > 1:
+            d.text((294, 150), lines[1], font=f2, fill=(196, 78, 24, 255))
+    im.save(path)
+    m, nt, b, out = kit._new(key)
+    t = nt.nodes.new("ShaderNodeTexImage")
+    t.image = bpy.data.images.load(path, check_existing=True)
+    t.extension = "CLIP"
+    nt.links.new(t.outputs[0], b.inputs["Base Color"])
+    nt.links.new(t.outputs["Alpha"], b.inputs["Alpha"])
+    b.inputs["Roughness"].default_value = 0.4
+    kit._mats[key] = m
+    return m
 
 
 def _arc(cx, r, n=14, z0=ZS, cz=TR):
@@ -165,7 +219,8 @@ def wheel(mb, M, cx, cy, cz, side=1, steer=0.0):
     mb.cyl((cx, cy - side * 0.03, cz), (cx, cy - side * 0.02, cz), 0.17, M["steel"], seg=24)       # brake disc
 
 
-def build(name="suv", paint=(0.62, 0.5, 0.33), rack=True, dusty=True, snorkel=True, bullbar=True, plate="SAH 204 KJ"):
+def build(name="suv", paint=(0.62, 0.5, 0.33), rack=True, dusty=True, snorkel=True, bullbar=True, plate="SAH 204 KJ",
+          roof=(0.9, 0.9, 0.87), livery="TRANS-SAHARA|EXPEDITION 2026"):
     """Returns a hidden library collection holding the truck (instance it or link it)."""
     key = "LIB_" + name
     if key in bpy.data.collections:
@@ -175,6 +230,8 @@ def build(name="suv", paint=(0.62, 0.5, 0.33), rack=True, dusty=True, snorkel=Tr
     c = bpy.data.collections.new(key)
     lib.children.link(c)
     B, K, G = M["body"], M["black"], M["glass"]
+    RF = kit.mat_plain(name + "_roofpaint", roof, rough=0.35, coat=0.6) if roof else B
+    CK = kit.mat_plain("suv_checker", (0.16, 0.16, 0.17), rough=0.45, metal=0.9)
     body, trim, glass, whl = MB(), MB(), MB(), MB()
 
     # ---------------- lower body: extruded side profile with wheel arches
@@ -227,8 +284,10 @@ def build(name="suv", paint=(0.62, 0.5, 0.33), rack=True, dusty=True, snorkel=Tr
     pillar(-1.05, -1.05, w=0.11)                   # C
     pillar(-2.29, -2.29, w=0.13)                   # D
     # roof with a slight crown and drip rails
-    body.box(ws_t - 0.06, -HR, ZR_ - 0.06, -2.35, HR, ZR_, B)
-    body.box(ws_t + 0.02, -HR + 0.1, ZR_, -2.25, HR - 0.1, ZR_ + 0.02, B)
+    body.box(ws_t - 0.06, -HR, ZR_ - 0.06, -2.35, HR, ZR_, RF)
+    body.box(ws_t + 0.02, -HR + 0.1, ZR_, -2.25, HR - 0.1, ZR_ + 0.02, RF)
+    for yy in (-0.4, 0.0, 0.4):            # pressed roof ribs
+        body.box(ws_t + 0.15, yy - 0.04, ZR_ + 0.02, -2.15, yy + 0.04, ZR_ + 0.032, RF)
     for s in (-1, 1):
         trim.box(ws_t - 0.05, s * HR - 0.012, ZR_ - 0.075, -2.34, s * HR + 0.012, ZR_ - 0.055, K)
     # header rails front/rear
@@ -295,30 +354,59 @@ def build(name="suv", paint=(0.62, 0.5, 0.33), rack=True, dusty=True, snorkel=Tr
 
     # ---------------- front end
     xg = 2.40
-    trim.box(xg, -0.52, 0.76, xg + 0.03, 0.52, 1.06, K)
-    z = 0.79
-    while z < 1.04:
-        trim.box(xg + 0.03, -0.5, z, xg + 0.045, 0.5, z + 0.025, M["chrome"] if int(z * 100) % 2 else K)
-        z += 0.05
+    trim.box(xg - 0.01, -0.5, 0.74, xg + 0.012, 0.5, 1.08, K)                 # grille opening
+    for zz in (0.74, 1.065):
+        trim.box(xg, -0.52, zz - 0.02, xg + 0.03, 0.52, zz + 0.02, B)
+    for yy in (-0.52, 0.52):
+        trim.box(xg, yy - 0.02, 0.72, xg + 0.03, yy + 0.02, 1.085, B)
+    z = 0.78
+    while z < 1.05:                                                           # fine horizontal bars
+        trim.box(xg + 0.008, -0.5, z, xg + 0.022, 0.5, z + 0.012, K)
+        z += 0.03
+    for yy in (-0.25, 0.0, 0.25):
+        trim.box(xg + 0.012, yy - 0.012, 0.76, xg + 0.026, yy + 0.012, 1.05, K)
     for s in (-1, 1):
-        y = s * 0.72
-        trim.cyl((xg - 0.02, y, 0.93), (xg + 0.035, y, 0.93), 0.125, M["chrome"], seg=24)
-        trim.cyl((xg + 0.035, y, 0.93), (xg + 0.04, y, 0.93), 0.105, M["lamp"], seg=24)
-        trim.box(xg, y - 0.1, 0.71, xg + 0.025, y + 0.1, 0.77, M["amber"])
-        trim.box(xg - 0.04, s * 0.58, 0.76, xg + 0.02, s * 0.94, 1.08, B) if False else None
+        y = s * 0.735
+        trim.box(xg - 0.005, y - 0.16, 0.76, xg + 0.02, y + 0.16, 1.08, K)   # lamp panel
+        c0 = Vector((xg + 0.022, y, 0.95))
+        trim.cyl(c0, c0 + Vector((0.03, 0, 0)), 0.118, M["chrome"], seg=28, caps=False)       # bezel ring
+        trim.cyl(c0 - Vector((0.09, 0, 0)), c0 + Vector((0.01, 0, 0)), 0.03, M["chrome"], seg=28, r1=0.105, caps=False)  # reflector bowl
+        trim.cyl(c0 - Vector((0.06, 0, 0)), c0 - Vector((0.02, 0, 0)), 0.018, M["lamp"], seg=10)                         # bulb
+        trim.cyl(c0 + Vector((0.004, 0, 0)), c0 + Vector((0.012, 0, 0)), 0.104, M["lampface"], seg=28)                   # fluted lens face
+        for (dy, zz, mm) in [(0.0, 0.8, M["amber"]), ]:
+            trim.cyl((xg + 0.02, y + dy, zz), (xg + 0.04, y + dy, zz), 0.042, mm, seg=16)
+            trim.cyl((xg + 0.015, y + dy, zz), (xg + 0.03, y + dy, zz), 0.05, K, seg=16, caps=False)
+        # wing-side air vent and wing-top chequer plate
+        trim.box(1.45, s * HW, 1.0, 1.85, s * (HW + 0.006), 1.09, K)
+        for k in range(5):
+            trim.box(1.47 + k * 0.075, s * (HW + 0.004), 1.01, 1.50 + k * 0.075, s * (HW + 0.012), 1.08, K)
+        mck = Matrix.Translation((1.72, s * 0.76, 1.213)) @ Matrix.Rotation(math.radians(5.15), 4, "Y")
+        trim.obox(mck, 1.02, 0.3, 0.008, CK)
+        # door hinges (two per door)
+        for xh in (1.045, -0.012):
+            for zh in (ZS + 0.3, ZB - 0.14):
+                trim.cyl((xh, s * (HW + 0.014), zh - 0.045), (xh, s * (HW + 0.014), zh + 0.045), 0.017, B, seg=10)
+    # bonnet centre rise
+    mbn = Matrix.Translation((1.72, 0, 1.214)) @ Matrix.Rotation(math.radians(5.15), 4, "Y")
+    body.obox(mbn, 1.1, 0.95, 0.022, B)
     # bumper + bull bar + winch + plate
     trim.box(2.36, -HW - 0.02, 0.5, 2.56, HW + 0.02, 0.7, K)
-    trim.box(2.56, -0.26, 0.52, 2.565, 0.26, 0.64, M["plate"])
+    PL = decal_material("plate_" + plate.replace(" ", "_"), "plate", plate)
+    trim.face([(2.566, -0.26, 0.52), (2.566, 0.26, 0.52), (2.566, 0.26, 0.64), (2.566, -0.26, 0.64)], PL,
+              uvs=[(0, 0), (1, 0), (1, 1), (0, 1)])
+    trim.box(2.555, -0.27, 0.51, 2.564, 0.27, 0.65, K)
     trim.box(2.44, -0.2, 0.7, 2.56, 0.2, 0.78, M["steel"])
     if bullbar:
         for s in (-1, 1):
-            trim.cyl((2.57, s * 0.42, 0.52), (2.6, s * 0.42, 1.1), 0.028, K, seg=10)
-            trim.cyl((2.6, s * 0.42, 1.1), (2.5, s * 0.88, 1.02), 0.028, K, seg=10)
-            trim.cyl((2.5, s * 0.88, 1.02), (2.5, s * 0.9, 0.62), 0.028, K, seg=10)
-            trim.cyl((2.63, s * 0.3, 1.16), (2.69, s * 0.3, 1.16), 0.1, M["lamp"], seg=20)      # spot lights
-            trim.cyl((2.58, s * 0.3, 1.16), (2.63, s * 0.3, 1.16), 0.105, K, seg=20)
-        trim.cyl((2.6, -0.42, 1.1), (2.6, 0.42, 1.1), 0.028, K, seg=10)
-        trim.cyl((2.59, -0.42, 0.82), (2.59, 0.42, 0.82), 0.022, K, seg=10)
+            trim.cyl((2.57, s * 0.4, 0.52), (2.6, s * 0.4, 1.09), 0.021, K, seg=10)
+            trim.cyl((2.6, s * 0.4, 1.09), (2.5, s * 0.9, 1.0), 0.021, K, seg=10)
+            trim.cyl((2.5, s * 0.9, 1.0), (2.5, s * 0.92, 0.66), 0.021, K, seg=10)
+            cs = Vector((2.6, s * 0.24, 1.2))                                                  # driving lamps
+            trim.cyl(cs, cs + Vector((0.075, 0, 0)), 0.092, K, seg=24, r1=0.098)
+            trim.cyl(cs + Vector((0.01, 0, 0)), cs + Vector((0.07, 0, 0)), 0.03, M["chrome"], seg=24, r1=0.088, caps=False)
+            trim.cyl(cs + Vector((0.066, 0, 0)), cs + Vector((0.076, 0, 0)), 0.088, M["lampface"], seg=24)
+            trim.cyl((2.62, s * 0.24, 1.09), (2.62, s * 0.24, 1.12), 0.012, K, seg=6)
+        trim.cyl((2.6, -0.4, 1.09), (2.6, 0.4, 1.09), 0.021, K, seg=10)
     # wipers
     for y in (-0.35, 0.3):
         trim.cyl((1.13, y, ZB + 0.07), (1.07, y + 0.42, ZB + 0.16), 0.008, K, seg=6)
@@ -328,7 +416,7 @@ def build(name="suv", paint=(0.62, 0.5, 0.33), rack=True, dusty=True, snorkel=Tr
         trim.box(-2.37, s * (HW - 0.13), 0.9, -2.35, s * (HW - 0.01), ZB - 0.02, M["red"])
         trim.box(-2.37, s * (HW - 0.13), 0.8, -2.35, s * (HW - 0.01), 0.89, M["amber"])
     trim.box(-2.52, -HW, 0.5, -2.34, HW, 0.66, K)
-    trim.box(-2.53, -0.25, 0.68, -2.525, 0.25, 0.8, M["plate"]) if False else trim.box(-2.36, -0.62, 0.7, -2.352, -0.14, 0.82, M["plate"])
+    trim.box(-2.53, -0.25, 0.68, -2.525, 0.25, 0.8, M["plate"]) if False else trim.face([(-2.372, -0.14, 0.7), (-2.372, -0.62, 0.7), (-2.372, -0.62, 0.81), (-2.372, -0.14, 0.81)], PL, uvs=[(0, 0), (1, 0), (1, 1), (0, 1)])
     trim.box(-2.365, 0.3, 1.0, -2.35, 0.42, 1.04, M["chrome"])        # tailgate handle
     # spare wheel on the tailgate
     m_sp = Matrix.Translation((-2.36 - TW / 2 - 0.05, 0.12, 1.02)) @ Matrix.Rotation(math.pi / 2, 4, "Z")
@@ -343,6 +431,13 @@ def build(name="suv", paint=(0.62, 0.5, 0.33), rack=True, dusty=True, snorkel=Tr
     for zz in (0.95, 1.2, 1.45, 1.7):
         trim.cyl((-2.4, -0.72, zz), (-2.4, -0.44, zz), 0.012, K, seg=8)
 
+    if livery:
+        LV = decal_material(name + "_livery", "livery", livery)
+        for s in (-1, 1):
+            y = s * (HW + 0.004)
+            q = [(0.95, y, 0.7), (-0.95, y, 0.7), (-0.95, y, 1.12), (0.95, y, 1.12)]
+            uv = [(0, 0), (1, 0), (1, 1), (0, 1)] if s > 0 else [(1, 0), (0, 0), (0, 1), (1, 1)]
+            trim.face(q if s > 0 else list(reversed(q)), LV, uvs=uv if s > 0 else list(reversed(uv)))
     # ---------------- snorkel, antenna
     if snorkel:
         trim.box(1.3, -HW - 0.07, ZB - 0.16, 1.62, -HW, ZB - 0.02, K)
@@ -430,9 +525,14 @@ def build(name="suv", paint=(0.62, 0.5, 0.33), rack=True, dusty=True, snorkel=Tr
         o2.matrix_world = Matrix.Translation((-1.95, 0.32, z0 + 0.16)) @ Matrix.Rotation(math.pi / 2, 4, "X")
 
     # ---------------- wheels and running gear
+    wheel_objs = []
     for (cx, st) in ((AX_F, 0.0), (AX_R, 0.0)):
         for s in (-1, 1):
-            wheel(whl, M, cx, s * TRACK, TR, side=s)
+            wm = MB()                       # each wheel is its own object so it can spin
+            wheel(wm, M, 0, 0, 0, side=s)
+            wo = wm.build(f"{name}_wheel_{len(wheel_objs)}", c)
+            wo.location = (cx, s * TRACK, TR)
+            wheel_objs.append(wo)
         trim.cyl((cx, -TRACK + 0.1, TR), (cx, TRACK - 0.1, TR), 0.05, K, seg=10)
         trim.cyl((cx, 0.0, TR - 0.0), (cx - 0.0, 0.14, TR), 0.13, K, seg=14)
     trim.box(AX_R + 0.1, -0.5, 0.3, AX_F - 0.1, 0.5, ZS + 0.02, K)        # chassis / underbody
@@ -445,7 +545,6 @@ def build(name="suv", paint=(0.62, 0.5, 0.33), rack=True, dusty=True, snorkel=Tr
     ob.modifiers["bevel"].angle_limit = math.radians(40)
     trim.build(name + "_trim", c, bevel=0.006)
     glass.build(name + "_glass", c)
-    whl.build(name + "_wheels", c)
     seat.build(name + "_seats", c, bevel=0.03)
     c["size"] = (5.1, 2.3, 2.5)
     return c
@@ -469,3 +568,7 @@ def seat_people(truck_obj, people, collection=None):
         ob.parent = truck_obj
         ob.location = (x + 0.02, y, FLOOR - 0.0)
         ob.rotation_euler = (0, 0, math.pi / 2)
+
+
+def wheels(lib_coll):
+    return [o for o in lib_coll.objects if "_wheel_" in o.name]

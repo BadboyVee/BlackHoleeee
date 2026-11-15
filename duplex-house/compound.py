@@ -63,6 +63,9 @@ class Site:
         self.trees = []          # (kind, x, y, scale)
         self.palms = []          # (x, y, height)
         self.shrubs = []         # (x, y, scale, variant)
+        self.variants = []       # library collections of restyled duplexes for the neighbours
+        self.street_cars = []    # library collections of real cars for drives and kerbs
+        self.cars_placed = []    # (collection, x, y, heading_deg)
 
     def ring(self, x0, y0, x1, y1, hole, z0, z1, mat, mb=None):
         """Slab x0..x1,y0..y1 with a rectangular hole (hx0,hy0,hx1,hy1)."""
@@ -574,7 +577,33 @@ class Site:
         nb.box(gx, gy - 0.04, 0.08, gx + 4.5, gy + 0.04, 2.3, gcol)
         cx = (x0 + x1) / 2 + r.uniform(-4, 4)
         cy = (y0 + y1) / 2 + r.uniform(-3, 5) * (1 if face == "s" else -1)
-        hx0, hy0, hx1, hy1 = self.nb_house(cx, cy, seed, face=face)
+        if self.variants and r.random() < 0.6:
+            # a restyled copy of the modern duplex (15 x 11 m footprint), sometimes mirrored
+            v = r.choice(self.variants)
+            cx = min(max(cx, x0 + 10.5), x1 - 10.5)
+            cy = min(max(cy, y0 + 9.0), y1 - 9.0)
+            mir = r.random() < 0.5
+            e = bpy.data.objects.new("nb_duplex", None)
+            e.instance_type = "COLLECTION"
+            e.instance_collection = v
+            if face == "s":
+                e.location = (cx + (7.5 if mir else -7.5), cy - 5.5, 0)
+                e.scale = (-1 if mir else 1, 1, 1)
+            else:
+                e.location = (cx + (-7.5 if mir else 7.5), cy + 5.5, 0)
+                e.rotation_euler = (0, 0, math.pi)
+                e.scale = (-1 if mir else 1, 1, 1)
+            self.c.objects.link(e)
+            nb.box(cx - 9.5, cy - 8.5, 0.0, cx + 9.5, cy + 8.0, 0.03, S["pavers"], skip="-z")
+            hx0, hy0, hx1, hy1 = cx - 7.5, cy - 5.5, cx + 7.5, cy + 5.5
+        else:
+            hx0, hy0, hx1, hy1 = self.nb_house(cx, cy, seed, face=face)
+        if self.street_cars:           # a car on the drive, just inside the gate
+            for k in range(r.randint(1, 2)):
+                px = gx + 1.3 + k * 2.6
+                py = (y0 + 4.5) if face == "s" else (y1 - 4.5)
+                if not (hx0 - 1.6 < px < hx1 + 1.6 and hy0 - 2.8 < py < hy1 + 2.8):
+                    self.cars_placed.append((r.choice(self.street_cars), px, py, 90 if face == "s" else -90))
         # yard trees / palms
         for _ in range(r.randint(2, 4)):
             tx, ty = r.uniform(x0 + 2, x1 - 2), r.uniform(y0 + 2, y1 - 2)
@@ -616,6 +645,13 @@ class Site:
         # far rows (cheap filler so the horizon is built up)
         row(ROAD_Y0 - 2.0 - 2 * dp - 9, ROAD_Y0 - 2.0 - dp - 9, "s")
         row(PY1 + dp + 9, PY1 + 2 * dp + 9, "s")
+        if self.street_cars:
+            for x in range(-140, 150, 23):
+                if GATE[0] - 9 < x < GATE[1] + 9 or r.random() < 0.35:
+                    continue
+                side = r.random() < 0.5
+                self.cars_placed.append((r.choice(self.street_cars), x + r.uniform(-3, 3),
+                                         ROAD_Y1 - 1.25 if side else ROAD_Y0 + 1.25, 180 if side else 0))
         # trees along the street verge and a scattered far belt
         for x in range(-150, 160, 17):
             if GATE[0] - 6 < x < GATE[1] + 6:

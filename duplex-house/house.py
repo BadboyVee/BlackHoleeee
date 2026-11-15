@@ -17,7 +17,8 @@ TOWER = 8.35                       # centre (wood) volume top
 RISE, TREAD, NR = 3.3 / 19, 0.27, 19
 
 
-def materials():
+def materials(palette=None):
+    """palette: optional {key: (texture, kwargs)} or ready materials to restyle a variant."""
     M = {}
     M["white"] = kit.mat_pbr("ext_white", "painted_plaster_wall", size=3.0, sat=0.15, val=1.5, rough_add=0.1, normal=0.5)
     M["grey"] = kit.mat_pbr("ext_grey", "painted_plaster_wall", size=3.0, tint=(0.25, 0.235, 0.22), sat=0.3, normal=0.6)
@@ -42,13 +43,15 @@ def materials():
     M["door_int"] = kit.mat_pbr("door_int", "oak_veneer_01", size=1.2, rot=math.pi / 2, tint=(0.75, 0.6, 0.45))
     M["roof"] = kit.mat_pbr("roof_screed", "concrete_floor_02", size=4.0, val=0.8)
     M["skirt"] = kit.mat_plain("skirting", (0.93, 0.93, 0.92), rough=0.5)
+    M.update(palette or {})
     return M
 
 
 class House:
-    def __init__(self, collection):
+    def __init__(self, collection, palette=None, name="house"):
         self.c = collection
-        self.M = materials()
+        self.name = name
+        self.M = materials(palette)
         self.shell, self.frames, self.glass, self.trim = MB(), MB(), MB(), MB()
         self.doors = []       # (kind, hinge xy, ...) for interior use
         self.spots = []       # ceiling downlight positions
@@ -396,8 +399,9 @@ class House:
         self.skirting(TE, 1.5 + TE / 2, 7.5 - TI / 2, 6.2 - TI / 2, Z1, gaps=[("s", 1.4, 6.1), ("e", 1.75, 2.65), ("n", 1.2, 2.0), ("n", 4.3, 5.1)])
         self.skirting(11.2 + TI / 2, TE, W - TE, 5.2 - TI / 2, Z0, gaps=[("w", 1.55, 2.45), ("n", 11.6, 12.4)])
 
-        objs = [self.shell.build("house_shell", self.c), self.frames.build("house_frames", self.c),
-                self.glass.build("house_glass", self.c), self.trim.build("house_trim", self.c)]
+        n = self.name
+        objs = [self.shell.build(n + "_shell", self.c), self.frames.build(n + "_frames", self.c),
+                self.glass.build(n + "_glass", self.c), self.trim.build(n + "_trim", self.c)]
         return objs
 
     def stairs(self):

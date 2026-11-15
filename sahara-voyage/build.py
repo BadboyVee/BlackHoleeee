@@ -340,7 +340,8 @@ def build(a):
     mid = (mx - 222, my - 222, mx + 222, my + 222)
     grid_mesh("dunes_far", -1800, -1800, 1800, 1800, 6.0, sand, c, height, hole=mid)
     grid_mesh("dunes_mid", *mid, 1.0, sand, c, height, hole=fine)
-    grid_mesh("dunes_near", *fine, 0.06, sand, c, lambda X, Y: tracks_z(X, Y, ((sx, sy), heading), suv.AX_F + 0.2))
+    rut_end = (-0.42 * a.frames * 6.5 / a.fps + suv.AX_F) if a.anim else suv.AX_F + 0.2
+    grid_mesh("dunes_near", *fine, 0.06, sand, c, lambda X, Y: tracks_z(X, Y, ((sx, sy), heading), rut_end))
 
     # the truck and its crew
     lib = suv.build("truck", paint=(0.8, 0.74, 0.62), dusty=True)
@@ -349,7 +350,7 @@ def build(a):
     cp = kit.coll("People")
     if a.mode == "drive":
         crew = {"driver": cast.make("tunde", "car_drive", cp), "front": cast.make("amina", "car_look_r", cp),
-                "rear_l": cast.make("chidi", "car_look_l", cp), "rear_c": cast.make("zainab", "car", cp),
+                "rear_l": cast.make("jack", "car_look_l", cp), "rear_c": cast.make("sophie", "car", cp),
                 "rear_r": cast.make("emeka", "car_look_r", cp)}
         suv.seat_people(truck, crew)
         # dust plume: a long box trailing the rear wheels, aligned to the truck
@@ -360,7 +361,9 @@ def build(a):
         kit.link(d, c)
         d.data.materials.append(dm)
         Lp, Wp, Hp = 30.0, 6.0, 4.2
-        d.matrix_world = truck.matrix_world @ Matrix.Translation((suv.AX_R - Lp / 2 + 0.6, 0, Hp / 2 - 0.3)) @ Matrix.Diagonal((Lp, Wp, Hp, 1))
+        d.parent = truck
+        d.matrix_parent_inverse = Matrix.Identity(4)
+        d.matrix_basis = Matrix.Translation((suv.AX_R - Lp / 2 + 0.6, 0, Hp / 2 - 0.3)) @ Matrix.Diagonal((Lp, Wp, Hp, 1))
     else:
         # parked on the dune; everyone is out looking at the view
         f = Vector((math.cos(heading), math.sin(heading), 0))
@@ -375,8 +378,8 @@ def build(a):
 
         stand("tunde", "point", 4.6, 1.2, 10)
         stand("amina", "shade_eyes", 5.2, 2.6, -8)
-        stand("chidi", "hands_hips", 3.9, -1.9, 20)
-        stand("zainab", "stand_relaxed", 5.9, -0.6, -25)
+        stand("jack", "hands_hips", 3.9, -1.9, 20)
+        stand("sophie", "stand_relaxed", 5.9, -0.6, -25)
         stand("emeka", "stand", 3.2, 3.4, 60)
         fm = kit.mat_plain("footprint", (0.33, 0.2, 0.09), rough=1.0)
         mb = kit.MB()
@@ -436,6 +439,30 @@ def build(a):
         "stop": cam("stop", (11.5, -6.5, 1.5), (3.2, 0.6, 1.1), 38),
         "stopwide": cam("stopwide", (22.0, 10.0, 3.5), (2.0, 0.5, 1.2), 32),
     }
+    if a.anim:
+        # the truck climbs the dune past a camera standing in the sand
+        n = a.frames
+        speed = 6.5 / a.fps                       # metres per frame
+        d0 = -0.42 * n * speed                    # start behind the spot so tracks lie behind it at the midpoint
+        f = Vector((math.cos(heading), math.sin(heading), 0))
+        l = Vector((-math.sin(heading), math.cos(heading), 0))
+        truck.rotation_mode = "QUATERNION"
+        for fr in range(1, n + 1):
+            dist = d0 + (fr - 1) * speed
+            p = Vector((sx, sy, 0)) + f * dist
+            m = car_matrix(p.x, p.y, heading)
+            truck.matrix_world = m
+            truck.keyframe_insert("location", frame=fr)
+            truck.keyframe_insert("rotation_quaternion", frame=fr)
+            for wo in suv.wheels(lib):
+                wo.rotation_euler = (0, (dist - d0) / suv.TR, 0)
+                wo.keyframe_insert("rotation_euler", frame=fr)
+        cpos = Vector((sx, sy, 0)) + f * (0.3 * n * speed) - l * 13.0
+        cpos.z = float(height(cpos.x, cpos.y)) + 1.15
+        cam_a, tg = kit.anim_camera("anim_drive", [(1, tuple(cpos), None)], lens=40, collection=cc, target_parent=truck)
+        tg.location = (0.6, 0.0, 1.1)
+        kit.render_frames(cam_a, os.path.join(a.out, "anim_sahara"), 1, n)
+        return
     if a.save:
         bpy.context.scene.camera = cams["drive"]
         bpy.ops.wm.save_as_mainfile(filepath=os.path.abspath(a.save))
@@ -452,6 +479,9 @@ if __name__ == "__main__":
     ap.add_argument("--samples", type=int, default=48)
     ap.add_argument("--out", default="/home/user/out")
     ap.add_argument("--save", default="")
+    ap.add_argument("--anim", action="store_true", help="render the drive-past as frames")
+    ap.add_argument("--frames", type=int, default=60)
+    ap.add_argument("--fps", type=float, default=10.0)
     ap.add_argument("--heading", type=float, default=0.0, help="degrees off the wind direction")
     ap.add_argument("--sun-el", type=float, default=19.0)
     ap.add_argument("--sun-rot", type=float, default=350.0)

@@ -632,3 +632,44 @@ def render(cam, path, **over):
     s.render.filepath = path
     bpy.ops.render.render(write_still=True)
     return path
+
+
+def anim_camera(name, keys, lens=24, collection=None, target_parent=None):
+    """Camera that flies through keys = [(frame, location, target)], always looking at
+    an animated target empty. Returns (camera, target)."""
+    c = collection or bpy.context.scene.collection
+    d = bpy.data.cameras.new(name)
+    d.lens = lens
+    d.clip_start = 0.05
+    d.clip_end = 5000
+    cam = bpy.data.objects.new(name, d)
+    tgt = bpy.data.objects.new(name + "_target", None)
+    c.objects.link(cam)
+    c.objects.link(tgt)
+    if target_parent is not None:
+        tgt.parent = target_parent
+    con = cam.constraints.new("TRACK_TO")
+    con.target = tgt
+    con.track_axis = "TRACK_NEGATIVE_Z"
+    con.up_axis = "UP_Y"
+    for (f, loc, t) in keys:
+        cam.location = loc
+        cam.keyframe_insert("location", frame=f)
+        if t is not None:
+            tgt.location = t
+            tgt.keyframe_insert("location", frame=f)
+    return cam, tgt
+
+
+def render_frames(cam, out_dir, f0, f1):
+    """Render frames f0..f1 as PNGs (skipping ones already on disk, so a run can resume)."""
+    s = bpy.context.scene
+    s.camera = cam
+    os.makedirs(out_dir, exist_ok=True)
+    for f in range(f0, f1 + 1):
+        p = os.path.join(out_dir, f"f_{f:04d}.png")
+        if os.path.exists(p):
+            continue
+        s.frame_set(f)
+        s.render.filepath = p
+        bpy.ops.render.render(write_still=True)
