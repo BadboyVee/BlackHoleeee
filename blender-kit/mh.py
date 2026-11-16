@@ -311,8 +311,43 @@ def _material(name, diffuse=None, normal=None, color=(0.8, 0.8, 0.8), rough=0.6,
             nt.links.new(pw.outputs[0], mx.inputs["A"])
             mx.inputs["B"].default_value = tuple(hue[1:]) + (1,)
             col = mx.outputs["Result"]
-            b.inputs["Coat Weight"].default_value = 0.15
-            b.inputs["Coat Roughness"].default_value = 0.35
+            # darker roots, lighter and slightly sun-faded tips
+            atn = nt.nodes.new("ShaderNodeAttribute")
+            atn.attribute_name = "tip"
+            rt = nt.nodes.new("ShaderNodeMapRange")
+            rt.inputs["To Min"].default_value = 0.55
+            rt.inputs["To Max"].default_value = 1.18
+            nt.links.new(atn.outputs["Fac"], rt.inputs["Value"])
+            m2 = nt.nodes.new("ShaderNodeMix")
+            m2.data_type = "RGBA"
+            m2.blend_type = "MULTIPLY"
+            m2.inputs["Factor"].default_value = 1.0
+            nt.links.new(col, m2.inputs["A"])
+            nt.links.new(rt.outputs[0], m2.inputs["B"])
+            col = m2.outputs["Result"]
+            # strand-direction highlight: anisotropic sheen along the hair (cards hang roughly vertically)
+            tg = nt.nodes.new("ShaderNodeTangent")
+            tg.direction_type = "RADIAL"
+            tg.axis = "Z"
+            b.inputs["Anisotropic"].default_value = 0.6
+            nt.links.new(tg.outputs[0], b.inputs["Tangent"])
+            b.inputs["Roughness"].default_value = 0.46
+            b.inputs["Specular IOR Level"].default_value = 0.45
+            b.inputs["Sheen Weight"].default_value = 0.12
+            b.inputs["Sheen Roughness"].default_value = 0.35
+            # fine strands broken into the card surface
+            sn = nt.nodes.new("ShaderNodeTexWave")
+            sn.wave_type = "BANDS"
+            sn.bands_direction = "Z"
+            sn.inputs["Scale"].default_value = 160.0
+            sn.inputs["Distortion"].default_value = 6.0
+            tco = nt.nodes.new("ShaderNodeTexCoord")
+            nt.links.new(tco.outputs["Object"], sn.inputs["Vector"])
+            bpn = nt.nodes.new("ShaderNodeBump")
+            bpn.inputs["Strength"].default_value = 0.35
+            bpn.inputs["Distance"].default_value = 0.0004
+            nt.links.new(sn.outputs[0], bpn.inputs["Height"])
+            nt.links.new(bpn.outputs[0], b.inputs["Normal"])
         elif hue is not None:
             h = nt.nodes.new("ShaderNodeHueSaturation")
             h.inputs["Hue"].default_value = hue[0]
@@ -394,6 +429,8 @@ def skin_material(name, diffuse, race="caucasian"):
     b.inputs["Specular IOR Level"].default_value = 0.42
     b.inputs["Coat Weight"].default_value = 0.08
     b.inputs["Coat Roughness"].default_value = 0.32
+    b.inputs["Sheen Weight"].default_value = 0.18             # the fine vellus fuzz that catches grazing light
+    b.inputs["Sheen Roughness"].default_value = 0.45
     # pores (fine voronoi) + creases (stretched noise)
     pores = N.new("ShaderNodeTexVoronoi")
     pores.inputs["Scale"].default_value = 900.0
@@ -478,7 +515,7 @@ def face_targets(seed, strength=1.0):
 
 HAIR = {
     "black": (0.022, 0.018, 0.016), "dark_brown": (0.075, 0.045, 0.03), "brown": (0.21, 0.13, 0.075),
-    "light_brown": (0.3, 0.19, 0.11), "blond": (0.78, 0.58, 0.32), "ash_blond": (0.5, 0.43, 0.33),
+    "light_brown": (0.3, 0.19, 0.11), "blond": (0.86, 0.66, 0.38), "ash_blond": (0.5, 0.43, 0.33),
     "auburn": (0.3, 0.1, 0.045), "red": (0.42, 0.13, 0.05), "grey": (0.42, 0.41, 0.4), "white": (0.72, 0.7, 0.68),
 }
 HAIR_DEFAULT = {"african": HAIR["black"], "caucasian": HAIR["brown"], "asian": HAIR["black"]}
@@ -563,7 +600,18 @@ def human(name, gender="male", race="african", age="young", muscle="average", we
                         hue=(("rgb",) + tuple(tint.get(an, HAIR_DEFAULT.get(race, HAIR_DEFAULT["african"])))) if kind in ("hair", "eyebrows")
                         else tint.get(an),
                         spec=0.6 if kind == "eyes" else (0.12 if kind == "hair" else 0.3))
-        parts.append((_mesh_obj(f"{name}_{an}", cb, faces, fuv, vt, mat, collection), bind))
+        pobj = _mesh_obj(f"{name}_{an}", cb, faces, fuv, vt, mat, collection)
+        if kind == "hair":
+            # 0 at the roots (close to the scalp, high on the head) .. 1 at the tips
+            off = np.linalg.norm(co - np.array([r[3] * mv_g[int(r[0])] + r[4] * mv_g[int(r[1])] + r[5] * mv_g[int(r[2])]
+                                                if len(r) >= 9 else mv_g[int(r[0])] for r in rows]), axis=1)
+            off = off / max(np.percentile(off, 95), 1e-6)
+            zz = cb[:, 2]
+            drop = (zz.max() - zz) / max(zz.max() - zz.min(), 1e-6)
+            tip = np.clip(0.55 * off + 0.65 * drop, 0.0, 1.0)
+            at = pobj.data.attributes.new("tip", "FLOAT", "POINT")
+            at.data.foreach_set("value", tip.astype(np.float32))
+        parts.append((pobj, bind))
 
     # --- body (only the 'body' group faces, minus what the clothes cover)
     if skin is None:
@@ -727,11 +775,11 @@ def human(name, gender="male", race="african", age="young", muscle="average", we
 POSES = {
     "stand": {
         "upperarm01.L": (0, 40, 0), "upperarm01.R": (0, -40, 0),
-        "lowerarm01.L": (-14, 4, 0), "lowerarm01.R": (-14, -4, 0),
+        "lowerarm01.L": (38, 4, 0), "lowerarm01.R": (38, -4, 0),
     },
     "stand_relaxed": {
         "upperarm01.L": (6, 40, 0), "upperarm01.R": (-10, -38, 0),
-        "lowerarm01.L": (-10, 4, 0), "lowerarm01.R": (-62, -4, 20),
+        "lowerarm01.L": (36, 4, 0), "lowerarm01.R": (-10, -4, 20),
         "spine03": (0, 0, 7), "head": (0, 0, -16), "upperleg01.L": (0, -4, 0), "upperleg01.R": (-6, 4, 0),
         "lowerleg01.R": (10, 0, 0),
     },
@@ -741,12 +789,12 @@ POSES = {
         "head": (0, 0, 12),
     },
     "point": {
-        "upperarm01.L": (0, 40, 0), "lowerarm01.L": (-12, 4, 0),
-        "upperarm01.R": (-70, -34, 0), "lowerarm01.R": (-8, 0, 0),
+        "upperarm01.L": (0, 40, 0), "lowerarm01.L": (36, 4, 0),
+        "upperarm01.R": (-70, -34, 0), "lowerarm01.R": (40, 0, 0),
         "head": (-6, 0, 10), "spine03": (0, 0, 6),
     },
     "shade_eyes": {
-        "upperarm01.L": (0, 40, 0), "lowerarm01.L": (-12, 4, 0),
+        "upperarm01.L": (0, 40, 0), "lowerarm01.L": (36, 4, 0),
         "upperarm01.R": (-58, -18, 0), "lowerarm01.R": (-88, 30, 62),
         "head": (-8, 0, 0),
     },
@@ -754,7 +802,7 @@ POSES = {
         "upperleg01.L": (-26, 0, 0), "lowerleg01.L": (12, 0, 0),
         "upperleg01.R": (16, 0, 0), "lowerleg01.R": (30, 0, 0), "foot.R": (-16, 0, 0),
         "upperarm01.L": (18, 40, 0), "upperarm01.R": (-20, -40, 0),
-        "lowerarm01.L": (-12, 4, 0), "lowerarm01.R": (-30, -4, 0),
+        "lowerarm01.L": (34, 4, 0), "lowerarm01.R": (20, -4, 0),
         "spine03": (0, 0, -5),
     },
     "sit": {
@@ -828,9 +876,10 @@ class Actor:
         self.touched = set()
 
     # -- low level
-    def _apply(self):
+    def _apply(self, update=True):
         ad, arm = self.ad, self.arm
         total = {}
+        self._tot = total
 
         def tot(bn):
             if bn in total:
@@ -855,8 +904,47 @@ class Actor:
                 pb.rotation_quaternion = (1, 0, 0, 0)
         for bn in self.own:
             tot(bn)
+        for bn in ("foot.L", "foot.R", "toe1-1.L", "toe1-1.R", "head"):
+            if bn in ad.bones:
+                tot(bn)
         self.touched |= set(self.own)
-        bpy.context.view_layer.update()
+        if update:
+            bpy.context.view_layer.update()
+
+    def fk_point(self, bn, p):
+        """Where rest-pose point p (armature space) attached to bone bn ends up, computed directly from
+        the rotations just set (no scene update needed)."""
+        ad = self.ad
+        chain = []
+        b = ad.bones[bn]
+        while b is not None:
+            chain.append(b)
+            b = b.parent
+        chain.reverse()
+        tot = self._tot
+        pos = None                                      # posed position of the current bone head
+        prev_tot, prev_head_rest = None, None
+        for b in chain:
+            T = tot.get(b.name)
+            if T is None:
+                T = prev_tot if prev_tot is not None else Matrix.Identity(3)
+                tot[b.name] = T
+            h = b.head_local
+            if pos is None:
+                pos = h.copy()
+            else:
+                pos = pos + prev_tot @ (h - prev_head_rest)
+            prev_tot, prev_head_rest = T, h
+        return pos + prev_tot @ (Vector(p) - prev_head_rest)
+
+    def ground_fast(self):
+        ad = self.ad
+        zs = []
+        for bn in ("foot.L", "foot.R", "toe1-1.L", "toe1-1.R"):
+            if bn in ad.bones:
+                zs.append(self.fk_point(bn, ad.bones[bn].tail_local).z)
+                zs.append(self.fk_point(bn, ad.bones[bn].head_local).z - 0.06)
+        return min(zs) - 0.03
 
     @staticmethod
     def _mat(rot):
@@ -866,11 +954,11 @@ class Actor:
                 @ Matrix.Rotation(math.radians(rot[0]), 3, "X"))
 
     # -- posing
-    def pose(self, fk, ik=None, grip=None):
+    def pose(self, fk, ik=None, grip=None, update=True):
         """fk: {bone: (rx, ry, rz) degrees about world axes}. ik: {"L"/"R": target in the figure's own
         frame} for the wrists. grip: {"L"/"R": 0..1} finger curl."""
         self.own = {bn: self._mat(r) for bn, r in fk.items() if not bn.startswith("_") and bn in self.ad.bones}
-        self._apply()
+        self._apply(update=update or bool(ik) or bool(grip))
         for side, tgt in (ik or {}).items():
             self._reach(side, Vector(tgt))
         for side, amt in (grip or {}).items():

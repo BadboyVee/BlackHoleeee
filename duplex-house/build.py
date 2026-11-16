@@ -14,6 +14,7 @@ sys.path.insert(0, os.path.join(HERE, "..", "blender-kit"))
 sys.path.insert(0, HERE)
 
 import bpy  # noqa: E402
+from mathutils import Vector  # noqa: E402
 
 import kit  # noqa: E402
 import house  # noqa: E402
@@ -69,6 +70,7 @@ def main():
     ap.add_argument("--last", type=int, default=0)
     ap.add_argument("--step", type=int, default=1)
     ap.add_argument("--check-only", action="store_true")
+    ap.add_argument("--only", default="", help="comma-separated frame numbers to render")
     ap.add_argument("--gate", type=float, default=0.75)
     ap.add_argument("--sun", type=float, default=215.0, help="sun azimuth, degrees from +X toward +Y")
     ap.add_argument("--sun-lamp", type=float, default=2.5)
@@ -109,7 +111,8 @@ def main():
     S = site_mod.Site(cs, H.M)
     S.variants = variants
     S.street_cars = [cars.bmw(color=(0.02, 0.02, 0.025)), cars.bmw(color=(0.75, 0.76, 0.78)), cars.bmw(color=(0.85, 0.85, 0.83)),
-                     cars.bmw(color=(0.05, 0.12, 0.3)), cars.bmw(color=(0.35, 0.03, 0.04)), cars.gz("suv"), cars.concept()]
+                     cars.bmw(color=(0.05, 0.12, 0.3)), cars.bmw(color=(0.35, 0.03, 0.04)), cars.bmw(color=(0.3, 0.31, 0.33)),
+                     cars.concept()]
     if a.no_veg:
         S.vegetation = lambda: None
     S.build(gate_open=1.0 if a.anim == "street" else a.gate)
@@ -131,39 +134,75 @@ def main():
     cars.put(cars.bmw(color=(0.02, 0.02, 0.025)), (-12.0, -16.3, -0.06), 0, cc, "bmw_on_street")  # parked at the kerb
     cars.put(cars.concept(), (58.0, -19.9, -0.06), 180, cc, "concept_on_street")
 
+    P = {}
     if not a.no_people:
-        import cast
+        import life
         from house import Z0, Z1
         cp = kit.coll("People")
-
-        CLOSE = {"olivia", "daniel", "emma", "claire", "kate", "jack", "sophie", "ryan"}
-
-        def put(name, pose, loc, rz=0.0, **kw):
-            kw.setdefault("subdiv", 1 if name in CLOSE else 0)
-            o = cast.make(name, pose, cp, **kw)
-            o.location, o.rotation_euler = loc, (0, 0, rz)
-            return o
-
-        put("olivia", "stand_relaxed", (2.8, -0.9, 0.42), math.radians(25))          # on the terrace
-        put("daniel", "walk", (10.4, -3.4, 0.03), math.radians(-140))                 # walking to the car
-        put("tom", "stand", (-9.6, -10.4, 0.0), math.radians(-60))                # gardener by the beds
-        put("guard", "stand", (20.4, -10.2, 0.03), math.radians(120))               # security at the gate
-        put("emma", "sit", (-7.2, 5.56, 0.155 - 0.47), 0.0)                       # feet in the pool
-        put("claire", "stand_relaxed", (-5.4, 6.3, 0.12), math.radians(40))         # by the loungers
-        put("mark", "hands_hips", (3.4, -0.45, Z1), math.radians(10))               # on the master balcony
-        put("lena", "stand", (1.6, 0.9, Z1), math.radians(-30))
-        # life on the street
-        put("walker1", "walk", (-24.0, -14.1, 0.02), math.radians(-90), obj_name="walker1")
-        put("walker2", "walk", (-25.2, -14.3, 0.02), math.radians(-90), obj_name="walker2")
-        put("walker3", "walk", (4.0, -23.3, 0.02), math.radians(90), obj_name="walker3")
-        put("walker4", "stand_relaxed", (30.5, -14.0, 0.02), math.radians(150), obj_name="walker4")
-        put("walker5", "walk", (41.0, -23.2, 0.02), math.radians(-90), obj_name="walker5")
-        put("walker6", "stand", (-38.0, -14.0, 0.02), math.radians(200), obj_name="walker6")
+        CLOSE = {"olivia", "claire", "kate", "ryan", "jack", "sophie", "daniel"}
+        floors = {"walker1": 0.02, "walker2": 0.02, "walker3": 0.02, "walker4": 0.02, "walker5": 0.02, "walker6": 0.02,
+                  "guard": 0.03, "tom": 0.0, "daniel": 0.03, "olivia": 0.42, "claire": 0.42, "emma": 0.155,
+                  "mark": Z1, "lena": Z1}
         if not a.no_interior:
-            put("kate", "sit", (3.3, 4.2, Z0 + 0.4 - 0.47), math.radians(-90))     # on the living-room sofa
-            put("jack", "stand_relaxed", (7.5, 9.72, Z0), math.radians(170))         # in the kitchen
-            put("sophie", "sit", (2.7, 9.27 - 0.25, Z0 + 0.47 - 0.47), math.pi)     # at the dining table
-            put("ryan", "stand_relaxed", (5.9, 5.45, Z0), math.radians(150))                 # living room, by the window
+            floors.update({"kate": Z0, "ryan": Z0, "jack": Z0, "sophie": Z0})
+        for nm, fz in floors.items():
+            P[nm] = life.Performer(nm, cp, [{"until": 999, "stand": (0, 0)}], (lambda z: (lambda x, y: z))(fz),
+                                   subdiv=1 if nm in CLOSE else 0, style=0.6 if nm in ("olivia", "claire", "walker1", "walker4") else 0.0)
+
+    def stage(cam_xy=None, cam_t=None):
+        """Everyone's script. cam_t(x, y, r): first time the film camera comes within r of (x, y)."""
+        if not P:
+            return
+        ct = cam_t or (lambda x, y, r: None)
+        near = lambda name: (lambda t: cam_xy(t) if cam_xy and cam_xy(t) and (cam_xy(t) - P[name]._pos).length < 9 else None)
+        partner = lambda q: (lambda t: tuple(P[q]._pos))
+
+        def other_or_cam(me, q):
+            def f(t):
+                c = near(me)(t)
+                return c if c is not None else tuple(P[q]._pos)
+            return f
+        # the street
+        tc = ct(-18.0, -18.4, 3.0) or 9.0
+        P["walker1"].actions = [{"until": 999, "walk": [(-18 - 1.25 * tc, -14.15), (80, -14.15)], "speed": 1.25}]
+        P["walker2"].actions = [{"until": 999, "walk": [(-18.6 - 1.25 * tc, -14.62), (80, -14.62)], "speed": 1.25}]
+        P["walker1"].look_at = lambda t: tuple(P["walker2"]._pos + Vector((3.0, 0)))
+        P["walker2"].look_at = lambda t: tuple(P["walker1"]._pos + Vector((3.0, 0)))
+        P["walker3"].actions = [{"until": 999, "walk": [(26, -23.45), (-90, -23.45)], "speed": 1.3}]
+        P["walker5"].actions = [{"until": 999, "walk": [(44, -14.35), (-60, -14.35)], "speed": 0.85}]
+        P["walker4"].actions = [{"until": 999, "stand": (-6.3, -14.2), "face": (-5.4, -14.5), "talk": 0.8, "hand": "R"}]
+        P["walker6"].actions = [{"until": 999, "stand": (-5.4, -14.5), "face": (-6.3, -14.2), "talk": 0.5, "hand": "L"}]
+        P["walker4"].look_at = other_or_cam("walker4", "walker6")
+        P["walker6"].look_at = other_or_cam("walker6", "walker4")
+        # the gate: the guard steps out of the shade and waves the car in
+        tg = ct(18.0, -14.0, 9.0) or 30.0
+        P["guard"].actions = [{"until": tg, "stand": (20.9, -10.9), "face": (18.0, -14.0)},
+                              {"until": tg + 3.5, "stand": (20.9, -10.9), "face": (18.0, -12.5), "wave": True},
+                              {"until": 999, "stand": (20.9, -10.9), "face": (18.0, -9.0)}]
+        P["guard"].look_at = near("guard")
+        P["tom"].actions = [{"until": 22, "walk": [(-9.5, -11.0), (3.5, -11.0)], "speed": 0.6},
+                            {"until": 30, "stand": (3.5, -11.0), "face": -90},
+                            {"until": 999, "walk": [(3.5, -11.0), (-9.5, -11.0)], "speed": 0.6}]
+        ti = ct(17.5, -11.0, 2.0) or 34.0
+        P["daniel"].actions = [{"until": ti - 1.0, "stand": (10.6, -2.4), "face": (2.0, -0.8), "talk": 0.6},
+                               {"until": 999, "walk": [(10.6, -2.4), (10.6, -3.4), (10.55, -4.7)], "speed": 1.2}]
+        P["daniel"].look_at = near("daniel")
+        P["olivia"].actions = [{"until": 999, "stand": (0.6, -1.0), "face": (1.5, -0.45), "talk": 0.9}]
+        P["claire"].actions = [{"until": 999, "stand": (1.5, -0.45), "face": (0.6, -1.0), "talk": 0.5, "hand": "L"}]
+        P["olivia"].look_at = other_or_cam("olivia", "claire")
+        P["claire"].look_at = other_or_cam("claire", "olivia")
+        P["emma"].actions = [{"until": 999, "sit": (-7.2, 5.66), "face": -90}]
+        P["mark"].actions = [{"until": 999, "stand": (3.7, -0.35), "face": (2.7, 0.35), "talk": 0.7}]
+        P["lena"].actions = [{"until": 999, "stand": (2.7, 0.35), "face": (3.7, -0.35), "talk": 0.5, "hand": "L"}]
+        P["mark"].look_at = partner("lena")
+        P["lena"].look_at = partner("mark")
+        if "kate" in P:
+            P["kate"].actions = [{"until": 999, "stand": (5.55, 5.3), "face": (6.4, 4.6), "talk": 0.8}]
+            P["ryan"].actions = [{"until": 999, "stand": (6.4, 4.6), "face": (5.55, 5.3), "talk": 0.5, "hand": "L"}]
+            P["jack"].actions = [{"until": 999, "stand": (7.4, 9.62), "face": (5.9, 8.6), "talk": 0.8}]
+            P["sophie"].actions = [{"until": 999, "stand": (5.85, 9.7), "face": (7.4, 9.62), "talk": 0.5, "hand": "L"}]
+            for (x, y) in (("kate", "ryan"), ("ryan", "kate"), ("jack", "sophie"), ("sophie", "jack")):
+                P[x].look_at = other_or_cam(x, y)
 
     kit.world_hdri(a.sky, "4k", a.sky_strength, sun_az=a.sun)
     if a.sun_lamp > 0:      # a crisp sun on top of the sky's own soft one
@@ -251,9 +290,28 @@ def main():
                 s_.view_settings.keyframe_insert("exposure", frame=f)
         else:
             raise SystemExit("unknown --anim " + a.anim)
+        if P:
+            import life
+            track = []
+            for (cam, fa, fb) in shots:
+                track += kit.PATHS[cam.name]
+            track.sort(key=lambda q: q[0])
+            pos_at = {f: p for f, p in track}
+            last = track[-1][0]
+
+            def cam_xy(t):
+                p = pos_at.get(min(last, max(1, int(round(t * fps)) + 1)))
+                return Vector((p.x, p.y)) if p is not None else None
+
+            def cam_t(x, y, r):
+                for f, p in track:
+                    if math.hypot(p.x - x, p.y - y) < r:
+                        return (f - 1) / fps
+                return None
+            stage(cam_xy, cam_t)
+            life.animate(list(P.values()), 1, last, fps)
+            print("PEOPLE animated", len(P), "performers,", last, "frames")
         obstacles = [(x, y_, 0.55) for (x, y_, h) in S.palms] + [(x, y_, 0.9) for (k_, x, y_, sc) in S.trees]
-        obstacles += [(o.location.x, o.location.y, 0.45) for o in bpy.data.objects if o.parent is None and o.type == "MESH"
-                      and o.users_collection and o.users_collection[0].name == "People"]
         for o in bpy.data.objects:                          # cars as three overlapping discs along their length
             if o.instance_type == "COLLECTION" and o.users_collection and o.users_collection[0].name == "Cars":
                 hx, hy = math.cos(o.rotation_euler.z), math.sin(o.rotation_euler.z)
@@ -261,10 +319,10 @@ def main():
                     obstacles.append((o.location.x + hx * k_, o.location.y + hy * k_, 1.0))
         for (cam, fa, fb) in shots:
             near = []
-            for f in range(fa, fb + 1):
-                s_.frame_set(f)
-                p = cam.matrix_world.translation
-                for (ox, oy, rr) in obstacles:
+            for (f, p) in kit.PATHS[cam.name]:
+                obs = list(obstacles) + [(*pf.track[f], 0.35) for pf in P.values() if hasattr(pf, "track") and f in pf.track
+                                          and abs(pf.floor(0, 0) - (p.z - 1.6)) < 1.5]
+                for (ox, oy, rr) in obs:
                     dd = math.hypot(p.x - ox, p.y - oy) - rr
                     if dd < 0.35:
                         near.append((f, round(ox, 1), round(oy, 1), round(dd, 2)))
@@ -281,9 +339,15 @@ def main():
         for (cam, fa, fb) in shots:
             lo = max(fa, a.first)
             hi = min(fb, a.last or fb)
-            for f in range(lo, hi + 1, a.step):
-                kit.render_frames(cam, out, f, f)
+            frames = [int(x) for x in a.only.split(",")] if a.only else range(lo, hi + 1, a.step)
+            for f in frames:
+                if fa <= f <= fb:
+                    kit.render_frames(cam, out, f, f)
         return
+    if P:
+        import life
+        stage()
+        life.still(list(P.values()), 20.0)
     for n in [x for x in a.cams.split(",") if x]:
         bpy.context.scene.view_settings.exposure = a.exposure + EXPOSURE.get(n, 0.0)
         kit.render(cams[n], os.path.join(a.out, f"duplex_{n}.png"))

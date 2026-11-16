@@ -702,6 +702,9 @@ def _catmull(pts, n_per=24):
     return out
 
 
+PATHS = {}            # camera name -> [(frame, position)] as keyed by path_camera
+
+
 def path_camera(name, waypoints, fps=12.0, lens=24, collection=None, f0=1, bob=0.0, ease=1.5, lens_keys=None):
     """A camera that travels a smooth spline through waypoints = [(position, look_at, speed m/s)],
     looking at a target that glides along its own spline. Speed is blended between waypoints and
@@ -758,6 +761,7 @@ def path_camera(name, waypoints, fps=12.0, lens=24, collection=None, f0=1, bob=0
             p = p + Vector((0, 0, bob * abs(math.sin(step_phase)) - bob * 0.5))
         cam.location = p
         cam.rotation_euler = (t - p).to_track_quat("-Z", "Y").to_euler()
+        PATHS.setdefault(name, []).append((fr, p.copy()))
         cam.keyframe_insert("location", frame=fr)
         cam.keyframe_insert("rotation_euler", frame=fr)
         if lens_keys:
