@@ -49,6 +49,14 @@ def site_materials(M):
     S["nb_white"] = kit.mat_pbr("nb_white", "painted_plaster_wall", size=3.0, val=1.3, sat=0.2)
     S["nb_glass"] = kit.mat_plain("nb_glass", (0.02, 0.03, 0.035), rough=0.04, spec=1.0, metal=0.2)
     S["trim_brown"] = kit.mat_plain("trim_brown", (0.12, 0.07, 0.04), rough=0.5)
+    S["kerb_w"] = kit.mat_plain("kerb_white", (0.82, 0.82, 0.78), rough=0.8)
+    S["kerb_b"] = kit.mat_plain("kerb_black", (0.035, 0.035, 0.035), rough=0.8)
+    S["road_paint"] = kit.mat_plain("road_paint", (0.75, 0.74, 0.68), rough=0.9)
+    S["bump_y"] = kit.mat_plain("bump_yellow", (0.85, 0.62, 0.05), rough=0.8)
+    S["bin"] = kit.mat_plain("bin_green", (0.03, 0.2, 0.08), rough=0.45)
+    S["sign"] = kit.mat_plain("sign_green", (0.02, 0.22, 0.12), rough=0.4)
+    S["flower_a"] = kit.mat_plain("bougainvillea", (0.75, 0.05, 0.3), rough=0.6)
+    S["flower_b"] = kit.mat_plain("ixora", (0.9, 0.3, 0.05), rough=0.6)
     return S
 
 
@@ -424,8 +432,60 @@ class Site:
         S, g, d = self.S, self.g, self.d
         X0, X1 = -160.0, 170.0
         g.box(X0, ROAD_Y0, -0.3, X1, ROAD_Y1, -0.06, S["asphalt"], skip="-z")
+        # estate kerbs painted black and white, one metre apiece
         for (ya, yb) in [(ROAD_Y1, ROAD_Y1 + 0.18), (ROAD_Y0 - 0.18, ROAD_Y0)]:
-            g.box(X0, ya, -0.3, X1, yb, 0.06, S["kerb"])
+            x, k = X0, 0
+            while x < X1:
+                if not (GATE[0] - 0.4 < x + 0.5 < GATE[1] + 0.4 and ya == ROAD_Y1):
+                    g.box(x, ya, -0.3, x + 1.0, yb, 0.06, S["kerb_w"] if k % 2 else S["kerb_b"])
+                x += 1.0
+                k += 1
+        # worn centre line, speed bumps, manholes
+        ym = (ROAD_Y0 + ROAD_Y1) / 2
+        x = X0 + 2
+        while x < X1:
+            g.box(x, ym - 0.06, -0.3, x + 3.0, ym + 0.06, -0.057, S["road_paint"], skip="-z")
+            x += 9.0
+        for bx in (-36.0, 50.0):
+            n = 14
+            w = (ROAD_Y1 - ROAD_Y0) / n
+            for i in range(n):
+                y0b = ROAD_Y0 + i * w
+                m = S["bump_y"] if i % 2 else S["kerb_b"]
+                g.face([(bx - 0.45, y0b, -0.06), (bx + 0.45, y0b, -0.06), (bx + 0.2, y0b, 0.02), (bx - 0.2, y0b, 0.02)], m)
+                g.face([(bx - 0.2, y0b, 0.02), (bx + 0.2, y0b, 0.02), (bx + 0.2, y0b + w, 0.02), (bx - 0.2, y0b + w, 0.02)], m)
+                g.face([(bx - 0.45, y0b, -0.06), (bx - 0.2, y0b, 0.02), (bx - 0.2, y0b + w, 0.02), (bx - 0.45, y0b + w, -0.06)], m)
+                g.face([(bx + 0.2, y0b, 0.02), (bx + 0.45, y0b, -0.06), (bx + 0.45, y0b + w, -0.06), (bx + 0.2, y0b + w, 0.02)], m)
+        for (mx, my) in [(-22.0, ym + 1.6), (9.0, ym - 1.8), (37.0, ym + 1.2), (-70.0, ym - 1.0), (90.0, ym + 1.5)]:
+            d.cyl((mx, my, -0.062), (mx, my, -0.054), 0.33, S["black_metal"], seg=20)
+        # street-name sign at the west junction, wheelie bins by a few gates
+        import suv as _suv
+        sg = _suv.decal_material("street_sign", "plate", "PALM GROVE CL.")
+        sx_, sy_ = -49.5, ROAD_Y1 + 1.5
+        d.cyl((sx_, sy_, 0), (sx_, sy_, 2.9), 0.03, S["steel"], seg=8)
+        d.box(sx_ - 0.75, sy_ - 0.015, 2.55, sx_ + 0.75, sy_ + 0.015, 2.9, S["sign"])
+        d.face([(sx_ - 0.7, sy_ - 0.017, 2.6), (sx_ + 0.7, sy_ - 0.017, 2.6), (sx_ + 0.7, sy_ - 0.017, 2.86), (sx_ - 0.7, sy_ - 0.017, 2.86)],
+               sg, uvs=[(0, 0), (1, 0), (1, 1), (0, 1)])
+        for (bxn, byn) in [(12.6, PY0 - 0.65), (-17.5, PY0 - 0.65), (33.0, PY0 - 0.65), (-4.0, ROAD_Y0 - 1.6), (41.0, ROAD_Y0 - 1.6)]:
+            d.box(bxn, byn - 0.28, 0.02, bxn + 0.55, byn + 0.28, 0.98, S["bin"])
+            d.box(bxn - 0.03, byn - 0.31, 0.98, bxn + 0.58, byn + 0.31, 1.04, S["bin"])
+            for wy in (-0.24, 0.24):
+                d.cyl((bxn + 0.5, byn + wy - 0.02, 0.1), (bxn + 0.5, byn + wy + 0.02, 0.1), 0.09, S["black_metal"], seg=10)
+        # planting strip along the outside of our own front wall
+        r = self.rnd
+        x = PX0 + 1.0
+        k = 0
+        while x < PX1 - 1.0:
+            if not (PGATE[0] - 1.2 < x < GATE[1] + 1.2):
+                self.shrubs.append((x, PY0 - 0.55, r.uniform(0.28, 0.42), k % 4, 0.0))
+                if r.random() < 0.45:
+                    fm = S["flower_a"] if r.random() < 0.6 else S["flower_b"]
+                    for _ in range(14):
+                        fx, fy, fz = x + r.uniform(-0.5, 0.5), PY0 - 0.55 + r.uniform(-0.3, 0.3), r.uniform(0.35, 0.8)
+                        d.box(fx - 0.04, fy - 0.04, fz, fx + 0.04, fy + 0.04, fz + 0.06, fm)
+            x += r.uniform(1.3, 2.0)
+            k += 1
+        self.palms += [(-9.0, PY0 - 0.9, 6.2), (3.5, PY0 - 0.9, 7.0), (23.5, PY0 - 0.9, 6.4)]
         # covered drains (precast slabs) + paved walkway on both sides
         for (ya, yb) in [(ROAD_Y1 + 0.18, ROAD_Y1 + 1.0), (ROAD_Y0 - 1.0, ROAD_Y0 - 0.18)]:
             x = X0
@@ -574,7 +634,32 @@ class Site:
             self.fence_run("y", x1, y0, y1, mb=nb, mats=fm, wire=wire)
         gy = y0 if face == "s" else y1
         gcol = r.choice([S["black_metal"], S["trim_brown"], S["gate_slat"]])
-        nb.box(gx, gy - 0.04, 0.08, gx + 4.5, gy + 0.04, 2.3, gcol)
+        for u in (gx, gx + 2.25 - 0.03, gx + 4.5 - 0.06):
+            nb.box(u, gy - 0.035, 0.08, u + 0.06, gy + 0.035, 2.3, gcol)
+        nb.box(gx, gy - 0.035, 2.24, gx + 4.5, gy + 0.035, 2.3, gcol)
+        nb.box(gx, gy - 0.035, 0.08, gx + 4.5, gy + 0.035, 0.14, gcol)
+        zz = 0.18
+        solid = r.random() < 0.4
+        while zz < 2.2:
+            nb.box(gx + 0.06, gy - 0.012, zz, gx + 4.44, gy + 0.012, zz + (0.16 if solid else 0.1), gcol)
+            zz += 0.165 if solid else 0.14
+        for u in (gx, gx + 4.5):
+            nb.box(u - 0.07, gy - 0.07, 2.63, u + 0.07, gy + 0.07, 2.84, S["lamp"])
+            nb.box(u - 0.1, gy - 0.1, 2.84, u + 0.1, gy + 0.1, 2.88, S["black_metal"])
+        # shrubs and flowers along the street side of the wall
+        sgn = -1 if face == "s" else 1
+        xx = x0 + 1.2
+        kk = seed
+        while xx < x1 - 1.2:
+            if not (gx - 1.0 < xx < gx + 5.5) and r.random() < 0.7:
+                self.shrubs.append((xx, gy + sgn * 0.55, r.uniform(0.26, 0.44), kk % 4, 0.0))
+                if r.random() < 0.35:
+                    fm2 = S["flower_a"] if r.random() < 0.5 else S["flower_b"]
+                    for _ in range(12):
+                        fx, fy, fz = xx + r.uniform(-0.5, 0.5), gy + sgn * 0.55 + r.uniform(-0.3, 0.3), r.uniform(0.35, 0.8)
+                        nb.box(fx - 0.04, fy - 0.04, fz, fx + 0.04, fy + 0.04, fz + 0.06, fm2)
+            xx += r.uniform(1.6, 2.6)
+            kk += 1
         cx = (x0 + x1) / 2 + r.uniform(-4, 4)
         cy = (y0 + y1) / 2 + r.uniform(-3, 5) * (1 if face == "s" else -1)
         if self.variants and r.random() < 0.6:

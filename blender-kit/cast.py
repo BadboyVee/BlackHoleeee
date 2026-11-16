@@ -46,6 +46,24 @@ CAST = {
     "guard": dict(gender="male", race="african", hair="short04", expression="neutral",
                   clothes=["elvs_male_shirt_tie_tucked1", "toigo_wool_pants", "mindfront_shoes_oxford_male"],
                   retint={"elvs_male_shirt_tie_tucked1": dict(whole=SKY), "toigo_wool_pants": dict(whole=NAVY)}),
+    # ---- passers-by on the street
+    "walker1": dict(gender="female", race="african", hair="elvs_double_mh_braid", expression="smile",
+                    clothes=["punkduck_v_neck_top", "toigo_tiered_skirt", "toigo_ballet_flats"]),
+    "walker2": dict(gender="male", race="african", hair="short02", expression="grin",
+                    clothes=["elvs_male_shirt_untucked_bd1", "toigo_wool_pants", "culturalibre_sneakers"],
+                    retint={"elvs_male_shirt_untucked_bd1": dict(whole=WHITE), "toigo_wool_pants": dict(whole=CHARCOAL)}),
+    "walker3": dict(gender="male", race="caucasian", hair="culturalibre_hair_05", expression="soft",
+                    clothes=["mindfront_knitted_sweater_01", "toigo_wool_pants", "mindfront_shoes_oxford_male"],
+                    retint={"mindfront_knitted_sweater_01": dict(whole=TEAL), "toigo_wool_pants": dict(whole=KHAKI)},
+                    tint={"culturalibre_hair_05": BROWN_HAIR}),
+    "walker4": dict(gender="female", race="caucasian", hair="o4saken_long01", expression="smile",
+                    clothes=["toigo_keyhole_tank_top", "toigo_skirt_with_lace_ruffle", "toigo_flats"],
+                    tint={"o4saken_long01": BROWN_HAIR}),
+    "walker5": dict(gender="female", race="african", hair="elvs_inverted_curly_bob", expression="soft",
+                    clothes=["elvs_ruffle_sleeve_peasant_blouse_1", "toigo_harem_pants", "dressupdoc_sandals1"],
+                    tint={"elvs_inverted_curly_bob": BLACK_HAIR}),
+    "walker6": dict(gender="male", race="african", hair="afro01", expression="smile",
+                    clothes=["toigo_male_suit_tie_and_jacket", "mindfront_shoes_oxford_male"]),
 }
 
 

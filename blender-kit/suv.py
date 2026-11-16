@@ -87,11 +87,11 @@ def _mats(paint, dusty):
         kit._mats[name] = body
     M["body"] = body
     M["black"] = kit.mat_plain("suv_plastic", (0.025, 0.025, 0.027), rough=0.6)
-    M["rubber"] = kit.mat_plain("suv_rubber", (0.022, 0.022, 0.022), rough=0.85) if not dusty else \
-        kit.mat_plain("suv_rubber_dusty", (0.11, 0.09, 0.065), rough=0.95)
+    M["rubber"] = kit.mat_plain("suv_rubber", (0.022, 0.022, 0.022), rough=0.82) if not dusty else \
+        kit.mat_plain("suv_rubber_dusty", (0.07, 0.06, 0.05), rough=0.92)
     M["steel"] = kit.mat_plain("suv_steel", (0.5, 0.5, 0.5), rough=0.3, metal=1.0)
     M["chrome"] = kit.mat_plain("suv_chrome", (0.85, 0.85, 0.85), rough=0.08, metal=1.0)
-    M["rim"] = kit.mat_plain("suv_rim", (0.09, 0.09, 0.1), rough=0.4, metal=0.8)
+    M["rim"] = kit.mat_plain("suv_rim", (0.55, 0.55, 0.56), rough=0.32, metal=1.0)
     M["glass"] = kit.mat_glass("suv_glass", tint=(0.78, 0.86, 0.84), darkness=0.9)
     M["lens"] = kit.mat_glass("suv_lens", tint=(0.95, 0.95, 0.95))
     M["red"] = kit.mat_plain("suv_tail", (0.5, 0.01, 0.01), rough=0.15, spec=0.8, emit=(1, 0.02, 0.02), emit_strength=0.4)
@@ -192,31 +192,56 @@ def _lathe(mb, prof, cx, cy, cz, mat, seg=36, side=1, smooth=True):
 
 
 def wheel(mb, M, cx, cy, cz, side=1, steer=0.0):
-    """Off-road wheel; side=+1 for the left (outer face toward +Y)."""
+    """All-terrain tyre on an alloy rim; side=+1 for the left (outer face toward +Y)."""
     R, w = TR, TW / 2
-    tyre = [(0.255, -w + 0.01), (0.33, -w), (R - 0.03, -w + 0.005), (R - 0.008, -w + 0.035), (R, -w + 0.07),
-            (R, w - 0.07), (R - 0.008, w - 0.035), (R - 0.03, w - 0.005), (0.33, w), (0.255, w - 0.01)]
-    _lathe(mb, tyre, cx, cy, cz, M["rubber"], seg=40, side=side)
-    # tread blocks
-    n = 30
+    RB = M["rubber"]
+    # carcass: flat-ish crown, rounded shoulders, bulged sidewalls, bead
+    tyre = [(0.262, -w + 0.035), (0.275, -w + 0.012), (0.30, -w - 0.004), (0.335, -w - 0.01), (0.365, -w - 0.004),
+            (R - 0.022, -w + 0.012), (R - 0.008, -w + 0.035), (R - 0.001, -w + 0.065),
+            (R, -0.04), (R, 0.04),
+            (R - 0.001, w - 0.065), (R - 0.008, w - 0.035), (R - 0.022, w - 0.012),
+            (0.365, w + 0.004), (0.335, w + 0.01), (0.30, w + 0.004), (0.275, w - 0.012), (0.262, w - 0.035)]
+    _lathe(mb, tyre, cx, cy, cz, RB, seg=64, side=side)
+    # raised sidewall rings (where the lettering band sits)
+    for (r0, r1) in ((0.312, 0.318), (0.352, 0.356)):
+        for sgn in (-1, 1):
+            _lathe(mb, [(r0, sgn * (w + 0.008)), (r0, sgn * (w + 0.013)), (r1, sgn * (w + 0.013)), (r1, sgn * (w + 0.007))],
+                   cx, cy, cz, RB, seg=48, side=side)
+    # tread: five staggered rows of small blocks, plus shoulder lugs that wrap onto the sidewall
+    n = 46
+    rows = [(-0.098, 0.036, 0.0), (-0.05, 0.038, 0.5), (0.0, 0.034, 0.0), (0.05, 0.038, 0.5), (0.098, 0.036, 0.0)]
     for k in range(n):
         a = 2 * math.pi * k / n
-        for (oy, sy) in [(-0.085, 0.07), (0.0, 0.07), (0.085, 0.07)]:
-            aa = a + (0.5 * math.pi / n if oy == 0.0 else 0)
-            m = Matrix.Translation((cx, cy + oy, cz)) @ Matrix.Rotation(-aa, 4, "Y") @ Matrix.Translation((R + 0.004, 0, 0))
-            mb.obox(m, 0.022, sy, 0.058, M["rubber"])
-    # rim: barrel + dished face with five spokes
-    rim = [(0.255, w - 0.01), (0.25, w - 0.03), (0.235, w - 0.035), (0.22, w - 0.06)]
-    _lathe(mb, rim, cx, cy, cz, M["rim"], seg=40, side=side)
-    _lathe(mb, [(0.255, -w + 0.01), (0.2, -w + 0.02), (0.2, w - 0.06), (0.22, w - 0.06)], cx, cy, cz, M["rim"], seg=24, side=side)
-    yo = cy + side * (w - 0.07)
+        for (oy, wy, ph) in rows:
+            aa = a + ph * 2 * math.pi / n
+            skew = 0.22 if oy < 0 else (-0.22 if oy > 0 else 0.0)
+            m = (Matrix.Translation((cx, cy + oy, cz)) @ Matrix.Rotation(-aa, 4, "Y") @ Matrix.Translation((R + 0.003, 0, 0))
+                 @ Matrix.Rotation(skew, 4, "X"))
+            mb.obox(m, 0.014, wy, 0.036, RB)
+        if k % 2 == 0:
+            for sgn in (-1, 1):
+                m = (Matrix.Translation((cx, cy + sgn * (w - 0.012), cz)) @ Matrix.Rotation(-a, 4, "Y")
+                     @ Matrix.Translation((R - 0.016, 0, 0)) @ Matrix.Rotation(sgn * 0.75, 4, "Z"))
+                mb.obox(m, 0.03, 0.03, 0.05, RB)
+    # rim: barrel, outer lip, dished face, six tapered spokes, hub, lug nuts
+    RM = M["rim"]
+    barrel = [(0.262, -w + 0.035), (0.24, -w + 0.03), (0.225, -w + 0.06), (0.225, w - 0.1), (0.24, w - 0.05),
+              (0.262, w - 0.035), (0.268, w - 0.02), (0.262, w - 0.008), (0.248, w - 0.014), (0.236, w - 0.04)]
+    _lathe(mb, barrel, cx, cy, cz, RM, seg=48, side=side)
+    yo = cy + side * (w - 0.075)
     for k in range(6):
-        a = 2 * math.pi * k / 6
-        m = Matrix.Translation((cx, yo, cz)) @ Matrix.Rotation(-a, 4, "Y") @ Matrix.Translation((0.135, 0, 0))
-        mb.obox(m, 0.19, 0.03, 0.062, M["rim"])
-    mb.cyl((cx, yo - side * 0.02, cz), (cx, yo + side * 0.035, cz), 0.075, M["rim"], seg=16)
-    mb.cyl((cx, yo + side * 0.035, cz), (cx, yo + side * 0.045, cz), 0.035, M["steel"], seg=10)
-    mb.cyl((cx, cy - side * 0.03, cz), (cx, cy - side * 0.02, cz), 0.17, M["steel"], seg=24)       # brake disc
+        a = 2 * math.pi * k / 6 + 0.26
+        base = Matrix.Translation((cx, yo, cz)) @ Matrix.Rotation(-a, 4, "Y")
+        mb.obox(base @ Matrix.Translation((0.115, side * 0.004, 0)), 0.11, 0.03, 0.075, RM)       # root
+        mb.obox(base @ Matrix.Translation((0.19, side * 0.012, 0)) @ Matrix.Rotation(side * 0.12, 4, "Z"), 0.1, 0.026, 0.05, RM)   # tip
+    _lathe(mb, [(0.0, w - 0.045), (0.05, w - 0.042), (0.082, w - 0.055), (0.09, w - 0.085), (0.09, w - 0.12)], cx, cy, cz, RM, seg=24, side=side)
+    for k in range(5):
+        a = 2 * math.pi * k / 5
+        p = Vector((cx + 0.058 * math.cos(a), cy + side * (w - 0.05), cz + 0.058 * math.sin(a)))
+        mb.cyl(p, p + Vector((0, side * 0.014, 0)), 0.011, M["chrome"], seg=6)
+    mb.cyl((cx, cy + side * (w - 0.044), cz), (cx, cy + side * (w - 0.03), cz), 0.03, M["chrome"], seg=14)
+    mb.cyl((cx, cy - side * 0.03, cz), (cx, cy - side * 0.02, cz), 0.19, M["steel"], seg=28)       # brake disc
+    mb.obox(Matrix.Translation((cx - 0.13, cy - side * 0.02, cz + 0.08)), 0.09, 0.05, 0.12, M["red"])  # caliper
 
 
 def build(name="suv", paint=(0.62, 0.5, 0.33), rack=True, dusty=True, snorkel=True, bullbar=True, plate="SAH 204 KJ",

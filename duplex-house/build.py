@@ -39,6 +39,9 @@ def cameras(c):
     K("pool", (-12.0, -1.0, 1.5), (2.0, 4.0, 2.7), 20)
     K("back", (-6.0, 21.0, 2.2), (8.0, 8.0, 3.2), 24)
     K("top", (6.0, 5.0, 75.0), (6.0, 5.01, 0.0), 40)
+    K("street_w", (-40.0, -17.4, 1.6), (0.0, -16.0, 3.0), 26)        # looking east down the street
+    K("street_e", (40.0, -18.4, 1.6), (8.0, -15.0, 3.2), 26)        # looking west, our gate on the right
+    K("street_air", (-30.0, -40.0, 16.0), (12.0, -14.0, 1.0), 26)    # the street from a low drone
     K("living", (0.6, 0.65, Z0 + 1.45), (6.2, 4.9, Z0 + 0.95), 17)
     K("dining", (4.8, 6.75, Z0 + 1.5), (1.6, 9.6, Z0 + 0.9), 17)
     K("kitchen", (9.55, 6.75, Z0 + 1.55), (6.6, 10.0, Z0 + 0.9), 17)
@@ -101,7 +104,8 @@ def main():
     cs = kit.coll("Site")
     S = site_mod.Site(cs, H.M)
     S.variants = variants
-    S.street_cars = [cars.gz("suv"), cars.gz("prius_hybrid"), cars.gz("hatchback"), cars.gz("prius_hybrid")]
+    S.street_cars = [cars.bmw(color=(0.02, 0.02, 0.025)), cars.bmw(color=(0.75, 0.76, 0.78)), cars.bmw(color=(0.85, 0.85, 0.83)),
+                     cars.bmw(color=(0.05, 0.12, 0.3)), cars.bmw(color=(0.35, 0.03, 0.04)), cars.gz("suv"), cars.concept()]
     if a.no_veg:
         S.vegetation = lambda: None
     S.build(gate_open=a.gate)
@@ -119,7 +123,9 @@ def main():
     cars.put(cars.bmw(), (12.2, -6.0, 0.03), 118, cc, "bmw_court")                 # in front of the porch
     cars.put(cars.ferrari(), (18.4, 4.4, 0.03), -90, cc, "ferrari_carport")
     cars.put(cars.concept(), (21.4, 4.3, 0.03), -90, cc, "concept_carport")
-    cars.put(cars.bmw(color=(0.75, 0.76, 0.78)), (18.6, -11.4, 0.03), 92, cc, "bmw_arriving")   # coming in through the gate
+    cars.put(cars.bmw(color=(0.75, 0.76, 0.78)), (21.9, -3.4, 0.03), 92, cc, "bmw_silver")       # parked beside the carport
+    cars.put(cars.bmw(color=(0.02, 0.02, 0.025)), (-12.0, -17.0, -0.06), 0, cc, "bmw_on_street")  # driving down the street
+    cars.put(cars.concept(), (58.0, -19.9, -0.06), 180, cc, "concept_on_street")
 
     if not a.no_people:
         import cast
@@ -139,6 +145,13 @@ def main():
         put("claire", "stand_relaxed", (-5.4, 6.3, 0.12), math.radians(40))         # by the loungers
         put("mark", "hands_hips", (3.4, -0.45, Z1), math.radians(10))               # on the master balcony
         put("lena", "stand", (1.6, 0.9, Z1), math.radians(-30))
+        # life on the street
+        put("walker1", "walk", (-24.0, -14.1, 0.02), math.radians(-90), obj_name="walker1")
+        put("walker2", "walk", (-25.2, -14.3, 0.02), math.radians(-90), obj_name="walker2")
+        put("walker3", "walk", (4.0, -23.3, 0.02), math.radians(90), obj_name="walker3")
+        put("walker4", "stand_relaxed", (30.5, -14.0, 0.02), math.radians(150), obj_name="walker4")
+        put("walker5", "walk", (41.0, -23.2, 0.02), math.radians(-90), obj_name="walker5")
+        put("walker6", "stand", (-38.0, -14.0, 0.02), math.radians(200), obj_name="walker6")
         if not a.no_interior:
             put("amina", "sit", (3.3, 4.2, Z0 + 0.4 - 0.47), math.radians(-90))     # on the living-room sofa
             put("jack", "stand_relaxed", (7.5, 9.72, Z0), math.radians(170))         # in the kitchen
@@ -174,7 +187,13 @@ def main():
         from house import Z0
         n = a.frames
         ez = Z0 + 1.5
-        if a.anim == "exterior":      # drone glides down from above the street to the lawn
+        if a.anim == "street":        # drive down the street, turn in through the gate, pull up before the house
+            ks = [(0.0, (-46.0, -17.6, 1.45), (-10.0, -16.5, 2.5)), (0.3, (-12.0, -18.6, 1.45), (20.0, -14.0, 2.8)),
+                  (0.52, (10.0, -18.0, 1.5), (19.0, -8.0, 2.6)), (0.68, (18.5, -15.2, 1.55), (14.0, -2.0, 3.0)),
+                  (0.82, (18.5, -10.6, 1.6), (10.0, 1.0, 3.2)), (1.0, (14.8, -9.3, 1.9), (7.0, 2.5, 3.3))]
+            keys = [(max(1, int(round(t * n))), loc, tg) for (t, loc, tg) in ks]
+            lens, ex = 22, 0.0
+        elif a.anim == "exterior":    # drone glides down from above the street to the lawn
             keys = [(1, (-27.0, -39.0, 21.0), (6.0, 3.0, 3.0)), (int(n * 0.5), (-17.0, -25.0, 8.0), (6.0, 3.0, 3.0)),
                     (n, (-7.0, -11.4, 1.6), (6.4, 2.0, 3.3))]
             lens, ex = 24, 0.0

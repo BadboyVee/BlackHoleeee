@@ -232,11 +232,37 @@ def retint(asset, key, top=None, bottom=None, whole=None, cache="/home/user/asse
     return out
 
 
+TEX_MAX = int(os.environ.get("MH_TEX_MAX", "1024"))
+
+
+def _small(path):
+    """A copy of a texture no larger than TEX_MAX pixels (cached). Twenty people with
+    full-size maps each do not fit in memory at render time."""
+    if not path or not os.path.exists(path):
+        return path
+    try:
+        from PIL import Image
+        Image.MAX_IMAGE_PIXELS = None
+        im = Image.open(path)
+        if max(im.size) <= TEX_MAX:
+            return path
+        d = os.path.join(os.path.dirname(SYS), "small", str(TEX_MAX))
+        os.makedirs(d, exist_ok=True)
+        out = os.path.join(d, os.path.basename(os.path.dirname(path)) + "__" + os.path.basename(path))
+        if not os.path.exists(out):
+            f = TEX_MAX / max(im.size)
+            im.resize((max(1, int(im.size[0] * f)), max(1, int(im.size[1] * f))), Image.LANCZOS).save(out)
+        return out
+    except Exception:
+        return path
+
+
 def _material(name, diffuse=None, normal=None, color=(0.8, 0.8, 0.8), rough=0.6, sss=0.0, alpha=False,
               hue=None, spec=0.4):
     key = (name, diffuse, hue)
     if key in _matcache:
         return _matcache[key]
+    diffuse, normal = _small(diffuse), _small(normal)
     m = bpy.data.materials.new(name)
     m.use_nodes = True
     nt = m.node_tree
@@ -326,7 +352,7 @@ def _mesh_obj(name, co, faces, fuv, vt, mat, collection, smooth=True):
 
 def human(name, gender="male", race="african", age="young", muscle="average", weight="average", height=None,
           skin=None, clothes=(), hair=None, eyes="brown", eyebrows="eyebrow001", pose=None, collection=None,
-          tint=None, extra_targets=(), subdiv=1, shift=(0, 0, 0), textures=None, expression="soft"):
+          tint=None, extra_targets=(), subdiv=0, shift=(0, 0, 0), textures=None, expression="soft"):
     """Build a posed, clothed person as one mesh object standing on z=0 at the origin."""
     b = base()
     collection = collection or bpy.context.scene.collection
