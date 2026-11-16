@@ -673,3 +673,118 @@ def render_frames(cam, out_dir, f0, f1):
         s.frame_set(f)
         s.render.filepath = p
         bpy.ops.render.render(write_still=True)
+
+
+# ------------------------------------------------------- camera paths ---
+def _catmull(pts, n_per=24):
+    """Centripetal Catmull-Rom through pts (Vectors); returns a dense polyline."""
+    P = [pts[0] + (pts[0] - pts[1])] + list(pts) + [pts[-1] + (pts[-1] - pts[-2])]
+    out = []
+    for i in range(1, len(P) - 2):
+        p0, p1, p2, p3 = P[i - 1], P[i], P[i + 1], P[i + 2]
+
+        def tj(ti, a, b):
+            return ti + max((b - a).length, 1e-4) ** 0.5
+
+        t0 = 0.0
+        t1 = tj(t0, p0, p1)
+        t2 = tj(t1, p1, p2)
+        t3 = tj(t2, p2, p3)
+        for k in range(n_per):
+            t = t1 + (t2 - t1) * k / n_per
+            a1 = (t1 - t) / (t1 - t0) * p0 + (t - t0) / (t1 - t0) * p1
+            a2 = (t2 - t) / (t2 - t1) * p1 + (t - t1) / (t2 - t1) * p2
+            a3 = (t3 - t) / (t3 - t2) * p2 + (t - t2) / (t3 - t2) * p3
+            b1 = (t2 - t) / (t2 - t0) * a1 + (t - t0) / (t2 - t0) * a2
+            b2 = (t3 - t) / (t3 - t1) * a2 + (t - t1) / (t3 - t1) * a3
+            out.append((t2 - t) / (t2 - t1) * b1 + (t - t1) / (t2 - t1) * b2)
+    out.append(Vector(pts[-1]))
+    return out
+
+
+def path_camera(name, waypoints, fps=12.0, lens=24, collection=None, f0=1, bob=0.0, ease=1.5, lens_keys=None):
+    """A camera that travels a smooth spline through waypoints = [(position, look_at, speed m/s)],
+    looking at a target that glides along its own spline. Speed is blended between waypoints and
+    eased in at the start and out at the end. bob = walking head-bob amplitude (m).
+    Returns (camera, last_frame)."""
+    pos = [Vector(w[0]) for w in waypoints]
+    look = [Vector(w[1]) for w in waypoints]
+    spd = [float(w[2]) for w in waypoints]
+    dense = _catmull(pos)
+    dl = _catmull(look)
+    # arc length of the position spline, and the waypoint index each sample belongs to
+    seg = len(dense) - 1
+    acc = [0.0]
+    for i in range(seg):
+        acc.append(acc[-1] + (dense[i + 1] - dense[i]).length)
+    total = acc[-1]
+    per = (len(dense) - 1) / max(1, len(pos) - 1)
+
+    def at(d):
+        d = max(0.0, min(total, d))
+        lo, hi = 0, seg
+        while hi - lo > 1:
+            mid = (lo + hi) // 2
+            if acc[mid] <= d:
+                lo = mid
+            else:
+                hi = mid
+        f = (d - acc[lo]) / max(1e-9, acc[lo + 1] - acc[lo])
+        p = dense[lo].lerp(dense[lo + 1], f)
+        u = (lo + f) / per                        # waypoint parameter
+        il = min(len(dl) - 2, int((lo + f)))
+        lf = (lo + f) - il
+        t = dl[il].lerp(dl[il + 1], lf)
+        i0 = min(len(spd) - 2, int(u))
+        s = spd[i0] + (spd[i0 + 1] - spd[i0]) * (u - i0)
+        return p, t, s
+
+    d = cam = None
+    dcam = bpy.data.cameras.new(name)
+    dcam.lens = lens
+    dcam.clip_start = 0.05
+    dcam.clip_end = 5000
+    cam = bpy.data.objects.new(name, dcam)
+    (collection or bpy.context.scene.collection).objects.link(cam)
+    dist, fr, step_phase = 0.0, f0, 0.0
+    ramp = ease * max(spd[0], 0.5)                # metres over which to ease in / out
+    while True:
+        p, t, s = at(dist)
+        k_in = min(1.0, 0.25 + 0.75 * dist / max(ramp, 1e-3))
+        k_out = min(1.0, 0.2 + 0.8 * (total - dist) / max(ramp, 1e-3))
+        v = max(0.05, s * min(k_in, k_out))
+        if bob > 0:
+            step_phase += v / fps / 0.75 * math.pi          # one step every ~0.75 m
+            p = p + Vector((0, 0, bob * abs(math.sin(step_phase)) - bob * 0.5))
+        cam.location = p
+        cam.rotation_euler = (t - p).to_track_quat("-Z", "Y").to_euler()
+        cam.keyframe_insert("location", frame=fr)
+        cam.keyframe_insert("rotation_euler", frame=fr)
+        if lens_keys:
+            for (dd, ll) in lens_keys:
+                pass
+        if dist >= total - 1e-6:
+            break
+        dist = min(total, dist + v / fps)
+        fr += 1
+    return cam, fr
+
+
+def path_check(cam, f0, f1, step=1):
+    """Ray-cast between consecutive camera positions; returns frames where the camera passes
+    through geometry (walls, doors, glass...)."""
+    s = bpy.context.scene
+    dg = bpy.context.evaluated_depsgraph_get()
+    bad = []
+    prev = None
+    for f in range(f0, f1 + 1, step):
+        s.frame_set(f)
+        p = cam.matrix_world.translation.copy()
+        if prev is not None:
+            d = p - prev
+            if d.length > 1e-4:
+                hit, loc, nrm, idx, ob, mtx = s.ray_cast(dg, prev, d.normalized(), distance=d.length)
+                if hit:
+                    bad.append((f, ob.name if ob else "?"))
+        prev = p
+    return bad

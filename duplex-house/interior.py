@@ -400,8 +400,8 @@ class Interior:
         self.sb(self.T(3.15, 3.7, z), 0, 0, 0.3, 1.5, 0.42, 0.16, I["sofa_dark"])
         for s in (-0.6, 0.6):
             self.hard.box(3.15 + s - 0.02, 3.55, z, 3.15 + s + 0.02, 3.85, z + 0.22, I["brass"])
-        kit.place("modern_arm_chair_01", (6.3, 2.5, z), rz=math.radians(125), collection=self.c)
-        kit.place("side_table_01", (6.75, 3.3, z), collection=self.c)
+        kit.place("modern_arm_chair_01", (5.6, 2.0, z), rz=math.radians(150), collection=self.c)
+        kit.place("side_table_01", (6.35, 1.85, z), collection=self.c)
         kit.place("potted_plant_01", (0.7, 2.1, z), collection=self.c, scale=1.1)
         px = 7.5 - TI / 2
         self.hard.box(px - 0.45, 3.4, z, px, 5.2, z + 0.75, I["walnut"])

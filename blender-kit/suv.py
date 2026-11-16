@@ -105,7 +105,7 @@ def _mats(paint, dusty):
     M["can"] = kit.mat_plain("suv_jerry", (0.2, 0.24, 0.13), rough=0.5)
     M["case"] = kit.mat_plain("suv_case", (0.06, 0.06, 0.06), rough=0.5)
     M["canvas"] = kit.mat_plain("suv_canvas", (0.45, 0.36, 0.22), rough=0.9)
-    M["ladder"] = kit.mat_plain("suv_sandladder", (0.75, 0.3, 0.06), rough=0.6)
+    M["ladder"] = kit.mat_plain("suv_sandladder", (0.03, 0.03, 0.032), rough=0.55)
     M["well"] = kit.mat_plain("suv_well", (0.012, 0.012, 0.012), rough=0.9)
     return M
 
@@ -543,7 +543,11 @@ def build(name="suv", paint=(0.62, 0.5, 0.33), rack=True, dusty=True, snorkel=Tr
         lo = load.build(name + "_load", c, bevel=0.02)
         for s in (1,):
             for k in range(2):
-                trim.box(-1.9, s * (yw + 0.03 + k * 0.03), z0 - 0.12, -0.5, s * (yw + 0.05 + k * 0.03), z0 + 0.22, M["ladder"])
+                yy = s * (yw + 0.035 + k * 0.035)
+                trim.box(-1.75, yy - 0.01, z0 - 0.05, -0.6, yy + 0.01, z0 + 0.27, M["ladder"])
+                for q in range(9):                                     # cleats moulded into the board
+                    xq = -1.68 + q * 0.13
+                    trim.box(xq, yy + s * 0.008, z0 - 0.03, xq + 0.05, yy + s * 0.022, z0 + 0.25, M["ladder"])
         sp2 = MB()
         wheel(sp2, M, 0, 0, 0, side=1)
         o2 = sp2.build(name + "_spare2", c)

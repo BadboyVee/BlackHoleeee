@@ -48,8 +48,9 @@ def materials(palette=None):
 
 
 class House:
-    def __init__(self, collection, palette=None, name="house"):
+    def __init__(self, collection, palette=None, name="house", front_open=0.0):
         self.c = collection
+        self.front_open = front_open
         self.name = name
         self.M = materials(palette)
         self.shell, self.frames, self.glass, self.trim = MB(), MB(), MB(), MB()
@@ -230,13 +231,15 @@ class House:
         self.window("x", D - TE / 2, 6.2, 8.8, g + 1.1, g + 2.3, n=3, sill=1)
         self.window("x", D - TE / 2, 11.3, 12.5, g + 1.1, g + 2.3, n=2, sill=1)
         self.door("x", D - TE / 2, 13.3, 14.2, g, mat=M["alu"], frame=False)
-        # front door: tall timber pivot door with a long steel pull
-        tr.box(8.45, 1.17, g, 9.65, 1.23, g + 2.5, M["wood_dark"])
+        # front door: tall timber pivot door with a long steel pull (front_open = degrees, swings inward)
+        ang = math.radians(getattr(self, "front_open", 0.0))
+        piv = Matrix.Translation((9.6, 1.2, g)) @ Matrix.Rotation(-ang, 4, "Z")     # hinged on the east jamb
+        tr.obox(piv @ Matrix.Translation((-0.57, 0.0, 1.25)), 1.14, 0.06, 2.5, M["wood_dark"])
         for k in range(1, 6):
-            tr.box(8.45, 1.155, g + k * 0.42 - 0.006, 9.65, 1.17, g + k * 0.42 + 0.006, M["alu"])
-        tr.box(9.45, 1.09, g + 0.7, 9.49, 1.13, g + 1.9, M["steel"])
-        tr.box(9.455, 1.13, g + 0.8, 9.485, 1.17, g + 0.84, M["steel"])
-        tr.box(9.455, 1.13, g + 1.76, 9.485, 1.17, g + 1.8, M["steel"])
+            tr.obox(piv @ Matrix.Translation((-0.57, -0.037, k * 0.42)), 1.14, 0.015, 0.012, M["alu"])
+        tr.obox(piv @ Matrix.Translation((-0.99, -0.09, 1.3)), 0.04, 0.04, 1.2, M["steel"])
+        for zz in (0.82, 1.78):
+            tr.obox(piv @ Matrix.Translation((-0.99, -0.05, zz)), 0.03, 0.04, 0.04, M["steel"])
         self._fbox("x", 1.2, 8.39, 8.45, g, g + 2.56, 0.12, M["alu"])
         self._fbox("x", 1.2, 9.65, 9.71, g, g + 2.56, 0.12, M["alu"])
         self._fbox("x", 1.2, 8.39, 9.71, g + 2.5, g + 2.56, 0.12, M["alu"])

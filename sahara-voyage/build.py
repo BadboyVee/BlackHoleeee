@@ -77,9 +77,12 @@ def grid_mesh(name, x0, y0, x1, y1, step, mat, c, zfun, uv_scale=1.0, hole=None)
     a = r * nx + q
     faces = np.stack([a, a + 1, a + nx + 1, a + nx], axis=1)
     if hole is not None:
-        hx0, hy0, hx1, hy1 = hole
         cx, cy = (X.ravel()[a] + X.ravel()[a + nx + 1]) / 2, (Y.ravel()[a] + Y.ravel()[a + nx + 1]) / 2
-        faces = faces[~((cx > hx0) & (cx < hx1) & (cy > hy0) & (cy < hy1))]
+        if callable(hole):
+            faces = faces[~hole(cx, cy)]
+        else:
+            hx0, hy0, hx1, hy1 = hole
+            faces = faces[~((cx > hx0) & (cx < hx1) & (cy > hy0) & (cy < hy1))]
     me = bpy.data.meshes.new(name)
     me.vertices.add(len(verts))
     me.vertices.foreach_set("co", verts.ravel())
@@ -365,6 +368,47 @@ def cover_strips(c, sand, origin, hd, u0, u1, seg=0.6, half=1.35, step=0.06):
     return out
 
 
+def corridor_mesh(name, c, mat, origin, hd, u0, u1, half, step, zfun):
+    """Finely meshed sand in a strip along the base heading (the truck's whole run), its long
+    edges tucked a few centimetres under the coarser terrain so the seam never shows."""
+    px, py = origin
+    f = np.array([math.cos(hd), math.sin(hd)])
+    l = np.array([-math.sin(hd), math.cos(hd)])
+    us = np.arange(u0, u1 + step * 0.5, step)
+    vs = np.arange(-half, half + step * 0.5, step)
+    U, V = np.meshgrid(us, vs, indexing="ij")
+    Xw = px + f[0] * U + l[0] * V
+    Yw = py + f[1] * U + l[1] * V
+    edge = np.clip((half - np.abs(V)) / 0.8, 0, 1) * np.clip((np.minimum(U - u0, u1 - U)) / 0.8, 0, 1)
+    Zw = zfun(Xw, Yw) - 0.04 * (1 - edge)
+    nu, nv = U.shape
+    verts = np.stack([Xw.ravel(), Yw.ravel(), Zw.ravel()], axis=1)
+    idx = np.arange((nu - 1) * (nv - 1))
+    r, q = idx // (nv - 1), idx % (nv - 1)
+    a0 = r * nv + q
+    faces = np.stack([a0, a0 + nv, a0 + nv + 1, a0 + 1], axis=1)
+    me = bpy.data.meshes.new(name)
+    me.vertices.add(len(verts))
+    me.vertices.foreach_set("co", verts.ravel())
+    me.loops.add(len(faces) * 4)
+    me.loops.foreach_set("vertex_index", faces.ravel())
+    me.polygons.add(len(faces))
+    me.polygons.foreach_set("loop_start", np.arange(0, len(faces) * 4, 4))
+    me.polygons.foreach_set("loop_total", np.full(len(faces), 4))
+    me.polygons.foreach_set("use_smooth", np.ones(len(faces), dtype=bool))
+    me.update()
+    me.validate()
+    me.materials.append(mat)
+    ob = bpy.data.objects.new(name, me)
+    c.objects.link(ob)
+
+    def inside(cx, cy):          # for cutting the coarser grid
+        du = (cx - px) * f[0] + (cy - py) * f[1]
+        dv = (cx - px) * l[0] + (cy - py) * l[1]
+        return (du > u0 + 1.2) & (du < u1 - 1.2) & (np.abs(dv) < half - 1.2)
+    return ob, inside
+
+
 def drive_pose(sx, sy, heading, u):
     """Wheel-contact frame of the truck at distance u along the curved driving line."""
     f = Vector((math.cos(heading), math.sin(heading), 0))
@@ -395,15 +439,16 @@ def build(a):
     fine = (fx - P, fy - P, fx + P, fy + P)
     mid = (mx - 222, my - 222, mx + 222, my + 222)
     grid_mesh("dunes_far", -1800, -1800, 1800, 1800, 6.0, sand, c, height, hole=mid)
-    grid_mesh("dunes_mid", *mid, 1.0, sand, c, height, hole=fine)
     covers, u_start = [], 0.0
     if a.anim:
         total = a.frames / a.fps * 6.4                      # metres driven during the clip (average speed)
         u_start = -0.5 * total
-        grid_mesh("dunes_near", *fine, 0.06, sand, c,
-                  lambda X, Y: tracks_z(X, Y, ((sx, sy), heading), u_start + total + 6.0, curved=True))
+        _, inside = corridor_mesh("dunes_near", c, sand, (sx, sy), heading, u_start - 40.0, u_start + total + 30.0, 13.0, 0.07,
+                                  lambda X, Y: tracks_z(X, Y, ((sx, sy), heading), u_start + total + 6.0, curved=True))
+        grid_mesh("dunes_mid", *mid, 1.0, sand, c, height, hole=inside)
         covers = cover_strips(c, sand, (sx, sy), heading, u_start + suv.AX_F - 0.3, u_start + total + 8.0)
     else:
+        grid_mesh("dunes_mid", *mid, 1.0, sand, c, height, hole=fine)
         grid_mesh("dunes_near", *fine, 0.06, sand, c, lambda X, Y: tracks_z(X, Y, ((sx, sy), heading), suv.AX_F + 0.2))
 
     # the truck and its crew
@@ -591,33 +636,85 @@ def build(a):
         s_.render.use_motion_blur = True
         s_.render.motion_blur_shutter = 0.45
         s_.frame_start, s_.frame_end = 1, n
-        mid = us[int(n * 0.45)]
-        pm, _ = drive_pose(sx, sy, heading, mid)
-        lv = Vector((-math.sin(heading), math.cos(heading), 0))
+        # ---- three shots: drone alongside, tracking shot from a parallel car, ground camera as it passes
+        sA, sB = int(n * 0.31), int(n * 0.69)
+        f_ = Vector((math.cos(heading), math.sin(heading), 0))
+        l_ = Vector((-math.sin(heading), math.cos(heading), 0))
+        smooth = []                                              # truck pose without suspension bounce
+        for k in range(n):
+            p, yaw = drive_pose(sx, sy, heading, us[k])
+            p.z = float(height(p.x, p.y))
+            smooth.append((p, yaw))
+
+        def key_cam(cam, fr, loc, tgt):
+            cam.location = loc
+            cam.rotation_euler = (tgt - loc).to_track_quat("-Z", "Y").to_euler()
+            cam.keyframe_insert("location", frame=fr)
+            cam.keyframe_insert("rotation_euler", frame=fr)
+
+        def new_cam(name, lens):
+            dcam = bpy.data.cameras.new(name)
+            dcam.lens = lens
+            dcam.clip_start = 0.1
+            dcam.clip_end = 6000
+            o = bpy.data.objects.new(name, dcam)
+            cc.objects.link(o)
+            return o
+
+        camA, camB, camC = new_cam("shot_drone", 32), new_cam("shot_tracking", 30), new_cam("shot_ground", 30)
+        # A: drone holding off the truck's front quarter, slowly swinging round to its side
+        for fr in range(1, sA + 1):
+            p, yaw = smooth[fr - 1]
+            t = (fr - 1) / max(1, sA - 1)
+            ang = math.radians(-35 + 50 * t)
+            fwd = Vector((math.cos(yaw), math.sin(yaw), 0))
+            lft = Vector((-math.sin(yaw), math.cos(yaw), 0))
+            off = (fwd * math.cos(ang) - lft * math.sin(ang)) * (24 - 6 * t) + Vector((0, 0, 14 - 5 * t))
+            loc = p + off
+            loc.z = max(loc.z, float(height(loc.x, loc.y)) + 5.0)
+            key_cam(camA, fr, loc, p + Vector((0, 0, 1.0)))
+        # B: from a car running alongside on the driver's side; it holds a steady line, the truck bounces
+        for fr in range(sA + 1, sB + 1):
+            p, yaw = smooth[fr - 1]
+            t = (fr - sA - 1) / max(1, sB - sA - 1)
+            fwd = Vector((math.cos(yaw), math.sin(yaw), 0))
+            lft = Vector((-math.sin(yaw), math.cos(yaw), 0))
+            loc = p + lft * 5.6 + fwd * (1.4 - 1.8 * t)
+            loc.z = p.z + 1.7
+            loc.z = max(loc.z, float(height(loc.x, loc.y)) + 1.2)
+            key_cam(camB, fr, loc, p + fwd * (0.2 + 0.4 * t) + Vector((0, 0, 1.25)))
+        # C: camera set down in the sand ahead; the truck comes at it and passes, the camera pans to follow
+        u_pass = us[min(n - 1, sB + int((n - sB) * 0.62))]
+        pp, _ = drive_pose(sx, sy, heading, u_pass)
         best, cpos = -1e9, None
         for side in (-1, 1):
-            for dist in (6.5, 8.5, 10.5):
-                for hgt in (1.3, 1.9):
-                    cp_ = pm + lv * side * dist
+            for dist in (4.5, 6.0, 7.5):
+                for hgt in (0.55, 0.9):
+                    cp_ = pp + l_ * side * dist
                     cp_.z = float(height(cp_.x, cp_.y)) + hgt
                     worst = 1e9
-                    for k in range(0, n, max(1, n // 12)):
-                        tp_, _ = drive_pose(sx, sy, heading, us[k])
-                        tp_.z = float(height(tp_.x, tp_.y)) + 0.5
+                    for k in range(sB, n, max(1, (n - sB) // 10)):
+                        tp_ = smooth[k][0] + Vector((0, 0, 0.9))
                         for q in range(1, 20):
                             pt = cp_.lerp(tp_, q / 20)
                             worst = min(worst, pt.z - float(height(pt.x, pt.y)))
-                    score = worst - 0.02 * dist - (0.3 if hgt > 1.5 else 0.0)
+                    score = worst - 0.03 * dist
                     if score > best:
                         best, cpos = score, cp_.copy()
-        print(f"CAMERA clearance {best:.2f} at {tuple(round(v, 1) for v in cpos)}")
-        cam_a, tg = kit.anim_camera("anim_drive", [(1, tuple(cpos), None)], lens=38, collection=cc, target_parent=truck)
-        tg.location = (0.5, 0.0, 1.0)
-        if a.step > 1:
-            for fr in range(a.first, (a.last or n) + 1, a.step):
-                kit.render_frames(cam_a, os.path.join(a.out, "anim_sahara"), fr, fr)
-        else:
-            kit.render_frames(cam_a, os.path.join(a.out, "anim_sahara"), a.first, a.last or n)
+        print(f"CAMERA C clearance {best:.2f}")
+        for fr in range(sB + 1, n + 1):
+            p, yaw = smooth[fr - 1]
+            key_cam(camC, fr, cpos, p + Vector((0, 0, 1.0)))
+        for cam in (camA, camB, camC):
+            for fc in (cam.animation_data.action.fcurves if hasattr(cam.animation_data.action, "fcurves") else []):
+                for kp in fc.keyframe_points:
+                    kp.interpolation = "LINEAR"
+        shots = [(camA, 1, sA), (camB, sA + 1, sB), (camC, sB + 1, n)]
+        print("SHOTS", [(c_.name, fa, fb, round((fb - fa + 1) / fps, 1)) for (c_, fa, fb) in shots])
+        out = os.path.join(a.out, "anim_sahara")
+        for (cam, fa, fb) in shots:
+            for fr in range(max(fa, a.first), min(fb, a.last or n) + 1, a.step):
+                kit.render_frames(cam, out, fr, fr)
         return
     if a.save:
         bpy.context.scene.camera = cams["drive"]
@@ -636,7 +733,7 @@ if __name__ == "__main__":
     ap.add_argument("--out", default="/home/user/out")
     ap.add_argument("--save", default="")
     ap.add_argument("--anim", action="store_true", help="render the drive-past as frames")
-    ap.add_argument("--frames", type=int, default=110)
+    ap.add_argument("--frames", type=int, default=480)
     ap.add_argument("--fps", type=float, default=24.0)
     ap.add_argument("--first", type=int, default=1, help="first frame to render (to resume a clip)")
     ap.add_argument("--last", type=int, default=0, help="last frame to render (default: the whole clip)")
