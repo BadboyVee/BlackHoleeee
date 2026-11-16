@@ -83,10 +83,18 @@ def shape(gender="male", race="african", age="young", muscle="average", weight="
     """Morphed base-mesh coordinates in MakeHuman space."""
     b = base()
     v = b["v"].copy()
-    tl = [(f"macrodetails/universal-{gender}-{age}-{muscle}muscle-{weight}weight", 1.0),
-          (f"macrodetails/{race}-{gender}-{age}", 1.0)]
-    if height in ("max", "min"):
-        tl.append((f"macrodetails/height/{gender}-{age}-{muscle}muscle-{weight}weight-{height}height", 0.6))
+    if isinstance(age, (int, float)):        # 0 = young adult (25) .. 1 = old (90); 0.3 is about 45
+        ages = [("young", 1.0 - age), ("old", age)]
+    else:
+        ages = [(age, 1.0)]
+    tl = []
+    for ag, aw in ages:
+        if aw <= 0:
+            continue
+        tl += [(f"macrodetails/universal-{gender}-{ag}-{muscle}muscle-{weight}weight", aw),
+               (f"macrodetails/{race}-{gender}-{ag}", aw)]
+        if height in ("max", "min"):
+            tl.append((f"macrodetails/height/{gender}-{ag}-{muscle}muscle-{weight}weight-{height}height", 0.6 * aw))
     tl += list(extra)
     for rel, w in tl:
         try:
@@ -274,7 +282,38 @@ def _material(name, diffuse=None, normal=None, color=(0.8, 0.8, 0.8), rough=0.6,
         t = nt.nodes.new("ShaderNodeTexImage")
         t.image = bpy.data.images.load(diffuse, check_existing=True)
         col = t.outputs[0]
-        if hue is not None:
+        if hue is not None and len(hue) == 4 and hue[0] == "rgb":
+            # recolour to a natural shade: texture luminance (normalised to its own mean) x target colour
+            mean = 0.5
+            try:
+                from PIL import Image
+                im = Image.open(diffuse).convert("RGBA").resize((128, 128))
+                a = np.asarray(im).astype(np.float32) / 255.0
+                w = a[..., 3] > 0.5
+                if w.any():
+                    mean = float(a[..., :3].mean(axis=2)[w].mean())
+            except Exception:
+                pass
+            bw = nt.nodes.new("ShaderNodeRGBToBW")
+            nt.links.new(col, bw.inputs[0])
+            dv = nt.nodes.new("ShaderNodeMath")
+            dv.operation = "DIVIDE"
+            nt.links.new(bw.outputs[0], dv.inputs[0])
+            dv.inputs[1].default_value = max(mean, 0.05)
+            pw = nt.nodes.new("ShaderNodeMath")            # keep some strand contrast, avoid blow-outs
+            pw.operation = "POWER"
+            nt.links.new(dv.outputs[0], pw.inputs[0])
+            pw.inputs[1].default_value = 0.8
+            mx = nt.nodes.new("ShaderNodeMix")
+            mx.data_type = "RGBA"
+            mx.blend_type = "MULTIPLY"
+            mx.inputs["Factor"].default_value = 1.0
+            nt.links.new(pw.outputs[0], mx.inputs["A"])
+            mx.inputs["B"].default_value = tuple(hue[1:]) + (1,)
+            col = mx.outputs["Result"]
+            b.inputs["Coat Weight"].default_value = 0.15
+            b.inputs["Coat Roughness"].default_value = 0.35
+        elif hue is not None:
             h = nt.nodes.new("ShaderNodeHueSaturation")
             h.inputs["Hue"].default_value = hue[0]
             h.inputs["Saturation"].default_value = hue[1]
@@ -296,6 +335,83 @@ def _material(name, diffuse=None, normal=None, color=(0.8, 0.8, 0.8), rough=0.6,
         b.inputs["Subsurface Radius"].default_value = (0.012, 0.006, 0.004)
         b.inputs["Subsurface Scale"].default_value = 1.0
     _matcache[key] = m
+    return m
+
+
+def skin_material(name, diffuse, race="caucasian"):
+    """Skin that reads as skin: subsurface scattering with a red-shifted radius, roughness that varies
+    over the face and body, fine pore and wrinkle bump, a thin oily coat."""
+    if name in _matcache:
+        return _matcache[name]
+    diffuse = _small(diffuse)
+    m = bpy.data.materials.new(name)
+    m.use_nodes = True
+    nt = m.node_tree
+    N, L = nt.nodes, nt.links
+    b = [n for n in N if n.type == "BSDF_PRINCIPLED"][0]
+    t = N.new("ShaderNodeTexImage")
+    if diffuse and os.path.exists(diffuse):
+        t.image = bpy.data.images.load(diffuse, check_existing=True)
+    # the MakeHuman maps are flat and slightly grey: a touch more saturation and warmth
+    hs = N.new("ShaderNodeHueSaturation")
+    hs.inputs["Saturation"].default_value = 1.12
+    hs.inputs["Value"].default_value = 0.97
+    L.new(t.outputs[0], hs.inputs["Color"])
+    tc = N.new("ShaderNodeTexCoord")
+    blot = N.new("ShaderNodeTexNoise")           # uneven skin tone: faint redness and blotches
+    blot.inputs["Scale"].default_value = 18.0
+    blot.inputs["Detail"].default_value = 4.0
+    L.new(tc.outputs["Object"], blot.inputs["Vector"])
+    mix = N.new("ShaderNodeMix")
+    mix.data_type = "RGBA"
+    mix.blend_type = "MULTIPLY"
+    mr = N.new("ShaderNodeMapRange")
+    mr.inputs["From Min"].default_value = 0.45
+    mr.inputs["From Max"].default_value = 0.75
+    mr.inputs["To Max"].default_value = 0.10 if race == "caucasian" else 0.05
+    L.new(blot.outputs[0], mr.inputs["Value"])
+    L.new(mr.outputs[0], mix.inputs["Factor"])
+    L.new(hs.outputs[0], mix.inputs["A"])
+    mix.inputs["B"].default_value = (0.85, 0.55, 0.5, 1)
+    L.new(mix.outputs["Result"], b.inputs["Base Color"])
+    # subsurface: light travels further in red than in blue
+    b.inputs["Subsurface Weight"].default_value = 0.22 if race == "caucasian" else 0.14
+    b.inputs["Subsurface Radius"].default_value = (1.0, 0.36, 0.2)
+    b.inputs["Subsurface Scale"].default_value = 0.012
+    try:
+        b.subsurface_method = "RANDOM_WALK_SKIN"
+    except Exception:
+        pass
+    # roughness: 0.38..0.58 drifting over the skin (T-zone shinier)
+    rn = N.new("ShaderNodeTexNoise")
+    rn.inputs["Scale"].default_value = 9.0
+    L.new(tc.outputs["Object"], rn.inputs["Vector"])
+    rr = N.new("ShaderNodeMapRange")
+    rr.inputs["To Min"].default_value = 0.38
+    rr.inputs["To Max"].default_value = 0.58
+    L.new(rn.outputs[0], rr.inputs["Value"])
+    L.new(rr.outputs[0], b.inputs["Roughness"])
+    b.inputs["Specular IOR Level"].default_value = 0.42
+    b.inputs["Coat Weight"].default_value = 0.08
+    b.inputs["Coat Roughness"].default_value = 0.32
+    # pores (fine voronoi) + creases (stretched noise)
+    pores = N.new("ShaderNodeTexVoronoi")
+    pores.inputs["Scale"].default_value = 900.0
+    L.new(tc.outputs["Object"], pores.inputs["Vector"])
+    fine = N.new("ShaderNodeTexNoise")
+    fine.inputs["Scale"].default_value = 260.0
+    fine.inputs["Detail"].default_value = 3.0
+    L.new(tc.outputs["Object"], fine.inputs["Vector"])
+    add = N.new("ShaderNodeMath")
+    add.operation = "ADD"
+    L.new(pores.outputs["Distance"], add.inputs[0])
+    L.new(fine.outputs[0], add.inputs[1])
+    bp = N.new("ShaderNodeBump")
+    bp.inputs["Strength"].default_value = 0.12
+    bp.inputs["Distance"].default_value = 0.0006
+    L.new(add.outputs[0], bp.inputs["Height"])
+    L.new(bp.outputs[0], b.inputs["Normal"])
+    _matcache[name] = m
     return m
 
 
@@ -323,12 +439,56 @@ def _skin_dir(name):
     raise FileNotFoundError(name)
 
 
+FACE_TARGETS = {
+    "nose": ["nose-hump-incr", "nose-hump-decr", "nose-greek-incr", "nose-flaring-incr", "nose-flaring-decr",
+             "nose-base-up", "nose-base-down", "nose-curve-convex", "nose-curve-concave", "nose-compression-compress"],
+    "chin": ["chin-prominent-incr", "chin-prominent-decr", "chin-width-incr", "chin-width-decr", "chin-height-incr",
+             "chin-height-decr", "chin-cleft-incr", "chin-jaw-drop-incr", "chin-bones-incr", "chin-bones-decr"],
+    "head": ["head-oval", "head-square", "head-round", "head-rectangular", "head-diamond", "head-triangular",
+             "head-fat-incr", "head-fat-decr", "head-scale-vert-incr", "head-scale-horiz-incr"],
+    "mouth": ["mouth-upperlip-volume-incr", "mouth-upperlip-volume-decr", "mouth-lowerlip-volume-incr",
+              "mouth-lowerlip-volume-decr", "mouth-scale-horiz-incr", "mouth-scale-horiz-decr", "mouth-cupidsbow-incr",
+              "mouth-laugh-lines-in", "mouth-dimples-in", "mouth-angles-up"],
+    "forehead": ["forehead-scale-vert-incr", "forehead-scale-vert-decr", "forehead-temple-incr", "forehead-trans-backward"],
+}
+PAIRED = {   # left/right target families that must move together
+    "cheek": ["cheek-bones-incr", "cheek-bones-decr", "cheek-volume-incr", "cheek-volume-decr", "cheek-inner-incr"],
+    "eye": ["eye-bag-incr", "eye-scale-incr", "eye-scale-decr", "eye-height2-incr", "eye-height2-decr",
+            "eye-corner1-up", "eye-corner1-down", "eye-eyefold-down", "eye-trans-in", "eye-trans-out"],
+    "ear": ["ear-scale-incr", "ear-scale-decr", "ear-flap-incr", "ear-lobe-incr", "ear-rot-backward"],
+}
+
+
+def face_targets(seed, strength=1.0):
+    """A distinct but natural face: a handful of small, seeded shape changes."""
+    import random as _r
+    r = _r.Random(seed)
+    out = []
+    for fam, names in FACE_TARGETS.items():
+        for n in r.sample(names, 2):
+            out.append((f"{fam}/{n}", r.uniform(0.15, 0.55) * strength))
+    folder = {"cheek": "cheek", "eye": "eyes", "ear": "ears"}
+    for fam, names in PAIRED.items():
+        for n in r.sample(names, 2 if fam != "ear" else 1):
+            w = r.uniform(0.15, 0.5) * strength
+            for side in ("l", "r"):
+                out.append((f"{folder[fam]}/{side}-{n}", w))
+    return out
+
+
+HAIR = {
+    "black": (0.022, 0.018, 0.016), "dark_brown": (0.075, 0.045, 0.03), "brown": (0.21, 0.13, 0.075),
+    "light_brown": (0.3, 0.19, 0.11), "blond": (0.78, 0.58, 0.32), "ash_blond": (0.5, 0.43, 0.33),
+    "auburn": (0.3, 0.1, 0.045), "red": (0.42, 0.13, 0.05), "grey": (0.42, 0.41, 0.4), "white": (0.72, 0.7, 0.68),
+}
+HAIR_DEFAULT = {"african": HAIR["black"], "caucasian": HAIR["brown"], "asian": HAIR["black"]}
+
 EXPRESSIONS = {
     "neutral": {},
     "smile": {"mouth-corner-puller": 0.55, "mouth-elevation": 0.15, "eye-left-slit": 0.2, "eye-right-slit": 0.2},
-    "grin": {"mouth-corner-puller": 0.8, "mouth-part-later": 0.5, "mouth-open": 0.15, "eye-left-slit": 0.35, "eye-right-slit": 0.35},
+    "grin": {"mouth-corner-puller": 0.75, "mouth-elevation": 0.2, "eye-left-slit": 0.3, "eye-right-slit": 0.3},
     "soft": {"mouth-corner-puller": 0.3, "eyebrows-left-up": 0.2, "eyebrows-right-up": 0.2},
-    "laugh": {"mouth-corner-puller": 0.9, "mouth-open": 0.45, "eye-left-slit": 0.5, "eye-right-slit": 0.5},
+    "laugh": {"mouth-corner-puller": 0.9, "mouth-elevation": 0.25, "eye-left-slit": 0.5, "eye-right-slit": 0.5},
     "squint": {"eye-left-slit": 0.55, "eye-right-slit": 0.55, "eyebrows-left-down": 0.4, "eyebrows-right-down": 0.4, "mouth-corner-puller": 0.2},
 }
 
@@ -352,13 +512,14 @@ def _mesh_obj(name, co, faces, fuv, vt, mat, collection, smooth=True):
 
 def human(name, gender="male", race="african", age="young", muscle="average", weight="average", height=None,
           skin=None, clothes=(), hair=None, eyes="brown", eyebrows="eyebrow001", pose=None, collection=None,
-          tint=None, extra_targets=(), subdiv=0, shift=(0, 0, 0), textures=None, expression="soft", bake=True):
+          tint=None, extra_targets=(), subdiv=0, shift=(0, 0, 0), textures=None, expression="soft", bake=True,
+          face_seed=None):
     """Build a posed, clothed person as one mesh object standing on z=0 at the origin.
     With bake=False the live rig is returned instead: (armature object, [mesh objects])."""
     b = base()
     collection = collection or bpy.context.scene.collection
     tint = tint or {}
-    ex = list(extra_targets)
+    ex = list(extra_targets) + (face_targets(face_seed if face_seed is not None else name) if face_seed is not False else [])
     for unit, wgt in (EXPRESSIONS.get(expression, {}) if isinstance(expression, str) else (expression or {})).items():
         ex.append((f"expression/units/{race}/{unit}", wgt))
     mv = shape(gender, race, age, muscle, weight, height, ex)
@@ -397,9 +558,10 @@ def human(name, gender="male", race="african", age="young", muscle="average", we
         nor = os.path.join(dd, mm["normalmapTexture"]) if "normalmapTexture" in mm else None
         col = tuple(float(x) for x in mm.get("diffuseColor", "0.8 0.8 0.8").split()[:3])
         mat = _material(f"mh_{an}" + (f"_{name}" if (an in tint or (textures and an in textures)) else ""), dif, nor, color=col,
-                        rough=0.35 if kind in ("eyes", "teeth") else (0.6 if kind == "hair" else 0.75),
+                        rough=0.04 if kind == "eyes" else (0.3 if kind == "teeth" else (0.6 if kind == "hair" else 0.75)),
                         alpha=kind in ("hair", "eyebrows", "eyelashes", "eyes"),
-                        hue=tint.get(an, (0.5, 0.3, 0.3) if kind == "hair" else None),
+                        hue=(("rgb",) + tuple(tint.get(an, HAIR_DEFAULT.get(race, HAIR_DEFAULT["african"])))) if kind in ("hair", "eyebrows")
+                        else tint.get(an),
                         spec=0.6 if kind == "eyes" else (0.12 if kind == "hair" else 0.3))
         parts.append((_mesh_obj(f"{name}_{an}", cb, faces, fuv, vt, mat, collection), bind))
 
@@ -408,8 +570,7 @@ def human(name, gender="male", race="african", age="young", muscle="average", we
         skin = f"young_{race}_{gender}"
     sd = _skin_dir(skin)
     sm = _mhmat(os.path.join(sd, [f for f in os.listdir(sd) if f.endswith(".mhmat")][0]))
-    smat = _material(f"mh_skin_{skin}", os.path.join(sd, sm.get("diffuseTexture", "")), None, rough=0.48, sss=0.06,
-                     spec=0.35)
+    smat = skin_material(f"mh_skin_{skin}", os.path.join(sd, sm.get("diffuseTexture", "")), race)
     bf, bu = [], []
     for f, t, g in zip(b["faces"], b["fuv"], b["fgroup"]):
         if g != "body":

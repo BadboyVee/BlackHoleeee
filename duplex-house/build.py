@@ -133,15 +133,16 @@ def main():
         cp = kit.coll("People")
 
         def put(name, pose, loc, rz=0.0, **kw):
+            kw.setdefault("subdiv", 1)
             o = cast.make(name, pose, cp, **kw)
             o.location, o.rotation_euler = loc, (0, 0, rz)
             return o
 
-        put("ngozi", "stand_relaxed", (3.2, -1.5, 0.42), math.radians(25))          # on the terrace
-        put("bayo", "walk", (10.4, -3.4, 0.03), math.radians(-140))                 # walking to the car
-        put("kunle", "stand", (-9.6, -10.4, 0.0), math.radians(-60))                # gardener by the beds
+        put("olivia", "stand_relaxed", (3.2, -1.5, 0.42), math.radians(25))          # on the terrace
+        put("daniel", "walk", (10.4, -3.4, 0.03), math.radians(-140))                 # walking to the car
+        put("tom", "stand", (-9.6, -10.4, 0.0), math.radians(-60))                # gardener by the beds
         put("guard", "stand", (20.4, -10.2, 0.03), math.radians(120))               # security at the gate
-        put("zainab", "sit", (-7.2, 5.56, 0.155 - 0.47), 0.0)                       # feet in the pool
+        put("emma", "sit", (-7.2, 5.56, 0.155 - 0.47), 0.0)                       # feet in the pool
         put("claire", "stand_relaxed", (-5.4, 6.3, 0.12), math.radians(40))         # by the loungers
         put("mark", "hands_hips", (3.4, -0.45, Z1), math.radians(10))               # on the master balcony
         put("lena", "stand", (1.6, 0.9, Z1), math.radians(-30))
@@ -153,10 +154,10 @@ def main():
         put("walker5", "walk", (41.0, -23.2, 0.02), math.radians(-90), obj_name="walker5")
         put("walker6", "stand", (-38.0, -14.0, 0.02), math.radians(200), obj_name="walker6")
         if not a.no_interior:
-            put("amina", "sit", (3.3, 4.2, Z0 + 0.4 - 0.47), math.radians(-90))     # on the living-room sofa
+            put("kate", "sit", (3.3, 4.2, Z0 + 0.4 - 0.47), math.radians(-90))     # on the living-room sofa
             put("jack", "stand_relaxed", (7.5, 9.72, Z0), math.radians(170))         # in the kitchen
             put("sophie", "sit", (2.7, 9.27 - 0.25, Z0 + 0.47 - 0.47), math.pi)     # at the dining table
-            put("emeka", "stand", (5.6, 2.0, Z0), math.radians(60))                 # living room, by the window
+            put("ryan", "stand", (5.6, 2.0, Z0), math.radians(60))                 # living room, by the window
 
     kit.world_hdri(a.sky, "4k", a.sky_strength, sun_az=a.sun)
     if a.sun_lamp > 0:      # a crisp sun on top of the sky's own soft one
