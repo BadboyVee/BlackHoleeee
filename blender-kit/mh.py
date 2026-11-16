@@ -352,8 +352,9 @@ def _mesh_obj(name, co, faces, fuv, vt, mat, collection, smooth=True):
 
 def human(name, gender="male", race="african", age="young", muscle="average", weight="average", height=None,
           skin=None, clothes=(), hair=None, eyes="brown", eyebrows="eyebrow001", pose=None, collection=None,
-          tint=None, extra_targets=(), subdiv=0, shift=(0, 0, 0), textures=None, expression="soft"):
-    """Build a posed, clothed person as one mesh object standing on z=0 at the origin."""
+          tint=None, extra_targets=(), subdiv=0, shift=(0, 0, 0), textures=None, expression="soft", bake=True):
+    """Build a posed, clothed person as one mesh object standing on z=0 at the origin.
+    With bake=False the live rig is returned instead: (armature object, [mesh objects])."""
     b = base()
     collection = collection or bpy.context.scene.collection
     tint = tint or {}
@@ -477,6 +478,21 @@ def human(name, gender="male", race="african", age="young", muscle="average", we
                         g.add([k], w, "REPLACE")
         md = ob.modifiers.new("arm", "ARMATURE")
         md.object = arm
+
+    if not bake:
+        for ob, _ in parts:
+            ob.parent = arm
+            if subdiv:
+                sm = ob.modifiers.new("sub", "SUBSURF")
+                sm.levels = 0
+                sm.render_levels = subdiv
+        import bmesh as _bm
+        bmx = _bm.new()
+        bmx.from_mesh(parts[0][0].data)
+        _bm.ops.delete(bmx, geom=[v for v in bmx.verts if not v.link_faces], context="VERTS")
+        bmx.to_mesh(parts[0][0].data)
+        bmx.free()
+        return arm, [ob for ob, _ in parts]
 
     # --- pose: {bone: (rx, ry, rz)} in degrees about the WORLD axes, applied on top of
     # whatever the parent chain has already done (so "X -80" always means "pitch forward").
@@ -636,3 +652,120 @@ POSES = {
         "lowerarm01.L": (-30, 0, 0), "lowerarm01.R": (-30, 0, 0),
     },
 }
+
+
+class Actor:
+    """A live, riggable person: pose it with world-axis rotations, reach for targets with the
+    arms (two-bone IK), curl the fingers, and keyframe the result for animation."""
+
+    FINGERS = [f"finger{i}-{j}" for i in (2, 3, 4, 5) for j in (1, 2, 3)]
+
+    def __init__(self, name, collection=None, **spec):
+        self.arm, self.parts = human(name, collection=collection, bake=False, **spec)
+        self.ad = self.arm.data
+        self.own = {}
+        self.touched = set()
+
+    # -- low level
+    def _apply(self):
+        ad, arm = self.ad, self.arm
+        total = {}
+
+        def tot(bn):
+            if bn in total:
+                return total[bn]
+            par = ad.bones[bn].parent
+            P = tot(par.name) if par else Matrix.Identity(3)
+            D = self.own.get(bn)
+            if D is None:
+                total[bn] = P
+                return P
+            Rb = ad.bones[bn].matrix_local.to_3x3()
+            pb = arm.pose.bones[bn]
+            pb.rotation_mode = "QUATERNION"
+            pb.rotation_quaternion = (Rb.inverted() @ P.inverted() @ D @ P @ Rb).to_quaternion()
+            total[bn] = D @ P
+            return total[bn]
+
+        for bn in list(self.touched):
+            if bn not in self.own:
+                pb = arm.pose.bones[bn]
+                pb.rotation_mode = "QUATERNION"
+                pb.rotation_quaternion = (1, 0, 0, 0)
+        for bn in self.own:
+            tot(bn)
+        self.touched |= set(self.own)
+        bpy.context.view_layer.update()
+
+    @staticmethod
+    def _mat(rot):
+        if isinstance(rot, Matrix):
+            return rot
+        return (Matrix.Rotation(math.radians(rot[2]), 3, "Z") @ Matrix.Rotation(math.radians(rot[1]), 3, "Y")
+                @ Matrix.Rotation(math.radians(rot[0]), 3, "X"))
+
+    # -- posing
+    def pose(self, fk, ik=None, grip=None):
+        """fk: {bone: (rx, ry, rz) degrees about world axes}. ik: {"L"/"R": target in the figure's own
+        frame} for the wrists. grip: {"L"/"R": 0..1} finger curl."""
+        self.own = {bn: self._mat(r) for bn, r in fk.items() if not bn.startswith("_") and bn in self.ad.bones}
+        self._apply()
+        for side, tgt in (ik or {}).items():
+            self._reach(side, Vector(tgt))
+        for side, amt in (grip or {}).items():
+            self._curl(side, amt)
+
+    def _reach(self, side, T):
+        pb = self.arm.pose.bones
+        ua, la, wr = f"upperarm01.{side}", f"lowerarm01.{side}", f"wrist.{side}"
+        for _ in range(2):                               # second pass cleans up the twist bones' drift
+            S, E0, W0 = pb[ua].head.copy(), pb[la].head.copy(), pb[wr].head.copy()
+            L1, L2 = (E0 - S).length, (W0 - E0).length
+            d = T - S
+            dist = max(0.05, min(d.length, L1 + L2 - 0.004))
+            dn = d.normalized()
+            a = (L1 * L1 - L2 * L2 + dist * dist) / (2 * dist)
+            h = math.sqrt(max(L1 * L1 - a * a, 0.0))
+            pole = Vector((0.45 if side == "L" else -0.45, 0.25, -1.0)).normalized()
+            p = pole - dn * pole.dot(dn)
+            p = p.normalized() if p.length > 1e-6 else Vector((0, 0, -1))
+            E = S + dn * a + p * h
+            R1 = (E0 - S).rotation_difference(E - S).to_matrix()
+            self.own[ua] = R1 @ self.own.get(ua, Matrix.Identity(3))
+            self._apply()
+            E1, W1 = pb[la].head.copy(), pb[wr].head.copy()
+            R2 = (W1 - E1).rotation_difference(S + dn * dist - E1).to_matrix()
+            self.own[la] = R2 @ self.own.get(la, Matrix.Identity(3))
+            self._apply()
+
+    def _curl(self, side, amt, sign=None):
+        pb = self.arm.pose.bones
+        k2, k5 = pb[f"finger2-1.{side}"].head, pb[f"finger5-1.{side}"].head
+        axis = (k2 - k5).normalized()                    # across the knuckles
+        tip = pb[f"finger3-3.{side}"].tail - pb[f"finger3-1.{side}"].head
+        palm = pb[f"finger3-1.{side}"].head - pb[f"wrist.{side}"].head
+        normal = axis.cross(palm.normalized())           # out of the back of the hand (or the palm)
+        sgn = sign if sign is not None else (1.0 if side == "L" else 1.0)
+        for i in (2, 3, 4, 5):
+            for j, f in ((1, 0.9), (2, 1.0), (3, 0.7)):
+                bn = f"finger{i}-{j}.{side}"
+                self.own[bn] = Matrix.Rotation(sgn * amt * f * math.radians(62), 3, axis)
+        self._apply()
+        # make sure the fingers closed toward the palm, not away from it: flip once if they opened
+        tip2 = pb[f"finger3-3.{side}"].tail - pb[f"finger3-1.{side}"].head
+        wr = pb[f"wrist.{side}"].head
+        if sign is None and amt > 0.05:
+            before = (pb[f"finger3-1.{side}"].head + tip - wr).length
+            after = (pb[f"finger3-3.{side}"].tail - wr).length
+            if after > before - 0.005:
+                self._curl(side, amt, sign=-sgn)
+
+    def ground(self):
+        """Lowest point of the feet (figure frame, z) in the current pose."""
+        pb = self.arm.pose.bones
+        zs = [pb[b].tail.z for b in ("foot.L", "foot.R", "toe1-1.L", "toe1-1.R") if b in pb]
+        return min(zs) - 0.035
+
+    def key(self, frame):
+        for bn in self.touched:
+            self.arm.pose.bones[bn].keyframe_insert("rotation_quaternion", frame=frame)

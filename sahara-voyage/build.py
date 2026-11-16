@@ -19,6 +19,7 @@ import numpy as np  # noqa: E402
 from mathutils import Matrix, Vector  # noqa: E402
 
 import cast  # noqa: E402
+import crew  # noqa: E402
 import kit  # noqa: E402
 import mh  # noqa: E402
 import suv  # noqa: E402
@@ -388,7 +389,7 @@ def build(a):
     heading = WIND + math.radians(a.heading)          # climbing the windward ramp by default
     print(f"SPOT {sx:.1f} {sy:.1f} h={float(height(sx, sy)):.2f} heading={math.degrees(heading):.0f}")
     # far terrain (4 m grid), mid (1 m) and a fine patch with ruts round the truck
-    P = 33.0
+    P = float(a.patch)
     mx, my = round(sx / 6.0) * 6.0, round(sy / 6.0) * 6.0          # snap so the three grids tile exactly
     fx, fy = round(sx), round(sy)
     fine = (fx - P, fy - P, fx + P, fy + P)
@@ -411,10 +412,8 @@ def build(a):
     truck.matrix_world = car_matrix(sx, sy, heading)
     cp = kit.coll("People")
     if a.mode == "drive":
-        crew = {"driver": cast.make("tunde", "car_drive", cp, subdiv=1), "front": cast.make("amina", "car_look_r", cp, subdiv=1),
-                "rear_l": cast.make("jack", "car_look_l", cp), "rear_c": cast.make("sophie", "car", cp),
-                "rear_r": cast.make("emeka", "car_look_r", cp)}
-        suv.seat_people(truck, crew)
+        if not a.anim:
+            crew.seat(truck, cp, time=1.0, subdiv=1)
         # dust plume: a long box trailing the rear wheels, aligned to the truck
         dm = dust_material(a.dust)
         bpy.ops.mesh.primitive_cube_add(size=1.0)
@@ -514,6 +513,7 @@ def build(a):
             us.append(u)
             u += v * dt
         truck.rotation_mode = "QUATERNION"
+        steer_a, sway_a = [], []
         wl = suv.wheels(lib)
         rest = [Vector(w.location) for w in wl]
         for w in wl:
@@ -563,6 +563,8 @@ def build(a):
                 spin += (us[fr - 1] - us[fr - 2]) / suv.TR
             curv = float(dlat(uu + 1.5) - dlat(uu - 1.5)) / 3.0
             steer = math.atan(2.8 * curv) * 1.6
+            steer_a.append(steer)
+            sway_a.append((-math.degrees(hp) * 2.2, math.degrees(hr) * 2.2))
             inv = body.inverted()
             for w, r0 in zip(wl, rest):
                 w.location = inv @ (m @ r0)
@@ -581,6 +583,9 @@ def build(a):
                             kp.interpolation = "LINEAR"
                 except Exception:
                     pass
+        # the travellers: live figures that steer, talk, point and ride the bumps
+        idx = lambda t: max(0, min(n - 1, int(round(t * fps))))
+        crew.seat(truck, cp, frames=n, fps=fps, steer=lambda t: steer_a[idx(t)], sway=lambda t: sway_a[idx(t)], subdiv=1)
         s_ = bpy.context.scene
         s_.render.fps = int(round(fps))
         s_.render.use_motion_blur = True
@@ -636,6 +641,7 @@ if __name__ == "__main__":
     ap.add_argument("--first", type=int, default=1, help="first frame to render (to resume a clip)")
     ap.add_argument("--last", type=int, default=0, help="last frame to render (default: the whole clip)")
     ap.add_argument("--step", type=int, default=1)
+    ap.add_argument("--patch", type=int, default=33, help="half-size (m) of the finely meshed sand round the truck")
     ap.add_argument("--heading", type=float, default=0.0, help="degrees off the wind direction")
     ap.add_argument("--sun-el", type=float, default=19.0)
     ap.add_argument("--sun-rot", type=float, default=350.0)

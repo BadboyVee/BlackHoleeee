@@ -74,3 +74,12 @@ def make(name, pose="stand", collection=None, obj_name=None, **over):
     spec.update(over)
     p = mh.POSES[pose] if isinstance(pose, str) else pose
     return mh.human(obj_name or name, pose=p, collection=collection, textures=tex, **spec)
+
+
+def actor(name, collection=None, **over):
+    """A live rig of a cast member, for animation (see mh.Actor)."""
+    spec = dict(CAST[name])
+    rt = spec.pop("retint", {})
+    tex = {a: mh.retint(a, name, **kw) for a, kw in rt.items()}
+    spec.update(over)
+    return mh.Actor(name, collection=collection, textures=tex, **spec)
