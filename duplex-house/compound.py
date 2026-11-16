@@ -71,6 +71,7 @@ class Site:
         self.trees = []          # (kind, x, y, scale)
         self.palms = []          # (x, y, height)
         self.shrubs = []         # (x, y, scale, variant)
+        self.flowers = []        # (x, y, scale): flowering ground cover along the walls
         self.variants = []       # library collections of restyled duplexes for the neighbours
         self.street_cars = []    # library collections of real cars for drives and kerbs
         self.cars_placed = []    # (collection, x, y, heading_deg)
@@ -478,11 +479,8 @@ class Site:
         while x < PX1 - 1.0:
             if not (PGATE[0] - 1.2 < x < GATE[1] + 1.2):
                 self.shrubs.append((x, PY0 - 0.55, r.uniform(0.28, 0.42), k % 4, 0.0))
-                if r.random() < 0.45:
-                    fm = S["flower_a"] if r.random() < 0.6 else S["flower_b"]
-                    for _ in range(14):
-                        fx, fy, fz = x + r.uniform(-0.5, 0.5), PY0 - 0.55 + r.uniform(-0.3, 0.3), r.uniform(0.35, 0.8)
-                        d.box(fx - 0.04, fy - 0.04, fz, fx + 0.04, fy + 0.04, fz + 0.06, fm)
+                if r.random() < 0.5:
+                    self.flowers.append((x + r.uniform(-0.3, 0.3), PY0 - 0.5, r.uniform(0.7, 1.0)))
             x += r.uniform(1.3, 2.0)
             k += 1
         self.palms += [(-9.0, PY0 - 0.9, 6.2), (3.5, PY0 - 0.9, 7.0), (23.5, PY0 - 0.9, 6.4)]
@@ -653,11 +651,8 @@ class Site:
         while xx < x1 - 1.2:
             if not (gx - 1.0 < xx < gx + 5.5) and r.random() < 0.7:
                 self.shrubs.append((xx, gy + sgn * 0.55, r.uniform(0.26, 0.44), kk % 4, 0.0))
-                if r.random() < 0.35:
-                    fm2 = S["flower_a"] if r.random() < 0.5 else S["flower_b"]
-                    for _ in range(12):
-                        fx, fy, fz = xx + r.uniform(-0.5, 0.5), gy + sgn * 0.55 + r.uniform(-0.3, 0.3), r.uniform(0.35, 0.8)
-                        nb.box(fx - 0.04, fy - 0.04, fz, fx + 0.04, fy + 0.04, fz + 0.06, fm2)
+                if r.random() < 0.4:
+                    self.flowers.append((xx + r.uniform(-0.3, 0.3), gy + sgn * 0.5, r.uniform(0.7, 1.0)))
             xx += r.uniform(1.6, 2.6)
             kk += 1
         cx = (x0 + x1) / 2 + r.uniform(-4, 4)
@@ -786,6 +781,8 @@ class Site:
         for (kind, x, y, s) in self.trees:
             kit.place(kind, (x, y, 0), rz=r.uniform(0, 6.283), scale=s, collection=c)
         self.grass(c)
+        for (x, y, s) in self.flowers:            # flowering ground cover, laid along the wall line
+            kit.place("shrub_01", (x, y, 0.0), rz=r.choice((0.0, math.pi)) + r.uniform(-0.08, 0.08), scale=s, collection=c)
         picks = ["shrub_02_a", "shrub_02_b", "shrub_02_c", "shrub_02_d"]
         for (x, y, s, v, z) in self.shrubs:
             kit.place("shrub_02", (x, y, z), rz=r.uniform(0, 6.283), scale=s, collection=c, pick=picks[v])
